@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>True</UseWindowsForms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MaterialDesignColors" Version="5.3.1" />
+    <PackageReference Include="MaterialDesignThemes" Version="5.3.1" />
+    <PackageReference Include="SkiaSharp" Version="3.119.2" />
+    <PackageReference Include="SkiaSharp.Views" Version="3.119.2" />
+    <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="3.119.2" />
+    <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="3.119.2" />
+    <PackageReference Include="SkiaSharp.Views.WPF" Version="3.119.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="RealmStudioShapeRenderingLib">
+      <HintPath>..\RealmStudioShapeRenderingLib\bin\Debug\net8.0\RealmStudioShapeRenderingLib.dll</HintPath>
+    </Reference>
+    <Reference Include="RealmStudioX.Core">
+      <HintPath>..\RealmStudioX.Core\bin\Debug\net8.0\RealmStudioX.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="RealmStudioX.Infrastructure">
+      <HintPath>..\RealmStudioX.Infrastructure\bin\Debug\net8.0\RealmStudioX.Infrastructure.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\realm_studio_icon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\StartupDialogTitleBar.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,26 @@
+﻿<UserControl x:Class="RealmStudioX.WPF.Views.BackgroundPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RealmStudioX.WPF.Views"
+             mc:Ignorable="d"
+             d:DesignHeight="916" d:DesignWidth="235">
+    <Grid Visibility="Visible" Background="#FFDFDBD2">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top">
+
+            <TextBlock Text="Background"
+                Foreground="Black"
+                FontSize="16"
+                FontWeight="SemiBold"
+                VerticalAlignment="Center"
+                Margin="0,0,0,0"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

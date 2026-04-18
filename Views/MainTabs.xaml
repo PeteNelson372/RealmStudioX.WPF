@@ -1,0 +1,119 @@
+﻿<UserControl x:Class="RealmStudioX.WPF.Views.MainTabs"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RealmStudioX.WPF.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="922" d:DesignWidth="278">
+    <TabControl x:Name="MainTabControl" TabStripPlacement="Left">
+        <TabControl.Resources>
+            <Style TargetType="{x:Type TabItem}">
+
+                <Setter Property="Padding" Value="2"/>
+                <Setter Property="Width" Value="35"/>
+                <Setter Property="Height" Value="75"/>
+                <Setter Property="Background" Value="#FFDFDBD2"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Margin" Value="1"/>
+
+                <Setter Property="HeaderTemplate">
+                    <Setter.Value>
+                        <DataTemplate>
+                            <ContentPresenter Content="{Binding}">
+                                <ContentPresenter.LayoutTransform>
+                                    <RotateTransform Angle="270" />
+                                </ContentPresenter.LayoutTransform>
+                            </ContentPresenter>
+                        </DataTemplate>
+                    </Setter.Value>
+                </Setter>
+
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TabItem">
+
+                            <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                Margin="{TemplateBinding Margin}">
+
+                                <ContentPresenter ContentSource="Header"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+
+                            </Border>
+
+                            <ControlTemplate.Triggers>
+
+                                <!-- Selected (keep your color scheme) -->
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="Border"
+                                                    Property="Background"
+                                                    Value="#8A9EA0"/>
+                                </Trigger>
+
+                                <MultiTrigger>
+                                    <MultiTrigger.Conditions>
+                                        <Condition Property="IsMouseOver" Value="True"/>
+                                        <Condition Property="IsSelected" Value="False"/>
+                                    </MultiTrigger.Conditions>
+
+                                    <Setter TargetName="Border"
+                                                    Property="Background"
+                                                    Value="#C8C4BC"/>
+                                </MultiTrigger>
+
+                            </ControlTemplate.Triggers>
+
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+
+            </Style>
+
+        </TabControl.Resources>
+        <TabItem Header="Background">
+            <local:BackgroundPanel/>
+        </TabItem>
+        <TabItem Header="Ocean">
+            <local:OceanPanel/>
+        </TabItem>
+        <TabItem Header="Land">
+            <local:LandformPanel/>
+        </TabItem>
+        <TabItem Header="Water">
+            <local:WaterPanel/>
+        </TabItem>
+        <TabItem Header="Paths">
+            <local:PathsPanel/>
+        </TabItem>
+        <TabItem Header="Symbols">
+            <local:SymbolsPanel/>
+        </TabItem>
+        <TabItem Header="Labels">
+            <local:LabelsPanel/>
+        </TabItem>
+        <TabItem Header="Overlays">
+            <local:OverlaysPanel/>
+        </TabItem>
+        <TabItem Header="Regions">
+            <local:RegionsPanel/>
+        </TabItem>
+        <TabItem Header="Drawing">
+            <local:DrawingPanel/>
+        </TabItem>
+        <TabItem Header="Interior" Visibility="Collapsed">
+            <local:InteriorPanel/>
+        </TabItem>
+        <TabItem Header="Dungeon" Visibility="Collapsed">
+            <local:DungeonPanel/>
+        </TabItem>
+        <TabItem Header="Ship" Visibility="Collapsed">
+            <local:ShipPanel/>
+        </TabItem>
+        <TabItem Header="Planet" Visibility="Collapsed">
+            <local:PlanetPanel/>
+        </TabItem>
+
+    </TabControl>
+</UserControl>

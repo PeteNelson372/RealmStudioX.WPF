@@ -1,0 +1,153 @@
+﻿<Window x:Class="RealmStudioX.WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wfi="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
+        xmlns:wf="clr-namespace:SkiaSharp;assembly=SkiaSharp"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:views="clr-namespace:RealmStudioX.WPF.Views"
+        Title="RealmStudioX"
+        Width="1580"
+        Height="1024"
+        Background="#1E1E1E"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        Icon="Assets/realm_studio_icon.ico">
+
+    <Window.Resources>
+    </Window.Resources>
+
+    <!-- WindowChrome -->
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="32"
+                            ResizeBorderThickness="5"
+                            CornerRadius="0"/>
+    </shell:WindowChrome.WindowChrome>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="48"/>
+            <!-- Custom Title Bar -->
+            <RowDefinition Height="Auto"/>
+            <!-- Menu -->
+            <RowDefinition Height="*"/>
+            <!-- Main -->
+            <RowDefinition Height="22"/>
+            <RowDefinition Height="22"/>
+            <!-- Status -->
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="278"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="152"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ========================= -->
+        <!-- CUSTOM TITLE BAR -->
+        <!-- ========================= -->
+        <Border Grid.Row="0"
+            Grid.ColumnSpan="3"
+            Background="#FF45443F">
+
+            <views:MainTitleBar x:Name="TitleBar"/>
+
+        </Border>
+
+        <!-- ========================= -->
+        <!-- MENU -->
+        <!-- ========================= -->
+
+        <DockPanel Grid.Row="1" Grid.ColumnSpan="3"
+           Background="#FFDFDBD2">
+
+            <views:MenuIconBar DockPanel.Dock="Right"
+                Background="#FFDFDBD2"
+                Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+                Height="32"/>
+
+            <views:MainMenu x:Name="MainMenu"
+                DockPanel.Dock="Left"
+                Background="#FFDFDBD2"
+                Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+                Height="32"/>
+        </DockPanel>
+
+
+        <Grid Grid.Row="2">
+            <!-- Tab Control -->
+            <Grid Grid.Column="1" Background="#FFDFDBD2">
+                <views:MainTabs x:Name="MainTabs"
+                    Background="#FFDFDBD2"
+                    Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            </Grid>
+
+        </Grid>
+
+        <!-- ========================= -->
+        <!-- SKIA GPU CANVAS -->
+        <!-- ========================= -->
+
+        <Grid Grid.Row="2"
+                Grid.Column="1">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <!-- Canvas -->
+                <RowDefinition Height="Auto"/>
+                <!-- Horizontal scrollbar -->
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <!-- Canvas -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- Vertical scrollbar -->
+            </Grid.ColumnDefinitions>
+
+            <!-- SKGLControl host -->
+            <wfi:WindowsFormsHost x:Name="FormsHost"
+                Visibility="Visible"
+                Background="WhiteSmoke"/>
+
+            <!-- Horizontal ScrollBar -->
+            <ScrollBar x:Name="HScroll"
+               Grid.Row="1"
+               Grid.Column="0"
+               Orientation="Horizontal"
+               Minimum="0"
+               Maximum="100"
+               ValueChanged="OnHScroll"/>
+
+            <!-- Vertical ScrollBar -->
+            <ScrollBar x:Name="VScroll"
+               Grid.Row="0"
+               Grid.Column="1"
+               Orientation="Vertical"
+               Minimum="0"
+               Maximum="100"
+               ValueChanged="OnVScroll"/>
+
+        </Grid>
+
+        <ContentControl x:Name="SecondaryPanelHost"
+                Grid.Row="2"
+                Grid.Column="2"
+                Background="WhiteSmoke"/>
+
+        <!-- ========================= -->
+        <!-- STATUS BAR -->
+        <!-- ========================= -->
+        <StatusBar x:Name="MapStatusBar" Grid.Row="3" Grid.ColumnSpan="3"
+                   Background="#2D2D30"
+                   Foreground="White">
+            <TextBlock Text="Map Status"/>
+        </StatusBar>
+        <StatusBar x:Name="ApplicationStatusBar" Grid.Row="4" Grid.ColumnSpan="3"
+                   Background="#2D2D30"
+                   Foreground="White">
+            <TextBlock Text="Application Status"/>
+        </StatusBar>
+
+    </Grid>
+</Window>
