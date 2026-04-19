@@ -6,13 +6,14 @@
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:views="clr-namespace:RealmStudioX.WPF.Views"
+        xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
         Title="RealmStudioX"
         Width="1100"
         Height="700"
         Background="#1E1E1E"
         WindowStyle="None"
         ResizeMode="NoResize"
-        Icon="../../Assets/realm_studio_icon.ico">
+        Icon="../../Assets/ico/realm_studio_icon.ico">
 
     <!-- WindowChrome -->
     <shell:WindowChrome.WindowChrome>
@@ -27,14 +28,14 @@
             <!-- Custom Title Bar -->
             <RowDefinition Height="*"/>
             <!-- Main -->
-            <RowDefinition Height="70"/>
+            <RowDefinition Height="80"/>
             <!-- Buttons -->
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="10"/>
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="345" />
         </Grid.ColumnDefinitions>
 
         <!-- ========================= -->
@@ -61,7 +62,7 @@
 
                     <TextBox x:Name="MapNameBox"
                      Padding="4"
-                     Margin="10,0,10,0"
+                     Margin="10,0,0,0"
                      Text="{Binding MapName, UpdateSourceTrigger=PropertyChanged}"/>
 
                     <TextBlock Text="Enter Realm Name..."
@@ -88,94 +89,282 @@
 
                 </Grid>
 
-                <!-- Width -->
 
-                <!-- Height -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-                <!-- Presets -->
-
-                <!-- Theme -->
-                <TextBlock/>
-                <GroupBox Height="471" Header="Realm Type" Width="200" HorizontalAlignment="Left" Margin="10,0,0,0">
-                    <ListBox x:Name="MapTypeList"
+                    <GroupBox Grid.Column="0" Grid.Row="0" Height="471" Header="Realm Type" Width="190" HorizontalAlignment="Left" Margin="10,0,0,0">
+                        <ListBox x:Name="MapTypeList"
                          BorderThickness="0"
                          Background="Transparent"
                          SelectedIndex="0">
 
-                        <ListBox.ItemContainerStyle>
-                            <Style TargetType="ListBoxItem">
-                                <Setter Property="Margin" Value="2"/>
-                                <Setter Property="Padding" Value="4"/>
-                                <Setter Property="Cursor" Value="Hand"/>
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Margin" Value="2"/>
+                                    <Setter Property="Padding" Value="4"/>
+                                    <Setter Property="Cursor" Value="Hand"/>
 
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="ListBoxItem">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
 
-                                            <Border x:Name="Border"
+                                                <Border x:Name="Border"
                                                 Background="#EEE"
                                                 BorderBrush="#CCC"
                                                 BorderThickness="1"
                                                 CornerRadius="4"
                                                 Padding="6">
 
-                                                <StackPanel Orientation="Horizontal"
-                                                    VerticalAlignment="Center">
+                                                    <StackPanel Orientation="Horizontal"
+                                                        VerticalAlignment="Center">
 
-                                                    <!-- Icon -->
-                                                    <materialDesign:PackIcon Kind="{Binding Icon}"
+                                                        <!-- Icon -->
+                                                        <materialDesign:PackIcon Kind="{Binding Icon}"
                                                          Width="20"
                                                          Height="20"
                                                          Margin="0,0,8,0"
                                                          VerticalAlignment="Center"/>
 
-                                                    <!-- Label -->
-                                                    <TextBlock Text="{Binding Name}"
+                                                        <!-- Label -->
+                                                        <TextBlock Text="{Binding Name}"
                                                        FontSize="14"
                                                        VerticalAlignment="Center"/>
 
-                                                </StackPanel>
+                                                    </StackPanel>
 
-                                            </Border>
+                                                </Border>
 
-                                            <ControlTemplate.Triggers>
+                                                <ControlTemplate.Triggers>
 
-                                                <!-- Selected -->
-                                                <Trigger Property="IsSelected" Value="True">
-                                                    <Setter TargetName="Border"
+                                                    <!-- Selected -->
+                                                    <Trigger Property="IsSelected" Value="True">
+                                                        <Setter TargetName="Border"
                                                         Property="Background"
                                                         Value="#007ACC"/>
-                                                    <Setter Property="Foreground"
+                                                        <Setter Property="Foreground"
                                                         Value="White"/>
-                                                </Trigger>
+                                                    </Trigger>
 
-                                                <!-- Hover -->
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="Border"
+                                                    <!-- Hover -->
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="Border"
                                                         Property="Background"
                                                         Value="#DDD"/>
-                                                </Trigger>
+                                                    </Trigger>
 
-                                            </ControlTemplate.Triggers>
+                                                </ControlTemplate.Triggers>
 
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </ListBox.ItemContainerStyle>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
 
-                    </ListBox>
-                </GroupBox>
+                        </ListBox>
+                    </GroupBox>
+                    <GroupBox Grid.Column="1" Header="Realm Map Size Presets" Margin="10,0,0,0" Width="200" HorizontalAlignment="Left">
+                    </GroupBox>
+                    <StackPanel Grid.Column="2" Width="280" HorizontalAlignment="Left" Margin="10,0,0,0" Grid.ColumnSpan="2">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                        </Grid>
+                        <GroupBox Grid.Row="0" Header="Realm Map Theme">
+                            <ListBox Height="154">
+                            </ListBox>
+                        </GroupBox>
+                        <GroupBox Header="Realm Map Size"
+                            Padding="10"
+                            Margin="0">
+
+                            <Grid>
+                              
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Width -->
+                                <TextBlock Text="Width"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,8,6"/>
+                                <Grid Grid.Column="1">
+                                    <controls:NumericUpDown x:Name="WidthBox"
+                                     Value="1920"
+                                     Minimum="500"
+                                     Maximum="10000"
+                                     Margin="0,0,6,6"
+                                     Width="120"/>
+                                </Grid>
+                                <!-- Lock -->
+                                <Button Grid.Column="2"
+                                    Width="28"
+                                    Height="28"
+                                    Margin="0,0,0,6"
+                                    ToolTip="Lock aspect ratio"
+                                    Background="#FFDFDBD2"
+                                    BorderBrush="#FFDFDBD2"
+                                    Click="OnToggleAspectLock">
+
+                                    <materialDesign:PackIcon Kind="Lock"
+                                     Width="16"
+                                     Height="16"
+                                     Opacity="0.7"/>
+                                </Button>
+
+                                <!-- Height -->
+                                <TextBlock Text="Height"
+                                   Grid.Row="1"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,8,6"/>
+
+                                <Grid Grid.Row="1" Grid.Column="1">
+                                    <controls:NumericUpDown x:Name="HeightBox"
+                                     Grid.Column="1"
+                                     Value="1080"
+                                     Minimum="500"
+                                     Maximum="10000"
+                                     Margin="0,0,6,6"
+                                     Width="120"/>
+                                </Grid>
+                                <!-- Swap -->
+                                <Button Grid.Row="1"
+                                    Grid.Column="2"
+                                    Width="28"
+                                    Height="28"
+                                    Background="#FFDFDBD2"
+                                    BorderBrush="#FFDFDBD2"                                        
+                                    ToolTip="Swap width/height"
+                                    Click="OnSwapDimensions">
+
+                                    <materialDesign:PackIcon Kind="SwapVertical"
+                                     Width="16"
+                                     Height="16"
+                                     Opacity="0.7"/>
+                                </Button>
+
+                                <!-- Aspect Ratio -->
+                                <TextBlock Grid.Row="2"
+                                   Text="Aspect Ratio"
+                                   Margin="0,6,8,0"
+                                   VerticalAlignment="Center"/>
+
+                                <TextBlock x:Name="AspectRatioText"
+                                   Grid.Row="2"
+                                   Grid.Column="1"
+                                   Margin="0,6,0,0"
+                                   VerticalAlignment="Center"
+                                   Foreground="#666"
+                                   Text="1.78"/>
+
+                            </Grid>
+
+                        </GroupBox>
+
+                        <GroupBox Header="Realm Map Area"
+                          Padding="10,10,10,40"
+                          Margin="0,10,0,0">
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="120"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Units -->
+                                <TextBlock Text="Map Area Units"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,8,6"/>
+
+                                <ComboBox x:Name="UnitsCombo"
+                                  Grid.Column="1"
+                                  Margin="0,0,0,6"
+                                  Background="#FFDFDBD2"                                          
+                                  SelectedIndex="2">
+                                    <!-- Default = Meters -->
+
+                                    <ComboBoxItem Content="Centimeters"/>
+                                    <ComboBoxItem Content="Inches"/>
+                                    <ComboBoxItem Content="Feet"/>
+                                    <ComboBoxItem Content="Yards"/>
+                                    <ComboBoxItem Content="Meters"/>
+                                    <ComboBoxItem Content="Kilometers"/>
+                                    <ComboBoxItem Content="Miles"/>
+                                    <ComboBoxItem Content="Astronomical Units (AU)"/>
+                                    <ComboBoxItem Content="Light Years"/>
+                                    <ComboBoxItem Content="Parsecs"/>
+
+                                </ComboBox>
+
+                                <!-- Width -->
+                                <TextBlock Text="Map Area Width"
+                                   Grid.Row="1"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,8,6"/>
+
+                                <controls:NumericUpDown x:Name="AreaWidthBox"
+                                     Grid.Row="1"
+                                     Grid.Column="1"
+                                     Foreground="Black"
+                                     Background="#FFDFDBD2" 
+                                     Value="100"
+                                     Margin="0,0,0,6"
+                                     Width="120"
+                                     Height="24"/>
+
+                                <!-- Height -->
+                                <TextBlock Text="Map Area Height"
+                                   Grid.Row="2"
+                                   VerticalAlignment="Center"/>
+
+                                <TextBlock x:Name="AreaHeightText"
+                                   Grid.Row="2"
+                                   Grid.Column="1"
+                                   Margin="85,0,0,0"
+                                   VerticalAlignment="Center"
+                                   Foreground="Black"
+                                   Text="75"/>
+
+                            </Grid>
+
+                        </GroupBox>
+                    </StackPanel>
+
+
+                </Grid>
             </StackPanel>
+
         </Border>
         <StackPanel Grid.Row="2" Grid.Column="0"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"
-                    Margin="0,0,30,20">
+                    Margin="0,0,30,10">
 
             <Button Content="Create"
-                    Width="100"
+                    Width="60"
+                    Height="60"
                     Click="OnCreate"/>
 
         </StackPanel>
@@ -204,16 +393,16 @@
                     Orientation="Horizontal"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"
-                    Margin="0,0,10,20">
+                    Margin="0,0,10,10">
 
             <Button Content="Cancel"
-                    Width="100"
+                    Width="60"
                     Margin="0,0,10,0"
-                    Click="OnCancel"/>
+                    Click="OnCancel" Height="60"/>
 
             <Button Content="Open"
-                    Width="100"
-                    Click="OnOpen"/>
+                    Width="60"
+                    Click="OnOpen" Height="60"/>
 
         </StackPanel>
 

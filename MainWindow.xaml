@@ -9,10 +9,10 @@
         Title="RealmStudioX"
         Width="1580"
         Height="1024"
-        Background="#1E1E1E"
+        Background="#FFDFDBD2"
         WindowStyle="None"
         ResizeMode="CanResize"
-        Icon="Assets/realm_studio_icon.ico">
+        Icon="Assets/ico/realm_studio_icon.ico">
 
     <Window.Resources>
     </Window.Resources>
@@ -130,24 +130,85 @@
 
         </Grid>
 
-        <ContentControl x:Name="SecondaryPanelHost"
-                Grid.Row="2"
-                Grid.Column="2"
-                Background="WhiteSmoke"/>
-
         <!-- ========================= -->
         <!-- STATUS BAR -->
         <!-- ========================= -->
         <StatusBar x:Name="MapStatusBar" Grid.Row="3" Grid.ColumnSpan="3"
-                   Background="#2D2D30"
+                   Background="#FF45443F"
                    Foreground="White">
             <TextBlock Text="Map Status"/>
         </StatusBar>
         <StatusBar x:Name="ApplicationStatusBar" Grid.Row="4" Grid.ColumnSpan="3"
-                   Background="#2D2D30"
+                   Background="#FF45443F"
                    Foreground="White">
             <TextBlock Text="Application Status"/>
         </StatusBar>
+
+        <Grid Grid.Row="2" Grid.Column="2">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <!-- SecondaryPanelHost -->
+                <RowDefinition Height="Auto"/>
+                <!-- Zoom controls -->
+            </Grid.RowDefinitions>
+
+            <!-- Secondary tool panels -->
+            <ContentControl x:Name="SecondaryPanelHost"
+                    Grid.Row="0"
+                    Background="WhiteSmoke"/>
+            
+            
+
+            <!-- Zoom controls -->
+            <StackPanel Grid.Row="1"
+                Orientation="Vertical"
+                HorizontalAlignment="Right"
+                Margin="0">
+
+                <!-- Zoom slider -->
+                <Slider x:Name="ZoomSlider"
+                Width="144"
+                Minimum="1"
+                Maximum="800"
+                Value="100"
+                IsSnapToTickEnabled="True"
+                Margin="0,0,0,6" LargeChange="5" SmallChange="1"/>
+
+                <!-- Buttons -->
+                <StackPanel Orientation="Horizontal" Width="152">
+
+                    <!-- Fit to screen -->
+                    <Button
+                    Height="51"
+                    Margin="2,0,0,0"
+                    Click="OnFitToScreen" Width="74" Background="{DynamicResource {x:Static SystemColors.InactiveCaptionBrushKey}}">
+                        <materialDesign:PackIcon Kind="FitToPageOutline"
+                                Foreground="#FF45443F"
+                                Opacity="1"
+                                Width="32"
+                                Height="32"
+                                ToolTip="Zoom to 100%"/>
+                    </Button>
+
+                    <Button
+                    Height="51"
+                    Click="OnResetZoom" Width="74" HorizontalAlignment="Right" Background="{DynamicResource {x:Static SystemColors.InfoBrushKey}}">
+                        <materialDesign:PackIcon Kind="ImageFilterCenterFocus"
+                                Foreground="#FF45443F"
+                                Opacity="1"
+                                Width="32"
+                                Height="32"
+                                ToolTip="Reset Zoom"/>
+                    </Button>
+
+                    <!-- 100% -->
+
+                </StackPanel>
+
+            </StackPanel>
+
+        </Grid>
 
     </Grid>
 </Window>

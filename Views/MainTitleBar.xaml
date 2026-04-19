@@ -10,7 +10,7 @@
              d:DesignHeight="48" d:DesignWidth="1580">
 
     <DockPanel LastChildFill="True">
-        <Image Source="../Assets/realm_studio_icon.ico"
+        <Image Source="../Assets/ico/realm_studio_icon.ico"
                     Width="36"
                     Height="36"
                     Margin="10,0,6,0"/>

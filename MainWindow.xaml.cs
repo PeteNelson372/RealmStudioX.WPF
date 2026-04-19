@@ -140,7 +140,7 @@ namespace RealmStudioX.WPF
         }
 
         //==========================================
-        // Scrollbars
+        // Scrollbars and Zoom Event Handlers
         //==========================================
 
         private void OnHScroll(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -153,6 +153,16 @@ namespace RealmStudioX.WPF
         {
             //_cameraY = (float)e.NewValue;
             //InvalidateCanvas();
+        }
+
+        private void OnFitToScreen(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void OnResetZoom(object sender, RoutedEventArgs e)
+        {
+
         }
 
         //==========================================
