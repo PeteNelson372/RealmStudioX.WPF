@@ -1,0 +1,19 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Title bar -->
+    <SolidColorBrush x:Key="TitleBarForegroundBrush" Color="#CCCCCC"/>
+    <SolidColorBrush x:Key="TitleBarHoverBackgroundBrush" Color="#C8C4BC"/>
+    <SolidColorBrush x:Key="CloseButtonHoverBrush" Color="#E81123"/>
+
+    <!-- Toggle -->
+    <SolidColorBrush x:Key="ToggleOffBrush" Color="#C84C4C"/>
+    <SolidColorBrush x:Key="ToggleOnBrush" Color="#4CAF50"/>
+
+    <!-- Scrollbar -->
+    <SolidColorBrush x:Key="ScrollThumbBrush" Color="#888"/>
+    <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#AAA"/>
+    <SolidColorBrush x:Key="ScrollThumbDragBrush" Color="#CCC"/>
+
+</ResourceDictionary>

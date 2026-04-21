@@ -1,0 +1,224 @@
+﻿<Window x:Class="RealmStudioX.WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wfi="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
+        xmlns:wf="clr-namespace:SkiaSharp;assembly=SkiaSharp"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:views="clr-namespace:RealmStudioX.WPF.Views"
+        xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"        
+        Title="RealmStudioX"
+        Width="1580"
+        Height="1024"
+        Background="#FFDFDBD2"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        Icon="pack://application:,,,/Assets/ico/realm_studio_icon.ico">
+
+    <Window.Resources>
+    </Window.Resources>
+
+    <!-- WindowChrome -->
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="32"
+                            ResizeBorderThickness="5"
+                            CornerRadius="0"/>
+    </shell:WindowChrome.WindowChrome>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="48"/>
+            <!-- Custom Title Bar -->
+            <RowDefinition Height="Auto"/>
+            <!-- Menu -->
+            <RowDefinition Height="*"/>
+            <!-- Main -->
+            <RowDefinition Height="22"/>
+            <RowDefinition Height="22"/>
+            <!-- Status -->
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="278"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="152"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ========================= -->
+        <!-- CUSTOM TITLE BAR -->
+        <!-- ========================= -->
+        <Border Grid.Row="0"
+            Grid.ColumnSpan="3"
+            Background="#FF45443F">
+
+            <controls:MainTitleBar x:Name="TitleBar"/>
+
+        </Border>
+
+        <!-- ========================= -->
+        <!-- MENU -->
+        <!-- ========================= -->
+
+        <DockPanel Grid.Row="1" Grid.ColumnSpan="3"
+           Background="#FFDFDBD2">
+
+            <controls:MenuIconBar DockPanel.Dock="Right"
+                Background="#FFDFDBD2"
+                Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+                Height="32"/>
+
+            <controls:MainMenu x:Name="MainMenu"
+                DockPanel.Dock="Left"
+                Background="#FFDFDBD2"
+                Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+                Height="32"/>
+        </DockPanel>
+
+
+        <Grid Grid.Row="2">
+            <!-- Tab Control -->
+            <Grid Grid.Column="1" Background="#FFDFDBD2">
+                <controls:MainTabs x:Name="MainTabs"
+                    Background="#FFDFDBD2"
+                    Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            </Grid>
+
+        </Grid>
+
+        <!-- ========================= -->
+        <!-- SKIA GPU CANVAS -->
+        <!-- ========================= -->
+
+        <Grid Grid.Row="2"
+                Grid.Column="1">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="22"/>
+                <RowDefinition Height="*"/>
+                <!-- Canvas -->
+                <RowDefinition Height="Auto"/>
+                <!-- Horizontal scrollbar -->
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <!-- Canvas -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- Vertical scrollbar -->
+            </Grid.ColumnDefinitions>
+
+            <StatusBar x:Name="TitleStatusBar" Grid.Row="0"
+                   Background="#FF45443F"
+                   Foreground="White">
+                <TextBlock Text=""/>
+            </StatusBar>
+            
+            <!-- SKGLControl host -->
+            <wfi:WindowsFormsHost x:Name="FormsHost" Grid.Row="1"
+                Visibility="Visible"
+                Background="WhiteSmoke"/>
+
+            <!-- Horizontal ScrollBar -->
+            <ScrollBar x:Name="HScroll"
+               Grid.Row="2"
+               Grid.Column="0"
+               Orientation="Horizontal"
+               Style="{StaticResource HorizontalScrollBarStyle}"
+               Minimum="0"
+               Maximum="100"
+               ValueChanged="OnHScroll"/>
+
+            <!-- Vertical ScrollBar -->
+            <ScrollBar x:Name="VScroll"
+               Grid.Row="1"
+               Grid.Column="1"
+               Orientation="Vertical"
+               Style="{StaticResource VerticalScrollBarStyle}"
+               Minimum="0"
+               Maximum="100"
+               ValueChanged="OnVScroll"/>
+
+        </Grid>
+
+        <!-- ========================= -->
+        <!-- STATUS BAR -->
+        <!-- ========================= -->
+        <StatusBar x:Name="MapStatusBar" Grid.Row="3" Grid.ColumnSpan="3"
+                   Background="#FF45443F"
+                   Foreground="White">
+            <TextBlock Text="Map Status"/>
+        </StatusBar>
+        <StatusBar x:Name="ApplicationStatusBar" Grid.Row="4" Grid.ColumnSpan="3"
+                   Background="#FF45443F"
+                   Foreground="White">
+            <TextBlock Text="Application Status"/>
+        </StatusBar>
+
+        <Grid Grid.Row="2" Grid.Column="2">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <!-- SecondaryPanelHost -->
+                <RowDefinition Height="Auto"/>
+                <!-- Zoom controls -->
+            </Grid.RowDefinitions>
+
+            <!-- Secondary tool panels -->
+            <ContentControl x:Name="SecondaryPanelHost"
+                    Grid.Row="0"
+                    Background="WhiteSmoke"/>
+            
+            
+
+            <!-- Zoom controls -->
+            <StackPanel Grid.Row="1"
+                Orientation="Vertical"
+                HorizontalAlignment="Right"
+                Margin="0">
+
+                <!-- Zoom slider -->
+                <Slider x:Name="ZoomSlider"
+                Width="144"
+                Minimum="1"
+                Maximum="800"
+                Value="100"
+                IsSnapToTickEnabled="True"
+                Margin="0,0,0,6" LargeChange="5" SmallChange="1"/>
+
+                <!-- Buttons -->
+                <StackPanel Orientation="Horizontal" Width="152">
+
+                    <!-- Fit to screen -->
+                    <Button
+                    Height="51"
+                    Margin="2,0,0,0"
+                    Click="OnFitToScreen" Width="74" Background="{DynamicResource {x:Static SystemColors.InactiveCaptionBrushKey}}">
+                        <materialDesign:PackIcon Kind="FitToPageOutline"
+                                Foreground="#FF45443F"
+                                Opacity="1"
+                                Width="32"
+                                Height="32"
+                                ToolTip="Zoom to 100%"/>
+                    </Button>
+
+                    <Button
+                    Height="51"
+                    Click="OnResetZoom" Width="74" HorizontalAlignment="Right" Background="{DynamicResource {x:Static SystemColors.InfoBrushKey}}">
+                        <materialDesign:PackIcon Kind="ImageFilterCenterFocus"
+                                Foreground="#FF45443F"
+                                Opacity="1"
+                                Width="32"
+                                Height="32"
+                                ToolTip="Reset Zoom"/>
+                    </Button>
+
+                    <!-- 100% -->
+
+                </StackPanel>
+
+            </StackPanel>
+
+        </Grid>
+
+    </Grid>
+</Window>

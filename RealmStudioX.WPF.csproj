@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Views\Controls\realm_studio_icon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MaterialDesignColors" Version="5.3.1" />
     <PackageReference Include="MaterialDesignThemes" Version="5.3.1" />
     <PackageReference Include="SkiaSharp" Version="3.119.2" />
@@ -17,7 +21,7 @@
     <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="3.119.2" />
     <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="3.119.2" />
     <PackageReference Include="SkiaSharp.Views.WPF" Version="3.119.2" />
-    <PackageReference Include="Svg.Skia" Version="4.3.0" />
+    <PackageReference Include="Svg.Skia" Version="4.4.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,12 +38,19 @@
 
   <ItemGroup>
     <Resource Include="Assets\ico\realm_studio_icon.ico" />
+    <Resource Include="Views\Controls\realm_studio_icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Views\StartupDialogTitleBar.xaml.cs">
+    <Compile Update="Views\Controls\StartupDialogTitleBar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Editor\Tools\" />
+    <Folder Include="Models\Map\" />
+    <Folder Include="ViewModels\Panels\" />
   </ItemGroup>
 
 </Project>

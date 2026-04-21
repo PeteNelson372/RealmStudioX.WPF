@@ -1,0 +1,36 @@
+﻿<UserControl x:Class="RealmStudioX.WPF.Views.Controls.MainMenu"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="32" d:DesignWidth="1304">
+    
+    <Menu Background="#FFDFDBD2"
+        Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+        Height="32">
+
+        <MenuItem Header="_File" Margin="10,6,0,0">
+            <MenuItem Header="_New" Click="OnNew"/>
+            <MenuItem Header="_Open..." Click="OnOpen"/>
+            <MenuItem Header="_Save" Click="OnSave"/>
+
+            <Separator/>
+
+            <MenuItem Header="E_xit" Click="OnExit"/>
+        </MenuItem>
+
+        <MenuItem Header="_Edit" Margin="0,6,0,0">
+            <MenuItem Header="_Undo" Click="OnUndo"/>
+            <MenuItem Header="_Redo" Click="OnRedo"/>
+        </MenuItem>
+
+        <MenuItem Header="Realm" Margin="0,6,0,0"/>
+        <MenuItem Header="Assets" Margin="0,6,0,0"/>
+        <MenuItem Header="Theme" Margin="0,6,0,0"/>
+        <MenuItem Header="Options" Margin="0,6,0,0"/>
+        <MenuItem Header="Help" Margin="0,6,0,0"/>
+
+    </Menu>
+</UserControl>

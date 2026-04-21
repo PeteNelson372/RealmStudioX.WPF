@@ -24,14 +24,14 @@ namespace RealmStudioX.WPF
             var dialog = new StartupDialog();
             var result = dialog.ShowDialog();
 
-            if (result != true || dialog.Result == null)
+            if (result != true || dialog.ViewModel.Result == null)
             {
                 Shutdown();
                 return;
             }
 
             // 3. Create MainWindow and pass result
-            var mainWindow = new MainWindow(dialog.Result);
+            var mainWindow = new MainWindow(dialog.ViewModel.Result);
 
             MainWindow = mainWindow;
             mainWindow.Show();
