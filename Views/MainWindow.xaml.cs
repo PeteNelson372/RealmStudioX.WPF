@@ -1,13 +1,27 @@
-﻿using RealmStudioX.WPF.Views;
+﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.Core;
+using RealmStudioX.Infrastructure;
+using RealmStudioX.WPF.Editor;
+using RealmStudioX.WPF.ViewModels.Main;
+using RealmStudioX.WPF.Views;
 using RealmStudioX.WPF.Views.Controls;
 using RealmStudioX.WPF.Views.Panels;
+using ShimSkiaSharp;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using MessageBox = System.Windows.MessageBox;
+using MouseEventArgs = System.Windows.Input.MouseEventArgs;
+using SKPaint = SkiaSharp.SKPaint;
+using SKPoint = SkiaSharp.SKPoint;
+using SKSize = SkiaSharp.SKSize;
+using SKTypeface = SkiaSharp.SKTypeface;
 using UserControl = System.Windows.Controls.UserControl;
 
 namespace RealmStudioX.WPF
@@ -18,6 +32,11 @@ namespace RealmStudioX.WPF
     public partial class MainWindow : Window
     {
         private SKGLControl? _skiaControl;
+        private EditorController? _editor;
+        private FontManager _fontManager;
+        private AssetManager _assetManager;
+
+        public MainWindowViewModel ViewModel { get; }
 
         public event EventHandler? OpenClicked;
         public event EventHandler? SaveClicked;
@@ -47,8 +66,30 @@ namespace RealmStudioX.WPF
         {
             InitializeComponent();
 
-            Loaded += (s, e) =>
+            _editor = new EditorController();
+            _editor.DrawingModeChanged += OnDrawingModeChanged;
+            _editor.ColorPaintBrushChanged += OnColorPaintBrushChanged;
+            _editor.ActiveDrawingLayerChanged += OnActiveDrawingLayerChanged;
+            _editor.MouseMoved += OnMouseMoved;
+            _editor.MouseDown += OnMouseDown;
+            _editor.MouseUp += OnMouseUp;
+            _editor.MouseDoubleClick += OnMouseDoubleClick;
+            _editor.RedrawRequested += () => _skiaControl?.Invalidate();
+
+            _fontManager = new FontManager();
+
+            ViewModel = new MainWindowViewModel(_editor);
+            DataContext = ViewModel;
+
+            // create the AssetManager instance
+            _assetManager = new();
+
+            AssetManager.RootRealmStudioXDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX");
+
+            Loaded += async (s, e) =>
             {
+                await InitializeApplicationAsync();
+
                 TitleBar.OpenClicked += (s, e) => OpenHandler();
                 TitleBar.SaveClicked += (s, e) => SaveHandler();
                 TitleBar.MinimizeClicked += (s, e) => MinimizeHandler();
@@ -65,6 +106,7 @@ namespace RealmStudioX.WPF
 
                 MainTabs.TabSelectionChanged += (s, e) => MainTabControl_SelectionChanged(s, e);
 
+                // force an update to the MainTabs selection to ensure the correct tool panel is displayed on startup
                 MainTabs.SelectTab("Background");
                 MainTabs.SelectTab("Ocean");
                 MainTabs.SelectTab("Background");
@@ -72,16 +114,52 @@ namespace RealmStudioX.WPF
                 if (startup.IsNew)
                 {
                     // Create new map
-                    // e.g. _controller.CreateMap(startup.Width, startup.Height, startup.Theme);
+                    if (string.IsNullOrEmpty(startup.MapName))
+                    {
+                        startup.MapName = "Default";
+                    }
+
+                    if (string.IsNullOrEmpty(startup.FilePath))
+                    {
+                        startup.FilePath = string.Empty;
+                    }
+
+                    RealmStudioMap map = MapBuilder.CreateMap(startup.FilePath, startup.MapName, startup.Width, startup.Height);
+                    _editor.Scene = new MapScene(map,_fontManager);
+
+                    ViewModel.MapName = map.MapName;
+                    ViewModel.MapSizeLabel = $"Map Size: {map.MapWidth} x {map.MapHeight}";
+
+                    OnDrawingModeChanged(MapDrawingMode.None);
+
+                    _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_editor.Scene.Map, MapBuilder.DRAWINGLAYER));
+                    ViewModel.ZoomLevelLabel = $"Zoom: {_editor.Scene.Camera.Zoom * 100.0f}%";
                 }
                 else
                 {
                     // Load existing map
                     // e.g. _controller.LoadMap(startup.FilePath);
                 }
+
+                ViewModel.ApplicationStatusMessage = $"Loaded {_assetManager.AssetCount} assets.";
             };
 
             InitializeSkiaControl();
+        }
+
+        private void OnDrawingModeChanged(MapDrawingMode mode)
+        {
+            ViewModel.DrawingModeLabel = ViewModel.SetDrawingModeLabel();
+        }
+
+        private void OnActiveDrawingLayerChanged(MapLayer layer)
+        {
+            ViewModel.SetDrawingLayerLabel();
+        }
+
+        private void OnColorPaintBrushChanged(ColorPaintBrush brush)
+        {
+            ViewModel.DrawingModeLabel = ViewModel.SetDrawingModeLabel();
         }
 
         private void OnOpen(object sender, RoutedEventArgs e)
@@ -99,6 +177,13 @@ namespace RealmStudioX.WPF
         private void OnMaximize(object sender, RoutedEventArgs e)
             => MaximizeClicked?.Invoke(this, EventArgs.Empty);
 
+        private async Task InitializeApplicationAsync()
+        {
+            await _assetManager.LoadAsync();
+
+            await _fontManager.InitializeAsync(Assembly.GetExecutingAssembly());
+        }
+
         //==========================================
         // SKGLControl
         //==========================================
@@ -108,6 +193,8 @@ namespace RealmStudioX.WPF
             _skiaControl = new SKGLControl();
             _skiaControl.PaintSurface += OnPaintSurface;
             FormsHost.Child = _skiaControl;
+
+            WireSkiaInput();
 
             StartRenderLoop();
         }
@@ -121,6 +208,118 @@ namespace RealmStudioX.WPF
                 {
                     _skiaControl?.Invalidate();
                 }
+            };
+        }
+
+        
+        private void WireSkiaInput()
+        {
+            ArgumentNullException.ThrowIfNull(_skiaControl, nameof(_skiaControl));
+            ArgumentNullException.ThrowIfNull(_editor, nameof(_editor));
+
+            // Mouse buttons
+            _skiaControl.MouseDown += (s, e) =>
+            {
+                if (_editor.Scene == null)
+                    return;
+
+                var screen = new SKPoint(e.X, e.Y);
+
+                var world = _editor.ScreenToWorld(screen);
+
+                var button = ConvertButton(e);
+
+                _editor.ActiveEditorTool?.OnMouseDown(world, button);
+
+                PointerState state = new()
+                {
+                    ScreenPoint = screen,
+                    WorldPoint = world,
+                    Button = button
+                };
+
+                _editor.NotifyMouseDown(state);
+
+                _skiaControl.Invalidate();
+            };
+
+            _skiaControl.MouseMove += (s, e) =>
+            {
+                if (_editor.Scene == null)
+                    return;
+
+                var screen = new SKPoint(e.X, e.Y);
+
+                var world = _editor.ScreenToWorld(screen);
+
+                var button = ConvertButton(e);
+
+                _editor.ActiveEditorTool?.OnMouseMove(world, button);
+
+                PointerState state = new()
+                {
+                    ScreenPoint = screen,
+                    WorldPoint = world,
+                    Button = button
+                };
+
+                _editor.NotifyMouseMoved(state);
+
+                _skiaControl.Invalidate();
+            };
+
+            _skiaControl.MouseUp += (s, e) =>
+            {
+                if (_editor.Scene == null)
+                    return;
+
+                var screen = new SKPoint(e.X, e.Y);
+
+                var world = _editor.ScreenToWorld(screen);
+
+                var button = ConvertButton(e);
+
+                _editor.ActiveEditorTool?.OnMouseDown(world, button);
+
+                PointerState state = new()
+                {
+                    ScreenPoint = screen,
+                    WorldPoint = world,
+                    Button = button
+                };
+
+                _editor.NotifyMouseDown(state);
+
+                _skiaControl.Invalidate();
+            };
+
+            _skiaControl.MouseDoubleClick += (s, e) =>
+            {
+                if (_editor.Scene == null)
+                    return;
+
+                var screen = new SKPoint(e.X, e.Y);
+                var world = _editor.ScreenToWorld(screen);
+
+                var button = ConvertButton(e);
+
+                _editor.ActiveEditorTool?.OnMouseDoubleClick(world, button);
+
+                PointerState state = new()
+                {
+                    ScreenPoint = screen,
+                    WorldPoint = world,
+                    Button = button
+                };
+
+                _editor.NotifyMouseDown(state);
+
+                _skiaControl.Invalidate();
+            };
+
+            _skiaControl.Resize += (s, e) =>
+            {
+                _editor.SetViewportSize(new SKSize(_skiaControl.Width, _skiaControl.Height));
             };
         }
 
@@ -140,6 +339,71 @@ namespace RealmStudioX.WPF
 
             canvas.DrawText("Drawing is working.", canvas.LocalClipBounds.MidX, canvas.LocalClipBounds.MidY, font, paint);
         }
+
+        //==========================================
+        // Mouse Interaction Event Handlers
+        //==========================================
+
+        private void OnMouseUp(PointerState state)
+        {
+
+        }
+
+        private void OnMouseMoved(PointerState state)
+        {
+            ViewModel.CursorPointLabel = $"Cursor Point: {state.ScreenPoint.X:F0}, {state.ScreenPoint.Y:F0}";
+            ViewModel.DrawingPointLabel = $"Map Point: {state.WorldPoint.X:F0}, {state.WorldPoint.Y:F0}";
+        }
+
+        private void OnMouseDown(PointerState state)
+        {
+
+        }
+
+        private void OnMouseDoubleClick(PointerState state)
+        {
+
+        }
+
+        private static EditorMouseButton ConvertButton(System.Windows.Forms.MouseEventArgs e)
+        {
+            if (e.Button == System.Windows.Forms.MouseButtons.Left)
+                return EditorMouseButton.Left;
+
+            if (e.Button == System.Windows.Forms.MouseButtons.Right)
+                return EditorMouseButton.Right;
+
+            if (e.Button == System.Windows.Forms.MouseButtons.Middle)
+                return EditorMouseButton.Middle;
+
+            return EditorMouseButton.None;
+        }
+
+        private EditorMouseButton ConvertButton(MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+                return EditorMouseButton.Left;
+
+            if (e.RightButton == MouseButtonState.Pressed)
+                return EditorMouseButton.Right;
+
+            if (e.MiddleButton == MouseButtonState.Pressed)
+                return EditorMouseButton.Middle;
+
+            return EditorMouseButton.None;
+        }
+
+        private EditorMouseButton ConvertButton(MouseButtonEventArgs e)
+        {
+            return e.ChangedButton switch
+            {
+                MouseButton.Left => EditorMouseButton.Left,
+                MouseButton.Right => EditorMouseButton.Right,
+                MouseButton.Middle => EditorMouseButton.Middle,
+                _ => EditorMouseButton.None
+            };
+        }
+
 
         //==========================================
         // Scrollbars and Zoom Event Handlers
@@ -241,6 +505,16 @@ namespace RealmStudioX.WPF
             }
 
             SecondaryPanelHost.Content = _toolPanels[tab];
+        }
+
+        //==========================================
+        // Pointer State Struct
+        //==========================================
+        public struct PointerState
+        {
+            public SKPoint WorldPoint;
+            public SKPoint ScreenPoint;
+            public EditorMouseButton Button;
         }
     }
 }

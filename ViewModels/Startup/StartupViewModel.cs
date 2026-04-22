@@ -55,6 +55,13 @@ namespace RealmStudioX.WPF.ViewModels.Startup
             set => SetProperty(ref _height, value);
         }
 
+        private float _aspectRatio = (float)1920 / 1080;
+        public float AspectRatio
+        {
+            get => _aspectRatio;
+            set => SetProperty(ref _aspectRatio, value);
+        }
+
         private float _areaWidth = 100;
         public float AreaWidth
         {

@@ -33,8 +33,8 @@
             <!-- Menu -->
             <RowDefinition Height="*"/>
             <!-- Main -->
-            <RowDefinition Height="22"/>
-            <RowDefinition Height="22"/>
+            <RowDefinition Height="28"/>
+            <RowDefinition Height="28"/>
             <!-- Status -->
         </Grid.RowDefinitions>
 
@@ -110,7 +110,12 @@
             <StatusBar x:Name="TitleStatusBar" Grid.Row="0"
                    Background="#FF45443F"
                    Foreground="White">
-                <TextBlock Text=""/>
+                <StatusBarItem
+                    HorizontalAlignment="Left"
+                    Width="350"
+                    Margin="10,0">
+                    <TextBlock Text="{Binding MapName}" />
+                </StatusBarItem>
             </StatusBar>
             
             <!-- SKGLControl host -->
@@ -146,12 +151,72 @@
         <StatusBar x:Name="MapStatusBar" Grid.Row="3" Grid.ColumnSpan="3"
                    Background="#FF45443F"
                    Foreground="White">
-            <TextBlock Text="Map Status"/>
+
+            <DockPanel LastChildFill="True">
+                <!-- Map Size -->
+                <StatusBarItem
+                    Width="150"
+                    DockPanel.Dock="Left"
+                    Margin="10,0" Foreground="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}">
+                    <TextBlock Text="{Binding MapSizeLabel}"/>
+                </StatusBarItem>
+
+                <StackPanel Orientation="Horizontal">
+
+                    <!-- Zoom Level -->
+                    <StatusBarItem
+                        Width="110"
+                        Margin="10,0" Foreground="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}">
+                        <TextBlock Text="{Binding ZoomLevelLabel}" />
+                    </StatusBarItem>
+
+                    <Separator/>
+
+                    <!-- Drawing Mode -->
+                    <StatusBarItem
+                        Width="650"
+                        Margin="10,0" Foreground="ForestGreen" FontWeight="Bold">
+                        <TextBlock Text="{Binding DrawingModeLabel}"/>
+                    </StatusBarItem>
+
+                    <Separator/>
+
+                    <!-- Drawing Layer -->
+                    <StatusBarItem
+                        Width="250"
+                        Margin="10,0" Foreground="SkyBlue" FontWeight="Bold">
+                        <TextBlock Text="{Binding DrawingLayerLabel}"/>
+                    </StatusBarItem>
+
+                    <Separator/>
+
+                    <!-- Drawing Point -->
+                    <StatusBarItem
+                        Width="140" Foreground="#dfdbd2" FontWeight="Bold">
+                        <TextBlock Text="{Binding DrawingPointLabel}"/>
+                    </StatusBarItem>
+
+                    <Separator/>
+
+                    <!-- Cursor Point -->
+                    <StatusBarItem
+                        Width="140"
+                        Margin="10,0" Foreground="#dfdbd2" FontWeight="Bold">
+                        <TextBlock Text="{Binding CursorPointLabel}"/>
+                    </StatusBarItem>
+                </StackPanel>
+            </DockPanel>
         </StatusBar>
+        
         <StatusBar x:Name="ApplicationStatusBar" Grid.Row="4" Grid.ColumnSpan="3"
                    Background="#FF45443F"
                    Foreground="White">
-            <TextBlock Text="Application Status"/>
+            <StatusBarItem
+                    HorizontalAlignment="Left"
+                    Width="325"
+                    Margin="10,0" Foreground="IndianRed">
+                <TextBlock Text="{Binding ApplicationStatusMessage}"/>
+            </StatusBarItem>
         </StatusBar>
 
         <Grid Grid.Row="2" Grid.Column="2">

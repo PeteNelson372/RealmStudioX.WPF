@@ -20,20 +20,19 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         public StartupResult? Result { get; private set; }
 
-        private double _width = 1920;
-        private double _height = 1080;
-
         private double _aspectRatio = 1920.0 / 1080.0;
         private bool _lockAspect = true;
-
-        private double _areaWidth = 100;
-        private double _areaHeight = 75;
 
         public StartupViewModel ViewModel { get; }
 
         public StartupDialog()
         {
             InitializeComponent();
+
+            ViewModel = new StartupViewModel(_mapsFolder, _themesFolder);
+            ViewModel.RequestClose += OnRequestClose;
+
+            DataContext = ViewModel;
 
             MapTypeList.ItemsSource = new List<MapTypeOption>
             {
@@ -86,7 +85,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
                 UpdateAspect();
 
-                _width = WidthBox.Value;
+                ViewModel.Width = (int)WidthBox.Value;
             };
 
             HeightBox.ValueChanged += (s, e) =>
@@ -99,14 +98,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
                 UpdateAspect();
 
-                _height = HeightBox.Value;
+                ViewModel.Height = (int)HeightBox.Value;
             };
-
-            ViewModel = new StartupViewModel(_mapsFolder, _themesFolder);
-            ViewModel.RequestClose += OnRequestClose;
-
-            DataContext = ViewModel;
-
         }
 
         private void OnRequestClose(bool? dialogResult)
@@ -119,8 +112,11 @@ namespace RealmStudioX.WPF.Views.Dialogs
         {
             if (AreaWidthBox.Value > 0)
             {
-                _areaHeight = AreaWidthBox.Value / _aspectRatio;
-                AreaHeightText.Text = _areaHeight.ToString("0");
+                var areaHeight = AreaWidthBox.Value / _aspectRatio;
+                AreaHeightText.Text = areaHeight.ToString("0");
+
+                ViewModel.AreaWidth = (float)AreaWidthBox.Value;
+                ViewModel.AreaHeight = (float)areaHeight;
             }
         }
 
@@ -133,18 +129,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
                 UpdateAspect();
 
-                _width = WidthBox.Value;
-                _height = HeightBox.Value;
-            }
-        }
-
-        public double AreaWidth
-        {
-            get => _areaWidth;
-            set
-            {
-                _areaWidth = value;
-                OnPropertyChanged();
+                ViewModel.Width = (int)WidthBox.Value;
+                ViewModel.Height = (int)HeightBox.Value;
             }
         }
 
@@ -174,6 +160,9 @@ namespace RealmStudioX.WPF.Views.Dialogs
             HeightBox.SetValue(w, false);
 
             UpdateAspect();
+
+            ViewModel.Width = (int)WidthBox.Value;
+            ViewModel.Height = (int)HeightBox.Value;
         }
 
         private void OnBrowse(object sender, RoutedEventArgs e)

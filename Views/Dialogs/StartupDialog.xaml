@@ -333,7 +333,7 @@
                                    Margin="0,0,8,6"/>
                                 <Grid Grid.Column="1">
                                     <controls:NumericUpDown x:Name="WidthBox"
-                                     Value="1920"
+                                     Value="{Binding Width}"
                                      Minimum="500"
                                      Maximum="10000"
                                      Margin="0,0,6,6"
@@ -362,9 +362,9 @@
                                    Margin="0,0,8,6"/>
 
                                 <Grid Grid.Row="1" Grid.Column="1">
-                                    <controls:NumericUpDown x:Name="HeightBox"
+                                    <controls:NumericUpDown x:Name="HeightBox"                                      
                                      Grid.Column="1"
-                                     Value="1080"
+                                     Value="{Binding Height}"
                                      Minimum="500"
                                      Maximum="10000"
                                      Margin="0,0,6,6"
@@ -398,7 +398,7 @@
                                    Margin="0,6,0,0"
                                    VerticalAlignment="Center"
                                    Foreground="#666"
-                                   Text="1.78"/>
+                                   Text="{Binding AspectRatio, StringFormat=F2}"/>
 
                             </Grid>
 
@@ -457,7 +457,7 @@
                                      Grid.Column="1"
                                      Foreground="Black"
                                      Background="#FFDFDBD2" 
-                                     Value="100"
+                                     Value="{Binding AreaWidth}"
                                      Margin="0,0,0,6"
                                      Width="100"
                                      Height="24"/>
@@ -473,7 +473,7 @@
                                    Margin="75,0,0,0"
                                    VerticalAlignment="Center"
                                    Foreground="Black"
-                                   Text="75"/>
+                                   Text="{Binding AreaHeight}"/>
 
                             </Grid>
 
