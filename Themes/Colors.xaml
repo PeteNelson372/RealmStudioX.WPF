@@ -16,4 +16,10 @@
     <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#AAA"/>
     <SolidColorBrush x:Key="ScrollThumbDragBrush" Color="#CCC"/>
 
+    <!-- Sliders -->
+    <SolidColorBrush x:Key="SliderFillBrush" Color="#99B0A4"/>
+    
+    <!-- Tooltips -->
+    <SolidColorBrush x:Key="TooltipBackgroundBrush" Color="#74857C"/>
+
 </ResourceDictionary>

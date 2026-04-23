@@ -6,22 +6,18 @@ using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views;
 using RealmStudioX.WPF.Views.Controls;
 using RealmStudioX.WPF.Views.Panels;
-using ShimSkiaSharp;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 using System.Diagnostics;
-using System.IO;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using MessageBox = System.Windows.MessageBox;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
-using SKPaint = SkiaSharp.SKPaint;
 using SKPoint = SkiaSharp.SKPoint;
+using SKRect = SkiaSharp.SKRect;
 using SKSize = SkiaSharp.SKSize;
-using SKTypeface = SkiaSharp.SKTypeface;
 using UserControl = System.Windows.Controls.UserControl;
 
 namespace RealmStudioX.WPF
@@ -35,6 +31,7 @@ namespace RealmStudioX.WPF
         private EditorController? _editor;
         private FontManager _fontManager;
         private AssetManager _assetManager;
+        private RenderContext _renderContext;
 
         public MainWindowViewModel ViewModel { get; }
 
@@ -62,11 +59,14 @@ namespace RealmStudioX.WPF
             ["Planet"] = new PlanetToolPanel()
         };
 
-        public MainWindow(StartupResult startup)
+        public MainWindow(StartupResult startup, AssetManager assetManager)
         {
             InitializeComponent();
 
-            _editor = new EditorController();
+            // create the AssetManager instance
+            _assetManager = assetManager ?? throw new ArgumentNullException(nameof(assetManager));
+
+            _editor = new EditorController(_assetManager);
             _editor.DrawingModeChanged += OnDrawingModeChanged;
             _editor.ColorPaintBrushChanged += OnColorPaintBrushChanged;
             _editor.ActiveDrawingLayerChanged += OnActiveDrawingLayerChanged;
@@ -75,21 +75,17 @@ namespace RealmStudioX.WPF
             _editor.MouseUp += OnMouseUp;
             _editor.MouseDoubleClick += OnMouseDoubleClick;
             _editor.RedrawRequested += () => _skiaControl?.Invalidate();
+            _editor.MapSceneChanged += UpdateMapScene;
 
             _fontManager = new FontManager();
 
-            ViewModel = new MainWindowViewModel(_editor);
+            _renderContext = new RenderContext(_assetManager.SymbolImageCache);
+
+            ViewModel = new MainWindowViewModel(_editor, _assetManager);
             DataContext = ViewModel;
-
-            // create the AssetManager instance
-            _assetManager = new();
-
-            AssetManager.RootRealmStudioXDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX");
 
             Loaded += async (s, e) =>
             {
-                await InitializeApplicationAsync();
-
                 TitleBar.OpenClicked += (s, e) => OpenHandler();
                 TitleBar.SaveClicked += (s, e) => SaveHandler();
                 TitleBar.MinimizeClicked += (s, e) => MinimizeHandler();
@@ -125,15 +121,22 @@ namespace RealmStudioX.WPF
                     }
 
                     RealmStudioMap map = MapBuilder.CreateMap(startup.FilePath, startup.MapName, startup.Width, startup.Height);
-                    _editor.Scene = new MapScene(map,_fontManager);
+                    MapScene newScene = new(map, _fontManager)
+                    {
+                        RenderContext = _renderContext
+                    };
+
+                    newScene.Camera.Viewport = new SKRect(0, 0, _skiaControl!.Width, _skiaControl.Height);
+                    _editor.SetScene(newScene);
+
+                    ViewModel.AttachScene(newScene);
 
                     ViewModel.MapName = map.MapName;
                     ViewModel.MapSizeLabel = $"Map Size: {map.MapWidth} x {map.MapHeight}";
 
                     OnDrawingModeChanged(MapDrawingMode.None);
 
-                    _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_editor.Scene.Map, MapBuilder.DRAWINGLAYER));
-                    ViewModel.ZoomLevelLabel = $"Zoom: {_editor.Scene.Camera.Zoom * 100.0f}%";
+                    _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.DRAWINGLAYER));
                 }
                 else
                 {
@@ -145,6 +148,24 @@ namespace RealmStudioX.WPF
             };
 
             InitializeSkiaControl();
+        }
+
+        private void UpdateMapScene()
+        {
+            if (_editor == null || _editor.Scene == null)
+                return;
+
+            ViewModel.Zoom = _editor.Scene.Camera.Zoom;
+            ViewModel.UpdateZoomLabel(_editor.Scene.Camera.Zoom);
+        }
+
+        private void OnViewportSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (ViewModel == null || _skiaControl == null)
+                return;
+
+            ViewModel.SetViewPortSize(
+                new SKRect(0, 0, (float)_skiaControl.Width, (float)_skiaControl.Height));
         }
 
         private void OnDrawingModeChanged(MapDrawingMode mode)
@@ -177,12 +198,6 @@ namespace RealmStudioX.WPF
         private void OnMaximize(object sender, RoutedEventArgs e)
             => MaximizeClicked?.Invoke(this, EventArgs.Empty);
 
-        private async Task InitializeApplicationAsync()
-        {
-            await _assetManager.LoadAsync();
-
-            await _fontManager.InitializeAsync(Assembly.GetExecutingAssembly());
-        }
 
         //==========================================
         // SKGLControl
@@ -197,6 +212,11 @@ namespace RealmStudioX.WPF
             WireSkiaInput();
 
             StartRenderLoop();
+
+            ViewModel.SetViewPortSize(
+                new SKRect(0, 0, (float)_skiaControl.Width, (float)_skiaControl.Height));
+
+            _editor?.Scene?.Camera.SetZoom(1.0f, _skiaControl.Width, _skiaControl.Height);
         }
 
         private void StartRenderLoop()
@@ -229,15 +249,21 @@ namespace RealmStudioX.WPF
 
                 var button = ConvertButton(e);
 
-                _editor.ActiveEditorTool?.OnMouseDown(world, button);
-
                 PointerState state = new()
                 {
                     ScreenPoint = screen,
                     WorldPoint = world,
-                    Button = button
+                    IsDoubleClick = false,
+                    IsMouseWheelScrolled = false,
+                    Button = button,
+                    WheelDelta = 0,
+                    Modifiers = ConvertModifiers(Keyboard.Modifiers)
                 };
 
+                // notify the editor that the mouse button has been pressed, so it can route the event
+                _editor.OnMouseDown(state);
+
+                // notify the UI that the mouse button has been pressed
                 _editor.NotifyMouseDown(state);
 
                 _skiaControl.Invalidate();
@@ -254,15 +280,22 @@ namespace RealmStudioX.WPF
 
                 var button = ConvertButton(e);
 
-                _editor.ActiveEditorTool?.OnMouseMove(world, button);
-
                 PointerState state = new()
                 {
                     ScreenPoint = screen,
                     WorldPoint = world,
-                    Button = button
+                    IsDoubleClick = false,
+                    IsMouseWheelScrolled = false,
+                    Button = button,
+                    WheelDelta = 0,
+                    Modifiers = ConvertModifiers(Keyboard.Modifiers)
                 };
 
+                // notify the editor that the mouse has moved, so it can route the event
+                // to the active tool or handle it itself (e.g. for panning the camera)
+                _editor.OnMouseMove(state);
+
+                // notify the UI that the mouse has moved
                 _editor.NotifyMouseMoved(state);
 
                 _skiaControl.Invalidate();
@@ -279,16 +312,23 @@ namespace RealmStudioX.WPF
 
                 var button = ConvertButton(e);
 
-                _editor.ActiveEditorTool?.OnMouseDown(world, button);
-
                 PointerState state = new()
                 {
                     ScreenPoint = screen,
                     WorldPoint = world,
-                    Button = button
+                    IsDoubleClick = false,
+                    IsMouseWheelScrolled = false,
+                    Button = button,
+                    WheelDelta = 0,
+                    Modifiers = ConvertModifiers(Keyboard.Modifiers)
                 };
 
-                _editor.NotifyMouseDown(state);
+                // notify the editor that the mouse button has been released, so it can route the event
+                // to the active tool or handle it itself
+                _editor.OnMouseUp(state);
+
+                // notify the UI that the mouse button has been released
+                _editor.NotifyMouseUp(state);
 
                 _skiaControl.Invalidate();
             };
@@ -303,16 +343,22 @@ namespace RealmStudioX.WPF
 
                 var button = ConvertButton(e);
 
-                _editor.ActiveEditorTool?.OnMouseDoubleClick(world, button);
-
                 PointerState state = new()
                 {
                     ScreenPoint = screen,
                     WorldPoint = world,
-                    Button = button
+                    IsDoubleClick = true,
+                    IsMouseWheelScrolled = false,
+                    Button = button,
+                    WheelDelta = 0,
+                    Modifiers = ConvertModifiers(Keyboard.Modifiers)
                 };
 
-                _editor.NotifyMouseDown(state);
+                // notify the editor that the mouse button has been double-clicked, so it can route the event
+                _editor.OnMouseDoubleClick(state);
+
+                // notify the UI that the mouse button has been double-clicked
+                _editor.NotifyMouseDoubleClick(state);
 
                 _skiaControl.Invalidate();
             };
@@ -321,23 +367,85 @@ namespace RealmStudioX.WPF
             {
                 _editor.SetViewportSize(new SKSize(_skiaControl.Width, _skiaControl.Height));
             };
+
+            _skiaControl.MouseWheel += (s, e) =>
+            {
+                if (_editor.Scene == null)
+                    return;
+                var screen = new SKPoint(e.X, e.Y);
+                var world = _editor.ScreenToWorld(screen);
+
+                PointerState state = new()
+                {
+                    ScreenPoint = screen,
+                    WorldPoint = world,
+                    IsDoubleClick = false,
+                    IsMouseWheelScrolled = true,
+                    Button = EditorMouseButton.None,
+                    WheelDelta = e.Delta,
+                    Modifiers = ConvertModifiers(Keyboard.Modifiers)
+                };
+
+                _editor.OnMouseWheel(state);
+                
+                _skiaControl.Invalidate();
+            };
         }
 
 
         private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
         {
+            ArgumentNullException.ThrowIfNull(_skiaControl);
+            ArgumentNullException.ThrowIfNull(e.Surface);
+
             var canvas = e.Surface.Canvas;
             canvas.Clear(SKColors.White);
 
-            using var typeface = SKTypeface.FromFamilyName("Segoe");
-            using var font = typeface.ToFont(18);
-            using var paint = new SKPaint
+            if (_editor != null && _editor.Scene != null && _editor.Scene.Map != null && _renderContext != null)
             {
-                Color = SKColors.Black,
-                IsAntialias = true
-            };
+                // paint the _skiaControl surface, compositing all of the layers
 
-            canvas.DrawText("Drawing is working.", canvas.LocalClipBounds.MidX, canvas.LocalClipBounds.MidY, font, paint);
+                canvas.Save();
+
+                canvas.ResetMatrix();
+                canvas.Translate(_editor.Scene.Camera.Pan.X, _editor.Scene.Camera.Pan.Y);
+                canvas.Scale(_editor.Scene.Camera.Zoom);
+
+                canvas.DrawRect(new SKRect(0, 0, _editor.Scene.Map.MapWidth, _editor.Scene.Map.MapHeight), PaintObjects.MapOutlinePaint);
+
+                if (_skiaControl.GRContext != null
+                    && _editor.Scene.Map != null
+                    && _editor.Scene.Map.MapLayers.Count == MapBuilder.MAP_LAYER_COUNT)
+                {
+                    _renderContext.Zoom = _editor.Scene.Camera.Zoom;
+                    _editor.Scene.Render(canvas);
+
+                    _editor.RenderOverlay(canvas);
+
+                    // TODO: handle rendering height map
+
+                    // TODO: handle using eyedropper cursor for color select mode
+                    // (handle in color select tool?)
+
+                    canvas.Restore();
+                }
+            }
+        }
+
+        private static InputModifiers ConvertModifiers(System.Windows.Input.ModifierKeys keys)
+        {
+            InputModifiers result = InputModifiers.None;
+
+            if (keys.HasFlag(System.Windows.Input.ModifierKeys.Control))
+                result |= InputModifiers.Control;
+
+            if (keys.HasFlag(System.Windows.Input.ModifierKeys.Shift))
+                result |= InputModifiers.Shift;
+
+            if (keys.HasFlag(System.Windows.Input.ModifierKeys.Alt))
+                result |= InputModifiers.Alt;
+
+            return result;
         }
 
         //==========================================
@@ -346,23 +454,24 @@ namespace RealmStudioX.WPF
 
         private void OnMouseUp(PointerState state)
         {
-
+            // nothing to do here now
         }
 
         private void OnMouseMoved(PointerState state)
         {
+            // update the status bar with the current cursor position in screen coordinates and map coordinates
             ViewModel.CursorPointLabel = $"Cursor Point: {state.ScreenPoint.X:F0}, {state.ScreenPoint.Y:F0}";
             ViewModel.DrawingPointLabel = $"Map Point: {state.WorldPoint.X:F0}, {state.WorldPoint.Y:F0}";
         }
 
         private void OnMouseDown(PointerState state)
         {
-
+            // nothing to do here now
         }
 
         private void OnMouseDoubleClick(PointerState state)
         {
-
+            // nothing to do here now
         }
 
         private static EditorMouseButton ConvertButton(System.Windows.Forms.MouseEventArgs e)
@@ -409,26 +518,34 @@ namespace RealmStudioX.WPF
         // Scrollbars and Zoom Event Handlers
         //==========================================
 
-        private void OnHScroll(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void OnHScrollChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            //_cameraX = (float)e.NewValue;
-            //InvalidateCanvas();
+            if (ViewModel == null) return;
+
+            ViewModel.ScrollX = e.NewValue;
         }
 
-        private void OnVScroll(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void OnVScrollChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            //_cameraY = (float)e.NewValue;
-            //InvalidateCanvas();
+            if (ViewModel == null) return;
+
+            ViewModel.ScrollY = e.NewValue;
         }
 
         private void OnFitToScreen(object sender, RoutedEventArgs e)
         {
+            if (_editor == null || _editor.Scene == null)
+                return;
 
+            _editor.Scene.Camera.ZoomToFit(_editor.Scene.Map.MapWidth, _editor.Scene.Map.MapHeight);
         }
 
         private void OnResetZoom(object sender, RoutedEventArgs e)
         {
+            if (_editor == null || _editor.Scene == null)
+                return;
 
+            _editor.Scene.Camera.Reset(_skiaControl!.Width, _skiaControl.Height);
         }
 
         //==========================================
@@ -505,16 +622,6 @@ namespace RealmStudioX.WPF
             }
 
             SecondaryPanelHost.Content = _toolPanels[tab];
-        }
-
-        //==========================================
-        // Pointer State Struct
-        //==========================================
-        public struct PointerState
-        {
-            public SKPoint WorldPoint;
-            public SKPoint ScreenPoint;
-            public EditorMouseButton Button;
         }
     }
 }

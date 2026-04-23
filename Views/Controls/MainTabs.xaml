@@ -74,7 +74,7 @@
 
         </TabControl.Resources>
         <TabItem Header="Background">
-            <panels:BackgroundPanel/>
+            <panels:BackgroundPanel DataContext="{Binding BackgroundPanel}"/>
         </TabItem>
         <TabItem Header="Ocean">
             <panels:OceanPanel/>

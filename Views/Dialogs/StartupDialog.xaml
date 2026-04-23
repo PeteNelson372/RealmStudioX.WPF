@@ -109,7 +109,7 @@
                     </Grid.ColumnDefinitions>
 
                     <GroupBox Grid.Column="0" Grid.Row="0" Height="471" Header="Realm Type" Width="190" HorizontalAlignment="Left" Margin="10,10,0,0">
-                        <ListBox x:Name="MapTypeList"                           
+                        <ListBox x:Name="MapTypeList"
                          BorderThickness="0"
                          Background="Transparent"
                          SelectedIndex="0">
@@ -251,7 +251,7 @@
                             </Grid.RowDefinitions>
                         </Grid>
                         <GroupBox Grid.Row="0" Header="Realm Map Theme">
-                            <ListBox x:Name="ThemeList" Height="154">
+                            <ListBox x:Name="ThemeList" Height="154" ItemsSource="{Binding Themes}" >
                                 <ListBox.ItemContainerStyle>
                                     <Style TargetType="ListBoxItem">
                                         <Setter Property="Padding" Value="4"/>
@@ -273,7 +273,7 @@
                                                         <Trigger Property="IsSelected" Value="True">
                                                             <Setter TargetName="Border"
                                                                 Property="Background"
-                                                                Value="#99b0a4"/>
+                                                                Value="#FF99B0A4"/>
                                                             <Setter Property="Foreground"
                                                                 Value="White"/>
                                                         </Trigger>

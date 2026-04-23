@@ -2,25 +2,163 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"             
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Panels"
+             xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+             xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
              mc:Ignorable="d"
-             d:DesignHeight="916" d:DesignWidth="235">
+             d:DesignHeight="916" d:DesignWidth="226">
     <Grid Visibility="Visible" Background="#FFDFDBD2">
         <Grid.RowDefinitions>
+            <RowDefinition Height="32"/>            
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+        <StackPanel
+            Grid.Row="1"
+            Orientation="Vertical"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Right"
+            Width="72"
+            Height="Auto"
+            Margin="3,3,3,3">
 
-        <StackPanel Orientation="Horizontal"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Top">
-
-            <TextBlock Text="Background"
-                Foreground="Black"
-                FontSize="16"
-                FontWeight="SemiBold"
-                VerticalAlignment="Center"
-                Margin="0,0,0,0"/>
+            <Button
+                x:Name="FillBackgroundButton"
+                Width="50"
+                Height="50"
+                Margin="0,10,0,0"
+                ToolTip="Fill Background"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding FillCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Fill"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="FormatColorFill"
+                                     Width="28"
+                                     Height="28"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+            <Button
+                x:Name="ClearBackgroundButton"
+                Width="50"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Clear Background"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding ClearCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Clear"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="SquareOff"
+                                     Width="26"
+                                     Height="26"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
         </StackPanel>
+
+        <StackPanel
+            Orientation="Horizontal"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="Auto"
+            Height="32"
+            Margin="3,3,3,3">
+
+            <CheckBox x:Name="BackgroundEnabledToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        IsChecked="True"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+            
+            <TextBlock Text="Show"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,6,3"/>
+        </StackPanel>
+
+        <GroupBox Header="Texture"
+            Grid.Row="1"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="154"
+            Height="288"
+            Margin="3,3,3,3">
+
+            <StackPanel
+                Orientation="Vertical"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Center"
+                Width="Auto"
+                Height="Auto"
+                Margin="3,3,3,3">
+                
+                <controls:AssetBrowserControl x:Name="BackgroundTextureBrowser"
+                                           DataContext="{Binding TextureBrowser}" 
+                                           Width="136"
+                                           Height="160"
+                                           Margin="0,0,0,6"/>
+
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="130"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+
+                    <TextBlock Text="Scale"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+                    
+                    <Slider x:Name="TextureScaleSlider"
+                            Style="{StaticResource ModernSlider}"
+                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
+                            Width="126"
+                            Minimum="0.0"
+                            Maximum="2.0"
+                            Value="{Binding TextureScale}"/>
+                    
+                </StackPanel>
+                
+                <StackPanel
+                    Orientation="Horizontal"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,10,3,3">
+
+                    <CheckBox x:Name="MirrorTextureToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        IsChecked="{Binding MirrorTexture}"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                    <TextBlock Text="Mirror"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,6,3"/>
+                </StackPanel>
+
+            </StackPanel>
+            
+            
+        </GroupBox>
     </Grid>
 </UserControl>

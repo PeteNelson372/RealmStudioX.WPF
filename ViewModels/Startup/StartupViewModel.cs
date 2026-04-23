@@ -10,8 +10,8 @@ namespace RealmStudioX.WPF.ViewModels.Startup
         private readonly string _mapsFolder;
         private readonly string _themesFolder;
 
-        public ObservableCollection<string> Themes { get; } = new();
-        public ObservableCollection<string> Maps { get; } = new();
+        public ObservableCollection<string> Themes { get; } = [];
+        public ObservableCollection<string> Maps { get; } = [];
 
 
         private string _mapName = string.Empty;
@@ -132,6 +132,7 @@ namespace RealmStudioX.WPF.ViewModels.Startup
         {
             Result = new StartupResult
             {
+                MapName = MapName,
                 IsNew = true,
                 Width = Width,
                 Height = Height,

@@ -1,0 +1,104 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:RealmStudioX.WPF.Editor.Converters">
+
+  <!-- =========================
+       Converter (add this)
+       ========================= -->
+  <local:ZoomToPercentConverter x:Key="ZoomToPercent"/>
+
+  <!-- =========================
+       Track button (unchanged)
+       ========================= -->
+  <ControlTemplate x:Key="SliderTrackButton" TargetType="RepeatButton">
+    <Border Background="{TemplateBinding Background}"
+            CornerRadius="2"/>
+  </ControlTemplate>
+
+  <!-- =========================
+       Slider (modified safely)
+       ========================= -->
+  <Style x:Key="ModernSlider" TargetType="Slider">
+    <Setter Property="Height" Value="24"/>
+
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Slider">
+          <Grid VerticalAlignment="Center">
+
+            <Track x:Name="PART_Track">
+
+              <!-- Left (filled) -->
+              <Track.DecreaseRepeatButton>
+                <RepeatButton IsEnabled="False"
+                              Background="#99b0a4"
+                              Height="4"
+                              VerticalAlignment="Center"
+                              Template="{StaticResource SliderTrackButton}"/>
+              </Track.DecreaseRepeatButton>
+
+              <!-- Right (empty) -->
+              <Track.IncreaseRepeatButton>
+                <RepeatButton IsEnabled="False"
+                              Background="#DDD"
+                              Height="4"
+                              VerticalAlignment="Center"
+                              Template="{StaticResource SliderTrackButton}"/>
+              </Track.IncreaseRepeatButton>
+
+              <!-- =========================
+                   Thumb (UPDATED ONLY HERE)
+                   ========================= -->
+              <Track.Thumb>
+                <Thumb Width="14"
+                       Height="14"
+                       Background="{StaticResource SliderFillBrush}"
+                       BorderBrush="{StaticResource SliderFillBrush}"
+                       BorderThickness="1">
+
+                  <Thumb.Template>
+                    <ControlTemplate TargetType="Thumb">
+                      <Grid>
+
+                        <!-- Tooltip that follows thumb -->
+                        <ToolTipService.ToolTip>
+                          <ToolTip
+                              Placement="Top"
+                              StaysOpen="True"
+                              Content="{Binding Value,
+                                        RelativeSource={RelativeSource AncestorType=Slider},
+                                        Converter={StaticResource ZoomToPercent}}"/>
+                        </ToolTipService.ToolTip>
+
+                        <!-- Your existing visual -->
+                        <Ellipse Fill="{TemplateBinding Background}"/>
+
+                      </Grid>
+                    </ControlTemplate>
+                  </Thumb.Template>
+
+                  <Thumb.Style>
+                    <Style TargetType="Thumb">
+                      <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                          <Setter Property="Background" Value="#66645F"/>
+                        </Trigger>
+                        <Trigger Property="IsDragging" Value="True">
+                          <Setter Property="Background" Value="#99b0a4"/>
+                        </Trigger>
+                      </Style.Triggers>
+                    </Style>
+                  </Thumb.Style>
+
+                </Thumb>
+              </Track.Thumb>
+
+            </Track>
+          </Grid>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+</ResourceDictionary>

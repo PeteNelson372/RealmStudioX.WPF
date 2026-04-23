@@ -1,7 +1,8 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
+using RealmStudioX.Infrastructure;
 using SkiaSharp;
-using static RealmStudioX.WPF.MainWindow;
+using CommandManager = RealmStudioX.Core.CommandManager;
 
 namespace RealmStudioX.WPF.Editor
 {
@@ -12,12 +13,46 @@ namespace RealmStudioX.WPF.Editor
         public event Action<MapLayer>? ActiveDrawingLayerChanged;
 
         public CommandManager Commands { get; } = new();
+        private readonly AssetManager _assetManager;
 
-        public MapScene? Scene { get; set; }
+        private MapScene? _scene;
 
         private IToolEditor? _activeTool;
 
         private SKSize _viewportSize;
+
+        public EditorController(AssetManager assetManager)
+        {
+            _assetManager = assetManager;
+        }
+
+        public MapScene? Scene => _scene;
+
+        public void SetScene(MapScene scene)
+        {
+            // Unsubscribe from old scene (if any)
+            if (_scene != null)
+            {
+                _scene.SceneChanged -= OnSceneChanged;
+            }
+
+            _scene = scene;
+
+            // Subscribe to new scene
+            _scene.SceneChanged += OnSceneChanged;
+        }
+
+        private void OnSceneChanged()
+        {
+            UpdateMapScene();
+        }
+
+        public event Action? MapSceneChanged;
+
+        public void UpdateMapScene()
+        {
+            MapSceneChanged?.Invoke();
+        }
 
         public event Action? RedrawRequested;
 
@@ -121,6 +156,20 @@ namespace RealmStudioX.WPF.Editor
         }
 
         // ---------------------------------------------
+        // Render Overlay
+        // ---------------------------------------------
+
+        public void RenderOverlay(SKCanvas canvas)
+        {
+            ArgumentNullException.ThrowIfNull(Scene, nameof(Scene));
+
+            var world = Scene.Camera.CurrentCursorPoint;
+            ActiveEditorTool?.RenderOverlay(canvas, world);
+
+            canvas.DrawRect(new SKRect(0, 0, Scene.Map.MapWidth, Scene.Map.MapHeight), PaintObjects.MapBoundaryPaint);
+        }
+
+        // ---------------------------------------------
         // Camera helpers
         // ---------------------------------------------
 
@@ -133,12 +182,57 @@ namespace RealmStudioX.WPF.Editor
             RequestRedraw();
         }
 
+        public void ResetCamera()
+        {
+            if (_scene == null)
+                return;
+
+            _scene.Camera.Reset(_viewportSize.Width, _viewportSize.Height);
+            ClampCamera();
+
+            RequestRedraw();
+        }
+
+        public void ClampCamera()
+        {
+            if (_scene == null)
+                return;
+
+            _scene.Camera.ClampToWorld(
+                new SKRect(0, 0,
+                    _scene.Map.MapWidth,
+                    _scene.Map.MapHeight),
+                _viewportSize);
+        }
+
+        public void ZoomAt(SKPoint screenPoint, int delta)
+        {
+            if (Scene == null)
+            {
+                return;
+            }
+
+            float factor = delta > 0 ? 1.1f : 0.9f;
+
+            float newZoom = Scene.Camera.Zoom * factor;
+
+            Scene.Camera.ZoomAtScreenPoint(
+                newZoom,
+                screenPoint,
+                _viewportSize.Width,
+                _viewportSize.Height);
+
+            OnSceneChanged();
+        }
+
         private SKPoint _lastPanScreen;
 
         private void BeginPan(SKPoint screen)
         {
             if (Scene == null)
+            {
                 return;
+            }
 
             Scene.Camera.IsPanning = true;
             _lastPanScreen = screen;
@@ -168,38 +262,14 @@ namespace RealmStudioX.WPF.Editor
             _lastPanScreen = screen;
         }
 
-        private void EndPan(MouseButtons button)
+        private void EndPan()
         {
             if (Scene == null)
-                return;
-
-            if (button == MouseButtons.Middle)
             {
-                Scene.Camera.IsPanning = false;
+                return;
             }
-        }
 
-        public void ResetCamera()
-        {
-            if (Scene == null)
-                return;
-
-            Scene.Camera.Reset(_viewportSize.Width, _viewportSize.Height);
-            ClampCamera();
-
-            RequestRedraw();
-        }
-
-        public void ClampCamera()
-        {
-            if (Scene == null)
-                return;
-
-            Scene.Camera.ClampToWorld(
-                new SKRect(0, 0,
-                    Scene.Map.MapWidth,
-                    Scene.Map.MapHeight),
-                _viewportSize);
+            Scene.Camera.IsPanning = false;
         }
 
         // ---------------------------------------------
@@ -208,7 +278,7 @@ namespace RealmStudioX.WPF.Editor
 
         public SKPoint ScreenToWorld(SKPoint screen)
         {
-            var cam = Scene?.Camera;
+            var cam = _scene?.Camera;
 
             if (cam == null)
                 return screen;
@@ -216,6 +286,127 @@ namespace RealmStudioX.WPF.Editor
             return new SKPoint(
                 (screen.X - cam.Pan.X) / cam.Zoom,
                 (screen.Y - cam.Pan.Y) / cam.Zoom);
+        }
+
+
+        // ---------------------------------------------
+        // Mouse interaction
+        // ---------------------------------------------
+
+        internal void OnMouseDown(PointerState state)
+        {
+            if (Scene == null)
+            {
+                return;
+            }
+
+            if (state.Button == EditorMouseButton.Middle)
+            {
+                BeginPan(state.ScreenPoint);
+                return;
+            }
+        }
+
+        internal void OnMouseMove(PointerState state)
+        {
+            if (Scene == null)
+            {
+                return;
+            }
+
+            if (state.Button == EditorMouseButton.Middle)
+            {
+                UpdatePan(state.ScreenPoint);
+                return;
+            }
+        }
+
+        internal void OnMouseUp(PointerState state)
+        {
+            if (Scene == null)
+            {
+                return;
+            }
+
+            if (state.Button == EditorMouseButton.Middle)
+            {
+                EndPan();
+            }
+        }
+
+        internal void OnMouseDoubleClick(PointerState state)
+        {
+
+        }
+
+        internal void OnMouseWheel(PointerState state)
+        {
+            if (Scene?.Camera == null)
+                return;
+
+            // 1. Navigation (highest priority)
+            if ((state.Modifiers & InputModifiers.Control) == InputModifiers.Control)
+            {
+                ZoomAt(state.ScreenPoint, state.WheelDelta);
+                return;
+            }
+
+            // 2. Let active tool handle it
+            if (ActiveEditorTool != null)
+            {
+                ActiveEditorTool.OnMouseWheel(state);
+            }
+        }
+
+        // -------------------------------------------------
+        // Background
+        // -------------------------------------------------
+
+        public void FillBackground(TextureFillRequest request)
+        {
+            ArgumentNullException.ThrowIfNull(Scene, nameof(Scene));
+
+            if (request.TextureId == null)
+            {
+                return;
+            }
+
+            Scene.Map.Background.TextureId = request.TextureId;
+            Scene.Map.Background.Scale = request.Scale;
+            Scene.Map.Background.Mirror = request.Mirror;
+
+            var image = (_assetManager).GetImage(request.TextureId);
+            Scene.SetBackgroundTexture(image);
+            Scene.MarkBackgroundModified();
+
+            RequestRedraw();
+        }
+
+        public void ClearBackground()
+        {
+            ArgumentNullException.ThrowIfNull(Scene, nameof(Scene));
+
+            Scene.Map.Background.TextureId = null;
+            Scene.SetBackgroundTexture(null);
+            Scene.MarkBackgroundModified();
+
+            RequestRedraw();
+        }
+
+        public void UpdateBackgroundPreview(TextureFillRequest request)
+        {
+            if (Scene?.Map == null || request.TextureId == null)
+                return;
+
+            Scene.Map.Background.TextureId = request.TextureId;
+            Scene.Map.Background.Scale = request.Scale;
+            Scene.Map.Background.Mirror = request.Mirror;
+
+            var image = (_assetManager).GetImage(request.TextureId);
+            Scene.SetBackgroundTexture(image);
+            Scene.MarkBackgroundModified();
+
+            OnSceneChanged();
         }
     }
 }

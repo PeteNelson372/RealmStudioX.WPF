@@ -6,7 +6,8 @@
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:views="clr-namespace:RealmStudioX.WPF.Views"
-        xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"        
+        xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+        xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
         Title="RealmStudioX"
         Width="1580"
         Height="1024"
@@ -121,27 +122,28 @@
             <!-- SKGLControl host -->
             <wfi:WindowsFormsHost x:Name="FormsHost" Grid.Row="1"
                 Visibility="Visible"
-                Background="WhiteSmoke"/>
+                Background="WhiteSmoke"
+                SizeChanged="OnViewportSizeChanged"/>
 
             <!-- Horizontal ScrollBar -->
             <ScrollBar x:Name="HScroll"
-               Grid.Row="2"
-               Grid.Column="0"
-               Orientation="Horizontal"
-               Style="{StaticResource HorizontalScrollBarStyle}"
-               Minimum="0"
-               Maximum="100"
-               ValueChanged="OnHScroll"/>
+                Grid.Row="2"
+                Grid.Column="0"
+                Orientation="Horizontal"
+                Minimum="0"
+                Maximum="{Binding MaxScrollX}"
+                ViewportSize="{Binding ViewportPixelWidth}"
+                Value="{Binding ScrollX, Mode=TwoWay}"/>
 
             <!-- Vertical ScrollBar -->
             <ScrollBar x:Name="VScroll"
-               Grid.Row="1"
-               Grid.Column="1"
-               Orientation="Vertical"
-               Style="{StaticResource VerticalScrollBarStyle}"
-               Minimum="0"
-               Maximum="100"
-               ValueChanged="OnVScroll"/>
+                Grid.Row="1"
+                Grid.Column="1"
+                Orientation="Vertical"
+                Minimum="0"
+                Maximum="{Binding MaxScrollY}"
+                ViewportSize="{Binding ViewportPixelHeight}"
+                Value="{Binding ScrollY, Mode=TwoWay}"/>
 
         </Grid>
 
@@ -192,7 +194,7 @@
 
                     <!-- Drawing Point -->
                     <StatusBarItem
-                        Width="140" Foreground="#dfdbd2" FontWeight="Bold">
+                        Width="140" Foreground="#FFDFDBD2" FontWeight="Bold">
                         <TextBlock Text="{Binding DrawingPointLabel}"/>
                     </StatusBarItem>
 
@@ -201,7 +203,7 @@
                     <!-- Cursor Point -->
                     <StatusBarItem
                         Width="140"
-                        Margin="10,0" Foreground="#dfdbd2" FontWeight="Bold">
+                        Margin="10,0" Foreground="#FFDFDBD2" FontWeight="Bold">
                         <TextBlock Text="{Binding CursorPointLabel}"/>
                     </StatusBarItem>
                 </StackPanel>
@@ -233,8 +235,6 @@
                     Grid.Row="0"
                     Background="WhiteSmoke"/>
             
-            
-
             <!-- Zoom controls -->
             <StackPanel Grid.Row="1"
                 Orientation="Vertical"
@@ -243,38 +243,53 @@
 
                 <!-- Zoom slider -->
                 <Slider x:Name="ZoomSlider"
-                Width="144"
-                Minimum="1"
-                Maximum="800"
-                Value="100"
-                IsSnapToTickEnabled="True"
-                Margin="0,0,0,6" LargeChange="5" SmallChange="1"/>
+                    Style="{StaticResource ModernSlider}"
+                    behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
+                    Width="144"
+                    Minimum="0.1"
+                    Maximum="8.0"
+                    Value="{Binding Zoom, Mode=TwoWay}"
+                    Margin="0,0,0,6"
+                    LargeChange="0.1"
+                    SmallChange="0.01"/>
 
                 <!-- Buttons -->
                 <StackPanel Orientation="Horizontal" Width="152">
 
                     <!-- Fit to screen -->
                     <Button
-                    Height="51"
-                    Margin="2,0,0,0"
-                    Click="OnFitToScreen" Width="74" Background="{DynamicResource {x:Static SystemColors.InactiveCaptionBrushKey}}">
+                        Height="51"
+                        Margin="2,0,0,0"
+                        Click="OnFitToScreen"
+                        Width="74"
+                        Background="{DynamicResource {x:Static SystemColors.InactiveCaptionBrushKey}}">
+                        <Button.ToolTip>
+                            <ToolTip Placement="Top" VerticalOffset="-4">
+                                Zoom to Fit
+                            </ToolTip>
+                        </Button.ToolTip>
                         <materialDesign:PackIcon Kind="FitToPageOutline"
-                                Foreground="#FF45443F"
-                                Opacity="1"
-                                Width="32"
-                                Height="32"
-                                ToolTip="Zoom to 100%"/>
+                                    Foreground="#FF45443F"
+                                    Opacity="1"
+                                    Width="32"
+                                    Height="32"/>
                     </Button>
 
                     <Button
-                    Height="51"
-                    Click="OnResetZoom" Width="74" HorizontalAlignment="Right" Background="{DynamicResource {x:Static SystemColors.InfoBrushKey}}">
+                        Height="51"
+                        Click="OnResetZoom" Width="74"
+                        HorizontalAlignment="Right"
+                        Background="{DynamicResource {x:Static SystemColors.InfoBrushKey}}">
+                        <Button.ToolTip>
+                            <ToolTip Placement="Top" VerticalOffset="-4">
+                                Reset Zoom
+                            </ToolTip>
+                        </Button.ToolTip>
                         <materialDesign:PackIcon Kind="ImageFilterCenterFocus"
                                 Foreground="#FF45443F"
                                 Opacity="1"
                                 Width="32"
-                                Height="32"
-                                ToolTip="Reset Zoom"/>
+                                Height="32"/>
                     </Button>
 
                     <!-- 100% -->

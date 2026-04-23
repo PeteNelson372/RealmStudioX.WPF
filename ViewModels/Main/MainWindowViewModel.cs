@@ -1,6 +1,11 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.Core;
+using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
+using RealmStudioX.WPF.ViewModels.Panels;
+using RealmStudioX.WPF.Views.Panels;
+using SkiaSharp;
 using System.Windows.Input;
 
 namespace RealmStudioX.WPF.ViewModels.Main
@@ -8,10 +13,34 @@ namespace RealmStudioX.WPF.ViewModels.Main
     public class MainWindowViewModel : ViewModelBase
     {
         private readonly EditorController _editor;
+        private SKRect _viewPortSize = SKRect.Empty;
 
-        public MainWindowViewModel(EditorController editor)
+        public double ViewportPixelWidth => _viewPortSize.Width;
+        public double ViewportPixelHeight => _viewPortSize.Height;
+
+        public BackgroundPanelViewModel BackgroundPanel { get; }
+
+        public MainWindowViewModel(EditorController editor, AssetManager assetManager)
         {
             _editor = editor;
+
+            // instantiate ViewModels for the panels
+            BackgroundPanel = new BackgroundPanelViewModel(_editor, assetManager);
+            BackgroundPanel.FillRequested += request =>
+            {
+                _editor.FillBackground(request);
+            };
+
+            BackgroundPanel.ClearRequested += () =>
+            {
+                _editor.ClearBackground();
+            };
+
+            BackgroundPanel.PreviewChanged += request =>
+            {
+                _editor.UpdateBackgroundPreview(request);
+            };
+
 
             SelectLandformToolCommand = new RelayCommand(SelectLandformTool);
             SelectBackgroundToolCommand = new RelayCommand(SelectBackgroundTool);
@@ -79,9 +108,51 @@ namespace RealmStudioX.WPF.ViewModels.Main
             set => SetProperty(ref _applicationStatusMessage, value);
         }
 
+        public double MaxScrollX =>
+            _editor.Scene?.Map == null ? 0: _editor.Scene.Map.MapWidth * Zoom;
+
+        public double MaxScrollY =>
+            _editor.Scene?.Map == null ? 0: _editor.Scene.Map.MapHeight * Zoom;
+
+        public double Zoom
+        {
+            get => _editor.Scene?.Camera.Zoom ?? 1.0;
+            set
+            {
+                if (_editor.Scene == null || _editor.Scene.Camera == null)
+                    return;
+
+                var camera = _editor.Scene.Camera;
+
+                // clamp to 10% to 800%
+                value = Math.Clamp(value, 0.1, 8.0);
+
+                if (Math.Abs(camera.Zoom - value) < 0.0001)
+                    return;
+
+                camera.SetZoom((float)value, _editor.Scene.Map.MapWidth, _editor.Scene.Map.MapHeight);
+
+                // Notify UI that Zoom changed
+                OnPropertyChanged(nameof(Zoom));
+                OnPropertyChanged(nameof(MaxScrollX));
+                OnPropertyChanged(nameof(MaxScrollY));
+
+                UpdateZoomLabel(camera.Zoom);
+            }
+        }
+
+        public void UpdateZoomLabel(double zoom)
+        {
+            ZoomLevelLabel = $"Zoom: {(int)(zoom * 100)}%";
+        }
+
         // -------------------------
         // Commands (buttons)
         // -------------------------
+        public ICommand ResetZoomCommand => new RelayCommand(() =>
+        {
+            _editor.Scene?.Camera?.Reset(_editor.Scene.Map.MapWidth, _editor.Scene.Map.MapHeight);
+        });
 
         public ICommand SelectLandformToolCommand { get; }
         public ICommand SelectBackgroundToolCommand { get; }
@@ -99,6 +170,40 @@ namespace RealmStudioX.WPF.ViewModels.Main
         // -------------------------
         // Other Methods
         // -------------------------
+
+        public void AttachScene(MapScene scene)
+        {
+            // Unhook old if needed (optional for now)
+
+            var camera = scene.Camera;
+
+            camera.ViewChanged += OnCameraChanged;
+
+            // Sync immediately
+            OnCameraChanged();
+        }
+
+        public void SetViewPortSize(SKRect rect)
+        {
+            _viewPortSize = rect;
+
+            OnPropertyChanged(nameof(ViewportPixelWidth));
+            OnPropertyChanged(nameof(ViewportPixelHeight));
+            OnPropertyChanged(nameof(MaxScrollX));
+            OnPropertyChanged(nameof(MaxScrollY));
+
+        }
+
+        private void OnCameraChanged()
+        {
+            OnPropertyChanged(nameof(ScrollX));
+            OnPropertyChanged(nameof(ScrollY));
+            OnPropertyChanged(nameof(MaxScrollX));
+            OnPropertyChanged(nameof(MaxScrollY));
+            OnPropertyChanged(nameof(ViewportPixelWidth));
+            OnPropertyChanged(nameof(ViewportPixelHeight));
+        }
+
         public string SetDrawingModeLabel()
         {
             string modeText = "Drawing Mode: ";
@@ -208,6 +313,46 @@ namespace RealmStudioX.WPF.ViewModels.Main
             else
             {
                 DrawingLayerLabel = "NONE";
+            }
+        }
+
+        public double ScrollX
+        {
+            get => -_editor.Scene?.Camera.Pan.X ?? 0;
+            set
+            {
+                var cam = _editor.Scene?.Camera;
+
+                if (cam == null)
+                    return;
+
+                var clamped = Math.Clamp(value, 0, MaxScrollX);
+
+                cam.SetPan(new SKPoint(-(float)clamped, cam.Pan.Y),
+                           _viewPortSize.Width, _viewPortSize.Height);
+
+                OnPropertyChanged();
+            }
+        }
+
+        public double ScrollY
+        {
+            get => -_editor.Scene?.Camera.Pan.Y ?? 0;
+
+            set
+            {
+                var cam = _editor.Scene?.Camera;
+
+                if (cam == null)
+                    return;
+
+                var clamped = Math.Clamp(value, 0, MaxScrollY);
+
+                cam.SetPan(
+                    new SKPoint(cam.Pan.X, -(float)clamped),
+                    _viewPortSize.Width, _viewPortSize.Height);
+
+                OnPropertyChanged();
             }
         }
     }

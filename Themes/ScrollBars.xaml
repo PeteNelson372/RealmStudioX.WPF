@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- =========================
-         Thumb
+         Thumb (your original look)
          ========================= -->
     <Style x:Key="ScrollBarThumbStyle" TargetType="Thumb">
         <Setter Property="Template">
@@ -16,14 +16,16 @@
                             HorizontalAlignment="Center"
                             VerticalAlignment="Stretch"/>
                     <ControlTemplate.Triggers>
+
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="ThumbBorder" Property="Background" Value="#AAA"/>
                         </Trigger>
+
                         <Trigger Property="IsDragging" Value="True">
                             <Setter TargetName="ThumbBorder" Property="Background" Value="#CCC"/>
                         </Trigger>
 
-                        <!-- Horizontal -->
+                        <!-- Horizontal thumb layout -->
                         <DataTrigger Binding="{Binding Orientation, RelativeSource={RelativeSource AncestorType=ScrollBar}}"
                                      Value="Horizontal">
                             <Setter TargetName="ThumbBorder" Property="Height" Value="6"/>
@@ -39,10 +41,9 @@
     </Style>
 
     <!-- =========================
-         Arrow Buttons
+         Arrow Buttons (unchanged)
          ========================= -->
 
-    <!-- Up -->
     <Style x:Key="ScrollBarLineUpButton" TargetType="RepeatButton">
         <Setter Property="Width" Value="16"/>
         <Setter Property="Height" Value="16"/>
@@ -68,7 +69,6 @@
         </Setter>
     </Style>
 
-    <!-- Down -->
     <Style x:Key="ScrollBarLineDownButton" TargetType="RepeatButton"
            BasedOn="{StaticResource ScrollBarLineUpButton}">
         <Setter Property="Template">
@@ -85,7 +85,6 @@
         </Setter>
     </Style>
 
-    <!-- Left -->
     <Style x:Key="ScrollBarLineLeftButton" TargetType="RepeatButton"
            BasedOn="{StaticResource ScrollBarLineUpButton}">
         <Setter Property="Template">
@@ -102,7 +101,6 @@
         </Setter>
     </Style>
 
-    <!-- Right -->
     <Style x:Key="ScrollBarLineRightButton" TargetType="RepeatButton"
            BasedOn="{StaticResource ScrollBarLineUpButton}">
         <Setter Property="Template">
@@ -120,85 +118,25 @@
     </Style>
 
     <!-- =========================
-         Base ScrollBar
+         SINGLE DEFAULT SCROLLBAR
          ========================= -->
-    <Style x:Key="BaseScrollBarStyle" TargetType="ScrollBar">
+    <Style TargetType="ScrollBar">
+
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Opacity" Value="0.4"/>
-    </Style>
-
-    <!-- =========================
-         Vertical ScrollBar
-         ========================= -->
-    <Style x:Key="VerticalScrollBarStyle"
-           TargetType="ScrollBar"
-           BasedOn="{StaticResource BaseScrollBarStyle}">
-
-        <Setter Property="Orientation" Value="Vertical"/>
-        <Setter Property="Width" Value="10"/>
 
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ScrollBar">
+
                     <Grid>
 
+                        <!-- Shared layout -->
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-
-                        <!-- Up -->
-                        <RepeatButton Grid.Row="0"
-                                      Style="{StaticResource ScrollBarLineUpButton}"
-                                      Command="ScrollBar.LineUpCommand"/>
-
-                        <!-- Track -->
-                        <Track Grid.Row="1"
-                               IsDirectionReversed="True"
-                               Maximum="{TemplateBinding Maximum}"
-                               Minimum="{TemplateBinding Minimum}"
-                               Value="{TemplateBinding Value}"
-                               ViewportSize="{TemplateBinding ViewportSize}">
-
-                            <Track.Thumb>
-                                <Thumb Style="{StaticResource ScrollBarThumbStyle}"/>
-                            </Track.Thumb>
-
-                        </Track>
-
-                        <!-- Down -->
-                        <RepeatButton Grid.Row="2"
-                                      Style="{StaticResource ScrollBarLineDownButton}"
-                                      Command="ScrollBar.LineDownCommand"/>
-
-                    </Grid>
-
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Opacity" Value="1"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!-- =========================
-         Horizontal ScrollBar
-         ========================= -->
-    <Style x:Key="HorizontalScrollBarStyle"
-           TargetType="ScrollBar"
-           BasedOn="{StaticResource BaseScrollBarStyle}">
-
-        <Setter Property="Orientation" Value="Horizontal"/>
-        <Setter Property="Height" Value="10"/>
-
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ScrollBar">
-                    <Grid>
 
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -206,14 +144,17 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- Left -->
-                        <RepeatButton Grid.Column="0"
-                                      Style="{StaticResource ScrollBarLineLeftButton}"
-                                      Command="ScrollBar.LineLeftCommand"/>
+                        <!-- Decrease -->
+                        <RepeatButton x:Name="DecreaseButton"
+                                      Grid.Row="0"
+                                      Grid.Column="1"
+                                      Style="{StaticResource ScrollBarLineUpButton}"
+                                      Command="ScrollBar.LineUpCommand"/>
 
-                        <!-- Track -->
-                        <Track Grid.Column="1"
-                               IsDirectionReversed="False"
+                        <!-- THE ONLY TRACK -->
+                        <Track x:Name="PART_Track"
+                               Grid.Row="1"
+                               Grid.Column="1"
                                Maximum="{TemplateBinding Maximum}"
                                Minimum="{TemplateBinding Minimum}"
                                Value="{TemplateBinding Value}"
@@ -225,111 +166,46 @@
 
                         </Track>
 
-                        <!-- Right -->
-                        <RepeatButton Grid.Column="2"
-                                      Style="{StaticResource ScrollBarLineRightButton}"
-                                      Command="ScrollBar.LineRightCommand"/>
-
-                    </Grid>
-
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Opacity" Value="1"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!-- =========================
-         Default ScrollBar (ListBox, ScrollViewer)
-         ========================= -->
-    <Style TargetType="ScrollBar" BasedOn="{StaticResource BaseScrollBarStyle}">
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ScrollBar">
-                    <Grid>
-
-                        <!-- VERTICAL LAYOUT -->
-                        <Grid x:Name="VerticalLayout">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-
-                            <!-- Up -->
-                            <RepeatButton Grid.Row="0"
-                                      Style="{StaticResource ScrollBarLineUpButton}"
-                                      Command="ScrollBar.LineUpCommand"/>
-
-                            <!-- Track -->
-                            <Track x:Name="PART_Track"
-                               Grid.Row="1"
-                               IsDirectionReversed="True"
-                               Maximum="{TemplateBinding Maximum}"
-                               Minimum="{TemplateBinding Minimum}"
-                               Value="{TemplateBinding Value}"
-                               ViewportSize="{TemplateBinding ViewportSize}">
-                                <Track.Thumb>
-                                    <Thumb Style="{StaticResource ScrollBarThumbStyle}"/>
-                                </Track.Thumb>
-                            </Track>
-
-                            <!-- Down -->
-                            <RepeatButton Grid.Row="2"
+                        <!-- Increase -->
+                        <RepeatButton x:Name="IncreaseButton"
+                                      Grid.Row="2"
+                                      Grid.Column="1"
                                       Style="{StaticResource ScrollBarLineDownButton}"
                                       Command="ScrollBar.LineDownCommand"/>
-                        </Grid>
-
-                        <!-- HORIZONTAL LAYOUT -->
-                        <Grid x:Name="HorizontalLayout" Visibility="Collapsed">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <!-- Left -->
-                            <RepeatButton Grid.Column="0"
-                                      Style="{StaticResource ScrollBarLineLeftButton}"
-                                      Command="ScrollBar.LineLeftCommand"/>
-
-                            <!-- Track -->
-                            <Track x:Name="PART_Track_H"
-                               Grid.Column="1"
-                               IsDirectionReversed="False"
-                               Maximum="{TemplateBinding Maximum}"
-                               Minimum="{TemplateBinding Minimum}"
-                               Value="{TemplateBinding Value}"
-                               ViewportSize="{TemplateBinding ViewportSize}">
-                                <Track.Thumb>
-                                    <Thumb Style="{StaticResource ScrollBarThumbStyle}"/>
-                                </Track.Thumb>
-                            </Track>
-
-                            <!-- Right -->
-                            <RepeatButton Grid.Column="2"
-                                      Style="{StaticResource ScrollBarLineRightButton}"
-                                      Command="ScrollBar.LineRightCommand"/>
-                        </Grid>
 
                     </Grid>
 
                     <ControlTemplate.Triggers>
 
-                        <!-- Switch layouts -->
+                        <!-- HORIZONTAL -->
                         <Trigger Property="Orientation" Value="Horizontal">
-                            <Setter TargetName="VerticalLayout" Property="Visibility" Value="Collapsed"/>
-                            <Setter TargetName="HorizontalLayout" Property="Visibility" Value="Visible"/>
+
+                            <Setter TargetName="DecreaseButton" Property="Grid.Row" Value="1"/>
+                            <Setter TargetName="DecreaseButton" Property="Grid.Column" Value="0"/>
+                            <Setter TargetName="DecreaseButton" Property="Style"
+                                    Value="{StaticResource ScrollBarLineLeftButton}"/>
+                            <Setter TargetName="DecreaseButton" Property="Command"
+                                    Value="ScrollBar.LineLeftCommand"/>
+
+                            <Setter TargetName="IncreaseButton" Property="Grid.Row" Value="1"/>
+                            <Setter TargetName="IncreaseButton" Property="Grid.Column" Value="2"/>
+                            <Setter TargetName="IncreaseButton" Property="Style"
+                                    Value="{StaticResource ScrollBarLineRightButton}"/>
+                            <Setter TargetName="IncreaseButton" Property="Command"
+                                    Value="ScrollBar.LineRightCommand"/>
+
+                            <Setter TargetName="PART_Track"
+                                    Property="IsDirectionReversed"
+                                    Value="False"/>
+
                             <Setter Property="Height" Value="10"/>
                         </Trigger>
 
+                        <!-- VERTICAL -->
                         <Trigger Property="Orientation" Value="Vertical">
-                            <Setter TargetName="VerticalLayout" Property="Visibility" Value="Visible"/>
-                            <Setter TargetName="HorizontalLayout" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="PART_Track"
+                                    Property="IsDirectionReversed"
+                                    Value="True"/>
                             <Setter Property="Width" Value="10"/>
                         </Trigger>
 
@@ -343,5 +219,7 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+
     </Style>
+
 </ResourceDictionary>

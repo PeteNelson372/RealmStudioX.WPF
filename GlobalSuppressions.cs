@@ -6,3 +6,4 @@
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "<Pending>", Scope = "member", Target = "~M:RealmStudioX.WPF.MainWindow.StartRenderLoop")]
+[assembly: SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "<Pending>", Scope = "member", Target = "~M:RealmStudioX.WPF.MainWindow.#ctor(RealmStudioX.WPF.StartupResult,RealmStudioX.Infrastructure.AssetManager)")]

@@ -1,4 +1,6 @@
-﻿using RealmStudioX.WPF.Views.Dialogs;
+﻿using RealmStudioX.Infrastructure;
+using RealmStudioX.WPF.Views.Dialogs;
+using System.IO;
 using System.Windows;
 using Application = System.Windows.Application;
 
@@ -9,18 +11,30 @@ namespace RealmStudioX.WPF
     /// </summary>
     public partial class App : Application
     {
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-            // Prevent app from closing when splash closes
             Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-            // 1. Show splash
             var splash = new SplashWindow();
-            splash.ShowDialog();
+            splash.Show();
 
-            // 2. Show startup dialog (New / Open)
+            var assetManager = new AssetManager();
+            AssetManager.RootRealmStudioXDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX");
+
+            // Start both tasks
+            var loadTask = assetManager.LoadAsync();
+            var splashTask = splash.WaitForCloseAsync();
+
+            // Wait for BOTH to complete
+            await Task.WhenAll(loadTask, splashTask);
+
+            // Ensure splash is closed (in case load finished last)
+            if (splash.IsVisible)
+                splash.Close();
+
+            // Continue startup
             var dialog = new StartupDialog();
             var result = dialog.ShowDialog();
 
@@ -30,13 +44,11 @@ namespace RealmStudioX.WPF
                 return;
             }
 
-            // 3. Create MainWindow and pass result
-            var mainWindow = new MainWindow(dialog.ViewModel.Result);
+            var mainWindow = new MainWindow(dialog.ViewModel.Result, assetManager);
 
             MainWindow = mainWindow;
             mainWindow.Show();
 
-            // Restore normal shutdown behavior
             Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
         }
     }

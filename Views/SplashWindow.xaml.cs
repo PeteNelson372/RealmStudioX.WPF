@@ -8,28 +8,36 @@ namespace RealmStudioX.WPF
     /// </summary>
     public partial class SplashWindow : Window
     {
-        private readonly DispatcherTimer _timer;
+        private readonly TaskCompletionSource _tcs = new();
+
+        public Task WaitForCloseAsync() => _tcs.Task;
 
         public SplashWindow()
         {
             InitializeComponent();
 
-            _timer = new DispatcherTimer
+            // Auto-close after 6 seconds
+            var timer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromSeconds(6)
             };
 
-            _timer.Tick += (s, e) => CloseSplash();
-            _timer.Start();
+            timer.Tick += (s, e) =>
+            {
+                timer.Stop();
+                Close();
+            };
 
-            MouseDown += (_, __) => CloseSplash();
+            timer.Start();
+
+            // Close on click
+            MouseDown += (_, _) => Close();
         }
 
-        private void CloseSplash()
+        protected override void OnClosed(EventArgs e)
         {
-            _timer.Stop();
-            DialogResult = true; // signals completion
-            Close();
+            base.OnClosed(e);            
+            _tcs.TrySetResult();
         }
     }
 }
