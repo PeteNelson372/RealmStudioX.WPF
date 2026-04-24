@@ -5,6 +5,9 @@ using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using System.Windows.Input;
+using System.Windows.Media;
+using Brush = System.Windows.Media.Brush;
+using Color = System.Windows.Media.Color;
 
 namespace RealmStudioX.WPF.ViewModels.Panels
 {
@@ -75,5 +78,36 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     RaisePreviewChanged();
             }
         }
+
+        private VignetteShapeType _vignetteType = VignetteShapeType.Oval;
+        public VignetteShapeType VignetteType
+        {
+            get => _vignetteType;
+            set => SetProperty(ref _vignetteType, value);
+        }
+
+        private int _vignetteStrength = 148;
+        public int VignetteStrength
+        {
+            get => _vignetteStrength;
+            set => SetProperty(ref _vignetteStrength, value);
+        }
+
+        private Color _vignetteColor = Color.FromArgb(255, 201, 151, 123);
+        public Color VignetteColor
+        {
+            get => _vignetteColor;
+            set
+            {
+                if (SetProperty(ref _vignetteColor, value))
+                {
+                    _vignetteBrush.Color = value;
+                }
+            }
+        }
+
+        private SolidColorBrush _vignetteBrush = new(Color.FromArgb(255, 201, 151, 123));
+
+        public Brush VignetteBrush => _vignetteBrush;
     }
 }

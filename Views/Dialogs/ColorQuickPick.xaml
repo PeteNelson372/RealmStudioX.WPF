@@ -1,0 +1,195 @@
+﻿<Window x:Class="RealmStudioX.WPF.Views.Dialogs.ColorQuickPick"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Dialogs"
+        xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        SizeToContent="WidthAndHeight">
+
+    <Window.Resources>
+        <conv:ColorToHexConverter x:Key="ColorToHexConverter"/>
+        <conv:ColorToRgbConverter x:Key="ColorToRgbConverter"/>
+
+        <Style x:Key="ColorSwatchStyle" TargetType="Border">
+            <Setter Property="BorderBrush" Value="#666"/>
+            <Setter Property="BorderThickness" Value="1"/>
+
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="White"/>
+                    <Setter Property="BorderThickness" Value="2"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    
+    <Border Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+            BorderBrush="#888"
+            BorderThickness="1"
+            Padding="6">
+
+        <StackPanel>
+
+            <!-- TITLE BAR -->
+            <Grid Height="26" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" MouseLeftButtonDown="TitleBar_Drag">
+                <TextBlock Text="Select Color"
+                           VerticalAlignment="Center"
+                           Margin="6,0"
+                           FontSize="12"/>
+
+                <Button Style="{StaticResource CloseButtonStyle}"
+                        Width="20"
+                        Height="18"
+                        HorizontalAlignment="Right"
+                        Margin="0,0,4,0"
+                        Click="Close_Click">
+                    <TextBlock Text="&#xE8BB;" FontFamily="Segoe MDL2 Assets"/>
+                </Button>
+            </Grid>
+
+            <!-- QUICK COLORS -->
+            <ItemsControl ItemsSource="{Binding QuickColors}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="16"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Width="17"
+                                Height="17"
+                                Margin="1.3"
+                                Background="{Binding}"
+                                Style="{StaticResource ColorSwatchStyle}"
+                                MouseDown="Color_Click">
+
+                            <Border.ToolTip>
+                                <ToolTip>
+                                    <StackPanel>
+
+                                        <!-- HEX -->
+                                        <TextBlock>
+                                            <TextBlock.Text>
+                                                <Binding Path="Color"
+                                                Converter="{StaticResource ColorToHexConverter}"/>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+
+                                        <!-- RGBA -->
+                                        <TextBlock>
+                                            <TextBlock.Text>
+                                                <Binding Path="Color"
+                                                Converter="{StaticResource ColorToRgbConverter}"/>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+
+                                    </StackPanel>
+                                </ToolTip>
+                            </Border.ToolTip>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- GRAY SCALE -->
+            
+            <ItemsControl ItemsSource="{Binding GrayScaleRow}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="16"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Width="17"
+                            Height="17"
+                            Margin="1.3"
+                            Background="{Binding}"
+                            Style="{StaticResource ColorSwatchStyle}"
+                            MouseDown="Color_Click">
+
+                            <Border.ToolTip>
+                                <ToolTip>
+                                    <StackPanel>
+
+                                        <!-- HEX -->
+                                        <TextBlock>
+                                            <TextBlock.Text>
+                                                <Binding Path="Color"
+                                                Converter="{StaticResource ColorToHexConverter}"/>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+
+                                        <!-- RGBA -->
+                                        <TextBlock>
+                                            <TextBlock.Text>
+                                                <Binding Path="Color"
+                                                Converter="{StaticResource ColorToRgbConverter}"/>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+
+                                    </StackPanel>
+                                </ToolTip>
+                            </Border.ToolTip>
+
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- MAIN GRID -->
+            <ItemsControl ItemsSource="{Binding ColorGrid}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="16"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Width="17"
+                            Height="17"
+                            Margin="1.3"
+                            Background="{Binding}"
+                            Style="{StaticResource ColorSwatchStyle}"
+                            MouseDown="Color_Click">
+
+                            <Border.ToolTip>
+                                <ToolTip>
+                                    <StackPanel>
+
+                                        <!-- HEX -->
+                                        <TextBlock>
+                                            <TextBlock.Text>
+                                                <Binding Path="Color"
+                                                Converter="{StaticResource ColorToHexConverter}"/>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+
+                                        <!-- RGBA -->
+                                        <TextBlock>
+                                            <TextBlock.Text>
+                                                <Binding Path="Color"
+                                                Converter="{StaticResource ColorToRgbConverter}"/>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+
+                                    </StackPanel>
+                                </ToolTip>
+                            </Border.ToolTip>
+
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+        </StackPanel>
+    </Border>
+</Window>

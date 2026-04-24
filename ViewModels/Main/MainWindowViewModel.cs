@@ -4,7 +4,6 @@ using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Panels;
-using RealmStudioX.WPF.Views.Panels;
 using SkiaSharp;
 using System.Windows.Input;
 

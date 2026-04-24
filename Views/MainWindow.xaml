@@ -268,7 +268,7 @@
                                 Zoom to Fit
                             </ToolTip>
                         </Button.ToolTip>
-                        <materialDesign:PackIcon Kind="FitToPageOutline"
+                        <materialDesign:PackIcon Kind="FitToScreenOutline"
                                     Foreground="#FF45443F"
                                     Opacity="1"
                                     Width="32"
@@ -285,7 +285,7 @@
                                 Reset Zoom
                             </ToolTip>
                         </Button.ToolTip>
-                        <materialDesign:PackIcon Kind="ImageFilterCenterFocus"
+                        <materialDesign:PackIcon Kind="FullscreenExit"
                                 Foreground="#FF45443F"
                                 Opacity="1"
                                 Width="32"

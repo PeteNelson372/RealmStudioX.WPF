@@ -8,13 +8,20 @@
              xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Panels"
              xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
              xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
+             xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
+             xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"
              mc:Ignorable="d"
              d:DesignHeight="916" d:DesignWidth="226">
     <Grid Visibility="Visible" Background="#FFDFDBD2">
         <Grid.RowDefinitions>
-            <RowDefinition Height="32"/>            
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="147*"/>
+            <RowDefinition Height="295*"/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="72"/>
+        </Grid.ColumnDefinitions>
         <StackPanel
             Grid.Row="1"
             Orientation="Vertical"
@@ -22,7 +29,7 @@
             HorizontalAlignment="Right"
             Width="72"
             Height="Auto"
-            Margin="3,3,3,3">
+            Margin="0,3,3,0" Grid.ColumnSpan="2" Grid.RowSpan="2">
 
             <Button
                 x:Name="FillBackgroundButton"
@@ -64,15 +71,62 @@
                                      Opacity="0.7"/>
                 </StackPanel>
             </Button>
+            <Button
+                x:Name="SetVignetteButton"
+                Width="50"
+                Height="50"
+                Margin="0,150,0,0"
+                ToolTip="Set Vignette"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding SetVignetteCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Set"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="ShapeOvalPlus"
+                                     Width="24"
+                                     Height="24"
+                                     RenderTransformOrigin="0.5,0.5"
+                                     Opacity="0.7">
+                        <materialDesign:PackIcon.RenderTransform>
+                            <RotateTransform Angle="-90"/>
+                        </materialDesign:PackIcon.RenderTransform>
+                    </materialDesign:PackIcon>
+                </StackPanel>
+            </Button>
+            <Button
+                x:Name="ClearVignetteButton"
+                Width="50"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Clear Vignette"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding ClearVignetteCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Clear"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="ImageOffOutline"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>            
         </StackPanel>
 
         <StackPanel
+            Grid.Row="0"
+            Grid.Column="0"
             Orientation="Horizontal"
             VerticalAlignment="Top"
             HorizontalAlignment="Left"
-            Width="Auto"
+            Width="74"
             Height="32"
-            Margin="3,3,3,3">
+            Margin="3,3,0,0" Grid.RowSpan="2">
 
             <CheckBox x:Name="BackgroundEnabledToggle"
                         Grid.Row="0"
@@ -81,7 +135,7 @@
                         IsChecked="True"
                         Style="{StaticResource ToggleSwitchStyle}"
                         shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
-            
+
             <TextBlock Text="Show"
                         Foreground="#FF45443F"
                         VerticalAlignment="Center"
@@ -90,11 +144,12 @@
 
         <GroupBox Header="Texture"
             Grid.Row="1"
-            VerticalAlignment="Top"
+            Grid.Column="0"
+            VerticalAlignment="Center"
             HorizontalAlignment="Left"
             Width="154"
             Height="288"
-            Margin="3,3,3,3">
+            Margin="3,0,0,0" Grid.ColumnSpan="2">
 
             <StackPanel
                 Orientation="Vertical"
@@ -103,7 +158,7 @@
                 Width="Auto"
                 Height="Auto"
                 Margin="3,3,3,3">
-                
+
                 <controls:AssetBrowserControl x:Name="BackgroundTextureBrowser"
                                            DataContext="{Binding TextureBrowser}" 
                                            Width="136"
@@ -123,7 +178,7 @@
                         Foreground="#FF45443F"
                         VerticalAlignment="Center"
                         Margin="3,3,3,3"/>
-                    
+
                     <Slider x:Name="TextureScaleSlider"
                             Style="{StaticResource ModernSlider}"
                             behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
@@ -131,9 +186,9 @@
                             Minimum="0.0"
                             Maximum="2.0"
                             Value="{Binding TextureScale}"/>
-                    
+
                 </StackPanel>
-                
+
                 <StackPanel
                     Orientation="Horizontal"
                     VerticalAlignment="Top"
@@ -157,8 +212,90 @@
                 </StackPanel>
 
             </StackPanel>
-            
-            
+        </GroupBox>
+
+        <GroupBox Header="Vignette"
+            Grid.Row="2"
+            Grid.Column="0"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="154"
+            Height="219"
+            Margin="3,3,0,0" Grid.ColumnSpan="2">
+
+            <StackPanel
+                Orientation="Vertical"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Center"
+                Width="Auto"
+                Height="Auto"
+                Margin="3,3,3,3">
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="130"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+
+                    <TextBlock Text="Strength"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                    <Slider x:Name="VignetteStrengthSlider"
+                            Style="{StaticResource ModernSlider}"
+                            Width="126"
+                            Minimum="0"
+                            Maximum="255"
+                            AutoToolTipPlacement="TopLeft"
+                            AutoToolTipPrecision="0"
+                            Value="{Binding VignetteStrength}"/>
+                </StackPanel>
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="130"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+
+                    <TextBlock Text="Vignette Type"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                    <RadioButton Content="Oval" GroupName="VignetteType" IsChecked="{Binding VignetteType,
+                                 Mode=TwoWay,
+                                 Converter={StaticResource EnumToBooleanConverter},
+                                 ConverterParameter={x:Static rendering:VignetteShapeType.Oval}}"/>
+
+                    <RadioButton Content="Rectangle" GroupName="VignetteType" IsChecked="{Binding VignetteType,
+                                 Mode=TwoWay,
+                                 Converter={StaticResource EnumToBooleanConverter},
+                                 ConverterParameter={x:Static rendering:VignetteShapeType.Rectangle}}"/>
+                </StackPanel>
+
+                <Button
+                    Style="{StaticResource FlatToolButton}"
+                    Width="120"
+                    Height="50"
+                    Margin="3,20,3,10"
+                    Background="{Binding VignetteBrush}"
+                    ToolTip="Select Vignette Color"
+                    PreviewMouseLeftButtonUp="VignetteColor_LeftClick"
+                    PreviewMouseRightButtonUp="VignetteColor_RightClick">
+
+                        <materialDesign:PackIcon Kind="PaletteOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Opacity="0.7"/>
+                </Button>
+
+            </StackPanel>
+
         </GroupBox>
     </Grid>
 </UserControl>
