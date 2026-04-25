@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Windows.Media;
 using Color = System.Windows.Media.Color;
 
@@ -6,6 +7,36 @@ namespace RealmStudioX.WPF.Editor.UserInterface
 {
     public static class ColorHelper
     {
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetDC(IntPtr hwnd);
+
+        [DllImport("user32.dll")]
+        private static extern int ReleaseDC(IntPtr hwnd, IntPtr hdc);
+
+        [DllImport("gdi32.dll")]
+        private static extern uint GetPixel(IntPtr hdc, int x, int y);
+
+        public static Color GetScreenColor(int x, int y)
+        {
+            IntPtr hdc = GetDC(IntPtr.Zero);
+
+            try
+            {
+                uint pixel = GetPixel(hdc, x, y);
+
+                // Format: 0x00BBGGRR
+                byte r = (byte)(pixel & 0x000000FF);
+                byte g = (byte)((pixel & 0x0000FF00) >> 8);
+                byte b = (byte)((pixel & 0x00FF0000) >> 16);
+
+                return Color.FromRgb(r, g, b);
+            }
+            finally
+            {
+                ReleaseDC(IntPtr.Zero, hdc);
+            }
+        }
+
         public static bool TryParseHex(string hex, out Color color)
         {
             color = Colors.White;

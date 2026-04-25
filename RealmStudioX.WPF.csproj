@@ -10,6 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\cur\eyedropper.cur" />
+    <None Remove="Assets\png\eyedropper.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MaterialDesignColors" Version="5.3.1" />
     <PackageReference Include="MaterialDesignThemes" Version="5.3.1" />
     <PackageReference Include="SkiaSharp" Version="3.119.2" />
@@ -33,7 +38,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Assets\cur\eyedropper.cur">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Assets\ico\realm_studio_icon.ico" />
+    <Resource Include="Assets\png\eyedropper.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>

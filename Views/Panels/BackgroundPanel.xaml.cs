@@ -21,15 +21,17 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not BackgroundPanelViewModel vm)
                 return;
 
-            var dialog = new ColorSelectionDialog(vm.VignetteColor)
+            var colorSelectionWindow = new ColorSelectionDialog(vm.VignetteColor)
             {
                 Owner = Window.GetWindow(this)
             };
 
-            if (dialog.ShowDialog() == true)
+            colorSelectionWindow.ColorSelected += color =>
             {
-                vm.VignetteColor = dialog.SelectedColor;
-            }
+                vm.VignetteColor = color;
+            };
+
+            colorSelectionWindow.Show();
         }
 
         private void VignetteColor_RightClick(object sender, MouseButtonEventArgs e)

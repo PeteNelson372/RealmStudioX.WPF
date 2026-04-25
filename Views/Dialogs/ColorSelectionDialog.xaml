@@ -55,11 +55,33 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <controls:ColorWheelControl
-                    Width="220"
-                    Height="220"
-                    Hue="{Binding H, Mode=TwoWay}"
-                    Saturation="{Binding S, Mode=TwoWay}" />
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="18"/>
+                        <!-- spacing -->
+                        <ColumnDefinition Width="24"/>
+                        <!-- value bar -->
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Color wheel -->
+                    <controls:ColorWheelControl
+                        Width="220"
+                        Height="220"
+                        Margin="20,0,0,0"
+                        Grid.Column="0"
+                        Hue="{Binding H, Mode=TwoWay}"
+                        Saturation="{Binding S, Mode=TwoWay}"/>
+
+                    <!-- Value bar -->
+                    <controls:ValueSliderControl
+                        Grid.Column="2"
+                        Width="20"
+                        Margin="0,0,0,0"
+                        Value="{Binding V, Mode=TwoWay}"
+                        Hue="{Binding H}"
+                        Saturation="{Binding S}"/>
+                </Grid>
 
                 <controls:CompactPaletteControl
                     Grid.Row="1"
@@ -74,7 +96,7 @@
         <!-- RGB -->
         <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,10,0,12">
 
-            <TextBlock Text="RGB" FontWeight="Bold" Margin="0,0,0,6"/>
+            <TextBlock Text="RGBA" FontWeight="Bold" Margin="0,0,0,6" ToolTip="Red, Green, Blue, Alpha"/>
 
             <!-- R -->
             <StackPanel Orientation="Horizontal" Margin="0,2">
@@ -141,21 +163,30 @@
             <!-- HEX -->
             <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" Margin="0,12,0,0">
 
-                <TextBlock Text="Hex:" Margin="0,0,10,0"/>
+                <TextBlock Text="Hex:" Margin="0,0,10,0" ToolTip="Hexadecimal Color Value"/>
 
                 <TextBox Width="80"
                     Text="{Binding HexInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                    PreviewMouseDown="HexTextBox_PreviewMouseDown"                         
+                    PreviewMouseDown="TextBox_PreviewMouseDown"                         
                     GotFocus="HexTextBox_GotFocus"
                     LostFocus="HexTextBox_LostFocus"
                     KeyDown="HexTextBox_KeyDown"/>
 
+                <TextBlock Text="Name:" Margin="10,0,10,0" ToolTip="Windows Color Name"/>
+                
+                <TextBox Width="80"
+                    Text="{Binding ColorNameInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    PreviewMouseDown="TextBox_PreviewMouseDown"
+                    GotFocus="ColorNameTextBox_GotFocus"
+                    LostFocus="ColorNameTextBox_LostFocus"
+                    KeyDown="ColorNameTextBox_KeyDown"/>
+                
             </StackPanel>
         </StackPanel>
 
         <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,12,0,12">
 
-            <TextBlock Text="HSV" FontWeight="Bold" Margin="0,0,0,6"/>
+            <TextBlock Text="HSV" FontWeight="Bold" Margin="0,0,0,6" ToolTip="Hue, Saturation,Value"/>
 
             <!-- H -->
             <StackPanel Orientation="Horizontal" Margin="0,2">
@@ -207,54 +238,79 @@
 
         </StackPanel>
 
-        <!-- PREVIEW -->
+        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,20,12">
+            <Button
+                Width="60"
+                Height="60"
+                Margin="0,0,10,0"
+                Style="{StaticResource FlatToolButton}"
+                Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+                Click="Eyedropper_Click"
+                ToolTip="Pick color from screen"
+                BorderThickness="1"
+                Cursor="Hand">
 
-        <Grid Grid.Row="3" Grid.Column="1" Height="60"
-               Width="100"
-               HorizontalAlignment="Right"
-               Margin="0,0,20,12">
+                <Grid>
+                    <Image
+                        Stretch="Uniform"
+                        Width="16"
+                        Height="16"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                        <Image.Source>
+                            <BitmapImage UriSource="pack://application:,,,/RealmStudioX.WPF;component/Assets/png/eyedropper.png"/>
+                        </Image.Source>
+                    </Image>
+                </Grid>
+            </Button>
 
-            <!-- Checkerboard background -->
-            <Rectangle>
-                <Rectangle.Fill>
-                    <DrawingBrush TileMode="Tile"
+            <!-- PREVIEW -->
+
+            <Grid Height="60"
+               Width="130"
+               HorizontalAlignment="Right">
+
+                <!-- Checkerboard background -->
+                <Rectangle>
+                    <Rectangle.Fill>
+                        <DrawingBrush TileMode="Tile"
                           Viewport="0,0,10,10"
                           ViewportUnits="Absolute">
-                        <DrawingBrush.Drawing>
-                            <DrawingGroup>
+                            <DrawingBrush.Drawing>
+                                <DrawingGroup>
 
-                                <!-- base -->
-                                <GeometryDrawing Brush="White"
+                                    <!-- base -->
+                                    <GeometryDrawing Brush="White"
                                          Geometry="M0,0 H10 V10 H0 Z"/>
 
-                                <!-- top-left square -->
-                                <GeometryDrawing Brush="#CCC"
+                                    <!-- top-left square -->
+                                    <GeometryDrawing Brush="#CCC"
                                          Geometry="M0,0 H5 V5 H0 Z"/>
 
-                                <!-- bottom-right square -->
-                                <GeometryDrawing Brush="#CCC"
+                                    <!-- bottom-right square -->
+                                    <GeometryDrawing Brush="#CCC"
                                          Geometry="M5,5 H10 V10 H5 Z"/>
 
-                            </DrawingGroup>
-                        </DrawingBrush.Drawing>
-                    </DrawingBrush>
-                </Rectangle.Fill>
-            </Rectangle>
+                                </DrawingGroup>
+                            </DrawingBrush.Drawing>
+                        </DrawingBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
 
-            <!-- color -->
-            <Border BorderBrush="#666"
-            BorderThickness="1"
-            Background="{Binding CurrentBrush}"/>
+                <!-- color -->
+                <Border BorderBrush="#666"
+                    BorderThickness="1"
+                    Background="{Binding CurrentBrush}"/>
 
-        </Grid>
+            </Grid>
+        </StackPanel>
 
 
         <StackPanel Grid.Row="4" Grid.Column="1"
-                    Height="150"
+                    Height="60"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right"
-                    VerticalAlignment="Bottom"
-                    Margin="0,10,10,10">
+                    Margin="0,37,20,0">
             <Button Content="Ok"
                     Click="Ok_Click"
                     Style="{StaticResource FlatToolButton}"

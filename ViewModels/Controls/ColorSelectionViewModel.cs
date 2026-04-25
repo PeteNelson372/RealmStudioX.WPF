@@ -1,5 +1,6 @@
 ﻿using RealmStudioX.WPF.Editor.UserInterface;
 using System.ComponentModel;
+using System.Reflection;
 using System.Windows.Media;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
@@ -16,6 +17,30 @@ public class ColorSelectionViewModel : INotifyPropertyChanged
     public bool IsEditingHex { get; set; }
     public bool IsEditingRgb { get; set; }
     public bool IsEditingHsv { get; set; }
+    public bool IsEditingColorName { get; set; }
+
+    private static readonly Dictionary<Color, string> KnownColors = BuildKnownColors();
+
+    private static Dictionary<Color, string> BuildKnownColors()
+    {
+        var dict = new Dictionary<Color, string>();
+
+        foreach (var prop in typeof(Colors).GetProperties(BindingFlags.Public | BindingFlags.Static))
+        {
+            if (prop.PropertyType != typeof(Color))
+                continue;
+
+            var color = (Color)prop.GetValue(null)!;
+
+            // Only add if not already present
+            if (!dict.ContainsKey(color))
+            {
+                dict[color] = prop.Name;
+            }
+        }
+
+        return dict;
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
     private void OnPropertyChanged(string name) =>
@@ -238,6 +263,26 @@ public class ColorSelectionViewModel : INotifyPropertyChanged
         IsEditingHsv = false;
     }
 
+    public LinearGradientBrush ValueGradient
+    {
+        get
+        {
+            var c0 = ColorHelper.HsvToRgb(_h, _s, 0.0);
+            var c1 = ColorHelper.HsvToRgb(_h, _s, 1.0);
+
+            return new LinearGradientBrush
+            {
+                StartPoint = new System.Windows.Point(0, 0),
+                EndPoint = new System.Windows.Point(1, 0),
+                GradientStops =
+            {
+                new GradientStop(c0, 0.0),
+                new GradientStop(c1, 1.0)
+            }
+            };
+        }
+    }
+
     // =========================
     // ALPHA (UI FRIENDLY)
     // =========================
@@ -369,6 +414,82 @@ public class ColorSelectionViewModel : INotifyPropertyChanged
         return $"#{_currentColor.A:X2}{_currentColor.R:X2}{_currentColor.G:X2}{_currentColor.B:X2}";
     }
 
+
+    // =========================
+    // COLOR NAME
+    // =========================
+
+    private string _colorNameInput = "";
+
+    public string ColorNameInput
+    {
+        get => _colorNameInput;
+        set
+        {
+            _colorNameInput = value;
+            OnPropertyChanged(nameof(ColorNameInput));
+        }
+    }
+
+    private string GetColorName(Color color)
+    {
+        if (KnownColors.TryGetValue(color, out var name))
+            return name;
+
+        return ""; // or return Hex if you prefer fallback
+    }
+
+    public void CommitColorName()
+    {
+        if (string.IsNullOrWhiteSpace(_colorNameInput))
+        {
+            ColorNameInput = GetColorName(_currentColor);
+            IsEditingColorName = false;
+            return;
+        }
+
+        if (TryParseColorName(_colorNameInput, out var color))
+        {
+            CurrentColor = color;
+            ColorNameInput = GetColorName(color);
+        }
+        else
+        {
+            // revert
+            ColorNameInput = GetColorName(_currentColor);
+        }
+
+        IsEditingColorName = false;
+    }
+
+    private bool TryParseColorName(string input, out Color color)
+    {
+        color = default;
+
+        var name = input.Trim();
+
+        if (string.IsNullOrWhiteSpace(input))
+            return false;
+
+        // Normalize: keep letters only
+        var normalized = new string([.. input.Where(char.IsLetter)]);
+
+        if (string.IsNullOrWhiteSpace(normalized))
+            return false;
+
+        var prop = typeof(Colors).GetProperty(
+            name,
+            BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Static);
+
+        if (prop != null && prop.PropertyType == typeof(Color))
+        {
+            color = (Color)prop.GetValue(null)!;
+            return true;
+        }
+
+        return false;
+    }
+
     // =========================
     // CONVERSIONS
     // =========================
@@ -404,6 +525,8 @@ public class ColorSelectionViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(SPercent));
         OnPropertyChanged(nameof(VPercent));
 
+        OnPropertyChanged(nameof(ValueGradient));
+
         NotifyColorDependents();
 
         _isUpdating = false;
@@ -419,6 +542,7 @@ public class ColorSelectionViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(A));
         OnPropertyChanged(nameof(APercent));
         OnPropertyChanged(nameof(Hex));
+        OnPropertyChanged(nameof(ValueGradient));
 
         // HEX
         if (!IsEditingHex)
@@ -451,6 +575,13 @@ public class ColorSelectionViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(HInput));
             OnPropertyChanged(nameof(SInput));
             OnPropertyChanged(nameof(VInput));
+        }
+
+        // COLOR NAME
+        if (!IsEditingColorName)
+        {
+            _colorNameInput = GetColorName(_currentColor);
+            OnPropertyChanged(nameof(ColorNameInput));
         }
     }
 }
