@@ -99,5 +99,57 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                 (byte)((g + m) * 255),
                 (byte)((b + m) * 255));
         }
+
+        public static Color HsvToRgb(double h, double s, double v)
+        {
+            double c = v * s;
+            double x = c * (1 - Math.Abs((h / 60) % 2 - 1));
+            double m = v - c;
+
+            double r = 0, g = 0, b = 0;
+
+            if (h < 60) { r = c; g = x; }
+            else if (h < 120) { r = x; g = c; }
+            else if (h < 180) { g = c; b = x; }
+            else if (h < 240) { g = x; b = c; }
+            else if (h < 300) { r = x; b = c; }
+            else { r = c; b = x; }
+
+            return Color.FromRgb(
+                (byte)((r + m) * 255),
+                (byte)((g + m) * 255),
+                (byte)((b + m) * 255));
+        }
+
+        public static (double h, double s, double v) RgbToHsv(Color c)
+        {
+            double r = c.R / 255.0;
+            double g = c.G / 255.0;
+            double b = c.B / 255.0;
+
+            double max = Math.Max(r, Math.Max(g, b));
+            double min = Math.Min(r, Math.Min(g, b));
+            double delta = max - min;
+
+            double h = 0;
+
+            if (delta != 0)
+            {
+                if (max == r)
+                    h = ((g - b) / delta) % 6;
+                else if (max == g)
+                    h = (b - r) / delta + 2;
+                else
+                    h = (r - g) / delta + 4;
+
+                h *= 60;
+                if (h < 0) h += 360;
+            }
+
+            double s = max == 0 ? 0 : delta / max;
+            double v = max;
+
+            return (h, s, v);
+        }
     }
 }

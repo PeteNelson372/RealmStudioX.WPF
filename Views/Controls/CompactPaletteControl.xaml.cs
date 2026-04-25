@@ -58,6 +58,7 @@ namespace RealmStudioX.WPF.Views.Controls
             if (sender is Border border &&
                 border.Background is SolidColorBrush brush)
             {
+                border.Focus();
                 SelectedColor = brush.Color;
                 ColorSelected?.Invoke(brush.Color);
             }

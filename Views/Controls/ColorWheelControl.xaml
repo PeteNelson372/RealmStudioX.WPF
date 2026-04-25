@@ -1,0 +1,41 @@
+﻿<UserControl x:Class="RealmStudioX.WPF.Views.Controls.ColorWheelControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Focusable="True"
+             FocusVisualStyle="{x:Null}">
+
+    <Grid>
+        <Image x:Name="WheelImage"
+            Stretch="Fill"
+            RenderOptions.BitmapScalingMode="HighQuality"
+            MouseDown="Wheel_MouseDown"
+            MouseMove="Wheel_MouseMove"/>
+
+        <!-- Selection marker -->
+        <Canvas IsHitTestVisible="False">
+
+            <!-- Outer (dark) ring -->
+            <Ellipse x:Name="MarkerOuter"
+             Width="14"
+             Height="14"
+             Stroke="DarkGray"
+             StrokeThickness="1"
+             Fill="Transparent">
+                <Ellipse.Effect>
+                    <DropShadowEffect BlurRadius="4"
+                      ShadowDepth="0"
+                      Opacity="0.5"/>
+                </Ellipse.Effect>
+            </Ellipse>
+
+            <!-- Inner (light) ring -->
+            <Ellipse x:Name="MarkerInner"
+             Width="10"
+             Height="10"
+             Stroke="White"
+             StrokeThickness="1"
+             Fill="Transparent"/>
+        </Canvas>
+    </Grid>
+
+</UserControl>

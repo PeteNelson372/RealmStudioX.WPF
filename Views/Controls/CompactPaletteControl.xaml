@@ -12,7 +12,10 @@
 
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <Border Width="15"
+                    <Border 
+                            Focusable="True"
+                            FocusVisualStyle="{x:Null}"
+                            Width="15"
                             Height="15"
                             Margin="1.5"
                             Background="{Binding}"

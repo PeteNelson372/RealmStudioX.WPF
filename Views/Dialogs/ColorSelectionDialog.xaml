@@ -54,7 +54,13 @@
                     <RowDefinition Height="240"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                
+
+                <controls:ColorWheelControl
+                    Width="220"
+                    Height="220"
+                    Hue="{Binding H, Mode=TwoWay}"
+                    Saturation="{Binding S, Mode=TwoWay}" />
+
                 <controls:CompactPaletteControl
                     Grid.Row="1"
                     VerticalAlignment="Bottom"
@@ -80,7 +86,10 @@
                     Value="{Binding R, Mode=TwoWay}"/>
                 <TextBox Width="50"
                      Margin="8,0,0,0"
-                     Text="{Binding R, Mode=TwoWay}"/>
+                     KeyDown="RgbTextBox_KeyDown"
+                     GotFocus="RgbTextBox_GotFocus"
+                     LostFocus="RgbTextBox_LostFocus"
+                     Text="{Binding RInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
 
             <!-- G -->
@@ -93,7 +102,10 @@
                     Value="{Binding G, Mode=TwoWay}"/>
                 <TextBox Width="50"
                      Margin="8,0,0,0"
-                     Text="{Binding G, Mode=TwoWay}"/>
+                     KeyDown="RgbTextBox_KeyDown"
+                     GotFocus="RgbTextBox_GotFocus"                         
+                     LostFocus="RgbTextBox_LostFocus"
+                     Text="{Binding GInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
 
             <!-- B -->
@@ -106,7 +118,10 @@
                     Value="{Binding B, Mode=TwoWay}"/>
                 <TextBox Width="50"
                      Margin="8,0,0,0"
-                     Text="{Binding B, Mode=TwoWay}"/>
+                     KeyDown="RgbTextBox_KeyDown"
+                     GotFocus="RgbTextBox_GotFocus"                         
+                     LostFocus="RgbTextBox_LostFocus"
+                     Text="{Binding BInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
             <!-- A -->
             <StackPanel Orientation="Horizontal" Margin="0,2">
@@ -118,22 +133,29 @@
                     Value="{Binding A, Mode=TwoWay}"/>
                 <TextBox Width="50"
                      Margin="8,0,0,0"
-                     Text="{Binding A, Mode=TwoWay}"/>
+                     KeyDown="RgbTextBox_KeyDown"
+                     GotFocus="RgbTextBox_GotFocus"                         
+                     LostFocus="RgbTextBox_LostFocus"                         
+                     Text="{Binding AInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
             <!-- HEX -->
             <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" Margin="0,12,0,0">
 
                 <TextBlock Text="Hex:" Margin="0,0,10,0"/>
 
-                <TextBox Width="120"
-                 Text="{Binding Hex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBox Width="80"
+                    Text="{Binding HexInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    PreviewMouseDown="HexTextBox_PreviewMouseDown"                         
+                    GotFocus="HexTextBox_GotFocus"
+                    LostFocus="HexTextBox_LostFocus"
+                    KeyDown="HexTextBox_KeyDown"/>
 
             </StackPanel>
         </StackPanel>
 
         <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,12,0,12">
 
-            <TextBlock Text="HSL" FontWeight="Bold" Margin="0,0,0,6"/>
+            <TextBlock Text="HSV" FontWeight="Bold" Margin="0,0,0,6"/>
 
             <!-- H -->
             <StackPanel Orientation="Horizontal" Margin="0,2">
@@ -145,7 +167,10 @@
                     Value="{Binding H, Mode=TwoWay}"/>
                 <TextBox Width="50"
                  Margin="8,0,0,0"
-                 Text="{Binding H, Mode=TwoWay}"/>
+                 KeyDown="HsvTextBox_KeyDown"
+                 GotFocus="HsvTextBox_GotFocus"                         
+                 LostFocus="HsvTextBox_LostFocus"
+                 Text="{Binding HInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}"/>
             </StackPanel>
 
             <!-- S -->
@@ -155,23 +180,29 @@
                     Style="{StaticResource ModernSlider}"
                     Width="150"
                     Minimum="0" Maximum="100"
-                    Value="{Binding S, Mode=TwoWay}"/>
+                    Value="{Binding SPercent, Mode=TwoWay}"/>
                 <TextBox Width="50"
                  Margin="8,0,0,0"
-                 Text="{Binding S, Mode=TwoWay}"/>
+                 KeyDown="HsvTextBox_KeyDown"
+                 GotFocus="HsvTextBox_GotFocus"                         
+                 LostFocus="HsvTextBox_LostFocus"
+                 Text="{Binding SInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}"/>
             </StackPanel>
 
             <!-- L -->
             <StackPanel Orientation="Horizontal" Margin="0,2">
-                <TextBlock Text="L:" Width="20" Margin="0,0,12,0"/>
+                <TextBlock Text="V:" Width="20" Margin="0,0,12,0"/>
                 <Slider
                     Style="{StaticResource ModernSlider}"
                     Width="150"
                     Minimum="0" Maximum="100"
-                    Value="{Binding L, Mode=TwoWay}"/>
+                    Value="{Binding VPercent, Mode=TwoWay}"/>
                 <TextBox Width="50"
                  Margin="8,0,0,0"
-                 Text="{Binding L, Mode=TwoWay}"/>
+                 KeyDown="HsvTextBox_KeyDown"
+                 GotFocus="HsvTextBox_GotFocus"                         
+                 LostFocus="HsvTextBox_LostFocus"
+                 Text="{Binding VInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}"/>
             </StackPanel>
 
         </StackPanel>
