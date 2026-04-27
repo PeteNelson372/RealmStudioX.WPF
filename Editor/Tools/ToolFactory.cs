@@ -39,6 +39,14 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                         return tool;
                     }
+                case EditorToolType.WaterBodyTool:
+                    {
+                        tool = new WaterBodyTool(_commands, _assets,
+                            MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LANDFORMLAYER),
+                            _scene, _editorState, (IWaterBodySettings)context);
+
+                        return tool;
+                    }
             }
 
             return null;

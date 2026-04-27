@@ -83,7 +83,7 @@
             <panels:LandformPanel DataContext="{Binding LandformPanel}"/>
         </TabItem>
         <TabItem Header="Water">
-            <panels:WaterPanel/>
+            <panels:WaterPanel DataContext="{Binding WaterPanel}"/>
         </TabItem>
         <TabItem Header="Paths">
             <panels:PathsPanel/>

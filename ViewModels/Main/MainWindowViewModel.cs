@@ -21,11 +21,14 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public LandformPanelViewModel LandformPanel { get; }
 
+        public WaterPanelViewModel WaterPanel { get; }
+
         public MainWindowViewModel(EditorController editor, AssetManager assetManager)
         {
             _editor = editor;
 
-            // instantiate ViewModels for the panels
+            // instantiate ViewModels for the panels; when adding a view model
+            // remember to add a reference to it on the TabItem <panel:...> in MainTabs.xaml 
 
             // Background Panel
             BackgroundPanel = new BackgroundPanelViewModel(_editor, assetManager);
@@ -34,6 +37,9 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
             // Landform Panel
             LandformPanel = new LandformPanelViewModel(_editor, assetManager);
+
+            // Water Body Panel
+            WaterPanel = new WaterPanelViewModel(_editor, assetManager);
 
             MapName = "Default";
         }

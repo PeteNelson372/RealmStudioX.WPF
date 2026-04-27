@@ -39,9 +39,9 @@
                 Width="50"
                 Height="50"
                 Margin="0,10,0,0"
-                ToolTip="Fill Background"
+                ToolTip="Select Map Object"
                 Style="{StaticResource FlatToolButton}"
-                Command="{Binding FillCommand}">
+                Command="{Binding SelectCommand}">
                 <StackPanel Orientation="Vertical">
                     <TextBlock Text="Select"
                                FontSize="12"

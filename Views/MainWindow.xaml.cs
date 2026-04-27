@@ -405,26 +405,25 @@ namespace RealmStudioX.WPF
             {
                 // paint the _skiaControl surface, compositing all of the layers
 
-                canvas.Save();
-
-                canvas.ResetMatrix();
-                canvas.Translate(_editor.Scene.Camera.Pan.X, _editor.Scene.Camera.Pan.Y);
-                canvas.Scale(_editor.Scene.Camera.Zoom);
-
-                canvas.DrawRect(new SKRect(0, 0, _editor.Scene.Map.MapWidth, _editor.Scene.Map.MapHeight), PaintObjects.MapOutlinePaint);
-
-                if (_skiaControl.GRContext != null
-                    && _editor.Scene.Map != null
-                    && _editor.Scene.Map.MapLayers.Count == MapBuilder.MAP_LAYER_COUNT)
+                using (new SKAutoCanvasRestore(canvas))
                 {
-                    _renderContext.Zoom = _editor.Scene.Camera.Zoom;
-                    _editor.Scene.Render(canvas);
+                    canvas.ResetMatrix();
+                    canvas.Translate(_editor.Scene.Camera.Pan.X, _editor.Scene.Camera.Pan.Y);
+                    canvas.Scale(_editor.Scene.Camera.Zoom);
 
-                    _editor.RenderOverlay(canvas);
+                    canvas.DrawRect(new SKRect(0, 0, _editor.Scene.Map.MapWidth, _editor.Scene.Map.MapHeight), PaintObjects.MapOutlinePaint);
 
-                    // TODO: handle rendering height map
+                    if (_skiaControl.GRContext != null
+                        && _editor.Scene.Map != null
+                        && _editor.Scene.Map.MapLayers.Count == MapBuilder.MAP_LAYER_COUNT)
+                    {
+                        _renderContext.Zoom = _editor.Scene.Camera.Zoom;
+                        _editor.Scene.Render(canvas);
 
-                    canvas.Restore();
+                        _editor.RenderOverlay(canvas);
+
+                        // TODO: handle rendering height map
+                    }
                 }
             }
         }
