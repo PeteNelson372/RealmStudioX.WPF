@@ -28,10 +28,10 @@ namespace RealmStudioX.WPF
     public partial class MainWindow : Window
     {
         private SKGLControl? _skiaControl;
-        private EditorController? _editor;
-        private FontManager _fontManager;
-        private AssetManager _assetManager;
-        private RenderContext _renderContext;
+        private readonly EditorController? _editor;
+        private readonly FontManager _fontManager;
+        private readonly AssetManager _assetManager;
+        private readonly RenderContext _renderContext;
 
         public MainWindowViewModel ViewModel { get; }
 
@@ -423,9 +423,6 @@ namespace RealmStudioX.WPF
                     _editor.RenderOverlay(canvas);
 
                     // TODO: handle rendering height map
-
-                    // TODO: handle using eyedropper cursor for color select mode
-                    // (handle in color select tool?)
 
                     canvas.Restore();
                 }

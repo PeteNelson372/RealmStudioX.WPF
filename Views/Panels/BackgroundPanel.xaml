@@ -12,6 +12,7 @@
              xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"
              mc:Ignorable="d"
              d:DesignHeight="916" d:DesignWidth="226">
+    
     <Grid Visibility="Visible" Background="#FFDFDBD2">
         <Grid.RowDefinitions>
             <RowDefinition Height="32"/>

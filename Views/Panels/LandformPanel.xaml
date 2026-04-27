@@ -2,25 +2,1111 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Panels"
+             xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+             xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
+             xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
+             xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"
              mc:Ignorable="d" 
              d:DesignHeight="916" d:DesignWidth="235">
+    
     <Grid Visibility="Visible" Background="#FFDFDBD2">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="72"/>
+        </Grid.ColumnDefinitions>
 
-        <StackPanel Orientation="Horizontal"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Top">
+        <StackPanel
+            Grid.Row="1"
+            Orientation="Vertical"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Right"
+            Width="72"
+            Height="Auto"
+            Margin="0,3,3,0" Grid.ColumnSpan="2" Grid.RowSpan="2">
 
-            <TextBlock Text="Land"
-                Foreground="Black"
-                FontSize="16"
-                FontWeight="SemiBold"
-                VerticalAlignment="Center"
-                Margin="0,0,0,0"/>
+            <Button
+                x:Name="LandformSelectButton"
+                Width="50"
+                Height="50"
+                Margin="0,10,0,0"
+                ToolTip="Fill Background"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding FillCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Select"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="CursorDefault"
+                                     HorizontalAlignment="Center"
+                                     Width="20"
+                                     Height="20"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+            
+            <Button
+                x:Name="LandformPaintButton"
+                Width="50"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Paint Landform"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding PaintCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Paint"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="Brush"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+            <Button
+                x:Name="LandformEraseButton"
+                Width="50"
+                Height="50"
+                Margin="0,25,0,0"
+                ToolTip="Erase Landform"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding EraseCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Erase"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="Eraser"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+            <Button
+                x:Name="LandformFillButton"
+                Width="50"
+                Height="50"
+                Margin="0,50,0,0"
+                ToolTip="Fill Landform"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding FillLandformCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Fill"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="FormatColorFill"
+                                     Width="24"
+                                     Height="24"
+                                     RenderTransformOrigin="0.5,0.5"
+                                     Opacity="0.7">
+                    </materialDesign:PackIcon>
+                </StackPanel>
+            </Button>
+            <Button
+                x:Name="LandformClearButton"
+                Width="50"
+                Height="50"
+                Margin="0,25,0,0"
+                ToolTip="Clear Landform"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding ClearLandformCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Clear"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="ImageOffOutline"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
+
+            <Grid Width="60" Height="120" Margin="0,40,0,0">
+                <!-- Main button -->
+                <Button
+                x:Name="GenerateLandformsButton"
+                Width="58"
+                Height="58"
+                ToolTip="Generate Landforms"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding GenerateLandformsCommand}">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="Generate"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                        <materialDesign:PackIcon Kind="AutoAwesomeMosaic"
+                                     Width="24"
+                                     Height="24"
+                                     HorizontalAlignment="Center"
+                                     Opacity="0.7"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Dropdown -->
+                <ToggleButton
+                    x:Name="DropDownButton"
+                    Content="Type ▾"
+                    FontSize="12"
+                    Background="#00FFFFFF"
+                    BorderBrush="#00FFFFFF"
+                    Width="58"
+                    Height="28"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,1,1"
+                    Focusable="False">
+                    <ToggleButton.Template>
+                        <ControlTemplate TargetType="ToggleButton">
+                            <Border x:Name="Root"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="0">
+                                <ContentPresenter
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+                            </Border>
+
+                            <!-- Optional: keep state visuals under your control -->
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Root" Property="Background" Value="#FFCAC7BF"/>
+                                </Trigger>
+
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="Root" Property="Background" Value="Transparent"/>
+                                </Trigger>
+
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="Root" Property="Background" Value="Transparent"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </ToggleButton.Template>
+                </ToggleButton>
+
+                <!-- Popup -->
+                <Popup
+                    IsOpen="{Binding IsChecked, ElementName=DropDownButton}"
+                    PlacementTarget="{Binding ElementName=DropDownButton}"
+                    Placement="Bottom"
+                    StaysOpen="False">
+
+                    <Border Background="#FFCAC7BF" BorderBrush="#FFCAC7BF" Padding="4">
+                        <StackPanel MinWidth="140">
+
+                            <Button Style="{StaticResource FlatToolButtonDarker}"
+                                Click="SelectGeneratedLandformType_Click"
+                                Tag="{x:Static rendering:GeneratedLandformType.Archipelago}">
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <!-- Checkmark -->
+                                    <TextBlock Width="16"
+                                       Margin="0,0,6,0"
+                                       Text="✔">
+
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Hidden"/>
+
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedLandformType}"
+                                                            Value="{x:Static rendering:GeneratedLandformType.Archipelago}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+
+                                            </Style>
+                                        </TextBlock.Style>
+
+                                    </TextBlock>
+
+                                    <!-- Label -->
+                                    <TextBlock Text="Archipelago"/>
+
+                                </StackPanel>
+
+                            </Button>
+
+                            <Button Style="{StaticResource FlatToolButtonDarker}"
+                                Click="SelectGeneratedLandformType_Click"
+                                Tag="{x:Static rendering:GeneratedLandformType.Atoll}">
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <!-- Checkmark -->
+                                    <TextBlock Width="16"
+                                       Margin="0,0,6,0"
+                                       Text="✔">
+
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Hidden"/>
+
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedLandformType}"
+                                                            Value="{x:Static rendering:GeneratedLandformType.Atoll}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+
+                                            </Style>
+                                        </TextBlock.Style>
+
+                                    </TextBlock>
+
+                                    <!-- Label -->
+                                    <TextBlock Text="Atoll"/>
+
+                                </StackPanel>
+
+                            </Button>
+
+                            <Button Style="{StaticResource FlatToolButtonDarker}"
+                                Click="SelectGeneratedLandformType_Click"
+                                Tag="{x:Static rendering:GeneratedLandformType.Continent}">
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <!-- Checkmark -->
+                                    <TextBlock Width="16"
+                                       Margin="0,0,6,0"
+                                       Text="✔">
+
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Hidden"/>
+
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedLandformType}"
+                                                            Value="{x:Static rendering:GeneratedLandformType.Continent}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+
+                                            </Style>
+                                        </TextBlock.Style>
+
+                                    </TextBlock>
+
+                                    <!-- Label -->
+                                    <TextBlock Text="Continent"/>
+
+                                </StackPanel>
+
+                            </Button>
+
+                            <Button Style="{StaticResource FlatToolButtonDarker}"
+                                Click="SelectGeneratedLandformType_Click"
+                                Tag="{x:Static rendering:GeneratedLandformType.Icecap}">
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <!-- Checkmark -->
+                                    <TextBlock Width="16"
+                                       Margin="0,0,6,0"
+                                       Text="✔">
+
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Hidden"/>
+
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedLandformType}"
+                                                            Value="{x:Static rendering:GeneratedLandformType.Icecap}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+
+                                            </Style>
+                                        </TextBlock.Style>
+
+                                    </TextBlock>
+
+                                    <!-- Label -->
+                                    <TextBlock Text="Icecap"/>
+
+                                </StackPanel>
+
+                            </Button>
+
+                            <Button Style="{StaticResource FlatToolButtonDarker}"
+                                Click="SelectGeneratedLandformType_Click"
+                                Tag="{x:Static rendering:GeneratedLandformType.Island}">
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <!-- Checkmark -->
+                                    <TextBlock Width="16"
+                                       Margin="0,0,6,0"
+                                       Text="✔">
+
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Hidden"/>
+
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedLandformType}"
+                                                            Value="{x:Static rendering:GeneratedLandformType.Island}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+
+                                            </Style>
+                                        </TextBlock.Style>
+
+                                    </TextBlock>
+
+                                    <!-- Label -->
+                                    <TextBlock Text="Island"/>
+
+                                </StackPanel>
+
+                            </Button>
+
+                            <Button Style="{StaticResource FlatToolButtonDarker}"
+                                Click="SelectGeneratedLandformType_Click"
+                                Tag="{x:Static rendering:GeneratedLandformType.Region}">
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <!-- Checkmark -->
+                                    <TextBlock Width="16"
+                                       Margin="0,0,6,0"
+                                       Text="✔">
+
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Hidden"/>
+
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedLandformType}"
+                                                            Value="{x:Static rendering:GeneratedLandformType.Region}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+
+                                            </Style>
+                                        </TextBlock.Style>
+
+                                    </TextBlock>
+
+                                    <!-- Label -->
+                                    <TextBlock Text="Region"/>
+
+                                </StackPanel>
+
+                            </Button>
+
+                            <Button Style="{StaticResource FlatToolButtonDarker}"
+                                Click="SelectGeneratedLandformType_Click"
+                                Tag="{x:Static rendering:GeneratedLandformType.World}">
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <!-- Checkmark -->
+                                    <TextBlock
+                                       HorizontalAlignment="Left"
+                                       Width="16"
+                                       Margin="0,0,6,0"
+                                       Text="✔">
+
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Hidden"/>
+
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedLandformType}"
+                                                            Value="{x:Static rendering:GeneratedLandformType.World}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+
+                                            </Style>
+                                        </TextBlock.Style>
+
+                                    </TextBlock>
+
+                                    <!-- Label -->
+                                    <TextBlock Text="World"/>
+
+                                </StackPanel>
+
+                            </Button>
+
+                        </StackPanel>
+                    </Border>
+                </Popup>
+
+            </Grid>
+
         </StackPanel>
+
+        <StackPanel
+            Grid.Row="0"
+            Grid.Column="0"
+            Orientation="Horizontal"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="74"
+            Height="32"
+            Margin="3,3,0,0" Grid.RowSpan="2">
+
+            <CheckBox x:Name="BackgroundEnabledToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        IsChecked="True"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+            <TextBlock Text="Show"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,6,3"/>
+        </StackPanel>
+
+        <GroupBox Header="Landform"
+            Grid.Row="1"
+            Grid.Column="0"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="154"
+            Height="Auto"
+            Margin="3,0,0,0">
+
+            <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+                    Margin="3,3,3,3"
+                    Width="146"
+                    Height="Auto">
+
+                <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                    <TextBlock Text="Brush Size"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,3,3,3"/>
+
+                    <Slider x:Name="LandBrushSizeSlider"
+                                Style="{StaticResource ModernSlider}"
+                                behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                                Width="126"
+                                Minimum="4"
+                                Maximum="512"
+                                AutoToolTipPlacement="TopLeft"
+                                AutoToolTipPrecision="0"                              
+                                Value="{Binding LandformBrushSize}"/>
+
+                </StackPanel>
+
+                <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                    <TextBlock Text="Shading Depth"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,3,3,3"/>
+
+                    <Slider x:Name="ShadingDepthSlider"
+                                Style="{StaticResource ModernSlider}"
+                                behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                                Width="126"
+                                Minimum="0"
+                                Maximum="40"
+                                AutoToolTipPlacement="TopLeft"
+                                AutoToolTipPrecision="0"                              
+                                Value="{Binding LandformShadingDepth}"/>
+
+                </StackPanel>
+
+                <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+                    
+                    <TextBlock Text="Outline Color"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,3,3,3"/>
+                    <Button
+                    Style="{StaticResource FlatToolButton}"
+                    Width="120"
+                    Height="50"
+                    Margin="3,3,3,3"
+                    Background="{Binding LandformOutlineBrush}"
+                    ToolTip="Select Landform Outline Color"
+                    PreviewMouseLeftButtonUp="OutlineColor_LeftClick"
+                    PreviewMouseRightButtonUp="OutlineColor_RightClick">
+
+                        <materialDesign:PackIcon Kind="PaletteOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Opacity="0.7"/>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                    <TextBlock Text="Outline Width"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,3,3,3"/>
+
+                    <Slider x:Name="OutlineWidthSlider"
+                                Style="{StaticResource ModernSlider}"
+                                behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                                Width="126"
+                                Minimum="4"
+                                Maximum="512"
+                                AutoToolTipPlacement="TopLeft"
+                                AutoToolTipPrecision="0"                            
+                                Value="{Binding LandformOutlineWidth}"/>
+
+                </StackPanel>
+
+                <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                    <TextBlock Text="Background Color"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,3,3,3"/>
+                    <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Width="120"
+                        Height="50"
+                        Margin="3,3,3,3"
+                        Background="{Binding LandformBackgroundBrush}"
+                        ToolTip="Select Landform Background Color"
+                        PreviewMouseLeftButtonUp="BackgroundColor_LeftClick"
+                        PreviewMouseRightButtonUp="BackgroundColor_RightClick">
+
+                        <materialDesign:PackIcon Kind="PaletteOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Opacity="0.7"/>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+
+                    <StackPanel
+                        Grid.Row="0"
+                        Grid.Column="0"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="120"
+                        Height="32"
+                        Margin="3,3,0,0" Grid.RowSpan="2">
+
+                        <CheckBox x:Name="TextureFillToggle"
+                            Grid.Row="0"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            IsChecked="{Binding TextureFill}"
+                            Style="{StaticResource ToggleSwitchStyle}"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                        <TextBlock Text="Texture Fill"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,3,6,3"/>
+                    </StackPanel>
+
+                    <controls:AssetBrowserControl x:Name="BackgroundTextureBrowser"
+                                               DataContext="{Binding TextureBrowser}" 
+                                               Width="136"
+                                               Height="160"
+                                               Margin="0,0,0,6"/>
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="Coastline"
+            Grid.Row="2"
+            Grid.Column="0"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="154"
+            Height="Auto"
+            Margin="3,0,0,0">
+            <StackPanel>
+                <StackPanel
+                            Orientation="Vertical"
+                            VerticalAlignment="Top"
+                            HorizontalAlignment="Left"
+                            Width="130"
+                            Height="Auto"
+                            Margin="3,3,3,3">
+
+                    <TextBlock Text="Effect Distance"
+                                Foreground="#FF45443F"
+                                VerticalAlignment="Center"
+                                Margin="3,3,3,3"/>
+
+                    <Slider x:Name="EffectDistanceSlider"
+                                    Style="{StaticResource ModernSlider}"
+                                    behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                                    Width="126"
+                                    Minimum="4"
+                                    Maximum="512"
+                                    AutoToolTipPlacement="TopLeft"
+                                    AutoToolTipPrecision="0"                            
+                                    Value="{Binding CoastlineEffectDistance}"/>
+
+                </StackPanel>
+
+                <StackPanel
+                            Orientation="Vertical"
+                            VerticalAlignment="Top"
+                            HorizontalAlignment="Left"
+                            Width="130"
+                            Height="Auto"
+                            Margin="3,3,3,3">
+
+                    <TextBlock Text="Coastline Color"
+                                Foreground="#FF45443F"
+                                VerticalAlignment="Center"
+                                Margin="3,3,3,3"/>
+                    <Button
+                            Style="{StaticResource FlatToolButton}"
+                            Width="120"
+                            Height="50"
+                            Margin="3,3,3,3"
+                            Background="{Binding CoastlineColorBrush}"
+                            ToolTip="Select Coastline Color"
+                            PreviewMouseLeftButtonUp="CoastlineColor_LeftClick"
+                            PreviewMouseRightButtonUp="CoastlineColor_RightClick">
+
+                        <materialDesign:PackIcon Kind="PaletteOutline"
+                                        Width="36"
+                                        Height="36"
+                                        Opacity="0.7"/>
+                    </Button>
+                </StackPanel>
+
+                <!-- Dropdown arrow -->
+                <ToggleButton
+                    x:Name="CoastlineDropDownButton"
+                    Content="Coastline Style ▾"
+                    FontSize="12"
+                    Background="#00FFFFFF"
+                    BorderBrush="#00FFFFFF"
+                    Width="100"
+                    Height="28"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom"
+                    Margin="3,0,1,1"
+                    Focusable="False">
+                    <ToggleButton.Template>
+                        <ControlTemplate TargetType="ToggleButton">
+                            <Border x:Name="Root"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="0">
+                                <ContentPresenter
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+                            </Border>
+
+                            <!-- Optional: keep state visuals under your control -->
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Root" Property="Background" Value="#FFCAC7BF"/>
+                                </Trigger>
+
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="Root" Property="Background" Value="Transparent"/>
+                                </Trigger>
+
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="Root" Property="Background" Value="Transparent"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </ToggleButton.Template>
+                </ToggleButton>
+
+                <!-- Popup -->
+                <Popup
+                    IsOpen="{Binding IsChecked, ElementName=CoastlineDropDownButton}"
+                    PlacementTarget="{Binding ElementName=CoastlineDropDownButton}"
+                    Placement="Bottom"
+                    StaysOpen="False">
+
+                    <Border Background="#FFCAC7BF" BorderBrush="#FFCAC7BF" Padding="4">
+                        <StackPanel MinWidth="140">
+
+                            <Button Style="{StaticResource FlatToolButtonDarker}"
+                                Click="SelectCoastlineStyle_Click"
+                                Tag="{x:Static rendering:LandformCoastlineStyle.None}">
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <!-- Checkmark -->
+                                    <TextBlock Width="16"
+                                       Margin="0,0,6,0"
+                                       Text="✔">
+
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Hidden"/>
+
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedCoastlineStyle}"
+                                                            Value="{x:Static rendering:LandformCoastlineStyle.None}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+
+                                            </Style>
+                                        </TextBlock.Style>
+
+                                    </TextBlock>
+
+                                    <!-- Label -->
+                                    <TextBlock Text="None"/>
+
+                                </StackPanel>
+
+                            </Button>
+
+                            <Button Style="{StaticResource FlatToolButtonDarker}"
+                                Click="SelectCoastlineStyle_Click"
+                                Tag="{x:Static rendering:LandformCoastlineStyle.UniformBand}">
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <!-- Checkmark -->
+                                    <TextBlock Width="16"
+                                       Margin="0,0,6,0"
+                                       Text="✔">
+
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Hidden"/>
+
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedCoastlineStyle}"
+                                                            Value="{x:Static rendering:LandformCoastlineStyle.UniformBand}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+
+                                            </Style>
+                                        </TextBlock.Style>
+
+                                    </TextBlock>
+
+                                    <!-- Label -->
+                                    <TextBlock Text="Uniform Band"/>
+
+                                </StackPanel>
+
+                            </Button>
+
+                            <Button Style="{StaticResource FlatToolButtonDarker}"
+                                Click="SelectCoastlineStyle_Click"
+                                Tag="{x:Static rendering:LandformCoastlineStyle.UniformBlend}">
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <!-- Checkmark -->
+                                    <TextBlock Width="16"
+                                       Margin="0,0,6,0"
+                                       Text="✔">
+
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Hidden"/>
+
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedCoastlineStyle}"
+                                                            Value="{x:Static rendering:LandformCoastlineStyle.UniformBlend}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+
+                                            </Style>
+                                        </TextBlock.Style>
+
+                                    </TextBlock>
+
+                                    <!-- Label -->
+                                    <TextBlock Text="Uniform Blend"/>
+
+                                </StackPanel>
+
+                            </Button>
+
+                            <Button Style="{StaticResource FlatToolButtonDarker}"
+                                Click="SelectCoastlineStyle_Click"
+                                Tag="{x:Static rendering:LandformCoastlineStyle.UniformOutline}">
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <!-- Checkmark -->
+                                    <TextBlock Width="16"
+                                       Margin="0,0,6,0"
+                                       Text="✔">
+
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Hidden"/>
+
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedCoastlineStyle}"
+                                                            Value="{x:Static rendering:LandformCoastlineStyle.UniformOutline}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+
+                                            </Style>
+                                        </TextBlock.Style>
+
+                                    </TextBlock>
+
+                                    <!-- Label -->
+                                    <TextBlock Text="Uniform Outline"/>
+
+                                </StackPanel>
+
+                            </Button>
+
+                            <Button Style="{StaticResource FlatToolButtonDarker}"
+                                Click="SelectCoastlineStyle_Click"
+                                Tag="{x:Static rendering:LandformCoastlineStyle.ThreeTiered}">
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <!-- Checkmark -->
+                                    <TextBlock Width="16"
+                                       Margin="0,0,6,0"
+                                       Text="✔">
+
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Hidden"/>
+
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedCoastlineStyle}"
+                                                            Value="{x:Static rendering:LandformCoastlineStyle.ThreeTiered}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+
+                                            </Style>
+                                        </TextBlock.Style>
+
+                                    </TextBlock>
+
+                                    <!-- Label -->
+                                    <TextBlock Text="Three-Tiered"/>
+
+                                </StackPanel>
+
+                            </Button>
+
+                            <Button Style="{StaticResource FlatToolButtonDarker}"
+                                Click="SelectCoastlineStyle_Click"
+                                Tag="{x:Static rendering:LandformCoastlineStyle.DashPattern}">
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <!-- Checkmark -->
+                                    <TextBlock Width="16"
+                                       Margin="0,0,6,0"
+                                       Text="✔">
+
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Hidden"/>
+
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedCoastlineStyle}"
+                                                            Value="{x:Static rendering:LandformCoastlineStyle.DashPattern}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+
+                                            </Style>
+                                        </TextBlock.Style>
+
+                                    </TextBlock>
+
+                                    <!-- Label -->
+                                    <TextBlock Text="Dash Pattern"/>
+
+                                </StackPanel>
+
+                            </Button>
+
+                            <Button Style="{StaticResource FlatToolButtonDarker}"
+                                Click="SelectCoastlineStyle_Click"
+                                Tag="{x:Static rendering:LandformCoastlineStyle.HatchPattern}">
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <!-- Checkmark -->
+                                    <TextBlock
+                                       HorizontalAlignment="Left"
+                                       Width="16"
+                                       Margin="0,0,6,0"
+                                       Text="✔">
+
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Hidden"/>
+
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedCoastlineStyle}"
+                                                            Value="{x:Static rendering:LandformCoastlineStyle.HatchPattern}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+
+                                            </Style>
+                                        </TextBlock.Style>
+
+                                    </TextBlock>
+
+                                    <!-- Label -->
+                                    <TextBlock Text="Hatch Pattern"/>
+
+                                </StackPanel>
+
+                            </Button>
+
+                            <Button Style="{StaticResource FlatToolButtonDarker}"
+                                Click="SelectCoastlineStyle_Click"
+                                Tag="{x:Static rendering:LandformCoastlineStyle.RipplePattern}">
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <!-- Checkmark -->
+                                    <TextBlock
+                                       HorizontalAlignment="Left"
+                                       Width="16"
+                                       Margin="0,0,6,0"
+                                       Text="✔">
+
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Hidden"/>
+
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedCoastlineStyle}"
+                                                            Value="{x:Static rendering:LandformCoastlineStyle.RipplePattern}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+
+                                            </Style>
+                                        </TextBlock.Style>
+
+                                    </TextBlock>
+
+                                    <!-- Label -->
+                                    <TextBlock Text="Ripple Pattern"/>
+
+                                </StackPanel>
+
+                            </Button>
+
+                        </StackPanel>
+                    </Border>
+                </Popup>
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="Eraser"
+            Grid.Row="3"
+            Grid.Column="0"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="154"
+            Height="Auto"
+            Margin="3,0,0,0">
+            <StackPanel
+                            Orientation="Vertical"
+                            VerticalAlignment="Top"
+                            HorizontalAlignment="Left"
+                            Width="130"
+                            Height="Auto"
+                            Margin="3,3,3,3">
+
+                <TextBlock Text="Size"
+                                Foreground="#FF45443F"
+                                VerticalAlignment="Center"
+                                Margin="3,3,3,3"/>
+
+                <Slider x:Name="EraserSizeSlider"
+                                    Style="{StaticResource ModernSlider}"
+                                    behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                                    Width="126"
+                                    Minimum="4"
+                                    Maximum="512"
+                                    AutoToolTipPlacement="TopLeft"
+                                    AutoToolTipPrecision="0"
+                                    Value="{Binding LandformEraserSize}"/>
+
+            </StackPanel>
+        </GroupBox>
     </Grid>
 </UserControl>

@@ -9,6 +9,7 @@
         <ResourceDictionary>
             
             <conv:EnumToBooleanConverter x:Key="EnumToBooleanConverter"/>
+            <conv:EnumEqualsConverter x:Key="EnumEqualsConverter"/>
             
             <ResourceDictionary.MergedDictionaries>
 

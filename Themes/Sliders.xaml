@@ -17,88 +17,88 @@
   </ControlTemplate>
 
   <!-- =========================
-       Slider (modified safely)
+       Modern Slider
        ========================= -->
-  <Style x:Key="ModernSlider" TargetType="Slider">
-    <Setter Property="Height" Value="24"/>
+    <Style x:Key="ModernSlider" TargetType="Slider">
+        <Setter Property="Height" Value="24"/>
 
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate TargetType="Slider">
-          <Grid VerticalAlignment="Center">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <Grid VerticalAlignment="Center">
 
-            <Track x:Name="PART_Track">
+                        <Track x:Name="PART_Track">
 
-              <!-- Left (filled) -->
-              <Track.DecreaseRepeatButton>
-                <RepeatButton IsEnabled="False"
+                            <!-- Left (filled) -->
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton IsEnabled="False"
                               Background="#99b0a4"
                               Height="4"
                               VerticalAlignment="Center"
                               Template="{StaticResource SliderTrackButton}"/>
-              </Track.DecreaseRepeatButton>
+                            </Track.DecreaseRepeatButton>
 
-              <!-- Right (empty) -->
-              <Track.IncreaseRepeatButton>
-                <RepeatButton IsEnabled="False"
+                            <!-- Right (empty) -->
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton IsEnabled="False"
                               Background="#DDD"
                               Height="4"
                               VerticalAlignment="Center"
                               Template="{StaticResource SliderTrackButton}"/>
-              </Track.IncreaseRepeatButton>
+                            </Track.IncreaseRepeatButton>
 
-              <!-- =========================
-                   Thumb (UPDATED ONLY HERE)
-                   ========================= -->
-              <Track.Thumb>
-                <Thumb Width="14"
-                       Height="14"
-                       Background="{StaticResource SliderFillBrush}"
-                       BorderBrush="{StaticResource SliderFillBrush}"
-                       BorderThickness="1">
+                            <!-- =========================
+                                Thumb (UPDATED ONLY HERE)
+                            ========================= -->
+                            <Track.Thumb>
+                                <Thumb Width="14"
+                                   Height="14"
+                                   Background="{StaticResource SliderFillBrush}"
+                                   BorderBrush="{StaticResource SliderFillBrush}"
+                                   BorderThickness="1">
 
-                  <Thumb.Template>
-                    <ControlTemplate TargetType="Thumb">
-                      <Grid>
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="Thumb">
+                                            <Grid>
 
-                        <!-- Tooltip that follows thumb -->
-                        <ToolTipService.ToolTip>
-                          <ToolTip
-                              Placement="Top"
-                              StaysOpen="True"
-                              Content="{Binding Value,
-                                        RelativeSource={RelativeSource AncestorType=Slider},
-                                        Converter={StaticResource ZoomToPercent}}"/>
-                        </ToolTipService.ToolTip>
+                                                <!-- Tooltip that follows thumb -->
+                                                <ToolTipService.ToolTip>
+                                                    <ToolTip
+                                                      Placement="Top"
+                                                      StaysOpen="True"
+                                                      Content="{Binding Value,
+                                                      RelativeSource={RelativeSource AncestorType=Slider},
+                                                      Converter={StaticResource ZoomToPercent}}"/>
+                                                </ToolTipService.ToolTip>
 
-                        <!-- Your existing visual -->
-                        <Ellipse Fill="{TemplateBinding Background}"/>
+                                                <!-- Your existing visual -->
+                                                <Ellipse Fill="{TemplateBinding Background}"/>
 
-                      </Grid>
-                    </ControlTemplate>
-                  </Thumb.Template>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Thumb.Template>
 
-                  <Thumb.Style>
-                    <Style TargetType="Thumb">
-                      <Style.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                          <Setter Property="Background" Value="#66645F"/>
-                        </Trigger>
-                        <Trigger Property="IsDragging" Value="True">
-                          <Setter Property="Background" Value="#99b0a4"/>
-                        </Trigger>
-                      </Style.Triggers>
-                    </Style>
-                  </Thumb.Style>
+                                    <Thumb.Style>
+                                        <Style TargetType="Thumb">
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#66645F"/>
+                                                </Trigger>
+                                                <Trigger Property="IsDragging" Value="True">
+                                                    <Setter Property="Background" Value="#99b0a4"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Thumb.Style>
 
-                </Thumb>
-              </Track.Thumb>
+                                </Thumb>
+                            </Track.Thumb>
 
-            </Track>
-          </Grid>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
-  </Style>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
 </ResourceDictionary>

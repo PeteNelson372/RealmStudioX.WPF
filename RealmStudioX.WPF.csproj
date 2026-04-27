@@ -55,7 +55,6 @@
 
   <ItemGroup>
     <Folder Include="Editor\Controls\" />
-    <Folder Include="Editor\Tools\" />
     <Folder Include="Models\Map\" />
   </ItemGroup>
 

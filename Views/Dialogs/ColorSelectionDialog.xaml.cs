@@ -13,7 +13,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
     /// </summary>
     public partial class ColorSelectionDialog : Window
     {
-
         public ColorSelectionViewModel ViewModel { get; }
 
         public Color SelectedColor => ViewModel.CurrentColor;

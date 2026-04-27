@@ -1,6 +1,7 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
+using RealmStudioX.WPF.Editor.Tools;
 using SkiaSharp;
 using CommandManager = RealmStudioX.Core.CommandManager;
 
@@ -12,11 +13,13 @@ namespace RealmStudioX.WPF.Editor
         public event Action<ColorPaintBrush>? ColorPaintBrushChanged;
         public event Action<MapLayer>? ActiveDrawingLayerChanged;
 
-        public CommandManager Commands { get; } = new();
+        public CommandManager _commands { get; } = new();
         private readonly AssetManager _assetManager;
+        private readonly EditorState _editorState = new();
 
         private MapScene? _scene;
 
+        private ToolFactory? _toolFactory;
         private IToolEditor? _activeTool;
 
         private SKSize _viewportSize;
@@ -24,6 +27,16 @@ namespace RealmStudioX.WPF.Editor
         public EditorController(AssetManager assetManager)
         {
             _assetManager = assetManager;
+        }
+
+        public void ActivateTool(EditorToolType type, object? context = null)
+        {
+            if (_toolFactory == null)
+            {
+                return;
+            }
+          
+            ActiveEditorTool = _toolFactory.Create(type, context);
         }
 
         public MapScene? Scene => _scene;
@@ -38,12 +51,19 @@ namespace RealmStudioX.WPF.Editor
 
             _scene = scene;
 
+            _toolFactory = new(_commands, _assetManager, _scene, _editorState);
+
             // Subscribe to new scene
             _scene.SceneChanged += OnSceneChanged;
         }
 
         private void OnSceneChanged()
         {
+            if (_scene == null)
+            {
+                return;
+            }
+
             UpdateMapScene();
         }
 
@@ -67,17 +87,15 @@ namespace RealmStudioX.WPF.Editor
             set { _activeTool = value; }
         }
 
-        private MapDrawingMode _currentDrawingMode = MapDrawingMode.None;
-
         public MapDrawingMode CurrentDrawingMode
         {
-            get { return _currentDrawingMode; }
+            get { return _editorState.CurrentDrawingMode; }
             private set
             {
-                if (_currentDrawingMode != value)
+                if (_editorState.CurrentDrawingMode != value)
                 {
-                    _currentDrawingMode = value;
-                    DrawingModeChanged?.Invoke(_currentDrawingMode);
+                    _editorState.CurrentDrawingMode = value;
+                    DrawingModeChanged?.Invoke(_editorState.CurrentDrawingMode);
                 }
             }
         }
@@ -165,8 +183,6 @@ namespace RealmStudioX.WPF.Editor
 
             var world = Scene.Camera.CurrentCursorPoint;
             ActiveEditorTool?.RenderOverlay(canvas, world);
-
-            canvas.DrawRect(new SKRect(0, 0, Scene.Map.MapWidth, Scene.Map.MapHeight), PaintObjects.MapBoundaryPaint);
         }
 
         // ---------------------------------------------
@@ -300,11 +316,23 @@ namespace RealmStudioX.WPF.Editor
                 return;
             }
 
+            if (state.Button == EditorMouseButton.Left)
+            {
+
+            }
+
             if (state.Button == EditorMouseButton.Middle)
             {
                 BeginPan(state.ScreenPoint);
                 return;
             }
+
+            if (state.Button == EditorMouseButton.Right)
+            {
+
+            }
+
+            ActiveEditorTool?.OnMouseDown(state);
         }
 
         internal void OnMouseMove(PointerState state)
@@ -314,11 +342,26 @@ namespace RealmStudioX.WPF.Editor
                 return;
             }
 
+            Scene.Camera.CurrentMouseLocation = state.ScreenPoint;
+            Scene.Camera.CurrentCursorPoint = state.WorldPoint;
+
+            if (state.Button == EditorMouseButton.Left)
+            {
+
+            }
+
             if (state.Button == EditorMouseButton.Middle)
             {
                 UpdatePan(state.ScreenPoint);
                 return;
             }
+
+            if (state.Button == EditorMouseButton.Right)
+            {
+
+            }
+
+            ActiveEditorTool?.OnMouseMove(state);
         }
 
         internal void OnMouseUp(PointerState state)
@@ -328,15 +371,27 @@ namespace RealmStudioX.WPF.Editor
                 return;
             }
 
+            if (state.Button == EditorMouseButton.Left)
+            {
+
+            }
+
             if (state.Button == EditorMouseButton.Middle)
             {
                 EndPan();
             }
+
+            if (state.Button == EditorMouseButton.Right)
+            {
+
+            }
+
+            ActiveEditorTool?.OnMouseUp(state);
         }
 
         internal void OnMouseDoubleClick(PointerState state)
         {
-
+            ActiveEditorTool?.OnMouseDoubleClick(state);
         }
 
         internal void OnMouseWheel(PointerState state)
@@ -408,5 +463,17 @@ namespace RealmStudioX.WPF.Editor
 
             OnSceneChanged();
         }
+    }
+
+    public enum EditorToolType
+    {
+        // TODO: add other tools as they are implemented
+        OceanTool,
+        LandformTool,
+        LabelTool,
+        MapPathTool,
+        PaintedShapeTool,
+        SymbolTool,
+        WaterBodyTool
     }
 }

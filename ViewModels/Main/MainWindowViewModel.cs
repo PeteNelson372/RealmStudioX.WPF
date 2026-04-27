@@ -19,30 +19,21 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public BackgroundPanelViewModel BackgroundPanel { get; }
 
+        public LandformPanelViewModel LandformPanel { get; }
+
         public MainWindowViewModel(EditorController editor, AssetManager assetManager)
         {
             _editor = editor;
 
             // instantiate ViewModels for the panels
+
+            // Background Panel
             BackgroundPanel = new BackgroundPanelViewModel(_editor, assetManager);
-            BackgroundPanel.FillRequested += request =>
-            {
-                _editor.FillBackground(request);
-            };
 
-            BackgroundPanel.ClearRequested += () =>
-            {
-                _editor.ClearBackground();
-            };
+            // Ocean Panel
 
-            BackgroundPanel.PreviewChanged += request =>
-            {
-                _editor.UpdateBackgroundPreview(request);
-            };
-
-
-            SelectLandformToolCommand = new RelayCommand(SelectLandformTool);
-            SelectBackgroundToolCommand = new RelayCommand(SelectBackgroundTool);
+            // Landform Panel
+            LandformPanel = new LandformPanelViewModel(_editor, assetManager);
 
             MapName = "Default";
         }
@@ -153,18 +144,6 @@ namespace RealmStudioX.WPF.ViewModels.Main
             _editor.Scene?.Camera?.Reset(_editor.Scene.Map.MapWidth, _editor.Scene.Map.MapHeight);
         });
 
-        public ICommand SelectLandformToolCommand { get; }
-        public ICommand SelectBackgroundToolCommand { get; }
-
-        private void SelectLandformTool()
-        {
-            //_editor.SetTool(new PaintLandformTool());
-        }
-
-        private void SelectBackgroundTool()
-        {
-            //_editor.SetTool(new EraseTool());
-        }
 
         // -------------------------
         // Other Methods

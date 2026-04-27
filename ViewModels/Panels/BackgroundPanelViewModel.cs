@@ -13,48 +13,54 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 {
     public class BackgroundPanelViewModel : ViewModelBase
     {
+        private EditorController _editor;
         private AssetManager _assetManager;
 
         public Action<TextureFillRequest>? FillRequested;
         public Action? ClearRequested;
 
-        public Action<TextureFillRequest>? PreviewChanged;
-
         public AssetBrowserViewModel TextureBrowser { get; }
 
         public BackgroundPanelViewModel(EditorController editor, AssetManager assetManager)
         {
+            _editor = editor;
             _assetManager = assetManager;
             var browser = new AssetBrowser(assetManager, AssetType.BackgroundTexture);
             TextureBrowser = new AssetBrowserViewModel(browser);
         }
 
-        public ICommand FillCommand => new RelayCommand(() =>
-        {
-            FillRequested?.Invoke(new TextureFillRequest
+        private ICommand? _fillCommand;
+        public ICommand FillCommand =>
+            _fillCommand ??= new RelayCommand(() =>
             {
-                TextureId = TextureBrowser.SelectedAssetId,
-                Scale = (float)TextureScale,
-                Mirror = MirrorTexture
+                TextureFillRequest fillRequest = new()
+                {
+                    TextureId = TextureBrowser.SelectedAssetId,
+                    Scale = (float)TextureScale,
+                    Mirror = MirrorTexture
+                };
+
+                _editor.FillBackground(fillRequest);
             });
-        });
 
-        public ICommand ClearCommand => new RelayCommand(() =>
-        {
-            ClearRequested?.Invoke();
-        });
 
-        private void RaisePreviewChanged()
+        private ICommand? _clearCommand;
+        public ICommand ClearCommand =>
+            _clearCommand ??= new RelayCommand(() => _editor.ClearBackground());
+
+        private void PreviewChanged()
         {
             if (_assetManager == null)
                 return;
 
-            PreviewChanged?.Invoke(new TextureFillRequest
+            TextureFillRequest updateRequest = new()
             {
                 TextureId = TextureBrowser.SelectedAssetId,
                 Scale = (float)TextureScale,
                 Mirror = MirrorTexture
-            });
+            };
+
+            _editor.UpdateBackgroundPreview(updateRequest);
         }
 
         private float _textureScale = 1.0f;
@@ -64,7 +70,9 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             set
             {
                 if (SetProperty(ref _textureScale, value))
-                    RaisePreviewChanged();
+                {
+                    PreviewChanged();
+                }
             }
         }
 
@@ -75,7 +83,9 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             set
             {
                 if (SetProperty(ref _mirrorTexture, value))
-                    RaisePreviewChanged();
+                {
+                    PreviewChanged();
+                }
             }
         }
 

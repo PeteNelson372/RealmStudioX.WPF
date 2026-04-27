@@ -80,7 +80,7 @@
             <panels:OceanPanel/>
         </TabItem>
         <TabItem Header="Land">
-            <panels:LandformPanel/>
+            <panels:LandformPanel DataContext="{Binding LandformPanel}"/>
         </TabItem>
         <TabItem Header="Water">
             <panels:WaterPanel/>

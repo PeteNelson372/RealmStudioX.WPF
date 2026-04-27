@@ -493,9 +493,9 @@
 
             <Button Content="Create"
                     Command="{Binding CreateCommand}"
+                    Style="{StaticResource FlatToolButton}"
                     Width="60"
-                    Height="60"
-                    Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
+                    Height="60"/>
 
         </StackPanel>
 
@@ -527,14 +527,16 @@
 
             <Button Content="Cancel"
                     Command="{Binding CancelCommand}"
+                    Style="{StaticResource FlatToolButton}"
                     Width="60"
                     Margin="0,0,10,0"
-                    Height="60" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
+                    Height="60"/>
 
             <Button Content="Open"
                     Command="{Binding OpenCommand}"
+                    Style="{StaticResource FlatToolButton}"
                     Width="60"
-                    Height="60" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
+                    Height="60"/>
 
         </StackPanel>
 
