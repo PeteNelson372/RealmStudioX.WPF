@@ -1,8 +1,10 @@
 ﻿using RealmStudioShapeRenderingLib;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace RealmStudioX.WPF.Editor
 {
-    public class EditorState
+    public class EditorState : INotifyPropertyChanged
     {
         private MapDrawingMode _currentDrawingMode;
 
@@ -22,5 +24,21 @@ namespace RealmStudioX.WPF.Editor
         }
 
         public event Action<MapDrawingMode, MapDrawingMode>? DrawingModeChanged;
+
+        private string _statusMessage = string.Empty;
+        public string StatusMessage
+        {
+            get => _statusMessage;
+            set
+            {
+                _statusMessage = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string? name = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

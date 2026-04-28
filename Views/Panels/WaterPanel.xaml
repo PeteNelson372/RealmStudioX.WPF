@@ -12,7 +12,7 @@
              xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"             
              mc:Ignorable="d" 
              d:DesignHeight="916" d:DesignWidth="235">
-    
+
     <Grid Visibility="Visible" Background="#FFDFDBD2">
         <Grid.RowDefinitions>
             <RowDefinition Height="32"/>
@@ -41,7 +41,7 @@
                 Margin="0,10,0,0"
                 ToolTip="Select Map Object"
                 Style="{StaticResource FlatToolButton}"
-                Command="{Binding FillCommand}">
+                Command="{Binding SelectCommand}">
                 <StackPanel Orientation="Vertical">
                     <TextBlock Text="Select"
                                FontSize="12"
@@ -119,7 +119,7 @@
                                      Opacity="0.7">
                     </materialDesign:PackIcon>
                 </StackPanel>
-            </Button>            
+            </Button>
             <Button
                 x:Name="WaterEraseButton"
                 Width="50"
@@ -168,7 +168,7 @@
                         Margin="3,3,6,3"/>
         </StackPanel>
 
-        <GroupBox Header="Landform"
+        <GroupBox Header="Water"
             Grid.Row="1"
             Grid.Column="0"
             VerticalAlignment="Top"
@@ -198,17 +198,17 @@
                             VerticalAlignment="Center"
                             Margin="3,3,3,3"/>
 
-                    <!--
-                    <Slider x:Name="LandBrushSizeSlider"
+
+                    <Slider x:Name="WaterBrushSizeSlider"
                                 Style="{StaticResource ModernSlider}"
                                 behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
                                 Width="126"
                                 Minimum="4"
-                                Maximum="512"
+                                Maximum="256"
                                 AutoToolTipPlacement="TopLeft"
                                 AutoToolTipPrecision="0"                              
-                                Value="{Binding LandformBrushSize}"/>
-                    -->
+                                Value="{Binding WaterBrushSize}"/>
+
 
                 </StackPanel>
 
@@ -220,80 +220,26 @@
                         Height="Auto"
                         Margin="3,3,3,3">
 
-                    <TextBlock Text="Shading Depth"
+                    <TextBlock Text="Shallow Water Color"
                             Foreground="#FF45443F"
                             VerticalAlignment="Center"
                             Margin="3,3,3,3"/>
 
-                    <!--
-                    <Slider x:Name="ShadingDepthSlider"
-                                Style="{StaticResource ModernSlider}"
-                                behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
-                                Width="126"
-                                Minimum="0"
-                                Maximum="40"
-                                AutoToolTipPlacement="TopLeft"
-                                AutoToolTipPrecision="0"                              
-                                Value="{Binding LandformShadingDepth}"/>
-                    -->
-
-                </StackPanel>
-
-                <StackPanel
-                        Orientation="Vertical"
-                        VerticalAlignment="Top"
-                        HorizontalAlignment="Left"
-                        Width="130"
-                        Height="Auto"
-                        Margin="3,3,3,3">
-
-                    <TextBlock Text="Outline Color"
-                            Foreground="#FF45443F"
-                            VerticalAlignment="Center"
-                            Margin="3,3,3,3"/>
-                    <!--
                     <Button
                     Style="{StaticResource FlatToolButton}"
                     Width="120"
                     Height="50"
                     Margin="3,3,3,3"
-                    Background="{Binding LandformOutlineBrush}"
-                    ToolTip="Select Landform Outline Color"
-                    PreviewMouseLeftButtonUp="OutlineColor_LeftClick"
-                    PreviewMouseRightButtonUp="OutlineColor_RightClick">
+                    Background="{Binding ShallowWaterColorBrush}"
+                    ToolTip="Select Shallow Water Color"
+                    PreviewMouseLeftButtonUp="ShallowWaterColor_LeftClick"
+                    PreviewMouseRightButtonUp="ShallowWaterColor_RightClick">
 
                         <materialDesign:PackIcon Kind="PaletteOutline"
                                     Width="36"
                                     Height="36"
                                     Opacity="0.7"/>
                     </Button>
-                    -->
-                </StackPanel>
-
-                <StackPanel
-                        Orientation="Vertical"
-                        VerticalAlignment="Top"
-                        HorizontalAlignment="Left"
-                        Width="130"
-                        Height="Auto"
-                        Margin="3,3,3,3">
-
-                    <TextBlock Text="Outline Width"
-                            Foreground="#FF45443F"
-                            VerticalAlignment="Center"
-                            Margin="3,3,3,3"/>
-
-                    <!--
-                    <Slider x:Name="OutlineWidthSlider"
-                                Style="{StaticResource ModernSlider}"
-                                behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
-                                Width="126"
-                                Minimum="4"
-                                Maximum="512"
-                                AutoToolTipPlacement="TopLeft"
-                                AutoToolTipPrecision="0"                            
-                                Value="{Binding LandformOutlineWidth}"/>
-                    -->
 
                 </StackPanel>
 
@@ -305,29 +251,72 @@
                         Height="Auto"
                         Margin="3,3,3,3">
 
-                    <TextBlock Text="Background Color"
+                    <TextBlock Text="Deep Water Color"
                             Foreground="#FF45443F"
                             VerticalAlignment="Center"
                             Margin="3,3,3,3"/>
-                    <!--
+
                     <Button
                         Style="{StaticResource FlatToolButton}"
                         Width="120"
                         Height="50"
                         Margin="3,3,3,3"
-                        Background="{Binding LandformBackgroundBrush}"
-                        ToolTip="Select Landform Background Color"
-                        PreviewMouseLeftButtonUp="BackgroundColor_LeftClick"
-                        PreviewMouseRightButtonUp="BackgroundColor_RightClick">
+                        Background="{Binding DeepWaterColorBrush}"
+                        ToolTip="Select Deep Water Color"
+                        PreviewMouseLeftButtonUp="DeepWaterColor_LeftClick"
+                        PreviewMouseRightButtonUp="DeepWaterColor_RightClick">
 
                         <materialDesign:PackIcon Kind="PaletteOutline"
                                     Width="36"
                                     Height="36"
                                     Opacity="0.7"/>
                     </Button>
-                    -->
+
                 </StackPanel>
 
+                <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                    <TextBlock Text="Shoreline Color"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,3,3,3"/>
+
+                    <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Width="120"
+                        Height="50"
+                        Margin="3,3,3,3"
+                        Background="{Binding ShorelineColorBrush}"
+                        ToolTip="Select Deep Water Color"
+                        PreviewMouseLeftButtonUp="ShorelineColor_LeftClick"
+                        PreviewMouseRightButtonUp="ShorelineColor_RightClick">
+
+                        <materialDesign:PackIcon Kind="PaletteOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Opacity="0.7"/>
+                    </Button>
+
+                </StackPanel>
+
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="River"
+            Grid.Row="2"
+            Grid.Column="0"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="154"
+            Height="Auto"
+            Margin="3,0,0,0">
+            <StackPanel>
                 <StackPanel
                     Orientation="Vertical"
                     VerticalAlignment="Top"
@@ -335,6 +324,60 @@
                     Width="Auto"
                     Height="Auto"
                     Margin="3,3,3,3">
+
+                    <StackPanel
+                            Orientation="Vertical"
+                            VerticalAlignment="Top"
+                            HorizontalAlignment="Left"
+                            Width="130"
+                            Height="Auto"
+                            Margin="3,3,3,3">
+
+                        <TextBlock Text="Width"
+                                Foreground="#FF45443F"
+                                VerticalAlignment="Center"
+                                Margin="3,3,3,3"/>
+
+
+                        <Slider x:Name="RiverWidthSlider"
+                                    Style="{StaticResource ModernSlider}"
+                                    behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                                    Width="126"
+                                    Minimum="2"
+                                    Maximum="50"
+                                    AutoToolTipPlacement="TopLeft"
+                                    AutoToolTipPrecision="0"                            
+                                    Value="{Binding RiverWidth}"/>
+
+
+                    </StackPanel>
+
+                    <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                        <TextBlock Text="MeanderStrength"
+                                Foreground="#FF45443F"
+                                VerticalAlignment="Center"
+                                Margin="3,3,3,3"/>
+
+
+                        <Slider x:Name="MeanderStrengthSlider"
+                                    Style="{StaticResource ModernSlider}"
+                                    behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                                    Width="126"
+                                    Minimum="0.0"
+                                    Maximum="2.0"
+                                    AutoToolTipPlacement="TopLeft"
+                                    AutoToolTipPrecision="2"                            
+                                    Value="{Binding MeanderStrength}"/>
+
+
+                    </StackPanel>
 
                     <StackPanel
                         Grid.Row="0"
@@ -346,91 +389,45 @@
                         Height="32"
                         Margin="3,3,0,0" Grid.RowSpan="2">
 
-                        <CheckBox x:Name="TextureFillToggle"
+                        <CheckBox x:Name="SourceFadeInToggle"
                             Grid.Row="0"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
-                            IsChecked="{Binding TextureFill}"
+                            IsChecked="{Binding SourceFadeIn}"
                             Style="{StaticResource ToggleSwitchStyle}"
                             shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
-                        <TextBlock Text="Texture Fill"
+                        <TextBlock Text="Source Fade In"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,3,6,3"/>
+                    </StackPanel>
+
+                    <StackPanel
+                        Grid.Row="0"
+                        Grid.Column="0"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="120"
+                        Height="32"
+                        Margin="3,3,0,0" Grid.RowSpan="2">
+
+                        <CheckBox x:Name="EditRiverPointsToggle"
+                            Grid.Row="0"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            IsChecked="{Binding EditRiverPoints}"
+                            Style="{StaticResource ToggleSwitchStyle}"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                        <TextBlock Text="Edit River Points"
                             Foreground="#FF45443F"
                             VerticalAlignment="Center"
                             Margin="3,3,6,3"/>
                     </StackPanel>
 
                 </StackPanel>
-            </StackPanel>
-        </GroupBox>
-
-        <GroupBox Header="Coastline"
-            Grid.Row="2"
-            Grid.Column="0"
-            VerticalAlignment="Top"
-            HorizontalAlignment="Left"
-            Width="154"
-            Height="Auto"
-            Margin="3,0,0,0">
-            <StackPanel>
-                <StackPanel
-                            Orientation="Vertical"
-                            VerticalAlignment="Top"
-                            HorizontalAlignment="Left"
-                            Width="130"
-                            Height="Auto"
-                            Margin="3,3,3,3">
-
-                    <TextBlock Text="Effect Distance"
-                                Foreground="#FF45443F"
-                                VerticalAlignment="Center"
-                                Margin="3,3,3,3"/>
-
-                    <!--
-                    <Slider x:Name="EffectDistanceSlider"
-                                    Style="{StaticResource ModernSlider}"
-                                    behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
-                                    Width="126"
-                                    Minimum="4"
-                                    Maximum="512"
-                                    AutoToolTipPlacement="TopLeft"
-                                    AutoToolTipPrecision="0"                            
-                                    Value="{Binding CoastlineEffectDistance}"/>
-                    -->
-
-                </StackPanel>
-
-                <StackPanel
-                            Orientation="Vertical"
-                            VerticalAlignment="Top"
-                            HorizontalAlignment="Left"
-                            Width="130"
-                            Height="Auto"
-                            Margin="3,3,3,3">
-
-                    <TextBlock Text="Coastline Color"
-                                Foreground="#FF45443F"
-                                VerticalAlignment="Center"
-                                Margin="3,3,3,3"/>
-                    <!--
-                    <Button
-                            Style="{StaticResource FlatToolButton}"
-                            Width="120"
-                            Height="50"
-                            Margin="3,3,3,3"
-                            Background="{Binding CoastlineColorBrush}"
-                            ToolTip="Select Coastline Color"
-                            PreviewMouseLeftButtonUp="CoastlineColor_LeftClick"
-                            PreviewMouseRightButtonUp="CoastlineColor_RightClick">
-
-                        <materialDesign:PackIcon Kind="PaletteOutline"
-                                        Width="36"
-                                        Height="36"
-                                        Opacity="0.7"/>
-                    </Button>
-                    -->
-                </StackPanel>
-
 
             </StackPanel>
         </GroupBox>
@@ -455,18 +452,16 @@
                                 Foreground="#FF45443F"
                                 VerticalAlignment="Center"
                                 Margin="3,3,3,3"/>
-                
-                <!--
+
                 <Slider x:Name="EraserSizeSlider"
                                     Style="{StaticResource ModernSlider}"
                                     behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
                                     Width="126"
                                     Minimum="4"
-                                    Maximum="512"
+                                    Maximum="256"
                                     AutoToolTipPlacement="TopLeft"
                                     AutoToolTipPrecision="0"
-                                    Value="{Binding LandformEraserSize}"/>
-                -->
+                                    Value="{Binding WaterEraserSize}"/>
 
             </StackPanel>
         </GroupBox>

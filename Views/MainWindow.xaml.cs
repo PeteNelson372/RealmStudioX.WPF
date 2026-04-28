@@ -144,7 +144,7 @@ namespace RealmStudioX.WPF
                     // e.g. _controller.LoadMap(startup.FilePath);
                 }
 
-                ViewModel.ApplicationStatusMessage = $"Loaded {_assetManager.AssetCount} assets.";
+                _editor.State.StatusMessage = $"Loaded {_assetManager.AssetCount} assets.";
             };
 
             InitializeSkiaControl();

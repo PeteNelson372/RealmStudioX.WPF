@@ -2,6 +2,7 @@
 using RealmStudioX.Core;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
+using SkiaSharp.Views.WPF;
 
 namespace RealmStudioX.WPF.Editor.Tools
 {
@@ -33,15 +34,12 @@ namespace RealmStudioX.WPF.Editor.Tools
         private bool _painting;
         private bool disposedValue;
 
-        public float WaterBrushRadius { get; set; } = 12f;
-
-        public float WaterEraserBrushRadius { get; set; } = 12f;
 
         public bool EraseMode { get; set; }
 
-        public WaterRenderSettings RenderSettings { get; set; } = new();
-
         public bool LinkWaterColors { get; set; } = true;
+
+        public bool IsRiverEditing => _waterBodySettings.EditRiverPoints;
 
         public void Activate()
         {
@@ -77,9 +75,16 @@ namespace RealmStudioX.WPF.Editor.Tools
                 }
                 else if (_editorState.CurrentDrawingMode == MapDrawingMode.RiverPaint)
                 {
+                    WaterRenderSettings rs = new()
+                    {
+                        ShallowWaterColor = _waterBodySettings.ShallowWaterColor.ToSKColor(),
+                        DeepWaterColor = _waterBodySettings.DeepWaterColor.ToSKColor(),
+                        ShorelineColor = _waterBodySettings.ShorelineColor.ToSKColor(),
+                    };
+
                     _activeRiver = new River
                     {
-                        RenderSettings = WaterRenderSettings.Clone(RenderSettings)
+                        RenderSettings = CreateRenderSettings()
                     };
 
                     _activeRiver.Editor.BeginDraw(worldPos);
@@ -197,7 +202,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                 {
                     _activeRiver = new River
                     {
-                        RenderSettings = WaterRenderSettings.Clone(RenderSettings)
+                        RenderSettings = CreateRenderSettings()
                     };
 
                     _activeRiver.Editor.BeginDraw(state.WorldPoint);
@@ -294,6 +299,21 @@ namespace RealmStudioX.WPF.Editor.Tools
             }
         }
 
+        private WaterRenderSettings CreateRenderSettings()
+        {
+            WaterRenderSettings rs = new()
+            {
+                ShallowWaterColor = _waterBodySettings.ShallowWaterColor.ToSKColor(),
+                DeepWaterColor = _waterBodySettings.DeepWaterColor.ToSKColor(),
+                ShorelineColor = _waterBodySettings.ShorelineColor.ToSKColor(),
+                RiverWidth = _waterBodySettings.RiverWidth,
+                MeanderStrength = (_waterBodySettings.MeanderStrength * _waterBodySettings.MeanderStrength) / 2.0F,
+                RiverSourceFadeIn = _waterBodySettings.SourceFadeIn               
+            };
+
+            return rs;
+        }
+
         public void OnMouseDoubleClick(PointerState state)
         {
             // no action
@@ -306,11 +326,10 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         public void BeginPaint(SKPoint worldPos)
         {
-
             _activePaintedWaterBody = new()
             {
-                RenderSettings = WaterRenderSettings.Clone(RenderSettings),
-                BrushRadius = WaterBrushRadius
+                RenderSettings = CreateRenderSettings(),
+                BrushRadius = _waterBodySettings.WaterBrushSize / 2
             };
 
             _activePaintedWaterBody.ControlPoints.Add(worldPos);
@@ -370,7 +389,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             using var lakePath =
                 WaterGeometryBuilder.GenerateRandomLakePath(
                     worldPos,
-                    WaterBrushRadius * 2);
+                    _waterBodySettings.WaterBrushSize);
 
             // Clip lake to landform
             using var clipped =
@@ -382,7 +401,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             var newLake = new Lake();
 
             newLake.RestoreGeometry(new SKPath(clipped));
-            newLake.RenderSettings = WaterRenderSettings.Clone(RenderSettings);
+            newLake.RenderSettings = CreateRenderSettings();
 
             // Merge with existing lakes
             var intersectingLakes = FindIntersectingLakes(newLake.HitPath);
@@ -411,7 +430,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             {
                 system = new WaterSystem
                 {
-                    RenderSettings = WaterRenderSettings.Clone(RenderSettings)
+                    RenderSettings = CreateRenderSettings()
                 };
                 _activeModifyCommand?.RegisterAddedWaterSystem(system);
             }
@@ -462,7 +481,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             {
                 system = new WaterSystem
                 {
-                    RenderSettings = WaterRenderSettings.Clone(RenderSettings)
+                    RenderSettings = CreateRenderSettings()
                 };
                 cmd.RegisterAddedWaterSystem(system);
             }
@@ -513,7 +532,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             {
                 system = new WaterSystem
                 {
-                    RenderSettings = WaterRenderSettings.Clone(RenderSettings)
+                    RenderSettings = CreateRenderSettings()
                 };
                 _activeModifyCommand.RegisterAddedWaterSystem(system);
             }
@@ -635,7 +654,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         private void ApplyWaterErase(SKPoint worldPos)
         {
-            float r = WaterEraserBrushRadius;
+            float r = _waterBodySettings.WaterBrushSize / 2;
 
             using var erasePath = new SKPath();
             erasePath.AddCircle(worldPos.X, worldPos.Y, r);
@@ -760,14 +779,14 @@ namespace RealmStudioX.WPF.Editor.Tools
             {
                 canvas.DrawCircle(
                     world,
-                    WaterBrushRadius,
+                    _waterBodySettings.WaterBrushSize / 2,
                     PaintObjects.CursorCirclePaint);
             }
             else if (_editorState.CurrentDrawingMode == MapDrawingMode.WaterErase)
             {
                 canvas.DrawCircle(
                     world,
-                    WaterEraserBrushRadius,
+                    _waterBodySettings.WaterEraserSize / 2,
                     PaintObjects.CursorCirclePaint);
             }
         }

@@ -142,7 +142,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         // commands
         public ICommand SelectCommand => new RelayCommand(() =>
         {
-
+            _editor.SetDrawingMode(MapDrawingMode.ShapeSelect);
         });
 
         public ICommand PaintCommand => new RelayCommand(() =>

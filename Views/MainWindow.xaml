@@ -217,7 +217,7 @@
                     HorizontalAlignment="Left"
                     Width="325"
                     Margin="10,0" Foreground="IndianRed">
-                <TextBlock Text="{Binding ApplicationStatusMessage}"/>
+                <TextBlock Text="{Binding Editor.State.StatusMessage}"/>
             </StatusBarItem>
         </StatusBar>
 

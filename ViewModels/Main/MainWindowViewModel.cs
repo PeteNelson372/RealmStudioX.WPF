@@ -12,6 +12,12 @@ namespace RealmStudioX.WPF.ViewModels.Main
     public class MainWindowViewModel : ViewModelBase
     {
         private readonly EditorController _editor;
+
+        public EditorController Editor
+        {
+            get { return _editor; }
+        }
+
         private SKRect _viewPortSize = SKRect.Empty;
 
         public double ViewportPixelWidth => _viewPortSize.Width;
@@ -95,13 +101,6 @@ namespace RealmStudioX.WPF.ViewModels.Main
         {
             get => _cursorPointLabel;
             set => SetProperty(ref _cursorPointLabel, value);
-        }
-
-        private string _applicationStatusMessage = string.Empty;
-        public string ApplicationStatusMessage
-        {
-            get => _applicationStatusMessage;
-            set => SetProperty(ref _applicationStatusMessage, value);
         }
 
         public double MaxScrollX =>
