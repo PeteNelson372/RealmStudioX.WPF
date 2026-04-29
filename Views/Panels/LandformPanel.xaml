@@ -600,8 +600,8 @@
                                 Style="{StaticResource ModernSlider}"
                                 behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
                                 Width="126"
-                                Minimum="4"
-                                Maximum="512"
+                                Minimum="1"
+                                Maximum="16"
                                 AutoToolTipPlacement="TopLeft"
                                 AutoToolTipPrecision="0"                            
                                 Value="{Binding LandformOutlineWidth}"/>

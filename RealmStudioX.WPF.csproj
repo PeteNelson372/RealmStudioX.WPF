@@ -11,7 +11,24 @@
 
   <ItemGroup>
     <None Remove="Assets\cur\eyedropper.cur" />
+    <None Remove="Assets\png\AnimalTracksPath.png" />
+    <None Remove="Assets\png\BirdTracksPath.png" />
+    <None Remove="Assets\png\BorderedLinePath.png" />
+    <None Remove="Assets\png\ChevronPath.png" />
+    <None Remove="Assets\png\DashDotDotPath.png" />
+    <None Remove="Assets\png\DashDotPath.png" />
+    <None Remove="Assets\png\DashPath.png" />
+    <None Remove="Assets\png\DottedPath.png" />
+    <None Remove="Assets\png\DoubleLinePath.png" />
     <None Remove="Assets\png\eyedropper.png" />
+    <None Remove="Assets\png\FootprintsPath.png" />
+    <None Remove="Assets\png\LineDashPath.png" />
+    <None Remove="Assets\png\RailroadTracksPath.png" />
+    <None Remove="Assets\png\ShadedLinePath.png" />
+    <None Remove="Assets\png\SingleBorderLinePath.png" />
+    <None Remove="Assets\png\SmallDashesPath.png" />
+    <None Remove="Assets\png\SolidPath.png" />
+    <None Remove="Assets\png\ThickLinePath.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -43,7 +60,58 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Assets\ico\realm_studio_icon.ico" />
+    <Resource Include="Assets\png\AnimalTracksPath.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\png\BirdTracksPath.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\png\BorderedLinePath.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\png\ChevronPath.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\png\DashDotDotPath.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\png\DashDotPath.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\png\DashPath.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\png\DottedPath.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\png\DoubleLinePath.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Assets\png\eyedropper.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\png\FootprintsPath.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\png\LineDashPath.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\png\RailroadTracksPath.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\png\ShadedLinePath.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\png\SingleBorderLinePath.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\png\SmallDashesPath.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\png\SolidPath.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\png\ThickLinePath.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>

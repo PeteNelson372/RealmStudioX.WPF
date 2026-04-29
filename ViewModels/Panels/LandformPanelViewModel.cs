@@ -1,8 +1,10 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
+using SkiaSharp.Views.WPF;
 using System.Windows.Input;
 using System.Windows.Media;
 using Brush = System.Windows.Media.Brush;
@@ -21,6 +23,8 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             _assetManager = assetManager;
             var browser = new AssetBrowser(_assetManager, AssetType.LandTexture);
             TextureBrowser = new AssetBrowserViewModel(browser);
+
+            TextureBrowser.TextureSelectionChanged += LandformValuesChanged;
         }
 
         private GeneratedLandformType _selectedLandformType = GeneratedLandformType.NotSet;
@@ -36,14 +40,26 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         public LandformCoastlineStyle SelectedCoastlineStyle
         {
             get => _selectedCoastlineStyle;
-            set => SetProperty(ref _selectedCoastlineStyle, value);
+            set
+            {
+                if (SetProperty(ref _selectedCoastlineStyle, value))
+                {
+                    LandformValuesChanged();
+                }
+            }
         }
 
         private int _coastlineEffectDistance = 120;
         public int CoastlineEffectDistance
         {
             get => _coastlineEffectDistance;
-            set => SetProperty(ref _coastlineEffectDistance, value);
+            set
+            {
+                if (SetProperty(ref _coastlineEffectDistance, value))
+                {
+                    LandformValuesChanged();
+                }
+            }
         }
 
         private int _landformBrushSize = 64;
@@ -57,7 +73,13 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         public int LandformShadingDepth
         {
             get => _landformShadingDepth;
-            set => SetProperty(ref _landformShadingDepth, value);
+            set
+            {
+                if (SetProperty(ref _landformShadingDepth, value))
+                {
+                    LandformValuesChanged();
+                }
+            }
         }
 
         private Color _landformOutlineColor = Color.FromArgb(255, 65, 55, 40);
@@ -69,6 +91,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 if (SetProperty(ref _landformOutlineColor, value))
                 {
                     _landformOutlineBrush.Color = value;
+                    LandformValuesChanged();
                 }
             }
         }
@@ -77,15 +100,21 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public Brush LandformOutlineBrush => _landformOutlineBrush;
 
-        public int _landformOutlineWidth = 1;
+        public int _landformOutlineWidth = 2;
 
         public int LandformOutlineWidth
         {
             get => _landformOutlineWidth;
-            set => SetProperty(ref _landformOutlineWidth, value);
+            set
+            {
+                if (SetProperty(ref _landformOutlineWidth, value))
+                {
+                    LandformValuesChanged();
+                }
+            }
         }
 
-        private Color _landformBackgroundColor = Color.FromArgb(255, 65, 55, 40);
+        private Color _landformBackgroundColor = Colors.White;
         public Color LandformBackgroundColor
         {
             get => _landformBackgroundColor;
@@ -94,6 +123,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 if (SetProperty(ref _landformBackgroundColor, value))
                 {
                     _landformBackgroundBrush.Color = value;
+                    LandformValuesChanged();
                 }
             }
         }
@@ -101,6 +131,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         private SolidColorBrush _landformBackgroundBrush = new(Colors.White);
 
         public Brush LandformBackgroundBrush => _landformBackgroundBrush;
+
 
         private Color _coastlineColor = Color.FromArgb(187, 156, 195, 183);
         public Color CoastlineColor
@@ -111,6 +142,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 if (SetProperty(ref _coastlineColor, value))
                 {
                     _coastlineColorBrush.Color = value;
+                    LandformValuesChanged();
                 }
             }
         }
@@ -123,7 +155,13 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         public bool TextureFill
         {
             get => _textureFill;
-            set => SetProperty(ref _textureFill, value);
+            set
+            {
+                if (SetProperty(ref _textureFill, value))
+                {
+                    LandformValuesChanged();
+                }
+            }
         }
 
         public string? LandformTextureId => TextureBrowser.SelectedAssetId;
@@ -138,6 +176,38 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         }
 
         public AssetBrowserViewModel TextureBrowser { get; }
+
+        private void LandformValuesChanged()
+        {
+            if (_assetManager == null)
+                return;
+
+            string hatchTextureId = (_assetManager).GetByName(AssetType.HatchTexture, "Random Hatch")[0].Id;
+            string dashTextureId = (_assetManager).GetByName(AssetType.HatchTexture, "Watercolor Dashes")[0].Id;
+
+            LandformShadingSettings shading = new()
+            {
+                UseTextureBackground = TextureFill,
+                LandformBackgroundColor = LandformBackgroundColor.ToSKColor(),
+                LandformOutlineColor = LandformOutlineColor.ToSKColor(),
+                LandformTextureId = TextureBrowser.SelectedAssetId,
+                LandformTextureScale = 1.0f,
+                LandformTextureMirror = false,
+                LandformOutlineWidth = LandformOutlineWidth,
+                LandShadingDepth = LandformShadingDepth,
+            };
+
+            CoastlineSettings coastlineSettings = new()
+            {
+                CoastlineStyle = SelectedCoastlineStyle,
+                EffectDistance = CoastlineEffectDistance,
+                CoastlineColor = CoastlineColor.ToSKColor(),
+                HatchTextureId = hatchTextureId,
+                DashTextureId = dashTextureId,
+            };
+
+            _editor.UpdateSelectedLandform(shading, coastlineSettings);
+        }
 
         // commands
         public ICommand SelectCommand => new RelayCommand(() =>

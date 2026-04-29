@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"             
+             xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"              
              mc:Ignorable="d"
              d:DesignHeight="922" d:DesignWidth="152">
 
@@ -13,24 +15,433 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <!-- Header -->
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>                
                 <!-- Content -->
             </Grid.RowDefinitions>
 
-            <!-- Header -->
-            <TextBlock Text="Path Tools"
-                       FontSize="14"
-                       FontWeight="SemiBold"
-                       Foreground="Black"
-                       Margin="0,0,0,8"/>
 
-            <!-- Placeholder Content -->
-            <TextBlock Grid.Row="1"
-                       Text="Path tool controls will go here..."
-                       Foreground="Black"
-                       Opacity="0.7"
-                       TextWrapping="Wrap"/>
+            <StackPanel
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+                
+                <TextBlock Text="Path Style"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"
+                        FontWeight="Bold"/>
 
+                <StackPanel
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+                    <!-- solid line is default -->
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.SolidLinePath}"
+                                 IsChecked="True"
+                                 Checked="PathStyle_Checked">
+                        <Image Source="/Assets/png/SolidPath.png"
+                           Width="110"
+                           Height="22"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left">
+                        </Image>
+                    </RadioButton>
+                </StackPanel>
+
+                <StackPanel
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.DottedLinePath}"
+                                 Checked="PathStyle_Checked">
+                        <Image Source="/Assets/png/DottedPath.png"
+                           Width="110"
+                           Height="22"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left">
+                        </Image>
+                    </RadioButton>
+                </StackPanel>
+
+                <StackPanel
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.DashedLinePath}"
+                                 Checked="PathStyle_Checked">
+                        <Image Source="/Assets/png/DashPath.png"
+                           Width="110"
+                           Height="22"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left">
+                        </Image>
+                    </RadioButton>
+                </StackPanel>
+
+                <StackPanel
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.DashDotLinePath}"
+                                 Checked="PathStyle_Checked">
+                        <Image Source="/Assets/png/DashDotPath.png"
+                           Width="110"
+                           Height="22"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left">
+                        </Image>
+                    </RadioButton>
+                </StackPanel>
+
+                <StackPanel
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.DashDotDotLinePath}"
+                                 Checked="PathStyle_Checked">
+                        <Image Source="/Assets/png/DashDotDotPath.png"
+                           Width="110"
+                           Height="22"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left"
+                           Margin="-5,0,0,0">
+                        </Image>
+                    </RadioButton>
+                </StackPanel>
+
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.DoubleSolidBorderPath}"
+                                 Checked="PathStyle_Checked">
+                        <Image Source="/Assets/png/DoubleLinePath.png"
+                           Width="110"
+                           Height="22"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left">
+                        </Image>
+                    </RadioButton>
+                </StackPanel>
+
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.ChevronLinePath}"
+                                 Checked="PathStyle_Checked">
+                        <Image Source="/Assets/png/ChevronPath.png"
+                           Width="110"
+                           Height="22"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left">
+                        </Image>
+                    </RadioButton>
+                </StackPanel>
+
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.LineAndDashesPath}"
+                                 Checked="PathStyle_Checked">
+                        <Image Source="/Assets/png/LineDashPath.png"
+                           Width="110"
+                           Height="22"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left">
+                        </Image>
+                    </RadioButton>
+                </StackPanel>
+
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.ShortIrregularDashPath}"
+                                 Checked="PathStyle_Checked">
+                        <Image Source="/Assets/png/SmallDashesPath.png"
+                           Width="110"
+                           Height="22"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left">
+                        </Image>
+                    </RadioButton>
+                </StackPanel>
+
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.ThickSolidLinePath}"
+                                 Checked="PathStyle_Checked">
+                        <Image Source="/Assets/png/ThickLinePath.png"
+                           Width="110"
+                           Height="22"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left">
+                        </Image>
+                    </RadioButton>
+                </StackPanel>
+
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.DoubleSolidBorderPath}"
+                                 Checked="PathStyle_Checked">
+                        <Image Source="/Assets/png/BorderedLinePath.png"
+                           Width="110"
+                           Height="22"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left">
+                        </Image>
+                    </RadioButton>
+                </StackPanel>
+
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.BorderedGradientPath}"
+                                 Checked="PathStyle_Checked">
+                        <Image Source="/Assets/png/ShadedLinePath.png"
+                           Width="110"
+                           Height="22"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left">
+                        </Image>
+                    </RadioButton>
+                </StackPanel>
+
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.BorderedLightSolidPath}"
+                                 Checked="PathStyle_Checked">
+                        <Image Source="/Assets/png/SingleBorderLinePath.png"
+                           Width="110"
+                           Height="22"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left">
+                        </Image>
+                    </RadioButton>
+                </StackPanel>
+
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.BearTracksPath}"
+                                 Checked="PathStyle_Checked">
+                        <Image Source="/Assets/png/AnimalTracksPath.png"
+                           Width="110"
+                           Height="22"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left">
+                        </Image>
+                    </RadioButton>
+                </StackPanel>
+
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.BirdTracksPath}"
+                                 Checked="PathStyle_Checked">
+                        <Image Source="/Assets/png/BirdTracksPath.png"
+                           Width="110"
+                           Height="22"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left">
+                        </Image>
+                    </RadioButton>
+                </StackPanel>
+
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.FootprintsPath}"
+                                 Checked="PathStyle_Checked">
+                        <Image Source="/Assets/png/FootprintsPath.png"
+                           Width="110"
+                           Height="22"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left">
+                        </Image>
+                    </RadioButton>
+                </StackPanel>
+
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.RailroadTracksPath}"
+                                 Checked="PathStyle_Checked">
+                        <Image Source="/Assets/png/RailroadTracksPath.png"
+                           Width="110"
+                           Height="22"
+                           VerticalAlignment="Top"
+                           HorizontalAlignment="Left">
+                        </Image>
+                    </RadioButton>
+                </StackPanel>
+
+                <StackPanel
+                        HorizontalAlignment="Left"
+                        Width="Auto"
+                        Height="Auto"
+                        Margin="3,15,3,3">
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.TexturedPath}"
+                                 Checked="PathStyle_Checked"
+                                 Content="Texture Filled">
+                    </RadioButton>
+                </StackPanel>
+
+                <StackPanel
+                        HorizontalAlignment="Left"
+                        Width="Auto"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+                    <RadioButton GroupName="PathStyleGroup"
+                                 VerticalAlignment="Center"
+                                 Tag="{x:Static rendering:PathType.BorderAndTexturePath}"
+                                 Checked="PathStyle_Checked"
+                                 Content="Border and Texture">
+                    </RadioButton>
+                </StackPanel>
+                
+            </StackPanel>
+
+            <GroupBox Header="Walls and Towers"
+                      Grid.Row="1"
+                      Grid.Column="0"
+                      HorizontalAlignment="Left"
+                      Height="Auto"
+                      Margin="0,15,0,0">
+
+                <StackPanel>
+                    <StackPanel
+                            HorizontalAlignment="Left"
+                            Width="Auto"
+                            Height="Auto"
+                            Margin="0,3,0,3">
+                        <RadioButton GroupName="PathStyleGroup"
+                                     VerticalAlignment="Center"
+                                     Margin="0,3,0,0"                                     
+                                     Tag="{x:Static rendering:PathType.RoundTowerWall}"
+                                     Checked="PathStyle_Checked"
+                                     FontSize="11"
+                                     Content="Wall (Round Towers)">
+                        </RadioButton>
+                    </StackPanel>
+                    <StackPanel
+                            HorizontalAlignment="Left"
+                            Width="Auto"
+                            Height="Auto"
+                            Margin="0,3,0,3">
+                        <RadioButton GroupName="PathStyleGroup"
+                                     VerticalAlignment="Center"
+                                     Margin="0,0,0,0"                                     
+                                     Tag="{x:Static rendering:PathType.SquareTowerWall}"
+                                     Checked="PathStyle_Checked"
+                                     FontSize="11"
+                                     Content="Wall (Square Towers)">
+                        </RadioButton>
+                    </StackPanel>
+                    
+                    <TextBlock Text="Tower Distance"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,10,3,3"/>
+                    <Grid>
+                        <controls:NumericUpDown x:Name="TowerDistanceBox"
+                                     HorizontalAlignment="Left"
+                                     Value="{Binding TowerDistance}"
+                                     Minimum="0.0"
+                                     Increment="0.1"
+                                     Maximum="100.0"                                     
+                                     Margin="0,0,6,6"
+                                     Width="75"/>
+                    </Grid>
+
+                    <TextBlock Text="Tower Size"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,10,3,3"/>
+                    <Grid>
+                        <controls:NumericUpDown x:Name="TowerSizeBox"
+                                     HorizontalAlignment="Left"
+                                     Value="{Binding TowerSize}"
+                                     Minimum="1.0"
+                                     Maximum="5.0"
+                                     Increment="0.1"
+                                     Margin="0,0,6,6"
+                                     Width="75"/>
+                    </Grid>
+                    
+                    <CheckBox Content="Crenelations"
+                              Margin="3,3,3,3"
+                              IsChecked="{Binding ShowCrenelations}"/>
+                </StackPanel>
+
+            </GroupBox>
         </Grid>
 
     </Border>

@@ -617,6 +617,11 @@ namespace RealmStudioX.WPF
                 return;
             }
 
+            if (_toolPanels[tab] is PathsToolPanel ptp)
+            {
+                ptp.DataContext = ViewModel.PathPanel;
+            }
+
             SecondaryPanelHost.Content = _toolPanels[tab];
         }
     }

@@ -86,7 +86,7 @@
             <panels:WaterPanel DataContext="{Binding WaterPanel}"/>
         </TabItem>
         <TabItem Header="Paths">
-            <panels:PathsPanel/>
+            <panels:PathsPanel DataContext="{Binding PathPanel}"/>
         </TabItem>
         <TabItem Header="Symbols">
             <panels:SymbolsPanel/>

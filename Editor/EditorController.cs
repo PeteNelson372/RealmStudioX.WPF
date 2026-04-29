@@ -62,6 +62,7 @@ namespace RealmStudioX.WPF.Editor
         public EditorController(AssetManager assetManager)
         {
             _assetManager = assetManager;
+            _editorState.DrawingModeChanged += OnDrawingModeChanged;
         }
 
         public void ActivateTool(EditorToolType type, object? context = null)
@@ -86,7 +87,7 @@ namespace RealmStudioX.WPF.Editor
 
             _scene = scene;
 
-            _toolFactory = new(_commands, _assetManager, _scene, _editorState);
+            _toolFactory = new(_commands, _assetManager, _scene, _editorState, this);
 
             // Subscribe to new scene
             _scene.SceneChanged += OnSceneChanged;
@@ -130,8 +131,45 @@ namespace RealmStudioX.WPF.Editor
                 if (_editorState.CurrentDrawingMode != value)
                 {
                     _editorState.CurrentDrawingMode = value;
+                    DrawingModeChanged?.Invoke(_editorState.CurrentDrawingMode);
                 }
             }
+        }
+
+        private void OnDrawingModeChanged(MapDrawingMode previous, MapDrawingMode current)
+        {
+            // Example:
+            // - switch active tool
+            // - update UI
+
+            //CommitNudge();
+
+            //if (ActiveEditorTool is LabelTool tool)
+            //{
+            //    tool.EnsureEditCommitted();
+            //}
+
+            FinalizeOpenCommands();
+
+            DeselectAllMapComponents(Scene!, null);
+        }
+
+        private void FinalizeOpenCommands()
+        {
+            if (_activeModifyMapSymbolCommand != null)
+            {
+                _activeModifyMapSymbolCommand.CaptureAfter();
+                _commands.Execute(_activeModifyMapSymbolCommand);
+
+                _activeModifyMapSymbolCommand = null;
+                _isTransforming = false;
+                _isDragging = false;
+            }
+
+            // if other active commands are left open (not null when editor state changes)
+            // discard the command
+            _activeModifyWaterBodyCommand = null;
+            _activeModifyMapPathCommand = null;
         }
 
         private ColorPaintBrush _colorPaintBrush = ColorPaintBrush.None;
@@ -358,21 +396,24 @@ namespace RealmStudioX.WPF.Editor
                     _activeModifyWaterBodyCommand.CaptureBefore(river);
 
                     river.Editor.OnMouseDown(state.WorldPoint, 5);
+                    return;
                 }
                 else if (SelectedShape is MapPath mp && mp.Editor.IsEditing)
                 {
                     MapLayer pathLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.PATHLOWERLAYER);
 
-                    //if (_pathMediator!.DrawOverSymbols)
-                    //{
-                    //    pathLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.PATHUPPERLAYER);
-                    //}
+                    if (mp.DrawOverSymbols)
+                    {
+                        pathLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.PATHUPPERLAYER);
+                    }
 
                     _activeModifyMapPathCommand = new(Scene!.Map, pathLayer);
 
                     _activeModifyMapPathCommand.CaptureBefore(mp);
 
                     mp.Editor.OnMouseDown(state.WorldPoint, 5);
+
+                    return;
                 }
                 else if (SelectedShape is MapSymbol ms && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
                 {
@@ -882,7 +923,60 @@ namespace RealmStudioX.WPF.Editor
 
             OnSceneChanged();
         }
+
+        // -------------------------------------------------
+        // Ocean
+        // -------------------------------------------------
+
+        // -------------------------------------------------
+        // Landform
+        // -------------------------------------------------
+
+        public void UpdateSelectedLandform(LandformShadingSettings shading, CoastlineSettings coastlineSettings)
+        {
+            if (SelectedShape is Landform lf)
+            {
+                _commands.Execute(
+                    new Cmd_UpdateLandformProperties(
+                        lf,
+                        shading,
+                        coastlineSettings,
+                        _assetManager));
+            }
+
+        }
+
+        // -------------------------------------------------
+        // Water Body
+        // -------------------------------------------------
+
+
+        // -------------------------------------------------
+        // Map Path
+        // -------------------------------------------------
+
+        public void UpdateSelectedPath(PathRenderStyle renderStyle)
+        {
+            if (SelectedShape is MapPath mp)
+            {
+                mp.ResolveAssets(_assetManager);
+
+                _commands.Execute(
+                    new Cmd_UpdateMapPathProperties(
+                        mp,
+                        renderStyle,
+                        _assetManager));
+            }
+        }
+
+        // -------------------------------------------------
+        // End Class
+        // -------------------------------------------------
     }
+
+    // -------------------------------------------------
+    // Selection Filter Class
+    // -------------------------------------------------
 
     public sealed class SelectionFilterState(HashSet<Type> allowedTypes)
     {
@@ -896,6 +990,10 @@ namespace RealmStudioX.WPF.Editor
             return AllowedTypes.Count == 0 || AllowedTypes.Contains(shape.GetType());
         }
     }
+
+    // -------------------------------------------------
+    // Editor Tool Type Enum
+    // -------------------------------------------------
 
     public enum EditorToolType
     {

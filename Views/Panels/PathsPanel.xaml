@@ -4,23 +4,346 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Panels"
+             xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+             xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
+             xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
+             xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"             
              mc:Ignorable="d" 
              d:DesignHeight="916" d:DesignWidth="235">
     <Grid Visibility="Visible" Background="#FFDFDBD2">
         <Grid.RowDefinitions>
-            <RowDefinition Height="916"/>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="72"/>
+        </Grid.ColumnDefinitions>
 
-        <StackPanel Orientation="Horizontal"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Top">
+        <StackPanel
+            Grid.Row="1"
+            Orientation="Vertical"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Right"
+            Width="72"
+            Height="Auto"
+            Margin="0,3,3,0" Grid.ColumnSpan="2" Grid.RowSpan="2">
 
-            <TextBlock Text="Paths"
-                Foreground="Black"
-                FontSize="16"
-                FontWeight="SemiBold"
-                VerticalAlignment="Center"
-                Margin="0,0,0,0"/>
+            <Button
+                x:Name="MapPathSelectButton"
+                Width="50"
+                Height="50"
+                Margin="0,10,0,0"
+                ToolTip="Select Map Object"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding SelectCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Select"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="CursorDefault"
+                                     HorizontalAlignment="Center"
+                                     Width="20"
+                                     Height="20"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
+            <Button
+                x:Name="MapPathDrawButton"
+                Width="50"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Draw Path"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding DrawPathCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Draw"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="Draw"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
+
         </StackPanel>
+
+        <StackPanel
+            Grid.Row="0"
+            Grid.Column="0"
+            Orientation="Horizontal"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="74"
+            Height="32"
+            Margin="3,3,0,0" Grid.RowSpan="2">
+
+            <CheckBox x:Name="BackgroundEnabledToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        IsChecked="True"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+            <TextBlock Text="Show"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,6,3"/>
+        </StackPanel>
+        
+        <GroupBox Header="Path"
+            Grid.Row="1"
+            Grid.Column="0"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="154"
+            Height="Auto"
+            Margin="3,0,0,0">
+
+            <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+                    Margin="3,3,3,3"
+                    Width="146"
+                    Height="Auto">
+
+                <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                    <TextBlock Text="Width"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,3,3,3"/>
+
+
+                    <Slider x:Name="PathWidthSlider"
+                                Style="{StaticResource ModernSlider}"
+                                behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                                Width="126"
+                                Minimum="4"
+                                Maximum="256"
+                                AutoToolTipPlacement="TopLeft"
+                                AutoToolTipPrecision="0"                              
+                                Value="{Binding PathWidth}"/>
+
+
+                </StackPanel>
+
+                <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                    <TextBlock Text="Path Color"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,3,3,3"/>
+
+                    <Button
+                    Style="{StaticResource FlatToolButton}"
+                    Width="120"
+                    Height="50"
+                    Margin="3,3,3,3"
+                    Background="{Binding PathColorBrush}"
+                    ToolTip="Select Shallow Water Color"
+                    PreviewMouseLeftButtonUp="PathColor_LeftClick"
+                    PreviewMouseRightButtonUp="PathColor_RightClick">
+
+                        <materialDesign:PackIcon Kind="PaletteOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Opacity="0.7"/>
+                    </Button>
+
+                </StackPanel>
+
+                <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                    <TextBlock Text="Path Border Color"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,3,3,3"/>
+
+                    <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Width="120"
+                        Height="50"
+                        Margin="3,3,3,3"
+                        Background="{Binding PathBorderColorBrush}"
+                        ToolTip="Select Path Border Color"
+                        PreviewMouseLeftButtonUp="PathBorderColor_LeftClick"
+                        PreviewMouseRightButtonUp="PathBorderColor_RightClick">
+
+                        <materialDesign:PackIcon Kind="PaletteOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Opacity="0.7"/>
+                    </Button>
+
+                </StackPanel>
+
+                <StackPanel
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="150"
+                    Height="44"
+                    Margin="3,3,0,0" Grid.RowSpan="2">
+
+                    <TextBlock Text="Draw Over Symbols"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                    <CheckBox x:Name="DrawOverSymbolsToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Margin="6,3,3,3"
+                        IsChecked="{Binding DrawOverSymbols}"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+                </StackPanel>
+
+                <StackPanel
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="150"
+                    Height="44"
+                    Margin="3,3,0,0" Grid.RowSpan="2">
+
+                    <TextBlock Text="Edit Path Points"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                    <CheckBox x:Name="EditPathPointsToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Margin="6,3,3,3"
+                        Command="{Binding EditPathPointsCommand}"
+                        IsChecked="{Binding EditPathPoints}"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+                </StackPanel>
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,10,3,3">
+
+                    <controls:AssetBrowserControl x:Name="BackgroundTextureBrowser"
+                                           DataContext="{Binding PathTextureBrowser}" 
+                                           Width="136"
+                                           Height="160"
+                                           Margin="0,0,0,6"/>
+
+
+                    <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                        <TextBlock Text="Opacity"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                        <Slider x:Name="TextureOpacitySlider"
+                            Style="{StaticResource ModernSlider}"
+                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
+                            Width="126"
+                            Minimum="0"
+                            Maximum="1.0"
+                            Value="{Binding TextureOpacity}"/>
+
+                    </StackPanel>
+                    
+                    <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                        <TextBlock Text="Scale"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                        <Slider x:Name="TextureScaleSlider"
+                            Style="{StaticResource ModernSlider}"
+                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
+                            Width="126"                          
+                            Minimum="0.01"
+                            Maximum="2.0"
+                            Value="{Binding TextureScale}"/>
+
+                    </StackPanel>
+
+                    <StackPanel
+                        Orientation="Horizontal"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="Auto"
+                        Height="Auto"
+                        Margin="3,10,3,3">
+
+                        <CheckBox x:Name="MirrorTextureToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        IsChecked="{Binding MirrorTexture}"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                        <TextBlock Text="Mirror"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,6,3"/>
+                    </StackPanel>
+
+                </StackPanel>
+
+            </StackPanel>
+        </GroupBox>
     </Grid>
 </UserControl>

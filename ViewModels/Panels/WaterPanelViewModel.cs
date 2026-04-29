@@ -156,6 +156,27 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             _editor.SetDrawingMode(MapDrawingMode.WaterErase);
             _editor.ActivateTool(EditorToolType.WaterBodyTool, (IWaterBodySettings)this);
         });
+
+        public ICommand EditRiverCommand => new RelayCommand(() =>
+        {
+            if (_editor != null && _editor.SelectedShape is River r)
+            {
+                r.Editor.IsEditing = EditRiverPoints;
+
+                if (r.Editor.IsEditing)
+                {
+                    r.WaterSystem?.BeginInteractive();
+                    r.BeginInteractive();
+                }
+                else
+                {
+                    r.WaterSystem?.EndInteractive();
+                    r.EndInteractive();
+
+                    r.Editor.OnChanged!();
+                }
+            }
+        });
     }
 
     public interface IWaterBodySettings

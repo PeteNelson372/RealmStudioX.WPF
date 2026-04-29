@@ -418,6 +418,7 @@
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             IsChecked="{Binding EditRiverPoints}"
+                            Command="{Binding EditRiverCommand}"
                             Style="{StaticResource ToggleSwitchStyle}"
                             shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 

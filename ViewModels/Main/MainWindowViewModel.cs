@@ -29,6 +29,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public WaterPanelViewModel WaterPanel { get; }
 
+        public MapPathViewModel PathPanel { get; }
+
         public MainWindowViewModel(EditorController editor, AssetManager assetManager)
         {
             _editor = editor;
@@ -46,6 +48,9 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
             // Water Body Panel
             WaterPanel = new WaterPanelViewModel(_editor, assetManager);
+
+            // Path Panel
+            PathPanel = new MapPathViewModel(_editor, assetManager);
 
             MapName = "Default";
         }

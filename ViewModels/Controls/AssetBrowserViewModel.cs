@@ -1,4 +1,5 @@
-﻿using RealmStudioX.Infrastructure;
+﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using SkiaSharp;
 using System.IO;
@@ -10,6 +11,7 @@ namespace RealmStudioX.WPF.ViewModels.Controls
     public class AssetBrowserViewModel : ViewModelBase
     {
         private readonly AssetBrowser _browser;
+        public event Action? TextureSelectionChanged;
 
         public AssetBrowserViewModel(AssetBrowser browser)
         {
@@ -36,6 +38,7 @@ namespace RealmStudioX.WPF.ViewModels.Controls
 
             ImageSource = SkiaToWpfConverter.ToBitmapSource(img);
             CurrentName = _browser.GetCurrentAsset()?.Name;
+            TextureSelectionChanged?.Invoke();
         }
 
         public static class SkiaToWpfConverter
