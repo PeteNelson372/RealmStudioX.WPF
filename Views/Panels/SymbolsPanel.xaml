@@ -4,23 +4,422 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Panels"
+             xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+             xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
+             xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
+             xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib" 
              mc:Ignorable="d" 
              d:DesignHeight="916" d:DesignWidth="235">
     <Grid Visibility="Visible" Background="#FFDFDBD2">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="72"/>
+        </Grid.ColumnDefinitions>
 
-        <StackPanel Orientation="Horizontal"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Top">
+        <StackPanel
+            Grid.Row="1"
+            Orientation="Vertical"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Right"
+            Width="72"
+            Height="Auto"
+            Margin="0,3,3,0" Grid.ColumnSpan="2" Grid.RowSpan="2">
 
-            <TextBlock Text="Symbols"
-                Foreground="Black"
-                FontSize="16"
-                FontWeight="SemiBold"
-                VerticalAlignment="Center"
-                Margin="0,0,0,0"/>
+            <Button
+                x:Name="SymbolSelectButton"
+                Width="50"
+                Height="50"
+                Margin="0,10,0,0"
+                ToolTip="Select Map Object"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding SelectCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Select"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="CursorDefault"
+                                     HorizontalAlignment="Center"
+                                     Width="20"
+                                     Height="20"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
+            <Button
+                x:Name="SymbolEraseButton"
+                Width="50"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Erase Symbols"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding SymbolEraseCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Erase"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="Eraser"
+                                     Width="22"
+                                     Height="22"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
+            <Button
+                x:Name="SymbolPaintButton"
+                Width="50"
+                Height="50"
+                Margin="0,35,0,35"
+                ToolTip="Paint Symbols"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding SymbolPaintCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Paint"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="BrushVariant"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
+            <Separator Width="68" Height="4" Margin="6,3,3,3"/>
+
+            <Button
+                x:Name="SelectStructuresButton"
+                Width="50"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Structure Symbols"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding SelectStructuresCommand}">
+                <StackPanel Orientation="Vertical">
+
+                    <materialDesign:PackIcon Kind="Castle"
+                                     Width="30"
+                                     Height="30"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
+            <Button
+                x:Name="SelectVegetationButton"
+                Width="50"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Vegetation Symbols"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding SelectVegetationCommand}">
+                <StackPanel Orientation="Vertical">
+
+                    <materialDesign:PackIcon Kind="PineTreeVariant"
+                                     Width="30"
+                                     Height="30"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
+            <Button
+                x:Name="SelectTerrainButton"
+                Width="50"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Terrain Symbols"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding SelectTerrainCommand}">
+                <StackPanel Orientation="Vertical">
+
+                    <materialDesign:PackIcon Kind="Terrain"
+                                     Width="30"
+                                     Height="30"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
+            <Button
+                x:Name="SelectMarkerButton"
+                Width="50"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Marker Symbols"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding SelectMarkersCommand}">
+                <StackPanel Orientation="Vertical">
+
+                    <materialDesign:PackIcon Kind="AddressMarker"
+                                     Width="30"
+                                     Height="30"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
+            <Button
+                x:Name="SelectOtherButton"
+                Width="50"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Other Symbols"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding SelectOtherCommand}">
+                <StackPanel Orientation="Vertical">
+
+                    <materialDesign:PackIcon Kind="CubeOutline"
+                                     Width="30"
+                                     Height="30"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
         </StackPanel>
+
+        <StackPanel
+            Grid.Row="0"
+            Grid.Column="0"
+            Orientation="Horizontal"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="74"
+            Height="32"
+            Margin="3,3,0,0" Grid.RowSpan="2">
+
+            <CheckBox x:Name="BackgroundEnabledToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        IsChecked="True"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+            <TextBlock Text="Show"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,6,3"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Grid.Column="0">
+
+            <GroupBox Header="Scale"
+            Grid.Row="1"
+            Grid.Column="0"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="154"
+            Height="Auto"
+            Margin="3,0,0,0">
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,0"
+                    Width="148"
+                    Height="Auto">
+
+                    <StackPanel
+                        Orientation="Vertical"
+                        HorizontalAlignment="Left"
+                        Width="148"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                        <StackPanel Orientation="Horizontal">
+
+                            <Slider x:Name="SymbolScaleSlider"
+                                Style="{StaticResource ModernSlider}"
+                                behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
+                                HorizontalAlignment="Left"
+                                Width="110"
+                                Minimum="0.01"
+                                Maximum="2.0"                            
+                                Value="{Binding SymbolScale, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                            <!-- Lock -->
+                            <Button Width="20"
+                                Height="20"
+                                HorizontalAlignment="Right"
+                                Margin="16,0,0,0"
+                                ToolTip="Lock symbol scale"
+                                Style="{StaticResource FlatToolButton}"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"                                
+                                Command="{Binding LockScaleCommand}">
+
+                                <materialDesign:PackIcon
+                                    Width="12"
+                                    Height="12"
+                                    Opacity="0.7">
+
+                                    <materialDesign:PackIcon.Style>
+                                        <Style TargetType="materialDesign:PackIcon">
+
+                                            <!-- Default = unlocked -->
+                                            <Setter Property="Kind" Value="LockOpenOutline"/>
+
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SymbolScaleLocked}" Value="True">
+                                                    <Setter Property="Kind" Value="Lock"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+
+                                        </Style>
+                                    </materialDesign:PackIcon.Style>
+
+                                </materialDesign:PackIcon>
+                            </Button>
+                        </StackPanel>
+
+                        <controls:NumericUpDown x:Name="SymbolScaleBox"
+                                     HorizontalAlignment="Right"
+                                     Value="{Binding SymbolScale, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     Minimum="0.01"
+                                     Maximum="2.0"
+                                     Increment="0.01"
+                                     DecimalPlaces="2"
+                                     Margin="0,0,3,0"
+                                     Width="100"/>
+
+                    </StackPanel>
+
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="Color"
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="154"
+                        Height="Auto"
+                        Margin="3,0,0,0">
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,0"
+                    Width="148"
+                    Height="Auto">
+                    
+                    <StackPanel
+                        Orientation="Horizontal"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="144"
+                        Height="32"
+                        Margin="3,3,3,3">
+
+                        <CheckBox x:Name="RandomizeColorsToggle"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            IsChecked="{Binding RandomizeSymbolColors}"
+                            Style="{StaticResource ToggleSwitchStyle}"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                        <TextBlock Text="Randomize"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="6,3,6,3"/>
+
+                        <!-- Reset -->
+                        <Button Width="20"
+                                Height="20"
+                                HorizontalAlignment="Right"
+                                Margin="18,0,0,0"
+                                ToolTip="Reset symbol colors"
+                                Style="{StaticResource FlatToolButton}"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Command="{Binding ResetColorsCommand}">
+
+                            <materialDesign:PackIcon
+                                    Kind="UndoVariant"
+                                    Width="12"
+                                    Height="12"
+                                    Opacity="0.7">
+
+
+
+                            </materialDesign:PackIcon>
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Button
+                            x:Name="SymbolColor1"
+                            Style="{StaticResource FlatToolButton}"
+                            Width="44"
+                            Height="44"
+                            Margin="3,3,3,3"
+                            Background="{Binding SymbolColor1Brush}"
+                            ToolTip="Select Symbol Color 1"
+                            PreviewMouseLeftButtonUp="SymbolColor1_LeftClick"
+                            PreviewMouseRightButtonUp="SymbolColor1_RightClick">
+
+                            <materialDesign:PackIcon Kind="Palette"
+                                        Foreground="Tan"
+                                        Width="24"
+                                        Height="24"
+                                        Opacity="0.7"/>
+                        </Button>
+
+
+                        <Button
+                            x:Name="SymbolColor2"
+                            Style="{StaticResource FlatToolButton}"
+                            Width="44"
+                            Height="44"
+                            Margin="3,3,3,3"
+                            Background="{Binding SymbolColor2Brush}"
+                            ToolTip="Select Symbol Color 2"
+                            PreviewMouseLeftButtonUp="SymbolColor2_LeftClick"
+                            PreviewMouseRightButtonUp="SymbolColor2_RightClick">
+
+                                <materialDesign:PackIcon Kind="Palette"
+                                        Foreground="Tan"
+                                        Width="24"
+                                        Height="24"
+                                        Opacity="0.7"/>
+                            </Button>
+
+                        <Button
+                            x:Name="SymbolColor3"
+                            Style="{StaticResource FlatToolButton}"
+                            Width="44"
+                            Height="44"
+                            Margin="3,3,3,3"
+                            Background="{Binding SymbolColor3Brush}"
+                            ToolTip="Select Symbol Color 3"
+                            PreviewMouseLeftButtonUp="SymbolColor3_LeftClick"
+                            PreviewMouseRightButtonUp="SymbolColor3_RightClick">
+
+                            <materialDesign:PackIcon Kind="Palette"
+                                        Foreground="Tan"
+                                        Width="24"
+                                        Height="24"
+                                        Opacity="0.7"/>
+                        </Button>
+
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+
+        </StackPanel>
+
+
+
     </Grid>
 </UserControl>

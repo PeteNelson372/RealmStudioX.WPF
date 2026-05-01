@@ -23,13 +23,15 @@ namespace RealmStudioX.WPF.ViewModels.Main
         public double ViewportPixelWidth => _viewPortSize.Width;
         public double ViewportPixelHeight => _viewPortSize.Height;
 
-        public BackgroundPanelViewModel BackgroundPanel { get; }
+        public BackgroundPanelViewModel BackgroundViewModel { get; }
 
-        public LandformPanelViewModel LandformPanel { get; }
+        public LandformPanelViewModel LandformViewModel { get; }
 
-        public WaterPanelViewModel WaterPanel { get; }
+        public WaterPanelViewModel WaterViewModel { get; }
 
-        public MapPathViewModel PathPanel { get; }
+        public PathPanelViewModel PathViewModel { get; }
+
+        public SymbolsPanelViewModel SymbolsViewModel {  get; }
 
         public MainWindowViewModel(EditorController editor, AssetManager assetManager)
         {
@@ -39,18 +41,22 @@ namespace RealmStudioX.WPF.ViewModels.Main
             // remember to add a reference to it on the TabItem <panel:...> in MainTabs.xaml 
 
             // Background Panel
-            BackgroundPanel = new BackgroundPanelViewModel(_editor, assetManager);
+            BackgroundViewModel = new BackgroundPanelViewModel(_editor, assetManager);
 
             // Ocean Panel
 
             // Landform Panel
-            LandformPanel = new LandformPanelViewModel(_editor, assetManager);
+            LandformViewModel = new LandformPanelViewModel(_editor, assetManager);
 
             // Water Body Panel
-            WaterPanel = new WaterPanelViewModel(_editor, assetManager);
+            WaterViewModel = new WaterPanelViewModel(_editor, assetManager);
 
             // Path Panel
-            PathPanel = new MapPathViewModel(_editor, assetManager);
+            PathViewModel = new PathPanelViewModel(_editor, assetManager);
+
+            // Symbols Panel
+            SymbolsViewModel = new SymbolsPanelViewModel(_editor, assetManager);
+
 
             MapName = "Default";
         }

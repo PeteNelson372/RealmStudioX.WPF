@@ -60,8 +60,8 @@ namespace RealmStudioX.WPF.Editor.Tools
                     MapPathType = _pathSettings.PathStyle,
                     TextureOpacity = _pathSettings.TextureOpacity,
                     TextureScale = _pathSettings.TextureScale,
-                    TowerDistance = _pathSettings.TowerDistance,
-                    TowerSize = _pathSettings.TowerSize,
+                    TowerDistance = (float) _pathSettings.TowerDistance,
+                    TowerSize = (float) _pathSettings.TowerSize,
                 };
 
                 IReadOnlyList<AssetDescriptor>? descriptors = null;

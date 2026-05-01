@@ -21,19 +21,19 @@
             <!-- Minimize -->
             <Button Style="{StaticResource TitleBarButtonStyle}"
                     Click="OnMinimize" shell:WindowChrome.IsHitTestVisibleInChrome="True">
-                <TextBlock Text="&#xE921;" FontFamily="Segoe MDL2 Assets"/>
+                <TextBlock Foreground="#CCCCCC" Text="&#xE921;" FontFamily="Segoe MDL2 Assets"/>
             </Button>
 
             <!-- Maximize -->
             <Button Style="{StaticResource TitleBarButtonStyle}"
                         Click="OnMaximize" shell:WindowChrome.IsHitTestVisibleInChrome="True">
-                <TextBlock Text="&#xE922;" FontFamily="Segoe MDL2 Assets"/>
+                <TextBlock Foreground="#CCCCCC" Text="&#xE922;" FontFamily="Segoe MDL2 Assets"/>
             </Button>
 
             <!-- Close -->
             <Button Style="{StaticResource CloseButtonStyle}"
                     Click="OnExit" shell:WindowChrome.IsHitTestVisibleInChrome="True">
-                <TextBlock Text="&#xE8BB;" FontFamily="Segoe MDL2 Assets"/>
+                <TextBlock Foreground="#CCCCCC" Text="&#xE8BB;" FontFamily="Segoe MDL2 Assets"/>
             </Button>
 
         </StackPanel>

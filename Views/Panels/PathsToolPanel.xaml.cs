@@ -13,9 +13,10 @@ namespace RealmStudioX.WPF.Views.Panels
             InitializeComponent();
         }
 
+
         private void PathStyle_Checked(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (DataContext is not MapPathViewModel vm)
+            if (DataContext is not PathPanelViewModel vm)
                 return;
 
             if (sender is not System.Windows.Controls.RadioButton btn)

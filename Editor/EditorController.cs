@@ -760,7 +760,6 @@ namespace RealmStudioX.WPF.Editor
                 {
                     mp.IsSelected = true;
                     _editorState.StatusMessage = "Path Selected " + (!string.IsNullOrEmpty(mp.MapPathName) ? ": " + mp.MapPathName : "");
-                    //mp.Editor.IsEditing = PathMediator!.EditPathPoints;
 
                     if (!mp.Editor.IsEditing)
                     {

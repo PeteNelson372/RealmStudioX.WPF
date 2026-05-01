@@ -74,22 +74,22 @@
 
         </TabControl.Resources>
         <TabItem Header="Background">
-            <panels:BackgroundPanel DataContext="{Binding BackgroundPanel}"/>
+            <panels:BackgroundPanel DataContext="{Binding BackgroundViewModel}"/>
         </TabItem>
         <TabItem Header="Ocean">
             <panels:OceanPanel/>
         </TabItem>
         <TabItem Header="Land">
-            <panels:LandformPanel DataContext="{Binding LandformPanel}"/>
+            <panels:LandformPanel DataContext="{Binding LandformViewModel}"/>
         </TabItem>
         <TabItem Header="Water">
-            <panels:WaterPanel DataContext="{Binding WaterPanel}"/>
+            <panels:WaterPanel DataContext="{Binding WaterViewModel}"/>
         </TabItem>
         <TabItem Header="Paths">
-            <panels:PathsPanel DataContext="{Binding PathPanel}"/>
+            <panels:PathsPanel DataContext="{Binding PathViewModel}"/>
         </TabItem>
         <TabItem Header="Symbols">
-            <panels:SymbolsPanel/>
+            <panels:SymbolsPanel DataContext="{Binding SymbolsViewModel}"/>
         </TabItem>
         <TabItem Header="Labels">
             <panels:LabelsPanel/>

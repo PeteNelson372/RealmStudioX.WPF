@@ -91,8 +91,8 @@
                                HorizontalAlignment="Center"
                                Margin="0,0,0,3"/>
                     <materialDesign:PackIcon Kind="Eraser"
-                                     Width="24"
-                                     Height="24"
+                                     Width="22"
+                                     Height="22"
                                      Opacity="0.7"/>
                 </StackPanel>
             </Button>

@@ -8,7 +8,6 @@ using RealmStudioX.WPF.Views.Controls;
 using RealmStudioX.WPF.Views.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -604,8 +603,6 @@ namespace RealmStudioX.WPF
         //==========================================
         private void MainTabControl_SelectionChanged(object? s, EventArgs e)
         {
-            Debug.WriteLine("Tab selection changed to " + ((TabItem)MainTabs.MainTabControl.SelectedItem).Header);
-
             ShowToolPanel(((TabItem)MainTabs.MainTabControl.SelectedItem).Header.ToString());
         }
 
@@ -619,7 +616,12 @@ namespace RealmStudioX.WPF
 
             if (_toolPanels[tab] is PathsToolPanel ptp)
             {
-                ptp.DataContext = ViewModel.PathPanel;
+                ptp.DataContext = ViewModel.PathViewModel;
+            }
+
+            if (_toolPanels[tab] is SymbolsToolPanel stp)
+            {
+                stp.DataContext = ViewModel.SymbolsViewModel;
             }
 
             SecondaryPanelHost.Content = _toolPanels[tab];

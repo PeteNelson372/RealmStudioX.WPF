@@ -12,13 +12,13 @@ using Color = System.Windows.Media.Color;
 
 namespace RealmStudioX.WPF.ViewModels.Panels
 {
-    public class MapPathViewModel : ViewModelBase, IMapPathSettings
+    public class PathPanelViewModel : ViewModelBase, IMapPathSettings
     {
         private readonly EditorController _editor;
         private readonly AssetManager _assetManager;
         public AssetBrowserViewModel PathTextureBrowser { get; }
 
-        public MapPathViewModel(EditorController editor, AssetManager assetManager)
+        public PathPanelViewModel(EditorController editor, AssetManager assetManager)
         {
             _editor = editor;
             _assetManager = assetManager;
@@ -151,8 +151,8 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         // tower distance
 
-        private float _towerDistance = 10f;
-        public float TowerDistance
+        private double _towerDistance = 10f;
+        public double TowerDistance
         {
             get => _towerDistance;
             set
@@ -166,8 +166,8 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         // tower size
 
-        private float _towerSize = 1.2f;
-        public float TowerSize
+        private double _towerSize = 1.2f;
+        public double TowerSize
         {
             get => _towerSize;
             set
@@ -235,8 +235,8 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 MapPathType = PathStyle,
                 TextureOpacity = TextureOpacity,
                 TextureScale = TextureScale,
-                TowerDistance = TowerDistance,
-                TowerSize = TowerSize,
+                TowerDistance = (float)TowerDistance,
+                TowerSize = (float)TowerSize,
             };
 
             IReadOnlyList<AssetDescriptor>? descriptors = null;
@@ -324,8 +324,8 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         string? PathTextureId { get; }
         float TextureOpacity { get; }
         float TextureScale { get; }
-        float TowerDistance { get; }
-        float TowerSize { get; }
+        double TowerDistance { get; }
+        double TowerSize { get; }
         bool ShowCrenelations { get; }
         bool UseMarkers { get; }
         bool UseTexture { get; }

@@ -18,7 +18,7 @@ namespace RealmStudioX.WPF.Views.Panels
 
         private void PathColor_LeftClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is not MapPathViewModel vm)
+            if (DataContext is not PathPanelViewModel vm)
                 return;
 
             var colorSelectionWindow = new ColorSelectionDialog(vm.PathColor)
@@ -36,7 +36,7 @@ namespace RealmStudioX.WPF.Views.Panels
 
         private void PathColor_RightClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is not MapPathViewModel vm)
+            if (DataContext is not PathPanelViewModel vm)
                 return;
 
             var dialog = new ColorQuickPick(vm.PathColor);
@@ -65,7 +65,7 @@ namespace RealmStudioX.WPF.Views.Panels
 
         private void PathBorderColor_LeftClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is not MapPathViewModel vm)
+            if (DataContext is not PathPanelViewModel vm)
                 return;
 
             var colorSelectionWindow = new ColorSelectionDialog(vm.PathBorderColor)
@@ -83,7 +83,7 @@ namespace RealmStudioX.WPF.Views.Panels
 
         private void PathBorderColor_RightClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is not MapPathViewModel vm)
+            if (DataContext is not PathPanelViewModel vm)
                 return;
 
             var dialog = new ColorQuickPick(vm.PathBorderColor);

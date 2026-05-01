@@ -416,9 +416,10 @@
                                      Value="{Binding TowerDistance}"
                                      Minimum="0.0"
                                      Increment="0.1"
-                                     Maximum="100.0"                                     
+                                     Maximum="100.0"
+                                     DecimalPlaces="1"
                                      Margin="0,0,6,6"
-                                     Width="75"/>
+                                     Width="100"/>
                     </Grid>
 
                     <TextBlock Text="Tower Size"
@@ -432,8 +433,9 @@
                                      Minimum="1.0"
                                      Maximum="5.0"
                                      Increment="0.1"
+                                     DecimalPlaces="1"
                                      Margin="0,0,6,6"
-                                     Width="75"/>
+                                     Width="100"/>
                     </Grid>
                     
                     <CheckBox Content="Crenelations"
