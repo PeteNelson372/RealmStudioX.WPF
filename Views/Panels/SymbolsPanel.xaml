@@ -241,8 +241,8 @@
                                 behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
                                 HorizontalAlignment="Left"
                                 Width="110"
-                                Minimum="0.01"
-                                Maximum="2.0"                            
+                                Minimum="{Binding MinSymbolScale}"
+                                Maximum="{Binding MaxSymbolScale}"                            
                                 Value="{Binding SymbolScale, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                             <!-- Lock -->
@@ -417,6 +417,262 @@
                 </StackPanel>
             </GroupBox>
 
+            <GroupBox Header="Placement"
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="154"
+                        Height="Auto"
+                        Margin="3,0,0,0">
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,0"
+                    Width="148"
+                    Height="Auto">
+
+                    <StackPanel
+                        Orientation="Horizontal"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="144"
+                        Height="32"
+                        Margin="3,3,3,3">
+
+                        <CheckBox x:Name="AreaBrushToggle"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            IsChecked="{Binding UseAreaBrush}"
+                            Style="{StaticResource ToggleSwitchStyle}"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                        <TextBlock Text="Area Brush"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="6,3,6,3"/>
+
+                    </StackPanel>
+
+                    <StackPanel Orientation="Vertical" Margin="6,3,3,3">
+
+                        <TextBlock Text="Area Brush Size"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,6,3"/>
+                        
+                        <Slider x:Name="AreaBrushSizeSlider"
+                                Style="{StaticResource ModernSlider}"
+                                behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                                HorizontalAlignment="Left"
+                                Width="132"
+                                Minimum="4"
+                                Maximum="512"                            
+                                Value="{Binding AreaBrushSize, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    </StackPanel>
+
+                    <StackPanel
+                        Orientation="Horizontal"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="144"
+                        Height="32"
+                        Margin="3,3,3,3">
+
+                        <CheckBox x:Name="MirrorSymbolToggle"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            IsChecked="{Binding MirrorSymbol}"
+                            Style="{StaticResource ToggleSwitchStyle}"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                        <TextBlock Text="Mirror Symbol"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="6,3,6,3"/>
+
+                    </StackPanel>
+
+                    <StackPanel Orientation="Vertical" Margin="6,3,3,3">
+
+                        <TextBlock Text="Rotation"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,3,6,3"/>
+
+                        <StackPanel
+                            Orientation="Horizontal"
+                            VerticalAlignment="Top"
+                            HorizontalAlignment="Right"
+                            Width="130"
+                            Height="32"
+                            Margin="3,3,3,3">
+                            <Slider x:Name="SymbolRotationSlider"
+                                Style="{StaticResource ModernSlider}"
+                                behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                                HorizontalAlignment="Left"
+                                Width="80"
+                                Minimum="0"
+                                Maximum="359"                            
+                                Value="{Binding SymbolRotation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                            <controls:NumericUpDown x:Name="SymbolRotationBox"
+                                     HorizontalAlignment="Right"
+                                     Value="{Binding SymbolRotation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     Minimum="0"
+                                     Maximum="359"
+                                     Increment="1"
+                                     DecimalPlaces="0"
+                                     Margin="3,0,0,0"
+                                     Width="50"/>
+                        </StackPanel>
+                    </StackPanel>
+                    
+                    <StackPanel
+                        Orientation="Horizontal"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Right"
+                        Width="144"
+                        Height="32"
+                        Margin="3,3,3,3">
+
+                        <TextBlock Text="Rate"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="6,3,6,3"/>
+                        
+                        <controls:NumericUpDown x:Name="SymbolPlacementRateBox"
+                                     HorizontalAlignment="Right"
+                                     Value="{Binding SymbolPlacementRate, UpdateSourceTrigger=PropertyChanged}"
+                                     Minimum="0.1"
+                                     Maximum="1.0"
+                                     Increment="0.05"
+                                     DecimalPlaces="2"
+                                     Margin="16,0,3,0"
+                                     Width="70"/>
+
+                        <Button Width="20"
+                                Height="20"
+                                HorizontalAlignment="Right"
+                                Margin="0,0,0,0"
+                                ToolTip="Reset symbol colors"
+                                Style="{StaticResource FlatToolButton}"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Command="{Binding ResetColorsCommand}">
+
+                            <materialDesign:PackIcon
+                                    Kind="UndoVariant"
+                                    Width="12"
+                                    Height="12"
+                                    Opacity="0.7">
+                            </materialDesign:PackIcon>
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel
+                        Orientation="Horizontal"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Right"
+                        Width="144"
+                        Height="32"
+                        Margin="3,3,3,3">
+
+                        <TextBlock Text="Density"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="6,3,6,3"/>
+
+                        <controls:NumericUpDown x:Name="SymbolPlacementDensityBox"
+                                     HorizontalAlignment="Right"
+                                     Value="{Binding SymbolPlacementDensity, UpdateSourceTrigger=PropertyChanged}"
+                                     Minimum="0.1"
+                                     Maximum="1.0"
+                                     Increment="0.05"
+                                     DecimalPlaces="2"
+                                     Margin="0,0,3,0"
+                                     Width="70"/>
+
+                        <Button Width="20"
+                                Height="20"
+                                HorizontalAlignment="Right"
+                                Margin="0,0,0,0"
+                                ToolTip="Reset symbol colors"
+                                Style="{StaticResource FlatToolButton}"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Command="{Binding ResetColorsCommand}">
+
+                            <materialDesign:PackIcon
+                                    Kind="UndoVariant"
+                                    Width="12"
+                                    Height="12"
+                                    Opacity="0.7">
+                            </materialDesign:PackIcon>
+                        </Button>
+                        
+                    </StackPanel>
+
+                </StackPanel>
+
+            </GroupBox>
+
+            <GroupBox Header="Collections"
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="154"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                <ListBox x:Name="CollectionsList"
+                     Width="135"
+                     Height="130"
+                     Margin="3,6,3,3"
+                     ItemsSource="{Binding Collections}">
+
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <CheckBox Content="{Binding Name}"
+                                IsChecked="{Binding IsChecked, Mode=TwoWay}"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+
+                </ListBox>
+
+            </GroupBox>
+
+            <GroupBox Header="Tags"
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="154"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                <ListBox x:Name="TagsList"
+                     Width="135"
+                     Height="130"
+                     Margin="3,6,3,3"
+                     ItemsSource="{Binding Tags}">
+
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <CheckBox Content="{Binding Name}"
+                                IsChecked="{Binding IsChecked, Mode=TwoWay}"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+
+                </ListBox>
+
+            </GroupBox>
         </StackPanel>
 
 

@@ -20,18 +20,36 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             _assetManager = assetManager;
         }
 
+        public int MinWaterBrushSize { get; } = 4;
+        public int MaxWaterBrushSize { get; } = 256;
+
         private int _waterBrushSize = 20;
         public int WaterBrushSize
         {
             get => _waterBrushSize;
-            set => SetProperty(ref _waterBrushSize, value);
+            set
+            {
+                var clamped = Math.Clamp(value, MinWaterBrushSize, MaxWaterBrushSize);
+
+                _waterBrushSize = clamped;
+                OnPropertyChanged();
+            }
         }
+
+        public int MinWaterEraserSize { get; } = 4;
+        public int MaxWaterEraserSize { get; } = 256;
 
         private int _waterEraserSize = 20;
         public int WaterEraserSize
         {
             get => _waterEraserSize;
-            set => SetProperty(ref _waterEraserSize, value);
+            set
+            {
+                var clamped = Math.Clamp(value, MinWaterEraserSize, MaxWaterEraserSize);
+
+                _waterEraserSize = clamped;
+                OnPropertyChanged();
+            }
         }
 
         // shallow water 

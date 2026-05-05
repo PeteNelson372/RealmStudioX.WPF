@@ -2,7 +2,10 @@
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor.Tools;
+using RealmStudioX.WPF.Editor.UserInterface;
+using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
+using SkiaSharp.Views.WPF;
 using CommandManager = RealmStudioX.Core.CommandManager;
 
 namespace RealmStudioX.WPF.Editor
@@ -23,6 +26,9 @@ namespace RealmStudioX.WPF.Editor
 
         private ToolFactory? _toolFactory;
         private IToolEditor? _activeTool;
+
+        private SymbolSelectionService _symbolSelectionService = new();
+        public SymbolSelectionService SymbolSelectionService => _symbolSelectionService;
 
         private SKSize _viewportSize;
 
@@ -45,6 +51,14 @@ namespace RealmStudioX.WPF.Editor
         private SKRect _lastSymbolBounds;
 
         // -------------------------------------------------
+        // MapSymbol arrow key nudging
+        // -------------------------------------------------
+
+        private Cmd_ModifySymbol? _activeNudgeCommand;
+        private MapSymbol? _nudgeTarget;
+        private Keys _activeNudgeKey;
+
+        // -------------------------------------------------
         // Selection filter
         // -------------------------------------------------
 
@@ -63,6 +77,13 @@ namespace RealmStudioX.WPF.Editor
         {
             _assetManager = assetManager;
             _editorState.DrawingModeChanged += OnDrawingModeChanged;
+
+            _symbolSelectionService.SelectionChanged += OnSymbolSelectionChanged;
+        }
+
+        private void OnSymbolSelectionChanged()
+        {
+
         }
 
         public void ActivateTool(EditorToolType type, object? context = null)
@@ -87,7 +108,7 @@ namespace RealmStudioX.WPF.Editor
 
             _scene = scene;
 
-            _toolFactory = new(_commands, _assetManager, _scene, _editorState, this);
+            _toolFactory = new(_commands, _assetManager, _scene, _editorState, this, _scene.RenderContext);
 
             // Subscribe to new scene
             _scene.SceneChanged += OnSceneChanged;
@@ -417,7 +438,7 @@ namespace RealmStudioX.WPF.Editor
                 }
                 else if (SelectedShape is MapSymbol ms && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
                 {
-                    //SelectedMapSymbolMouseDown(ms, world);
+                    SelectedMapSymbolMouseDown(ms, state.WorldPoint);
                 }
                 else if (SelectedShape is MapLabel ml && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
                 {
@@ -490,7 +511,7 @@ namespace RealmStudioX.WPF.Editor
 
                     if (SelectedShape is MapSymbol ms && !_isTransforming)
                     {
-                        //SelectedSymbolNoButtonMove(ms, state.WorldPoint);
+                        SelectedSymbolNoButtonMove(ms, state.WorldPoint);
                         return;
                     }
 
@@ -524,7 +545,7 @@ namespace RealmStudioX.WPF.Editor
 
                 if (SelectedShape is MapSymbol ms && _isTransforming && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
                 {
-                    //SelectedSymbolLeftButtonMove(ms, state.WorldPoint);
+                    SelectedSymbolLeftButtonMove(ms, state.WorldPoint);
                     return;
                 }
 
@@ -608,7 +629,7 @@ namespace RealmStudioX.WPF.Editor
 
             if (SelectedShape is MapSymbol ms && _isTransforming)
             {
-                //SelectedSymbolMouseUp(ms);
+                SelectedSymbolMouseUp(ms);
                 return;
             }
 
@@ -942,7 +963,6 @@ namespace RealmStudioX.WPF.Editor
                         coastlineSettings,
                         _assetManager));
             }
-
         }
 
         // -------------------------------------------------
@@ -965,6 +985,281 @@ namespace RealmStudioX.WPF.Editor
                         mp,
                         renderStyle,
                         _assetManager));
+            }
+        }
+
+        // -------------------------------------------------
+        // Symbols
+        // -------------------------------------------------
+
+        public void UpdateSelectedSymbol(ISymbolSettings settings)
+        {
+            if (SelectedShape is MapSymbol symbol)
+            {
+                MapLayer symbolsLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.SYMBOLLAYER);
+
+                Cmd_ModifySymbol cmd = new(symbolsLayer, symbol);
+
+                // TODO: use capture state/restore state?
+
+                symbol.Scale = (float) settings.SymbolScale;
+                symbol.CustomSymbolColors[0] = settings.SymbolColor1.ToSKColor();
+                symbol.CustomSymbolColors[1] = settings.SymbolColor2.ToSKColor();
+                symbol.CustomSymbolColors[2] = settings.SymbolColor3.ToSKColor();
+                symbol.Mirror = settings.MirrorSymbol;
+                symbol.Rotation = settings.SymbolRotation;
+
+                cmd.CaptureAfter();
+
+                _commands.Execute(cmd);
+            }
+        }
+
+        public void PaintSelectedSymbol(SKColor newColor, ISymbolSettings settings)
+        {
+            if (SelectedShape is MapSymbol ms)
+            {
+                MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(_scene!.Map, MapBuilder.SYMBOLLAYER);
+
+                Cmd_ModifySymbols paintCommand = new(symbolLayer);
+
+                // --- CAPTURE BEFORE ---
+                var before = (MapSymbolState)ms.CaptureState();
+
+                // --- APPLY MODIFICATION ---
+
+                if (ms.SymbolDefinition.BaseColorType == MapSymbolBaseColorType.GrayScale)
+                {
+                    if (settings.RandomizeSymbolColors)
+                    {
+                        newColor = ColorHelper.Randomize(newColor);
+                    }
+
+                    ms.TintColor = newColor;
+                }
+                else if (ms.SymbolDefinition.BaseColorType == MapSymbolBaseColorType.RGBMask)
+                {
+                    // RGB Mask symbols are colored with the values set in the tool, which are
+                    // updated by the SymbolMediator
+                    ms.CustomSymbolColors[0] = settings.RandomizeSymbolColors ? ColorHelper.Randomize(settings.SymbolColor1.ToSKColor()) : settings.SymbolColor1.ToSKColor();
+                    ms.CustomSymbolColors[1] = settings.RandomizeSymbolColors ? ColorHelper.Randomize(settings.SymbolColor2.ToSKColor()) : settings.SymbolColor2.ToSKColor();
+                    ms.CustomSymbolColors[2] = settings.RandomizeSymbolColors ? ColorHelper.Randomize(settings.SymbolColor3.ToSKColor()) : settings.SymbolColor3.ToSKColor();
+                }
+
+                // --- CAPTURE AFTER ---
+                var after = (MapSymbolState)ms.CaptureState();
+
+                paintCommand.RegisterModifiedSymbol(ms, before, after);
+
+                symbolLayer.InvalidateSymbol(ms);
+
+                _commands.Execute(paintCommand!);
+            }
+        }
+
+        private void SelectedMapSymbolMouseDown(MapSymbol ms, SKPoint worldPoint)
+        {
+            CommitNudge();
+
+            _lastSymbolBounds = ms.Bounds;
+
+            MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.SYMBOLLAYER);
+
+            Scene.TransformWidget.Target = ms;
+
+            var handle = Scene.TransformWidget.OnMouseDown(worldPoint);
+
+            switch (handle)
+            {
+                case TransformHandle.Rotate:
+                case TransformHandle.TopLeft:
+                case TransformHandle.BottomRight:
+                case TransformHandle.TopRight:
+                case TransformHandle.BottomLeft:
+                case TransformHandle.Left:
+                case TransformHandle.Right:
+                case TransformHandle.Top:
+                case TransformHandle.Bottom:
+                case TransformHandle.Move:
+
+                    _isTransforming = true;
+                    // create command (capture BEFORE)
+                    _activeModifyMapSymbolCommand = new Cmd_ModifySymbol(symbolLayer, ms);
+                    return;
+                case TransformHandle.ZTop:
+                    symbolLayer.MoveMapComponentZOrder(ms, ZOrderMoveType.ToTop);
+                    RequestRedraw();
+                    return;
+                case TransformHandle.ZForward:
+                    symbolLayer.MoveMapComponentZOrder(ms, ZOrderMoveType.AboveAllOverlaps);
+                    RequestRedraw();
+                    return;
+                case TransformHandle.ZBackward:
+                    symbolLayer.MoveMapComponentZOrder(ms, ZOrderMoveType.BelowAllOverlaps);
+                    RequestRedraw();
+                    return;
+                case TransformHandle.ZBottom:
+                    symbolLayer.MoveMapComponentZOrder(ms, ZOrderMoveType.ToBottom);
+                    RequestRedraw();
+                    return;
+                case TransformHandle.None:
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void SelectedSymbolNoButtonMove(MapSymbol ms, SKPoint worldPosition)
+        {
+            Scene!.TransformWidget.Target = ms;
+            HandleHoverUpdate(worldPosition);
+
+            RequestRedraw();
+        }
+
+
+        private void SelectedSymbolLeftButtonMove(MapSymbol ms, SKPoint worldPosition)
+        {
+            Scene!.TransformWidget.Target = ms;
+            Scene.TransformWidget.OnMouseMove(worldPosition);
+
+            var oldBounds = _lastSymbolBounds;
+
+            ms.UpdateBounds();
+
+            var newBounds = ms.Bounds;
+
+            MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.SYMBOLLAYER);
+
+            symbolLayer.UpdateSymbolTiles(ms, oldBounds, newBounds);
+
+            _lastSymbolBounds = newBounds;
+
+            RequestRedraw();
+        }
+
+        private void SelectedSymbolMouseUp(MapSymbol ms)
+        {
+            Scene!.TransformWidget.OnMouseUp();
+
+            // capture AFTER
+            _activeModifyMapSymbolCommand?.CaptureAfter();
+
+            // commit command
+            if (_activeModifyMapSymbolCommand != null)
+            {
+                _commands.Execute(_activeModifyMapSymbolCommand);
+            }
+
+            _activeModifyMapSymbolCommand = null;
+            _isTransforming = false;
+
+            RequestRedraw();
+        }
+
+        public void NudgeSymbol(MapSymbol symbol, Keys key, int dx, int dy)
+        {
+            if (symbol == null)
+                return;
+
+            // If key changed → commit previous command
+            if (_activeNudgeCommand != null &&
+                (_nudgeTarget != symbol || _activeNudgeKey != key))
+            {
+                CommitNudge();
+            }
+
+            // Start new command if needed
+            if (_activeNudgeCommand == null)
+            {
+                _nudgeTarget = symbol;
+                _activeNudgeKey = key;
+
+                _activeNudgeCommand = new Cmd_ModifySymbol(
+                    GetSymbolLayer(), symbol);
+            }
+
+            // Apply movement
+            var loc = symbol.Location;
+            loc.X = Math.Clamp(loc.X + dx, 0, Scene!.Map.MapWidth);
+            loc.Y = Math.Clamp(loc.Y + dy, 0, Scene!.Map.MapHeight);
+
+            symbol.Location = loc;
+
+            var layer = GetSymbolLayer();
+            layer.InvalidateSymbol(symbol);
+        }
+
+        public void CommitNudge()
+        {
+            if (_activeNudgeCommand == null || _nudgeTarget == null)
+                return;
+
+            _activeNudgeCommand.CaptureAfter();
+
+            if (_activeNudgeCommand.HasChange)
+            {
+                _commands.Execute(_activeNudgeCommand);
+            }
+
+            _activeNudgeCommand = null;
+            _nudgeTarget = null;
+        }
+
+        private MapLayer GetSymbolLayer()
+        {
+            return MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.SYMBOLLAYER);
+        }
+
+        private void HandleHoverUpdate(SKPoint worldPosition)
+        {
+            Scene!.TransformWidget.UpdateHover(worldPosition, Scene.Camera.Zoom);
+
+            var handle = Scene.TransformWidget.HoverHandle;
+
+            switch (handle)
+            {
+                case TransformHandle.Rotate:
+                    Cursor.Current = Cursors.Cross;
+                    break;
+
+                case TransformHandle.TopLeft:
+                case TransformHandle.BottomRight:
+                    Cursor.Current = Cursors.SizeNWSE;
+                    break;
+
+                case TransformHandle.TopRight:
+                case TransformHandle.BottomLeft:
+                    Cursor.Current = Cursors.SizeNESW;
+                    break;
+
+                case TransformHandle.Left:
+                case TransformHandle.Right:
+                    Cursor.Current = Cursors.SizeWE;
+                    break;
+
+                case TransformHandle.Top:
+                case TransformHandle.Bottom:
+                    Cursor.Current = Cursors.SizeNS;
+                    break;
+
+                case TransformHandle.Move:
+                    Cursor.Current = Cursors.SizeAll;
+                    break;
+                case TransformHandle.ZTop:
+                case TransformHandle.ZForward:
+                    Cursor.Current = Cursors.PanNorth;
+                    break;
+
+                case TransformHandle.ZBackward:
+                case TransformHandle.ZBottom:
+                    Cursor.Current = Cursors.PanSouth;
+                    break;
+
+                case TransformHandle.None:
+                    break;
+                default:
+                    break;
             }
         }
 

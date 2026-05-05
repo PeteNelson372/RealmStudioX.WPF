@@ -7,30 +7,84 @@
              d:DesignHeight="922" d:DesignWidth="152">
 
     <Border Background="#FFDFDBD2"
-            Padding="10">
+            Padding="6">
 
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <!-- Header -->
+                <RowDefinition Height="60"/>
+                <!-- Search Box -->
                 <RowDefinition Height="*"/>
-                <!-- Content -->
+                <!-- Symbol Grid -->
             </Grid.RowDefinitions>
 
-            <!-- Header -->
-            <TextBlock Text="Symbol Tools"
-                       FontSize="14"
-                       FontWeight="SemiBold"
-                       Foreground="Black"
-                       Margin="0,0,0,8"/>
+            <Grid Grid.Row="0">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Search"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Top"
+                            Margin="3,6,0,3"/>
 
-            <!-- Placeholder Content -->
-            <TextBlock Grid.Row="1"
-                       Text="Symbol tool controls will go here..."
-                       Foreground="Black"
-                       Opacity="0.7"
-                       TextWrapping="Wrap"/>
+                    <TextBox Width="122"
+                         Height="24"
+                         Margin="0,0,10,0"
+                         Text="{Binding SymbolFilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="Search symbols..." />
+                </StackPanel>
+            </Grid>
 
+            <Grid Grid.Row="1" Width="144">
+
+                <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+
+                    <ItemsControl ItemsSource="{Binding SymbolGridItems}">
+
+                        <!-- Styles -->
+                        <ItemsControl.Resources>
+                            <Style x:Key="SymbolBorderStyle" TargetType="Border">
+                                <Setter Property="BorderBrush" Value="Gray"/>
+                                <Setter Property="BorderThickness" Value="0.5"/>
+                                <Setter Property="SnapsToDevicePixels" Value="True"/>
+                            </Style>
+                        </ItemsControl.Resources>
+
+                        <!-- Layout -->
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <!-- Items -->
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Width="60"
+                                    Height="60"
+                                    Padding="1"
+                                    Style="{StaticResource SymbolBorderStyle}"
+                                    MouseDown="OnItemMouseDown">
+
+                                    <!-- Highlight (ONLY mechanism used) -->
+                                    <Border.Background>
+                                        <MultiBinding Converter="{StaticResource SymbolHighlightConverter}">
+                                            <Binding Path="IsPrimary"/>
+                                            <Binding Path="IsSecondary"/>
+                                        </MultiBinding>
+                                    </Border.Background>
+
+                                    <!-- Symbol image -->
+                                    <Image Source="{Binding SymbolImage}"
+                                        Stretch="Fill"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+
+                    </ItemsControl>
+
+                </ScrollViewer>
+
+            </Grid>
         </Grid>
 
     </Border>

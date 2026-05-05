@@ -1,7 +1,6 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
-using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
@@ -207,7 +206,6 @@ namespace RealmStudioX.WPF.Editor.Tools
                     }
                 }
             }
-
         }
 
         private void Dispose(bool disposing)

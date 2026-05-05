@@ -62,11 +62,20 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             }
         }
 
+        public int MinLandformBrushSize { get; } = 4;
+        public int MaxLandformBrushSize { get; } = 512;
+
         private int _landformBrushSize = 64;
         public int LandformBrushSize
         {
             get => _landformBrushSize;
-            set => SetProperty(ref _landformBrushSize, value);
+            set
+            {
+                var clamped = Math.Clamp(value, MinLandformBrushSize, MaxLandformBrushSize);
+
+                _landformBrushSize = clamped;
+                OnPropertyChanged();
+            }
         }
 
         private int _landformShadingDepth = 16;
@@ -167,12 +176,21 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         public string? LandformTextureId => TextureBrowser.SelectedAssetId;
 
 
+        public int MinLandformEraserSize { get; } = 4;
+        public int MaxLandformEraserSize { get; } = 512;
+
         public int _landformEraserSize = 64;
 
         public int LandformEraserSize
         {
             get => _landformEraserSize;
-            set => SetProperty(ref _landformEraserSize, value);
+            set
+            {
+                var clamped = Math.Clamp(value, MinLandformEraserSize, MaxLandformEraserSize);
+
+                _landformEraserSize = clamped;
+                OnPropertyChanged();
+            }
         }
 
         public AssetBrowserViewModel TextureBrowser { get; }

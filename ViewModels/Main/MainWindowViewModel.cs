@@ -33,12 +33,15 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public SymbolsPanelViewModel SymbolsViewModel {  get; }
 
+        public LabelsPanelViewModel LabelsViewModel { get; }
+
         public MainWindowViewModel(EditorController editor, AssetManager assetManager)
         {
             _editor = editor;
 
             // instantiate ViewModels for the panels; when adding a view model
-            // remember to add a reference to it on the TabItem <panel:...> in MainTabs.xaml 
+            // remember to add a reference to it on the TabItem <panel:...> in MainTabs.xaml
+            // and in MainWindow.xaml.cs ShowToolPanel() method
 
             // Background Panel
             BackgroundViewModel = new BackgroundPanelViewModel(_editor, assetManager);
@@ -56,6 +59,9 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
             // Symbols Panel
             SymbolsViewModel = new SymbolsPanelViewModel(_editor, assetManager);
+
+            // Labels Panel
+            LabelsViewModel = new LabelsPanelViewModel(_editor, assetManager);
 
 
             MapName = "Default";

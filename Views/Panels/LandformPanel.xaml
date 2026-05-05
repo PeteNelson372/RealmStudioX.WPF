@@ -521,10 +521,10 @@
                                 Style="{StaticResource ModernSlider}"
                                 behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
                                 Width="126"
-                                Minimum="4"
-                                Maximum="512"
                                 AutoToolTipPlacement="TopLeft"
-                                AutoToolTipPrecision="0"                              
+                                AutoToolTipPrecision="0"                            
+                                Minimum="{Binding MinLandformBrushSize}"
+                                Maximum="{Binding MaxLandformBrushSize}"                            
                                 Value="{Binding LandformBrushSize}"/>
 
                 </StackPanel>
@@ -1100,8 +1100,8 @@
                                     Style="{StaticResource ModernSlider}"
                                     behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
                                     Width="126"
-                                    Minimum="4"
-                                    Maximum="512"
+                                    Minimum="{Binding MinLandformEraserSize}"
+                                    Maximum="{Binding MaxLandformEraserSize}"
                                     AutoToolTipPlacement="TopLeft"
                                     AutoToolTipPrecision="0"
                                     Value="{Binding LandformEraserSize}"/>

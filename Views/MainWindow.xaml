@@ -66,6 +66,7 @@
             <controls:MenuIconBar DockPanel.Dock="Right"
                 Background="#FFDFDBD2"
                 Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+                VerticalAlignment="Top"
                 Height="32"/>
 
             <controls:MainMenu x:Name="MainMenu"
@@ -123,6 +124,7 @@
             <wfi:WindowsFormsHost x:Name="FormsHost" Grid.Row="1"
                 Visibility="Visible"
                 Background="WhiteSmoke"
+                Cursor="None"
                 SizeChanged="OnViewportSizeChanged"/>
 
             <!-- Horizontal ScrollBar -->

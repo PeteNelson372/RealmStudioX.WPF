@@ -92,7 +92,7 @@
             <panels:SymbolsPanel DataContext="{Binding SymbolsViewModel}"/>
         </TabItem>
         <TabItem Header="Labels">
-            <panels:LabelsPanel/>
+            <panels:LabelsPanel DataContext="{Binding LabelsViewModel}"/>
         </TabItem>
         <TabItem Header="Overlays">
             <panels:OverlaysPanel/>

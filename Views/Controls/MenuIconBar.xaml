@@ -11,14 +11,15 @@
     <StackPanel Orientation="Horizontal"
                 DockPanel.Dock="Right">
 
-        <Button Style="{StaticResource TitleBarButtonStyle}">
+        <Button Style="{StaticResource IconBarButtonStyle}">
             <materialDesign:PackIcon Kind="MapMarkerRadius"
                              Width="22"
                              Height="22"
+                             VerticalAlignment="Center"
                              Foreground="#FF8C0A0A"/>
         </Button>
 
-        <Button Style="{StaticResource TitleBarButtonStyle}">
+        <Button Style="{StaticResource IconBarButtonStyle}">
             <TextBlock Text="WA"
                                 FontFamily="Elephant"
                                 FontSize="12"
@@ -27,28 +28,28 @@
                                 VerticalAlignment="Center"/>
         </Button>
 
-        <Button Style="{StaticResource TitleBarButtonStyle}">
+        <Button Style="{StaticResource IconBarButtonStyle}">
             <materialDesign:PackIcon Kind="CubeOutline"
                              Width="22"
                              Height="22"
                              Foreground="DarkGoldenrod"/>
         </Button>
 
-        <Button Style="{StaticResource TitleBarButtonStyle}">
+        <Button Style="{StaticResource IconBarButtonStyle}">
             <materialDesign:PackIcon Kind="SelectDrag"
                              Width="22"
                              Height="22"
                              Foreground="Green"/>
         </Button>
 
-        <Button Style="{StaticResource TitleBarButtonStyle}">
+        <Button Style="{StaticResource IconBarButtonStyle}">
             <materialDesign:PackIcon Kind="Palette"
                              Width="22"
                              Height="22"
                              Foreground="SaddleBrown"/>
         </Button>
 
-        <Button Style="{StaticResource TitleBarButtonStyle}">
+        <Button Style="{StaticResource IconBarButtonStyle}">
             <materialDesign:PackIcon Kind="Eyedropper"
                              Width="22"
                              Height="22"

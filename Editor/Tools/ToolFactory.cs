@@ -1,5 +1,6 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
+using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Panels;
 
 namespace RealmStudioX.WPF.Editor.Tools
@@ -11,19 +12,22 @@ namespace RealmStudioX.WPF.Editor.Tools
         private readonly MapScene _scene;
         private readonly EditorState _editorState;
         private readonly EditorController _editor;
+        private readonly RenderContext _renderContext;
 
         public ToolFactory(
             CommandManager commands,
             IAssetProvider assets,
             MapScene scene,
             EditorState editorState,
-            EditorController editor)
+            EditorController editor,
+            RenderContext renderContext)
         {
             _commands = commands;
             _assets = assets;
             _scene = scene;
             _editorState = editorState;
             _editor = editor;
+            _renderContext = renderContext;
         }
 
         public IToolEditor? Create(EditorToolType type, object? context)
@@ -76,7 +80,22 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                         return tool;
                     }
+                case EditorToolType.SymbolTool:
+                    {
+                        _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.SYMBOLLAYER));
 
+                        _editor.SymbolSelectionService.SetPrimarySelectedSymbol(null);
+                        _editor.SymbolSelectionService.ClearSecondary();
+
+                        tool = new SymbolTool(_commands, _assets,
+                            MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.SYMBOLLAYER),
+                            _scene, _editor.SymbolSelectionService, ((AssetManager)_assets).SymbolImageCache, _editorState, (ISymbolSettings)context)
+                        {
+                            RenderContext = _renderContext
+                        };
+
+                        return tool;
+                    }
             }
 
             return null;

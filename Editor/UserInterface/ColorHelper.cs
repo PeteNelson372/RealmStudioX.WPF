@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using SkiaSharp;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Windows.Media;
 using Color = System.Windows.Media.Color;
@@ -7,6 +8,8 @@ namespace RealmStudioX.WPF.Editor.UserInterface
 {
     public static class ColorHelper
     {
+        private static readonly Random _rng = new();
+
         [DllImport("user32.dll")]
         private static extern IntPtr GetDC(IntPtr hwnd);
 
@@ -181,6 +184,20 @@ namespace RealmStudioX.WPF.Editor.UserInterface
             double v = max;
 
             return (h, s, v);
+        }
+
+        public static SKColor Randomize(SKColor baseColor)
+        {
+            float variation = 0.1f;
+
+            byte Clamp(float v) => (byte)Math.Clamp(v, 0, 255);
+
+            return new SKColor(
+                Clamp(baseColor.Red * (1f + (float)(_rng.NextDouble() - 0.5) * variation)),
+                Clamp(baseColor.Green * (1f + (float)(_rng.NextDouble() - 0.5) * variation)),
+                Clamp(baseColor.Blue * (1f + (float)(_rng.NextDouble() - 0.5) * variation)),
+                baseColor.Alpha
+            );
         }
     }
 }

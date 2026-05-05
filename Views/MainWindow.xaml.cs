@@ -385,12 +385,174 @@ namespace RealmStudioX.WPF
                     Modifiers = ConvertModifiers(Keyboard.Modifiers)
                 };
 
+                HandleMouseWheel(state);
+
+                // let the editor controller be able to handle the MouseWheel event
+                // or pass it on to the active tool
                 _editor.OnMouseWheel(state);
-                
+
                 _skiaControl.Invalidate();
+            };
+
+            _skiaControl.MouseEnter += (s, e) =>
+            {
+                Cursor = System.Windows.Input.Cursors.None;
+                _skiaControl.Cursor = System.Windows.Forms.Cursors.Default;
+
+                if (_editor.CurrentDrawingMode == MapDrawingMode.SymbolPlace
+                || _editor.CurrentDrawingMode == MapDrawingMode.SymbolColor)
+                {
+                    if (!ViewModel.SymbolsViewModel.UseAreaBrush)
+                    {
+                        _skiaControl.Cursor = System.Windows.Forms.Cursors.Cross;
+                    }
+                }
+            };
+
+            _skiaControl.MouseLeave += (s, e) =>
+            {
+                Cursor = System.Windows.Input.Cursors.Arrow;
+                _skiaControl.Cursor = System.Windows.Forms.Cursors.Default;
             };
         }
 
+        private void _skiaControl_MouseEnter(object? sender, EventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void HandleMouseWheel(PointerState state)
+        {
+            if (_editor ==  null) return;
+
+            const int cursorDelta = 5;
+            int sizeDelta = state.WheelDelta < 0 ? -cursorDelta : cursorDelta;
+
+            if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.LandErase)
+            {
+                ViewModel.LandformViewModel.LandformEraserSize += sizeDelta;
+            }
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.LandPaint)
+            {
+                ViewModel.LandformViewModel.LandformBrushSize += sizeDelta;
+            }
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.LandColor)
+            {
+                //ViewModel.LandformViewModel.LandPaintBrushSize += sizeDelta;
+            }
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.LandColorErase)
+            {
+                //ViewModel.LandformViewModel.LandPaintEraserSize += sizeDelta;
+            }
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.OceanErase)
+            {
+                //ViewModel.OceanViewModel.OceanPaintEraserSize += sizeDelta;
+            }
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.OceanPaint)
+            {
+                //ViewModel.OceanViewModel.OceanPaintBrushSize += sizeDelta;
+            }
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.WaterPaint)
+            {
+                ViewModel.WaterViewModel.WaterBrushSize += sizeDelta;
+            }            
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.WaterErase)
+            {
+                ViewModel.WaterViewModel.WaterEraserSize += sizeDelta;
+            }            
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.LakePaint)
+            {
+                ViewModel.WaterViewModel.WaterBrushSize += sizeDelta;
+            }
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.WaterColor)
+            {
+                //ViewModel.WaterViewModel.WaterColorBrushSize += sizeDelta;
+            }
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.WaterColorErase)
+            {
+                //ViewModel.WaterViewModel.WaterColorEraserSize += sizeDelta;
+            }
+            /*
+            else if (ModifierKeys == Keys.None && _editorState.CurrentDrawingMode == MapDrawingMode.MapHeightIncrease)
+            {
+                //MainMediator.SelectedBrushSize = RealmMapMethods.GetNewBrushSize(LandBrushSizeTrack, sizeDelta);
+            }
+            else if (ModifierKeys == Keys.None && _editorState.CurrentDrawingMode == MapDrawingMode.MapHeightDecrease)
+            {
+                //MainMediator.SelectedBrushSize = RealmMapMethods.GetNewBrushSize(LandBrushSizeTrack, sizeDelta);
+            }
+            else if (ModifierKeys == Keys.None && _editorState.CurrentDrawingMode == MapDrawingMode.DrawingLine)
+            {
+                DrawingMediator.DrawingLineBrushSize = RealmMapMethods.GetNewBrushSize(LineBrushSizeTrack, sizeDelta);
+            }
+            else if (ModifierKeys == Keys.None && _editorState.CurrentDrawingMode == MapDrawingMode.DrawingPaint)
+            {
+                DrawingMediator.DrawingLineBrushSize = RealmMapMethods.GetNewBrushSize(LineBrushSizeTrack, sizeDelta);
+            }
+            else if (ModifierKeys == Keys.None && _editorState.CurrentDrawingMode == MapDrawingMode.DrawingPolygon)
+            {
+                DrawingMediator.DrawingLineBrushSize = RealmMapMethods.GetNewBrushSize(LineBrushSizeTrack, sizeDelta);
+            }
+            else if (ModifierKeys == Keys.None && _editorState.CurrentDrawingMode == MapDrawingMode.DrawingEllipse)
+            {
+                DrawingMediator.DrawingLineBrushSize = RealmMapMethods.GetNewBrushSize(LineBrushSizeTrack, sizeDelta);
+            }
+            else if (ModifierKeys == Keys.None && _editorState.CurrentDrawingMode == MapDrawingMode.DrawingRectangle)
+            {
+                DrawingMediator.DrawingLineBrushSize = RealmMapMethods.GetNewBrushSize(LineBrushSizeTrack, sizeDelta);
+            }
+            else if (ModifierKeys == Keys.None && _editorState.CurrentDrawingMode == MapDrawingMode.DrawingErase)
+            {
+                DrawingMediator.DrawingLineBrushSize = RealmMapMethods.GetNewBrushSize(LineBrushSizeTrack, sizeDelta);
+            }
+            else if (ModifierKeys == Keys.None && _editorState.CurrentDrawingMode == MapDrawingMode.DrawingStamp)
+            {
+                int newValue = (int)Math.Max(DrawingStampScaleTrack.Minimum, DrawingStampScaleTrack.Value + sizeDelta);
+                newValue = (int)Math.Min(DrawingStampScaleTrack.Maximum, newValue);
+                DrawingMediator.DrawingStampScale = newValue / 100.0F;
+            }
+            */
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.SymbolPlace)
+            {
+                if (ViewModel.SymbolsViewModel.UseAreaBrush)
+                {
+                    // area brush size is changed when UseAreaBrush is true
+                    ViewModel.SymbolsViewModel.AreaBrushSize += sizeDelta;
+                }
+                else
+                {
+                    ViewModel.SymbolsViewModel.SymbolScale += (sizeDelta * 0.01);
+                }
+            }
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.SymbolErase)
+            {
+                // when erasing symbols, the area brush size is changed using the mouse wheel,
+                // and the area brush size determines the size of the area in which symbols will be erased
+                ViewModel.SymbolsViewModel.AreaBrushSize += sizeDelta;
+            }
+            else if (state.Modifiers == InputModifiers.Shift && _editor.CurrentDrawingMode == MapDrawingMode.SymbolPlace)
+            {
+                ViewModel.SymbolsViewModel.SymbolRotation += sizeDelta;
+            }
+            else if (state.Modifiers == InputModifiers.Control)
+            {
+                if (_editor.Scene == null)
+                {
+                    return;
+                }
+
+                const float zoomStep = 1.1f;
+
+                float factor = state.WheelDelta > 0 ? zoomStep : 1f / zoomStep;
+
+                _editor.Scene.Camera.SetZoom(_editor.Scene.Camera.Zoom * factor, _skiaControl!.Width, _skiaControl!.Height);
+
+                _editor.Scene.Camera.ZoomAtScreenPoint(
+                    _editor.Scene.Camera.Zoom * factor,
+                    new SKPoint(state.ScreenPoint.X, state.ScreenPoint.Y), _skiaControl!.Width, _skiaControl!.Height);
+            }
+
+        }
 
         private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
         {
@@ -403,7 +565,6 @@ namespace RealmStudioX.WPF
             if (_editor != null && _editor.Scene != null && _editor.Scene.Map != null && _renderContext != null)
             {
                 // paint the _skiaControl surface, compositing all of the layers
-
                 using (new SKAutoCanvasRestore(canvas))
                 {
                     canvas.ResetMatrix();
@@ -622,6 +783,11 @@ namespace RealmStudioX.WPF
             if (_toolPanels[tab] is SymbolsToolPanel stp)
             {
                 stp.DataContext = ViewModel.SymbolsViewModel;
+            }
+
+            if (_toolPanels[tab] is LabelsToolPanel ltp)
+            {
+                ltp.DataContext = ViewModel.LabelsViewModel;
             }
 
             SecondaryPanelHost.Content = _toolPanels[tab];

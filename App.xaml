@@ -10,7 +10,9 @@
             
             <conv:EnumToBooleanConverter x:Key="EnumToBooleanConverter"/>
             <conv:EnumEqualsConverter x:Key="EnumEqualsConverter"/>
-            
+            <conv:SymbolHighlightConverter x:Key="SymbolHighlightConverter"/>
+
+
             <ResourceDictionary.MergedDictionaries>
 
                 <ResourceDictionary Source="Themes/Colors.xaml"/>

@@ -225,7 +225,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             if (_assetManager == null)
                 return;
 
-            PathRenderStyle renderStyle = new PathRenderStyle()
+            PathRenderStyle renderStyle = new()
             {
                 Width = PathWidth,
                 BorderColor = PathBorderColor.ToSKColor(),

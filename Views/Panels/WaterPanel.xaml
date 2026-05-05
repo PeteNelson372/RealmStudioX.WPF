@@ -203,8 +203,8 @@
                                 Style="{StaticResource ModernSlider}"
                                 behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
                                 Width="126"
-                                Minimum="4"
-                                Maximum="256"
+                                Minimum="{Binding MinWaterBrushSize}"
+                                Maximum="{Binding MaxWaterBrushSize}"
                                 AutoToolTipPlacement="TopLeft"
                                 AutoToolTipPrecision="0"                              
                                 Value="{Binding WaterBrushSize}"/>
@@ -360,7 +360,7 @@
                         Height="Auto"
                         Margin="3,3,3,3">
 
-                        <TextBlock Text="MeanderStrength"
+                        <TextBlock Text="Meander Strength"
                                 Foreground="#FF45443F"
                                 VerticalAlignment="Center"
                                 Margin="3,3,3,3"/>
@@ -458,8 +458,8 @@
                                     Style="{StaticResource ModernSlider}"
                                     behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
                                     Width="126"
-                                    Minimum="4"
-                                    Maximum="256"
+                                    Minimum="{Binding MinWaterEraserSize}"
+                                    Maximum="{Binding MaxWaterEraserSize}"
                                     AutoToolTipPlacement="TopLeft"
                                     AutoToolTipPrecision="0"
                                     Value="{Binding WaterEraserSize}"/>
