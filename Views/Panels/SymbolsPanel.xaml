@@ -211,13 +211,13 @@
         <StackPanel Grid.Row="1" Grid.Column="0">
 
             <GroupBox Header="Scale"
-            Grid.Row="1"
-            Grid.Column="0"
-            VerticalAlignment="Top"
-            HorizontalAlignment="Left"
-            Width="154"
-            Height="Auto"
-            Margin="3,0,0,0">
+                Grid.Row="1"
+                Grid.Column="0"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Left"
+                Width="154"
+                Height="Auto"
+                Margin="3,0,0,0">
 
                 <StackPanel
                     Orientation="Vertical"

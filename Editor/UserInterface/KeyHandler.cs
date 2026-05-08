@@ -1,0 +1,309 @@
+﻿/**************************************************************************************************************************
+* Copyright 2024, Peter R. Nelson
+*
+* This file is part of the RealmStudio application. The RealmStudio application is intended
+* for creating fantasy maps for gaming and world building.
+*
+* RealmStudio is free software: you can redistribute it and/or modify it under the terms
+* of the GNU General Public License as published by the Free Software Foundation,
+* either version 3 of the License, or (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* The text of the GNU General Public License (GPL) is found in the LICENSE.txt file.
+* If the LICENSE.txt file is not present or the text of the GNU GPL is not present in the LICENSE.txt file,
+* see https://www.gnu.org/licenses/.
+*
+* For questions about the RealmStudio application or about licensing, please email
+* support@brookmonte.com
+*
+***************************************************************************************************************************/
+using RealmStudioShapeRenderingLib;
+using RealmStudioX.Core;
+using System.Windows.Input;
+
+namespace RealmStudioX.WPF.Editor.UserInterface
+{
+    internal sealed class KeyHandler
+    {
+        internal static bool HandleKey(EditorController editor, Key keyCode, ModifierKeys KeyModifiers)
+        {
+            ArgumentNullException.ThrowIfNull(editor);
+
+            bool handled = false;
+
+            bool isArrowKey =
+                keyCode == Key.Up ||
+                keyCode == Key.Down ||
+                keyCode == Key.Left ||
+                keyCode == Key.Right;
+
+            if (!isArrowKey)
+            {
+                editor.CommitSymbolNudge();
+                editor.CommitLabelNudge();
+            }
+
+            switch (keyCode)
+            {
+                case Key.Escape:
+                    {
+                        editor.ActiveEditorTool?.Deactivate();
+                        editor.ActiveEditorTool = null;
+
+                        editor.SetDrawingMode(MapDrawingMode.None);
+                        editor.ResetCamera();
+
+                        if (editor.Scene != null)
+                        {
+                            EditorController.DeselectAllMapComponents(editor.Scene, null);
+                        }
+
+                        handled = true;
+                    }
+                    break;
+                case Key.Delete:
+                    {
+                        if (editor.SelectedShape is WaterSystem ws)
+                        {
+                            Cmd_ModifyWaterBodies cmd = new(editor.Scene!.Map);
+                            cmd.RegisterRemovedWaterSystem(ws);
+
+                            editor.Commands.Execute(cmd);
+
+                            return true;
+                        }
+
+                        if (editor.SelectedShape is WaterBody wb)
+                        {
+                            Cmd_ModifyWaterBodies cmd = new(editor.Scene!.Map);
+                            cmd.RegisterRemovedWaterBody(wb);
+
+                            editor.Commands.Execute(cmd);
+
+                            return true;
+                        }
+
+                        if (editor.SelectedShape is MapSymbol symbol)
+                        {
+                            MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.SYMBOLLAYER);
+
+                            // create the command and force execution
+                            Cmd_ModifySymbols cmd = new(symbolLayer, true);
+                            cmd.RegisterRemovedSymbol(symbol);
+
+                            editor.Commands.Execute(cmd);
+
+                            return true;
+                        }
+
+                        if (editor.SelectedShape is MapLabel label)
+                        {
+                            MapLayer labelLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.LABELLAYER);
+
+                            // create the command and force execution
+                            Cmd_ModifyLabels cmd = new(labelLayer);
+                            cmd.RegisterRemovedLabel(label);
+
+                            editor.Commands.Execute(cmd);
+
+                            return true;
+                        }
+                    }
+                    break;
+                case Key.PageUp:
+                    {
+                        MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.SYMBOLLAYER);
+
+                        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+                        {
+                            if (editor.SelectedShape is MapSymbol symbol)
+                            {
+                                symbolLayer.MoveMapComponentZOrder(symbol, ZOrderMoveType.ForwardStep);
+                                return true;
+                            }
+                        }
+                        else
+                        {
+                            if (editor.SelectedShape is MapSymbol symbol)
+                            {
+                                symbolLayer.MoveMapComponentZOrder(symbol, ZOrderMoveType.ForwardOne);
+                                return true;
+                            }
+                        }
+                    }
+                    break;
+                case Key.PageDown:
+                    {
+                        MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.SYMBOLLAYER);
+
+                        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+                        {
+                            if (editor.SelectedShape is MapSymbol symbol)
+                            {
+                                symbolLayer.MoveMapComponentZOrder(symbol, ZOrderMoveType.BackwardStep);
+                                return true;
+                            }
+                        }
+                        else
+                        {
+                            if (editor.SelectedShape is MapSymbol symbol)
+                            {
+                                symbolLayer.MoveMapComponentZOrder(symbol, ZOrderMoveType.BackwardOne);
+                                return true;
+                            }
+                        }
+                    }
+                    break;
+                case Key.B:
+                    {
+                        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control) &&
+                            Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+                        {
+                            if (editor.SelectedShape is MapSymbol symbol)
+                            {
+                                MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.SYMBOLLAYER);
+
+                                symbolLayer.MoveMapComponentZOrder(symbol, ZOrderMoveType.ToBottom);
+                                return true;
+                            }
+                        }
+                    }
+                    break;
+                case Key.F:
+                    {
+                        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control) &&
+                            Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+                        {
+                            if (editor.SelectedShape is MapSymbol symbol)
+                            {
+                                MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.SYMBOLLAYER);
+
+                                symbolLayer.MoveMapComponentZOrder(symbol, ZOrderMoveType.ToTop);
+                                return true;
+                            }
+                        }
+                    }
+                    break;
+                case Key.Home:
+                    {
+                        if (editor.SelectedShape is MapSymbol symbol)
+                        {
+                            MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.SYMBOLLAYER);
+
+                            symbolLayer.MoveMapComponentZOrder(symbol, ZOrderMoveType.AboveAllOverlaps);
+                            return true;
+                        }
+                    }
+                    break;
+                case Key.End:
+                    {
+                        if (editor.SelectedShape is MapSymbol symbol)
+                        {
+                            MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.SYMBOLLAYER);
+
+                            symbolLayer.MoveMapComponentZOrder(symbol, ZOrderMoveType.BelowAllOverlaps);
+                            return true;
+                        }
+                    }
+                    break;
+                case Key.Up:
+                    {
+                        // TODO: movement of drawn shapes
+                        if (editor.SelectedShape != null)
+                        {
+                            if (editor.SelectedShape is MapSymbol symbol)
+                            {
+                                editor.NudgeSymbol(symbol, Keys.Up, 0, -1);
+                                return true;
+                            }
+
+                            if (editor.SelectedShape is MapLabel label)
+                            {
+                                editor.NudgeLabel(label, Keys.Up, 0, -1);
+                                return true;
+                            }
+                        }
+                    }
+                    break;
+                case Key.Down:
+                    {
+                        if (editor.SelectedShape != null)
+                        {
+                            if (editor.SelectedShape is MapSymbol symbol)
+                            {
+                                editor.NudgeSymbol(symbol, Keys.Down, 0, +1);
+                                return true;
+                            }
+
+                            if (editor.SelectedShape is MapLabel label)
+                            {
+                                editor.NudgeLabel(label, Keys.Down, 0, +1);
+                                return true;
+                            }
+                        }    
+                    }
+                    break;
+                case Key.Left:
+                    {
+                        if (editor.SelectedShape != null)
+                        {
+                            if (editor.SelectedShape is MapSymbol symbol)
+                            {
+                                editor.NudgeSymbol(symbol, Keys.Left, -1, 0);
+                                return true;
+                            }
+
+                            if (editor.SelectedShape is MapLabel label)
+                            {
+                                editor.NudgeLabel(label, Keys.Left, -1, 0);
+                                return true;
+                            }
+                        }
+                    }
+                    break;
+                case Key.Right:
+                    {
+                        if (editor.SelectedShape != null)
+                        {
+                            if (editor.SelectedShape is MapSymbol symbol)
+                            {
+                                editor.NudgeSymbol(symbol, Keys.Right, +1, 0);
+                                return true;
+                            }
+
+                            if (editor.SelectedShape is MapLabel label)
+                            {
+                                editor.NudgeLabel(label, Keys.Right, +1, 0);
+                                return true;
+                            }
+                        }
+                    }
+                    break;
+            }
+
+            return handled;
+        }
+
+        public static ModifierKeys GetModifiers()
+        {
+            ModifierKeys result = ModifierKeys.None;
+
+            var wfMods = System.Windows.Forms.Control.ModifierKeys;
+
+            if ((wfMods & System.Windows.Forms.Keys.Control) != 0)
+                result |= ModifierKeys.Control;
+
+            if ((wfMods & System.Windows.Forms.Keys.Shift) != 0)
+                result |= ModifierKeys.Shift;
+
+            if ((wfMods & System.Windows.Forms.Keys.Alt) != 0)
+                result |= ModifierKeys.Alt;
+
+            return result;
+        }
+    }
+}

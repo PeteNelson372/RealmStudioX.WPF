@@ -14,7 +14,10 @@
         Background="#FFDFDBD2"
         WindowStyle="None"
         ResizeMode="CanResize"
-        Icon="pack://application:,,,/Assets/ico/realm_studio_icon.ico">
+        Icon="pack://application:,,,/Assets/ico/realm_studio_icon.ico"
+        PreviewKeyDown="OnPreviewKeyDown"
+        PreviewKeyUp="OnPreviewKeyUp"
+        PreviewTextInput="OnTextInput">
 
     <Window.Resources>
     </Window.Resources>
@@ -119,14 +122,33 @@
                     <TextBlock Text="{Binding MapName}" />
                 </StatusBarItem>
             </StatusBar>
-            
+
+            <Grid Grid.Row="1">
+                
             <!-- SKGLControl host -->
-            <wfi:WindowsFormsHost x:Name="FormsHost" Grid.Row="1"
+            <wfi:WindowsFormsHost x:Name="FormsHost"
                 Visibility="Visible"
                 Background="WhiteSmoke"
                 Cursor="None"
                 SizeChanged="OnViewportSizeChanged"/>
 
+                <!-- Floating font picker -->
+                <Popup x:Name="FontPopup"
+                   IsOpen="{Binding LabelsViewModel.IsFontPopupOpen}"
+                   Placement="Relative"
+                   PlacementTarget="{Binding ElementName=FormsHost}"
+                   HorizontalOffset="10"
+                   VerticalOffset="10"
+                   StaysOpen="True"
+                   AllowsTransparency="False">
+
+                    <Border Background="Transparent">
+                        <controls:FontSelectionControl DataContext="{Binding FontPanelViewModel}"/>
+                    </Border>
+
+                </Popup>
+            </Grid>
+            
             <!-- Horizontal ScrollBar -->
             <ScrollBar x:Name="HScroll"
                 Grid.Row="2"

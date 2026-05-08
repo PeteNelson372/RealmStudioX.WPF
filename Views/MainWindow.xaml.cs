@@ -2,6 +2,7 @@
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
+using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views;
 using RealmStudioX.WPF.Views.Controls;
@@ -12,6 +13,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using MessageBox = System.Windows.MessageBox;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 using SKPoint = SkiaSharp.SKPoint;
@@ -29,8 +31,11 @@ namespace RealmStudioX.WPF
         private SKGLControl? _skiaControl;
         private readonly EditorController? _editor;
         private readonly FontManager _fontManager;
+        
         private readonly AssetManager _assetManager;
         private readonly RenderContext _renderContext;
+
+        private readonly InputRouter _inputRouter;
 
         public MainWindowViewModel ViewModel { get; }
 
@@ -58,14 +63,16 @@ namespace RealmStudioX.WPF
             ["Planet"] = new PlanetToolPanel()
         };
 
-        public MainWindow(StartupResult startup, AssetManager assetManager)
+        public MainWindow(StartupResult startup, AssetManager assetManager, FontManager fontManager)
         {
             InitializeComponent();
 
             // create the AssetManager instance
             _assetManager = assetManager ?? throw new ArgumentNullException(nameof(assetManager));
 
-            _editor = new EditorController(_assetManager);
+            _fontManager = fontManager ?? throw new ArgumentNullException(nameof(fontManager));
+
+            _editor = new EditorController(_assetManager, _fontManager);
             _editor.DrawingModeChanged += OnDrawingModeChanged;
             _editor.ColorPaintBrushChanged += OnColorPaintBrushChanged;
             _editor.ActiveDrawingLayerChanged += OnActiveDrawingLayerChanged;
@@ -76,11 +83,11 @@ namespace RealmStudioX.WPF
             _editor.RedrawRequested += () => _skiaControl?.Invalidate();
             _editor.MapSceneChanged += UpdateMapScene;
 
-            _fontManager = new FontManager();
+            _inputRouter = new(_editor);
 
             _renderContext = new RenderContext(_assetManager.SymbolImageCache);
 
-            ViewModel = new MainWindowViewModel(_editor, _assetManager);
+            ViewModel = new MainWindowViewModel(_editor, _assetManager, _fontManager);
             DataContext = ViewModel;
 
             Loaded += async (s, e) =>
@@ -414,16 +421,44 @@ namespace RealmStudioX.WPF
                 Cursor = System.Windows.Input.Cursors.Arrow;
                 _skiaControl.Cursor = System.Windows.Forms.Cursors.Default;
             };
-        }
 
-        private void _skiaControl_MouseEnter(object? sender, EventArgs e)
-        {
-            throw new NotImplementedException();
+            
+            _skiaControl.KeyDown += (s, e) =>
+            {
+                Keyboard.ClearFocus();
+                _skiaControl!.Select();
+                _skiaControl.Focus();
+
+                _inputRouter.HandleKeyDown(KeyInterop.KeyFromVirtualKey((int)e.KeyCode),
+                    KeyHandler.GetModifiers());
+
+                e.Handled = true;
+            };
+
+            _skiaControl.KeyUp += (s, e) =>
+            {
+                _inputRouter.HandleKeyUp(KeyInterop.KeyFromVirtualKey((int)e.KeyCode),
+                    KeyHandler.GetModifiers());
+                e.Handled = true;
+            };
+
+            _skiaControl.KeyPress += (s, e) =>
+            {
+                // if the active tool wants to handle key press, send the key to it
+                if (_editor.ActiveEditorTool is IKeyHandler keyHandler)
+                {
+                    _inputRouter.HandleTextInput(e.KeyChar);
+                }
+            };
+            
         }
 
         private void HandleMouseWheel(PointerState state)
         {
-            if (_editor ==  null) return;
+            if (_editor == null)
+            {
+                return;
+            }
 
             const int cursorDelta = 5;
             int sizeDelta = state.WheelDelta < 0 ? -cursorDelta : cursorDelta;
@@ -791,6 +826,52 @@ namespace RealmStudioX.WPF
             }
 
             SecondaryPanelHost.Content = _toolPanels[tab];
+        }
+
+        private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (_editor == null)
+            {
+                return;
+            }
+
+            switch (e.Key)
+            {
+                case Key.Up:
+                case Key.Down:
+                case Key.Left:
+                case Key.Right:
+                case Key.Home:
+                case Key.End:
+
+                    _inputRouter.HandleKeyDown(e.Key, Keyboard.Modifiers);
+
+                    e.Handled = true;
+                    return;
+            }
+        }
+
+        private void OnPreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            _editor?.CommitSymbolNudge();
+            _editor?.CommitLabelNudge();
+            e.Handled = true;
+        }
+
+        private void OnTextInput(object sender, TextCompositionEventArgs e)
+        {
+            if (_editor == null)
+            {
+                return;
+            }
+
+            if (_editor.ActiveEditorTool is IKeyHandler tool)
+            {
+                if (!string.IsNullOrEmpty(e.Text))
+                {
+                    _inputRouter.HandleTextInput(e.Text[0]);
+                }
+            }
         }
     }
 }

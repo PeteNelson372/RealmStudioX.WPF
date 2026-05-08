@@ -11,6 +11,21 @@
 
   <ItemGroup>
     <None Remove="Assets\cur\eyedropper.cur" />
+    <None Remove="Assets\fonts\Aladin-Regular.ttf" />
+    <None Remove="Assets\fonts\BarlowCondensed-Regular.ttf" />
+    <None Remove="Assets\fonts\Bilbo-Regular.ttf" />
+    <None Remove="Assets\fonts\CinzelDecorative-Regular.ttf" />
+    <None Remove="Assets\fonts\EastSeaDokdo-Regular.ttf" />
+    <None Remove="Assets\fonts\FrederickatheGreat-Regular.ttf" />
+    <None Remove="Assets\fonts\GentiumBookPlus-Bold.ttf" />
+    <None Remove="Assets\fonts\IMFellDWPica-Regular.ttf" />
+    <None Remove="Assets\fonts\IMFellEnglish-Italic.ttf" />
+    <None Remove="Assets\fonts\Katibeh-Regular.ttf" />
+    <None Remove="Assets\fonts\Lancelot-Regular.ttf" />
+    <None Remove="Assets\fonts\MarkoOne-Regular.ttf" />
+    <None Remove="Assets\fonts\Merriweather-Regular.ttf" />
+    <None Remove="Assets\fonts\Metamorphous-Regular.ttf" />
+    <None Remove="Assets\fonts\UncialAntiqua-Regular.ttf" />
     <None Remove="Assets\png\AnimalTracksPath.png" />
     <None Remove="Assets\png\BirdTracksPath.png" />
     <None Remove="Assets\png\BorderedLinePath.png" />
@@ -29,6 +44,24 @@
     <None Remove="Assets\png\SmallDashesPath.png" />
     <None Remove="Assets\png\SolidPath.png" />
     <None Remove="Assets\png\ThickLinePath.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\fonts\Aladin-Regular.ttf" />
+    <EmbeddedResource Include="Assets\fonts\BarlowCondensed-Regular.ttf" />
+    <EmbeddedResource Include="Assets\fonts\Bilbo-Regular.ttf" />
+    <EmbeddedResource Include="Assets\fonts\CinzelDecorative-Regular.ttf" />
+    <EmbeddedResource Include="Assets\fonts\EastSeaDokdo-Regular.ttf" />
+    <EmbeddedResource Include="Assets\fonts\FrederickatheGreat-Regular.ttf" />
+    <EmbeddedResource Include="Assets\fonts\GentiumBookPlus-Bold.ttf" />
+    <EmbeddedResource Include="Assets\fonts\IMFellDWPica-Regular.ttf" />
+    <EmbeddedResource Include="Assets\fonts\IMFellEnglish-Italic.ttf" />
+    <EmbeddedResource Include="Assets\fonts\Katibeh-Regular.ttf" />
+    <EmbeddedResource Include="Assets\fonts\Lancelot-Regular.ttf" />
+    <EmbeddedResource Include="Assets\fonts\MarkoOne-Regular.ttf" />
+    <EmbeddedResource Include="Assets\fonts\Merriweather-Regular.ttf" />
+    <EmbeddedResource Include="Assets\fonts\Metamorphous-Regular.ttf" />
+    <EmbeddedResource Include="Assets\fonts\UncialAntiqua-Regular.ttf" />
   </ItemGroup>
 
   <ItemGroup>

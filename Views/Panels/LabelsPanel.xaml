@@ -124,5 +124,466 @@
             </Button>
 
         </StackPanel>
+
+        <StackPanel
+            Grid.Row="0"
+            Grid.Column="0"
+            Orientation="Horizontal"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="74"
+            Height="32"
+            Margin="3,3,0,0" Grid.RowSpan="2">
+
+            <CheckBox x:Name="LabelsEnabledToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        IsChecked="True"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+            <TextBlock Text="Show"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,6,3"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Grid.Column="0">
+
+            <GroupBox Header="Presets"
+                Grid.Row="1"
+                Grid.Column="0"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Left"
+                Width="154"
+                Height="Auto"
+                Margin="3,0,0,0">
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,0"
+                    Width="148"
+                    Height="Auto">
+
+                    <ListBox x:Name="LabelPresetsList"
+                     Width="135"
+                     Height="80"
+                     Margin="3,6,3,3"
+                     ItemsSource="{Binding LabelPresets}">
+
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox Content="{Binding Name}"
+                                IsChecked="{Binding IsChecked, Mode=TwoWay}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+
+                    </ListBox>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <Button
+                            x:Name="AddPresetButton"
+                            Grid.Column="0"
+                            HorizontalAlignment="Left"
+                            Width="50"
+                            Height="50"
+                            Margin="8,3,0,0"
+                            ToolTip="Add Label Preset"
+                            Style="{StaticResource FlatToolButton}"
+                            Command="{Binding AddPresetCommand}">
+
+                                <materialDesign:PackIcon Kind="Plus"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+
+                        </Button>
+
+                        <Button
+                            x:Name="RemovePresetButton"
+                            Grid.Column="1"
+                            Width="50"
+                            Height="50"
+                            Margin="0,3,8,0"
+                            HorizontalAlignment="Right"
+                            ToolTip="Remove Label Preset"
+                            Style="{StaticResource FlatToolButton}"
+                            Command="{Binding RemovePresetCommand}">
+  
+                                <materialDesign:PackIcon Kind="Minus"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+
+                        </Button>
+
+                    </Grid>
+
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="Font"
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="154"
+                        Height="Auto"
+                        Margin="3,0,0,0">
+
+                    <StackPanel Orientation="Vertical">
+
+                        <Button
+                            x:Name="LabelFontButton"
+                            Style="{StaticResource FlatToolButton}"
+                            Width="120"
+                            Height="50"
+                            Margin="3,12,3,3"
+                            Background="GhostWhite"
+                            ToolTip="Select Font"
+                            FontFamily="{Binding SelectedFontFamily}"
+                            Command="{Binding OpenFontPopupCommand}">
+
+                        <Grid>
+                            <TextBlock Text="A"
+                                   FontSize="36"
+                                   FontFamily="Book Antiqua"
+                                   FontWeight="DemiBold"
+                                   Foreground="Tan"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,0,0"/>
+                        
+                            <TextBlock Text="Select Font"
+                                   FontSize="12"
+                                   Foreground="#FF45443F"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,0,0"/>
+
+                            <TextBlock Text="{Binding SelectedFontFamily}"
+                                   FontSize="9.5"
+                                   Foreground="#FF45443F"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Bottom"
+                                   Margin="0,0,0,3"/>
+                        </Grid>
+                    </Button>                        
+                        
+                    <Button
+                        x:Name="LabelColorButton"
+                        Style="{StaticResource FlatToolButton}"
+                        Width="120"
+                        Height="50"
+                        Margin="3,10,3,10"
+                        Background="{Binding LabelColorBrush}"
+                        ToolTip="Select Label Color"
+                        PreviewMouseLeftButtonUp="LabelColor_LeftClick"
+                        PreviewMouseRightButtonUp="LabelColor_RightClick">
+
+                        <Grid>
+                            <materialDesign:PackIcon
+                                Kind="PaletteOutline"
+                                Width="36"
+                                Height="36"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Foreground="Tan"
+                                Opacity="0.7"/>
+
+                            <TextBlock Text="Select Color"
+                                   FontSize="12"
+                                   Foreground="#FF45443F"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,0,0"/>
+
+                        </Grid>
+                    </Button>
+
+                </StackPanel>
+
+            </GroupBox>
+
+            <GroupBox Header="Outline"
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="154"
+                        Height="Auto"
+                        Margin="3,0,0,0">
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,0"
+                    Width="148"
+                    Height="Auto">
+
+                    <Button
+                        x:Name="OutlineColorButton"
+                        Style="{StaticResource FlatToolButton}"
+                        Width="120"
+                        Height="50"
+                        Margin="3,10,3,10"
+                        Background="{Binding OutlineColorBrush}"
+                        ToolTip="Select Outline Color"
+                        PreviewMouseLeftButtonUp="OutlineColor_LeftClick"
+                        PreviewMouseRightButtonUp="OutlineColor_RightClick">
+
+                        <Grid>
+                            <materialDesign:PackIcon
+                                Kind="PaletteOutline"
+                                Width="36"
+                                Height="36"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Foreground="Tan"
+                                Opacity="0.7"/>
+
+                            <TextBlock Text="Select Color"
+                                   FontSize="12"
+                                   Foreground="#FF45443F"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,0,0"/>
+
+                        </Grid>
+                    </Button>
+
+                    <StackPanel Orientation="Horizontal" Margin="6,3,3,6">
+
+                        <TextBlock Text="Width"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,3,6,3"/>
+                        
+                        <Slider x:Name="OutlineWidthSlider"
+                                Style="{StaticResource ModernSlider}"
+                                behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                                HorizontalAlignment="Left"
+                                Width="90"
+                                Minimum="0.0"
+                                Maximum="32.0"
+                                SmallChange="0.1"
+                                LargeChange="1.0"
+                                AutoToolTipPlacement="TopLeft"
+                                AutoToolTipPrecision="1"
+                                Value="{Binding OutlineWidth, UpdateSourceTrigger=PropertyChanged}"/>
+
+
+                    </StackPanel>
+
+                </StackPanel>
+
+            </GroupBox>
+
+            <GroupBox Header="Glow"
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="154"
+                        Height="Auto"
+                        Margin="3,0,0,0">
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,0"
+                    Width="148"
+                    Height="Auto">
+
+                    <Button
+                        x:Name="GlowColorButton"
+                        Style="{StaticResource FlatToolButton}"
+                        Width="120"
+                        Height="50"
+                        Margin="3,10,3,10"
+                        Background="{Binding GlowColorBrush}"
+                        ToolTip="Select Glow Color"
+                        PreviewMouseLeftButtonUp="GlowColor_LeftClick"
+                        PreviewMouseRightButtonUp="GlowColor_RightClick">
+
+                        <Grid>
+                            <materialDesign:PackIcon
+                                Kind="PaletteOutline"
+                                Width="36"
+                                Height="36"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Foreground="Tan"
+                                Opacity="0.7"/>
+
+                            <TextBlock Text="Select Color"
+                                   FontSize="12"
+                                   Foreground="#FF45443F"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,0,0"/>
+
+                        </Grid>
+                    </Button>
+
+                    <StackPanel Orientation="Horizontal" Margin="6,3,3,6">
+
+                        <TextBlock Text="Strength"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,3,6,3"/>
+
+                        <Slider x:Name="GlowStrengthSlider"
+                                Style="{StaticResource ModernSlider}"
+                                behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                                HorizontalAlignment="Left"
+                                Width="84"
+                                Minimum="0.0"
+                                Maximum="32.0"
+                                SmallChange="0.1"
+                                LargeChange="1.0"
+                                AutoToolTipPlacement="TopLeft"
+                                AutoToolTipPrecision="1"
+                                Value="{Binding GlowStrength, UpdateSourceTrigger=PropertyChanged}"/>
+
+
+                    </StackPanel>
+
+                </StackPanel>
+
+            </GroupBox>
+
+            <GroupBox Header="Rotation"
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="154"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                <StackPanel Orientation="Vertical" Margin="3,3,3,3">
+
+                    <StackPanel
+                            Orientation="Horizontal"
+                            VerticalAlignment="Top"
+                            HorizontalAlignment="Right"
+                            Width="130"
+                            Height="32"
+                            Margin="3,3,3,3">
+                        
+                        <Slider x:Name="LabelRotationSlider"
+                                Style="{StaticResource ModernSlider}"
+                                behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                                HorizontalAlignment="Left"
+                                Width="80"
+                                Minimum="0"
+                                Maximum="359"
+                                AutoToolTipPlacement="TopLeft"
+                                AutoToolTipPrecision="0"
+                                Value="{Binding LabelRotation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <controls:NumericUpDown x:Name="SymbolRotationBox"
+                                     HorizontalAlignment="Right"
+                                     Value="{Binding LabelRotation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     Minimum="0"
+                                     Maximum="359"
+                                     Increment="1"
+                                     DecimalPlaces="0"
+                                     Margin="3,0,0,0"
+                                     Width="50"/>
+                    </StackPanel>
+                </StackPanel>
+
+            </GroupBox>
+
+            <GroupBox Header="Path"
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="154"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button
+                            x:Name="CircleTextPathButton"
+                            Grid.Column="0"
+                            HorizontalAlignment="Left"
+                            Width="60"
+                            Height="60"
+                            Margin="3,3,3,3"
+                            ToolTip="Draw Label Arc Path"
+                            Style="{StaticResource FlatToolButton}"
+                            Command="{Binding DrawLabelArcCommand}">
+
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="Arc"
+                                Foreground="#FF45443F"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                Margin="3,3,3,3"/>
+                            
+                            <materialDesign:PackIcon Kind="CircleOutline"
+                                     Width="24"
+                                     Height="24"
+                                     VerticalAlignment="Center"
+                                     HorizontalAlignment="Center"
+                                     Opacity="0.7"/>
+                            
+                        </StackPanel>
+                    </Button>
+                        
+
+                    <Button
+                            x:Name="BezierTextPathButton"
+                            Grid.Column="1"
+                            Width="60"
+                            Height="60"
+                            Margin="3,3,3,3"
+                            HorizontalAlignment="Right"
+                            ToolTip="Draw Label Curve Path"
+                            Style="{StaticResource FlatToolButton}"
+                            Command="{Binding DrawLabelCurveCommand}">
+
+                        <StackPanel Orientation="Vertical">
+                            
+                            <TextBlock Text="Curve"
+                                Foreground="#FF45443F"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                Margin="3,3,3,3"/>
+                            
+                            <materialDesign:PackIcon Kind="VectorBezier"
+                                         Width="32"
+                                         Height="32"
+                                         VerticalAlignment="Center"
+                                         HorizontalAlignment="Center"                                                     
+                                         Opacity="0.7"/>
+                        </StackPanel>
+
+                    </Button>
+
+                </Grid>
+
+            </GroupBox>
+        </StackPanel>
+
     </Grid>
 </UserControl>

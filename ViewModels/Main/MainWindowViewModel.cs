@@ -2,6 +2,7 @@
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
+using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
@@ -17,6 +18,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
         {
             get { return _editor; }
         }
+
+        private readonly FontManager _fontManager;
 
         private SKRect _viewPortSize = SKRect.Empty;
 
@@ -35,9 +38,13 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public LabelsPanelViewModel LabelsViewModel { get; }
 
-        public MainWindowViewModel(EditorController editor, AssetManager assetManager)
+        public FontSelectionViewModel FontPanelViewModel { get; }
+
+
+        public MainWindowViewModel(EditorController editor, AssetManager assetManager, FontManager fontManager)
         {
             _editor = editor;
+            _fontManager = fontManager;
 
             // instantiate ViewModels for the panels; when adding a view model
             // remember to add a reference to it on the TabItem <panel:...> in MainTabs.xaml
@@ -62,6 +69,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
             // Labels Panel
             LabelsViewModel = new LabelsPanelViewModel(_editor, assetManager);
+
+            FontPanelViewModel = new FontSelectionViewModel(this, _fontManager);
 
 
             MapName = "Default";

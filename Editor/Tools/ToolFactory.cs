@@ -12,6 +12,7 @@ namespace RealmStudioX.WPF.Editor.Tools
         private readonly MapScene _scene;
         private readonly EditorState _editorState;
         private readonly EditorController _editor;
+        private readonly FontManager _fontManager;
         private readonly RenderContext _renderContext;
 
         public ToolFactory(
@@ -20,6 +21,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             MapScene scene,
             EditorState editorState,
             EditorController editor,
+            FontManager fontManager,
             RenderContext renderContext)
         {
             _commands = commands;
@@ -27,6 +29,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             _scene = scene;
             _editorState = editorState;
             _editor = editor;
+            _fontManager = fontManager;
             _renderContext = renderContext;
         }
 
@@ -36,65 +39,112 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             IToolEditor tool;
 
+            // TODO: figure out how to reduce the number of parameters needed to construct tools
+
             switch (type)
             {
                 case EditorToolType.LandformTool:
                     {
-                        _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LANDFORMLAYER));
-
-                        tool = new LandformTool(_commands, _assets,
-                            MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LANDFORMLAYER),
-                            _scene, _editorState, (ILandformSettings)context);
-
-                        return tool;
-                    }
-                case EditorToolType.WaterBodyTool:
-                    {
-                        _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.WATERLAYER));
-
-                        tool = new WaterBodyTool(_commands, _assets,
-                            MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.WATERLAYER),
-                            _scene, _editorState, (IWaterBodySettings)context);
-
-                        return tool;
-                    }
-                case EditorToolType.MapPathTool:
-                    {
-                        MapLayer activeLayer;
-
-                        IMapPathSettings settings = (IMapPathSettings)context;
-
-                        if (settings.DrawOverSymbols)
+                        if (_editor.ActiveEditorTool is not LandformTool)
                         {
-                            activeLayer = MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.PATHUPPERLAYER);
+                            _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LANDFORMLAYER));
+
+                            tool = new LandformTool(_commands, _assets,
+                                MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LANDFORMLAYER),
+                                _scene, _editorState, (ILandformSettings)context);
+
+                            return tool;
                         }
                         else
                         {
-                            activeLayer = MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.PATHLOWERLAYER);
+                            return _editor.ActiveEditorTool;
                         }
-                        
-                        _editor.SetActiveDrawingLayer(activeLayer);
+                    }
+                case EditorToolType.WaterBodyTool:
+                    {
+                        if (_editor.ActiveEditorTool is not WaterBodyTool)
+                        {
+                            _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.WATERLAYER));
 
-                        tool = new MapPathTool(_commands, _assets, activeLayer,
-                            _scene, _editorState, (IMapPathSettings)context);
+                            tool = new WaterBodyTool(_commands, _assets,
+                                MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.WATERLAYER),
+                                _scene, _editorState, (IWaterBodySettings)context);
 
-                        return tool;
+                            return tool;
+                        }
+                        else
+                        {
+                            return _editor.ActiveEditorTool;
+                        }
+                    }
+                case EditorToolType.MapPathTool:
+                    {
+                        if (_editor.ActiveEditorTool is not MapPathTool)
+                        {
+                            MapLayer activeLayer;
+
+                            IMapPathSettings settings = (IMapPathSettings)context;
+
+                            if (settings.DrawOverSymbols)
+                            {
+                                activeLayer = MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.PATHUPPERLAYER);
+                            }
+                            else
+                            {
+                                activeLayer = MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.PATHLOWERLAYER);
+                            }
+
+                            _editor.SetActiveDrawingLayer(activeLayer);
+
+                            tool = new MapPathTool(_commands, _assets, activeLayer,
+                                _scene, _editorState, (IMapPathSettings)context);
+
+                            return tool;
+                        }
+                        else
+                        {
+                            return _editor.ActiveEditorTool;
+                        }
                     }
                 case EditorToolType.SymbolTool:
                     {
-                        _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.SYMBOLLAYER));
-
-                        _editor.SymbolSelectionService.SetPrimarySelectedSymbol(null);
-                        _editor.SymbolSelectionService.ClearSecondary();
-
-                        tool = new SymbolTool(_commands, _assets,
-                            MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.SYMBOLLAYER),
-                            _scene, _editor.SymbolSelectionService, ((AssetManager)_assets).SymbolImageCache, _editorState, (ISymbolSettings)context)
+                        if (_editor.ActiveEditorTool is not SymbolTool)
                         {
-                            RenderContext = _renderContext
-                        };
+                            _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.SYMBOLLAYER));
 
-                        return tool;
+                            _editor.SymbolSelectionService.SetPrimarySelectedSymbol(null);
+                            _editor.SymbolSelectionService.ClearSecondary();
+
+                            tool = new SymbolTool(_commands, _assets,
+                                MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.SYMBOLLAYER),
+                                _scene, _editor.SymbolSelectionService, ((AssetManager)_assets).SymbolImageCache, _editorState, (ISymbolSettings)context)
+                            {
+                                RenderContext = _renderContext
+                            };
+
+                            return tool;
+                        }
+                        else
+                        {
+                            return _editor.ActiveEditorTool;
+                        }
+                    }
+                case EditorToolType.LabelTool:
+                    {
+                        if (_editor.ActiveEditorTool is not LabelTool)
+                        {
+                            _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LABELLAYER));
+
+                            tool = new LabelTool(_commands, _assets,
+                                MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LABELLAYER),
+                                _scene, _editorState, _fontManager, _editor, (ILabelSettings)context);
+
+                            return tool;
+                        }
+                        else
+                        {
+                            return _editor.ActiveEditorTool;
+                        }
                     }
             }
 

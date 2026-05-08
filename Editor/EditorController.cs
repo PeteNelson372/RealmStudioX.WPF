@@ -10,14 +10,18 @@ using CommandManager = RealmStudioX.Core.CommandManager;
 
 namespace RealmStudioX.WPF.Editor
 {
-    public class EditorController
+    public class EditorController : IRedrawRequester
     {
         public event Action<MapDrawingMode>? DrawingModeChanged;
         public event Action<ColorPaintBrush>? ColorPaintBrushChanged;
         public event Action<MapLayer>? ActiveDrawingLayerChanged;
 
-        public CommandManager _commands { get; } = new();
+        private CommandManager _commands { get; } = new();
+        public CommandManager Commands => _commands;
+
         private readonly AssetManager _assetManager;
+        private readonly FontManager _fontManager;
+        
         private readonly EditorState _editorState = new();
 
         public EditorState State => _editorState;
@@ -27,7 +31,7 @@ namespace RealmStudioX.WPF.Editor
         private ToolFactory? _toolFactory;
         private IToolEditor? _activeTool;
 
-        private SymbolSelectionService _symbolSelectionService = new();
+        private readonly SymbolSelectionService _symbolSelectionService = new();
         public SymbolSelectionService SymbolSelectionService => _symbolSelectionService;
 
         private SKSize _viewportSize;
@@ -54,9 +58,17 @@ namespace RealmStudioX.WPF.Editor
         // MapSymbol arrow key nudging
         // -------------------------------------------------
 
-        private Cmd_ModifySymbol? _activeNudgeCommand;
-        private MapSymbol? _nudgeTarget;
-        private Keys _activeNudgeKey;
+        private Cmd_ModifySymbol? _activeSymbolNudgeCommand;
+        private MapSymbol? _nudgeSymbol;
+        private Keys _activeSymbolNudgeKey;
+
+        // -------------------------------------------------
+        // MapLabel arrow key nudging
+        // -------------------------------------------------
+
+        private Cmd_ModifyLabel? _activeLabelNudgeCommand;
+        private MapLabel? _nudgeLabel;
+        private Keys _activeLabelNudgeKey;
 
         // -------------------------------------------------
         // Selection filter
@@ -73,9 +85,11 @@ namespace RealmStudioX.WPF.Editor
         private SKPath? _dragOriginalGeometry;
         private bool _isDragging;
 
-        public EditorController(AssetManager assetManager)
+        public EditorController(AssetManager assetManager, FontManager fontManager)
         {
             _assetManager = assetManager;
+            _fontManager = fontManager;
+
             _editorState.DrawingModeChanged += OnDrawingModeChanged;
 
             _symbolSelectionService.SelectionChanged += OnSymbolSelectionChanged;
@@ -92,8 +106,18 @@ namespace RealmStudioX.WPF.Editor
             {
                 return;
             }
-          
+
+            if (ActiveEditorTool != null)
+            {
+                ActiveEditorTool.Deactivate();
+            }
+
             ActiveEditorTool = _toolFactory.Create(type, context);
+
+            if (ActiveEditorTool != null)
+            {
+                ActiveEditorTool.Activate();
+            }
         }
 
         public MapScene? Scene => _scene;
@@ -108,7 +132,7 @@ namespace RealmStudioX.WPF.Editor
 
             _scene = scene;
 
-            _toolFactory = new(_commands, _assetManager, _scene, _editorState, this, _scene.RenderContext);
+            _toolFactory = new(_commands, _assetManager, _scene, _editorState, this, _fontManager, _scene.RenderContext);
 
             // Subscribe to new scene
             _scene.SceneChanged += OnSceneChanged;
@@ -163,12 +187,13 @@ namespace RealmStudioX.WPF.Editor
             // - switch active tool
             // - update UI
 
-            //CommitNudge();
+            CommitSymbolNudge();
+            CommitLabelNudge();
 
-            //if (ActiveEditorTool is LabelTool tool)
-            //{
-            //    tool.EnsureEditCommitted();
-            //}
+            if (ActiveEditorTool is LabelTool tool)
+            {
+                tool.EnsureEditCommitted();
+            }
 
             FinalizeOpenCommands();
 
@@ -183,6 +208,16 @@ namespace RealmStudioX.WPF.Editor
                 _commands.Execute(_activeModifyMapSymbolCommand);
 
                 _activeModifyMapSymbolCommand = null;
+                _isTransforming = false;
+                _isDragging = false;
+            }
+
+            if (_activeModifyLabelCommand != null)
+            {
+                _activeModifyLabelCommand.CaptureAfter();
+                _commands.Execute(_activeModifyLabelCommand);
+
+                _activeModifyLabelCommand = null;
                 _isTransforming = false;
                 _isDragging = false;
             }
@@ -442,7 +477,7 @@ namespace RealmStudioX.WPF.Editor
                 }
                 else if (SelectedShape is MapLabel ml && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
                 {
-                    //SelectedMapLabelMouseDown(ml, world);
+                    SelectedMapLabelMouseDown(ml, state.WorldPoint);
                 }
 
                 if (_editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect && !_isTransforming)
@@ -517,7 +552,7 @@ namespace RealmStudioX.WPF.Editor
 
                     if (SelectedShape is MapLabel ml && !_isTransforming)
                     {
-                        //SelectedLabelNoButtonMove(ml, state.WorldPoint);
+                        SelectedLabelNoButtonMove(ml, state.WorldPoint);
                         return;
                     }
                 }
@@ -551,7 +586,7 @@ namespace RealmStudioX.WPF.Editor
 
                 if (SelectedShape is MapLabel ml && _isTransforming && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
                 {
-                    //SelectedLabelLeftButtonMove(ml, state.WorldPoint);
+                    SelectedLabelLeftButtonMove(ml, state.WorldPoint);
                     return;
                 }
 
@@ -635,7 +670,7 @@ namespace RealmStudioX.WPF.Editor
 
             if (SelectedShape is MapLabel ml && _isTransforming)
             {
-                //SelectedLabelMouseUp(ml);
+                SelectedLabelMouseUp(ml);
                 return;
             }
 
@@ -685,7 +720,6 @@ namespace RealmStudioX.WPF.Editor
         {
             if (SelectedShape is MapLabel ml && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
             {
-                /*
                 if (ActiveEditorTool is LabelTool labelTool)
                 {
                     _isTransforming = false;
@@ -694,7 +728,7 @@ namespace RealmStudioX.WPF.Editor
                     RequestRedraw();
                     return;
                 }
-                */
+
             }
 
             ActiveEditorTool?.OnMouseDoubleClick(state);
@@ -1059,7 +1093,7 @@ namespace RealmStudioX.WPF.Editor
 
         private void SelectedMapSymbolMouseDown(MapSymbol ms, SKPoint worldPoint)
         {
-            CommitNudge();
+            CommitSymbolNudge();
 
             _lastSymbolBounds = ms.Bounds;
 
@@ -1162,20 +1196,20 @@ namespace RealmStudioX.WPF.Editor
             if (symbol == null)
                 return;
 
-            // If key changed → commit previous command
-            if (_activeNudgeCommand != null &&
-                (_nudgeTarget != symbol || _activeNudgeKey != key))
+            // If key changed commit previous command
+            if (_activeSymbolNudgeCommand != null &&
+                (_nudgeSymbol != symbol || _activeSymbolNudgeKey != key))
             {
-                CommitNudge();
+                CommitSymbolNudge();
             }
 
             // Start new command if needed
-            if (_activeNudgeCommand == null)
+            if (_activeSymbolNudgeCommand == null)
             {
-                _nudgeTarget = symbol;
-                _activeNudgeKey = key;
+                _nudgeSymbol = symbol;
+                _activeSymbolNudgeKey = key;
 
-                _activeNudgeCommand = new Cmd_ModifySymbol(
+                _activeSymbolNudgeCommand = new Cmd_ModifySymbol(
                     GetSymbolLayer(), symbol);
             }
 
@@ -1186,24 +1220,26 @@ namespace RealmStudioX.WPF.Editor
 
             symbol.Location = loc;
 
+            symbol.UpdateBounds();
+
             var layer = GetSymbolLayer();
             layer.InvalidateSymbol(symbol);
         }
 
-        public void CommitNudge()
+        public void CommitSymbolNudge()
         {
-            if (_activeNudgeCommand == null || _nudgeTarget == null)
+            if (_activeSymbolNudgeCommand == null || _nudgeSymbol == null)
                 return;
 
-            _activeNudgeCommand.CaptureAfter();
+            _activeSymbolNudgeCommand.CaptureAfter();
 
-            if (_activeNudgeCommand.HasChange)
+            if (_activeSymbolNudgeCommand.HasChange)
             {
-                _commands.Execute(_activeNudgeCommand);
+                _commands.Execute(_activeSymbolNudgeCommand);
             }
 
-            _activeNudgeCommand = null;
-            _nudgeTarget = null;
+            _activeSymbolNudgeCommand = null;
+            _nudgeSymbol = null;
         }
 
         private MapLayer GetSymbolLayer()
@@ -1261,6 +1297,180 @@ namespace RealmStudioX.WPF.Editor
                 default:
                     break;
             }
+        }
+
+        // -------------------------------------------------
+        // Labels
+        // -------------------------------------------------
+
+        public void UpdateSelectedLabel(ILabelSettings settings)
+        {
+            if (SelectedShape is MapLabel label)
+            {
+                MapLayer labelLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.LABELLAYER);
+
+                Cmd_ModifyLabel cmd = new(labelLayer, label);
+
+                label.FontColor = settings.LabelColor.ToSKColor();
+                label.OutlineColor = settings.OutlineColor.ToSKColor();
+                label.OutlineWidth = settings.OutlineWidth;
+                label.GlowColor = settings.GlowColor.ToSKColor();
+                label.GlowStrength = settings.GlowStrength;
+                label.Rotation = settings.LabelRotation;
+
+                cmd.CaptureAfter();
+
+                _commands.Execute(cmd);
+            }
+        }
+
+        private void SelectedMapLabelMouseDown(MapLabel ml, SKPoint worldPoint)
+        {
+            if (ActiveEditorTool is LabelTool tool)
+            {
+                tool.EnsureEditCommitted();
+            }
+
+            CommitLabelNudge();
+
+            MapLayer labelLayer = GetLabelLayer();
+
+            Scene!.TransformWidget.Target = ml;
+
+            var handle = Scene.TransformWidget.OnMouseDown(worldPoint);
+
+            switch (handle)
+            {
+                case TransformHandle.Rotate:
+                case TransformHandle.TopLeft:
+                case TransformHandle.BottomRight:
+                case TransformHandle.TopRight:
+                case TransformHandle.BottomLeft:
+                case TransformHandle.Left:
+                case TransformHandle.Right:
+                case TransformHandle.Top:
+                case TransformHandle.Bottom:
+                case TransformHandle.Move:
+                    _isTransforming = true;
+                    // create command (capture BEFORE)
+                    _activeModifyLabelCommand = new Cmd_ModifyLabel(labelLayer, ml);
+                    return;
+                case TransformHandle.ZTop:
+                    _isTransforming = true;
+                    labelLayer.MoveMapComponentZOrder(ml, ZOrderMoveType.ToTop);
+                    RequestRedraw();
+                    return;
+                case TransformHandle.ZForward:
+                    _isTransforming = true;
+                    labelLayer.MoveMapComponentZOrder(ml, ZOrderMoveType.AboveAllOverlaps);
+                    RequestRedraw();
+                    return;
+                case TransformHandle.ZBackward:
+                    _isTransforming = true;
+                    labelLayer.MoveMapComponentZOrder(ml, ZOrderMoveType.BelowAllOverlaps);
+                    RequestRedraw();
+                    return;
+                case TransformHandle.ZBottom:
+                    _isTransforming = true;
+                    labelLayer.MoveMapComponentZOrder(ml, ZOrderMoveType.ToBottom);
+                    RequestRedraw();
+                    return;
+                case TransformHandle.None:
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void SelectedLabelNoButtonMove(MapLabel ml, SKPoint worldPosition)
+        {
+            Scene!.TransformWidget.Target = ml;
+            HandleHoverUpdate(worldPosition);
+
+            RequestRedraw();
+        }
+
+        private void SelectedLabelLeftButtonMove(MapLabel ml, SKPoint worldPosition)
+        {
+            Scene!.TransformWidget.Target = ml;
+            Scene.TransformWidget.OnMouseMove(worldPosition);
+
+            ml.BoundsModified = true;
+
+            RequestRedraw();
+        }
+        private void SelectedLabelMouseUp(MapLabel ml)
+        {
+            Scene!.TransformWidget.OnMouseUp();
+
+            // capture AFTER
+            _activeModifyLabelCommand?.CaptureAfter();
+
+            // commit command
+            if (_activeModifyLabelCommand != null)
+            {
+                Commands.Execute(_activeModifyLabelCommand);
+            }
+
+            _activeModifyLabelCommand = null;
+            _isTransforming = false;
+
+            RequestRedraw();
+        }
+
+        public void NudgeLabel(MapLabel label, Keys key, int dx, int dy)
+        {
+            if (label == null)
+                return;
+
+            // If key changed → commit previous command
+            if (_activeLabelNudgeCommand != null &&
+                (_nudgeLabel != label || _activeLabelNudgeKey != key))
+            {
+                CommitLabelNudge();
+            }
+
+            // Start new command if needed
+            if (_activeLabelNudgeCommand == null)
+            {
+                _nudgeLabel = label;
+                _activeLabelNudgeKey = key;
+
+                _activeLabelNudgeCommand = new Cmd_ModifyLabel(
+                    GetLabelLayer(), label);
+            }
+
+            // Apply movement
+            var loc = label.Location;
+            loc.X = Math.Clamp(loc.X + dx, 0, Scene!.Map.MapWidth);
+            loc.Y = Math.Clamp(loc.Y + dy, 0, Scene!.Map.MapHeight);
+
+            label.Location = loc;
+
+            label.BoundsModified = true;
+
+            RequestRedraw();
+        }
+
+        public void CommitLabelNudge()
+        {
+            if (_activeLabelNudgeCommand == null || _nudgeLabel == null)
+                return;
+
+            _activeLabelNudgeCommand.CaptureAfter();
+
+            if (_activeLabelNudgeCommand.HasChange)
+            {
+                _commands.Execute(_activeLabelNudgeCommand);
+            }
+
+            _activeLabelNudgeCommand = null;
+            _nudgeLabel = null;
+        }
+
+        private MapLayer GetLabelLayer()
+        {
+            return MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.LABELLAYER);
         }
 
         // -------------------------------------------------

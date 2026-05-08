@@ -1,6 +1,8 @@
-﻿using RealmStudioX.Infrastructure;
+﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Views.Dialogs;
 using System.IO;
+using System.Reflection;
 using System.Windows;
 using Application = System.Windows.Application;
 
@@ -23,12 +25,15 @@ namespace RealmStudioX.WPF
             var assetManager = new AssetManager();
             AssetManager.RootRealmStudioXDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX");
 
-            // Start both tasks
+            var fontManager = new FontManager();
+
+            // Start tasks
             var loadTask = assetManager.LoadAsync();
             var splashTask = splash.WaitForCloseAsync();
+            var fontTask = fontManager.InitializeAsync(Assembly.GetExecutingAssembly());
 
-            // Wait for BOTH to complete
-            await Task.WhenAll(loadTask, splashTask);
+            // Wait for tasks to complete
+            await Task.WhenAll(loadTask, splashTask, fontTask);
 
             // Ensure splash is closed (in case load finished last)
             if (splash.IsVisible)
@@ -44,7 +49,7 @@ namespace RealmStudioX.WPF
                 return;
             }
 
-            var mainWindow = new MainWindow(dialog.ViewModel.Result, assetManager);
+            var mainWindow = new MainWindow(dialog.ViewModel.Result, assetManager, fontManager);
 
             MainWindow = mainWindow;
             mainWindow.Show();

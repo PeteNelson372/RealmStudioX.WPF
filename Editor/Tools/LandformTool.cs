@@ -234,7 +234,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             MergeOverlappingLandforms();
 
-            //_activeLandform.EndInteractive();
+            _activeLandform.EndInteractive();
 
             _activeLandform.InvalidateRenderCache();
         }
