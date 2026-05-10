@@ -19,6 +19,10 @@ namespace RealmStudioX.WPF.ViewModels.Main
             get { return _editor; }
         }
 
+        private readonly AssetManager _assetManager;
+
+        public AssetManager AssetManager => _assetManager;
+
         private readonly FontManager _fontManager;
 
         private SKRect _viewPortSize = SKRect.Empty;
@@ -40,10 +44,13 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public FontSelectionViewModel FontPanelViewModel { get; }
 
+        public event Action? RequestOpenNameGeneratorConfig;
+
 
         public MainWindowViewModel(EditorController editor, AssetManager assetManager, FontManager fontManager)
         {
             _editor = editor;
+            _assetManager = assetManager;
             _fontManager = fontManager;
 
             // instantiate ViewModels for the panels; when adding a view model
@@ -68,10 +75,9 @@ namespace RealmStudioX.WPF.ViewModels.Main
             SymbolsViewModel = new SymbolsPanelViewModel(_editor, assetManager);
 
             // Labels Panel
-            LabelsViewModel = new LabelsPanelViewModel(_editor, assetManager);
+            LabelsViewModel = new LabelsPanelViewModel(this, _editor, assetManager);
 
             FontPanelViewModel = new FontSelectionViewModel(this, _fontManager);
-
 
             MapName = "Default";
         }
@@ -175,6 +181,10 @@ namespace RealmStudioX.WPF.ViewModels.Main
             _editor.Scene?.Camera?.Reset(_editor.Scene.Map.MapWidth, _editor.Scene.Map.MapHeight);
         });
 
+        public ICommand OpenNameGeneratorConfigCommand => new RelayCommand(() =>
+        {
+            RequestOpenNameGeneratorConfig?.Invoke();
+        });
 
         // -------------------------
         // Other Methods

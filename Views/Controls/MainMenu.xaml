@@ -26,11 +26,22 @@
             <MenuItem Header="_Redo" Click="OnRedo"/>
         </MenuItem>
 
-        <MenuItem Header="Realm" Margin="0,6,0,0"/>
-        <MenuItem Header="Assets" Margin="0,6,0,0"/>
-        <MenuItem Header="Theme" Margin="0,6,0,0"/>
-        <MenuItem Header="Options" Margin="0,6,0,0"/>
-        <MenuItem Header="Help" Margin="0,6,0,0"/>
+        <MenuItem Header="Realm" Margin="0,6,0,0">
+        </MenuItem>
+
+        <MenuItem Header="Assets" Margin="0,6,0,0">
+        </MenuItem>
+
+        <MenuItem Header="Theme" Margin="0,6,0,0">
+        </MenuItem>
+
+        <MenuItem Header="Options" Margin="0,6,0,0">
+            <MenuItem Header="_Name Generator Configuration..." Command="{Binding OpenNameGeneratorConfigCommand}"/>
+            <MenuItem Header="_Preferences..." Command="{Binding OpenPreferencesCommand}"/>            
+        </MenuItem>
+
+        <MenuItem Header="Help" Margin="0,6,0,0">
+        </MenuItem>
 
     </Menu>
 </UserControl>

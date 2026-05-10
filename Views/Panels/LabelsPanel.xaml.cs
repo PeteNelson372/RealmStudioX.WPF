@@ -156,5 +156,19 @@ namespace RealmStudioX.WPF.Views.Panels
 
             dialog.Show();
         }
+
+        private void GenerateNameButton_RightClick(object sender, MouseButtonEventArgs e)
+        {
+            if (DataContext is LabelsPanelViewModel vm)
+            {
+                var cmd = vm.MainViewModel.OpenNameGeneratorConfigCommand;
+                if (cmd != null && cmd.CanExecute(null))
+                {
+                    cmd.Execute(null);
+                }
+            }
+
+            e.Handled = true;
+        }
     }
 }

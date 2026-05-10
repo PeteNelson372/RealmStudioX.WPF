@@ -150,6 +150,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Views\Controls\NameGenTitleBar.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Controls\StartupDialogTitleBar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

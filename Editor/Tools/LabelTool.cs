@@ -35,6 +35,7 @@ namespace RealmStudioX
         private readonly IRedrawRequester _redraw = redraw;
 
         private LabelEditSession? _editSession;
+        public LabelEditSession? EditSession => _editSession;
         public bool IsEditing => _editSession != null;
 
         private bool disposedValue;

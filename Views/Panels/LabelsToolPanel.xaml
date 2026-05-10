@@ -7,30 +7,112 @@
              d:DesignHeight="922" d:DesignWidth="152">
 
     <Border Background="#FFDFDBD2"
-            Padding="10">
+            Padding="6">
 
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <!-- Header -->
+                <RowDefinition Height="60"/>
+                <!-- Search Box -->
                 <RowDefinition Height="*"/>
-                <!-- Content -->
+                <!-- Symbol Grid -->
             </Grid.RowDefinitions>
 
-            <!-- Header -->
-            <TextBlock Text="Label Tools"
-                       FontSize="14"
-                       FontWeight="SemiBold"
-                       Foreground="Black"
-                       Margin="0,0,0,8"/>
+            <Grid Grid.Row="0">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Search"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Top"
+                            Margin="3,6,0,3"/>
 
-            <!-- Placeholder Content -->
-            <TextBlock Grid.Row="1"
-                       Text="Label tool controls will go here..."
-                       Foreground="Black"
-                       Opacity="0.7"
-                       TextWrapping="Wrap"/>
+                    <TextBox Width="122"
+                         Height="24"
+                         Margin="0,0,10,0"
+                         Text="{Binding SymbolFilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="Search symbols..." />
+                </StackPanel>
+            </Grid>
 
+            <Grid Grid.Row="1" Width="144">
+
+                <ListBox
+        ItemsSource="{Binding BoxItems}"
+        SelectedItem="{Binding SelectedBox}"
+        BorderThickness="0"
+        Background="Transparent"
+        ScrollViewer.VerticalScrollBarVisibility="Auto"
+        ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+
+                    <!-- Layout -->
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+
+                    <!-- Item Container -->
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="0"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Background" Value="Transparent"/>
+
+                            <!-- removes default blue highlight -->
+                            <Setter Property="Template">
+                                <Setter.Value>
+
+                                    <ControlTemplate TargetType="ListBoxItem">
+
+                                        <Border x:Name="Border"
+                                            BorderBrush="Gray"
+                                            BorderThickness="0.5"
+                                            Width="100"
+                                            Height="60"
+                                            Padding="1"
+                                            Background="Transparent">
+
+                                            <ContentPresenter/>
+
+                                        </Border>
+
+                                        <ControlTemplate.Triggers>
+
+                                            <Trigger Property="IsSelected" Value="True">
+
+                                                <Setter TargetName="Border"
+                                                    Property="BorderBrush"
+                                                    Value="#FF4A90E2"/>
+
+                                                <Setter TargetName="Border"
+                                            Property="BorderThickness"
+                                            Value="2"/>
+
+                                            </Trigger>
+
+                                        </ControlTemplate.Triggers>
+
+                                    </ControlTemplate>
+
+                                </Setter.Value>
+                            </Setter>
+
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+
+                    <!-- Item content -->
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+
+                            <Image Source="{Binding BoxImage}"
+                       Stretch="Uniform"/>
+
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+
+                </ListBox>
+
+            </Grid>
         </Grid>
 
     </Border>

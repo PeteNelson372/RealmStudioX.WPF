@@ -104,7 +104,8 @@
                 Margin="0,35,0,0"
                 ToolTip="Generate Name"
                 Style="{StaticResource FlatToolButton}"
-                Command="{Binding GenerateNameCommand}">
+                Command="{Binding GenerateNameCommand}"
+                PreviewMouseRightButtonDown="GenerateNameButton_RightClick">
                 <StackPanel Orientation="Vertical">
                     <TextBlock Text="Name"
                                FontSize="12"

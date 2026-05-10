@@ -1311,6 +1311,7 @@ namespace RealmStudioX.WPF.Editor
 
                 Cmd_ModifyLabel cmd = new(labelLayer, label);
 
+                label.FontStyle = settings.FontStyle;
                 label.FontColor = settings.LabelColor.ToSKColor();
                 label.OutlineColor = settings.OutlineColor.ToSKColor();
                 label.OutlineWidth = settings.OutlineWidth;

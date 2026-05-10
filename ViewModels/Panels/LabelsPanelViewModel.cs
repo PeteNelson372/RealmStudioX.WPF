@@ -1,9 +1,16 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
+using RealmStudioX.WPF.ViewModels.Main;
+using SkiaSharp;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using System.Windows.Media;
+using static RealmStudioX.WPF.ViewModels.Panels.SymbolsPanelViewModel;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 
@@ -11,15 +18,60 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 {
     public class LabelsPanelViewModel : ViewModelBase, ILabelSettings
     {
+        private readonly MainWindowViewModel _mainWindowViewModel;
+        public MainWindowViewModel MainViewModel => _mainWindowViewModel;
+
         private readonly EditorController _editor;
         public EditorController Editor => _editor;
 
         private readonly AssetManager _assetManager;
 
-        public LabelsPanelViewModel(EditorController editor, AssetManager assetManager)
+        public ObservableCollection<BoxGridItem> BoxItems { get; } = [];
+
+        public LabelsPanelViewModel(MainWindowViewModel mainViewModel, EditorController editor, AssetManager assetManager)
         {
+            _mainWindowViewModel = mainViewModel;
             _editor = editor;
             _assetManager = assetManager;
+
+            AddBoxItems();
+        }
+
+        // label text
+
+        public string LabelText
+        {
+            get
+            {
+                if (Editor.ActiveEditorTool is LabelTool lt && lt.IsEditing && lt.EditSession != null)
+                {
+                    return lt.EditSession.Text;
+                }
+                else if (Editor.SelectedShape is MapLabel ml)
+                {
+                    return ml.Text;
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }
+
+            set
+            {
+                if (Editor.ActiveEditorTool is LabelTool lt && lt.IsEditing && lt.EditSession != null)
+                {
+                    lt.EditSession.Text = value;
+                    OnPropertyChanged(nameof(LabelText));
+                    LabelValuesChanged();
+                }
+                else if (Editor.SelectedShape is MapLabel ml)
+                {
+                    ml.Text = value;
+                    OnPropertyChanged(nameof(LabelText));
+                    LabelValuesChanged();
+                }
+            }
         }
 
         // font style model
@@ -221,16 +273,45 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             _editor.ActivateTool(EditorToolType.LabelTool, (ILabelSettings)this);
         });
 
+        public ICommand DrawLabelCurveCommand => new RelayCommand(() =>
+        {
+            _editor.SetDrawingMode(MapDrawingMode.DrawBezierLabelPath);
+            _editor.ActivateTool(EditorToolType.LabelTool, (ILabelSettings)this);
+        });
+
         public ICommand DrawLabelArcCommand => new RelayCommand(() =>
         {
             _editor.SetDrawingMode(MapDrawingMode.DrawArcLabelPath);
             _editor.ActivateTool(EditorToolType.LabelTool, (ILabelSettings)this);
         });
 
-        public ICommand DrawLabelCurveCommand => new RelayCommand(() =>
+        public ICommand GenerateNameCommand => new RelayCommand(() =>
         {
-            _editor.SetDrawingMode(MapDrawingMode.DrawBezierLabelPath);
-            _editor.ActivateTool(EditorToolType.LabelTool, (ILabelSettings)this);
+            List<INameGenerator> generators = AssetManager.GetAllNameGenerators();
+
+            string generatedName = string.Empty;
+
+            if (generators.Count > 0)
+            {
+                int guardCount = 0;
+                int maxTries = 100;
+
+                while (string.IsNullOrEmpty(generatedName) && guardCount < maxTries)
+                {
+                    guardCount++;
+                    string name = NameManager.GenerateRandomPlaceName(generators);
+
+                    if (!string.IsNullOrEmpty(name))
+                    {
+                        generatedName = name;
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(generatedName))
+            {
+                LabelText = generatedName;
+            }
         });
 
         private void LabelValuesChanged()
@@ -240,6 +321,58 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
             // apply changes to selected symbol
             _editor.UpdateSelectedLabel((ILabelSettings)this);
+        }
+
+
+        // MapBox methods, properties, and data
+        
+        private BoxGridItem? _selectedBox;
+
+        public BoxGridItem? SelectedBox
+        {
+            get => _selectedBox;
+            set => SetProperty(ref _selectedBox, value);
+        }
+
+        public ICommand CreateBoxCommand => new RelayCommand(() =>
+        {
+            _editor.SetDrawingMode(MapDrawingMode.DrawBox);
+            _editor.ActivateTool(EditorToolType.LabelTool, (ILabelSettings)this);
+        });
+
+        internal void AddBoxItems()
+        {
+            var boxes = _assetManager.GetByType(AssetType.Box);
+
+            BoxItems.Clear();
+
+            if (boxes != null)
+            {
+                foreach (var box in boxes)
+                {
+                    if (box.FilePath.EndsWith(".xml", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        MapBox? mapBox = MapFileMethods.ReadBoxAssetFromXml(box.FilePath);
+
+                        if (mapBox != null)
+                        {
+                            SKBitmap? boxBitmap = SKBitmap.Decode(mapBox.BoxBitmapPath);
+                            if (boxBitmap != null)
+                            {
+                                if (!BoxItems.Any(i =>
+                                        string.Equals(
+                                            i.BoxDefinition.BoxName,
+                                            mapBox.BoxName,
+                                            StringComparison.OrdinalIgnoreCase)))
+                                {
+                                    BoxGridItem gridItem = new(mapBox, ToImageSource(boxBitmap));
+                                    BoxItems.Add(gridItem);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -254,4 +387,36 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         int LabelRotation { get; }
         float LabelScale { get; }
     }
+
+    public class BoxGridItem
+    {
+        public ImageSource BoxImage { get; }
+        public MapBox BoxDefinition { get; }
+
+        public BoxGridItem(MapBox box,
+                  ImageSource image)
+        {
+            BoxDefinition = box;
+            BoxImage = image;
+        }
+
+        private bool _isSelected;
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                if (_isSelected != value)
+                {
+                    _isSelected = value;
+                    OnPropertyChanged(nameof(IsSelected));
+                }
+            }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? name = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
 }
+

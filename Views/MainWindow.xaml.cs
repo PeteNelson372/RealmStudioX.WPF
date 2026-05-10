@@ -3,9 +3,11 @@ using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.Editor.UserInterface;
+using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views;
 using RealmStudioX.WPF.Views.Controls;
+using RealmStudioX.WPF.Views.Dialogs;
 using RealmStudioX.WPF.Views.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
@@ -108,6 +110,9 @@ namespace RealmStudioX.WPF
 
                 MainTabs.TabSelectionChanged += (s, e) => MainTabControl_SelectionChanged(s, e);
 
+                ViewModel.RequestOpenNameGeneratorConfig +=
+                    OpenNameGeneratorConfigDialog;
+
                 // force an update to the MainTabs selection to ensure the correct tool panel is displayed on startup
                 MainTabs.SelectTab("Background");
                 MainTabs.SelectTab("Ocean");
@@ -154,6 +159,21 @@ namespace RealmStudioX.WPF
             };
 
             InitializeSkiaControl();
+        }
+
+        private void OpenNameGeneratorConfigDialog()
+        {
+            var vm = new NameGenConfigViewModel(ViewModel);
+
+            var dlg = new NameGenConfig
+            {
+                Owner = this,
+                DataContext = vm
+            };
+
+
+
+            dlg.ShowDialog();
         }
 
         private void UpdateMapScene()
