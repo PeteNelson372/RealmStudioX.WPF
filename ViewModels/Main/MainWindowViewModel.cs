@@ -186,6 +186,17 @@ namespace RealmStudioX.WPF.ViewModels.Main
             RequestOpenNameGeneratorConfig?.Invoke();
         });
 
+        public ICommand UndoCommand => new RelayCommand(() =>
+        {
+            _editor.Commands.Undo();
+        });
+
+        public ICommand RedoCommand => new RelayCommand(() =>
+        {
+            _editor.Commands.Redo();
+        });
+
+
         // -------------------------
         // Other Methods
         // -------------------------

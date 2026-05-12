@@ -171,8 +171,6 @@ namespace RealmStudioX.WPF
                 DataContext = vm
             };
 
-
-
             dlg.ShowDialog();
         }
 

@@ -49,7 +49,7 @@ namespace RealmStudioX.WPF.Editor.Tools
         {
             if (_editorState.CurrentDrawingMode == MapDrawingMode.PathPaint)
             {
-                PathRenderStyle renderStyle = new PathRenderStyle()
+                PathRenderStyle renderStyle = new()
                 {
                     Width = _pathSettings.PathWidth,
                     BorderColor = _pathSettings.PathBorderColor.ToSKColor(),

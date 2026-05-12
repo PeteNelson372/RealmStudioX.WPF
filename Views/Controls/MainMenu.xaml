@@ -22,8 +22,8 @@
         </MenuItem>
 
         <MenuItem Header="_Edit" Margin="0,6,0,0">
-            <MenuItem Header="_Undo" Click="OnUndo"/>
-            <MenuItem Header="_Redo" Click="OnRedo"/>
+            <MenuItem Header="_Undo" Command="{Binding UndoCommand}" InputGestureText="Ctrl+Z"/>
+            <MenuItem Header="_Redo" Command="{Binding RedoCommand}" InputGestureText="Ctrl+Y"/>
         </MenuItem>
 
         <MenuItem Header="Realm" Margin="0,6,0,0">

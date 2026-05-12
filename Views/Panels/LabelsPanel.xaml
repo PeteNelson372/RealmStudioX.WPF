@@ -492,11 +492,11 @@
                                 Maximum="359"
                                 AutoToolTipPlacement="TopLeft"
                                 AutoToolTipPrecision="0"
-                                Value="{Binding LabelRotation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                Value="{Binding Rotation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-                        <controls:NumericUpDown x:Name="SymbolRotationBox"
+                        <controls:NumericUpDown x:Name="LabelRotationBox"
                                      HorizontalAlignment="Right"
-                                     Value="{Binding LabelRotation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     Value="{Binding Rotation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      Minimum="0"
                                      Maximum="359"
                                      Increment="1"

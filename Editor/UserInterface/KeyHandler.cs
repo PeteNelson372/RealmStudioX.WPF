@@ -51,17 +51,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
             {
                 case Key.Escape:
                     {
-                        editor.ActiveEditorTool?.Deactivate();
-                        editor.ActiveEditorTool = null;
-
-                        editor.SetDrawingMode(MapDrawingMode.None);
-                        editor.ResetCamera();
-
-                        if (editor.Scene != null)
-                        {
-                            EditorController.DeselectAllMapComponents(editor.Scene, null);
-                        }
-
+                        editor.Reset();
                         handled = true;
                     }
                     break;
@@ -100,6 +90,26 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                             return true;
                         }
 
+                        if (editor.SelectedShape is MapPath path)
+                        {
+                            MapLayer pathLowerLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.PATHLOWERLAYER);
+                            MapLayer pathUpperLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.PATHUPPERLAYER);
+
+                            MapLayer layer = pathLowerLayer;
+                            if (path.DrawOverSymbols)
+                            {
+                                layer = pathUpperLayer;
+                            }
+
+                            // create the command and force execution
+                            Cmd_ModifyMapPaths cmd = new(editor.Scene.Map, layer);
+                            cmd.RegisterRemovedMapPath(path);
+
+                            editor.Commands.Execute(cmd);
+
+                            return true;
+                        }
+
                         if (editor.SelectedShape is MapLabel label)
                         {
                             MapLayer labelLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.LABELLAYER);
@@ -107,6 +117,19 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                             // create the command and force execution
                             Cmd_ModifyLabels cmd = new(labelLayer);
                             cmd.RegisterRemovedLabel(label);
+
+                            editor.Commands.Execute(cmd);
+
+                            return true;
+                        }
+
+                        if (editor.SelectedShape is PlacedMapBox box)
+                        {
+                            MapLayer boxLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.BOXLAYER);
+
+                            // create the command and force execution
+                            Cmd_ModifyBoxes cmd = new(boxLayer);
+                            cmd.RegisterRemovedBox(box);
 
                             editor.Commands.Execute(cmd);
 
@@ -226,6 +249,12 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                                 editor.NudgeLabel(label, Keys.Up, 0, -1);
                                 return true;
                             }
+
+                            if (editor.SelectedShape is PlacedMapBox box)
+                            {
+                                editor.NudgeBox(box, Keys.Up, 0, -1);
+                                return true;
+                            }
                         }
                     }
                     break;
@@ -242,6 +271,12 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                             if (editor.SelectedShape is MapLabel label)
                             {
                                 editor.NudgeLabel(label, Keys.Down, 0, +1);
+                                return true;
+                            }
+
+                            if (editor.SelectedShape is PlacedMapBox box)
+                            {
+                                editor.NudgeBox(box, Keys.Down, 0, +1);
                                 return true;
                             }
                         }    
@@ -262,6 +297,12 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                                 editor.NudgeLabel(label, Keys.Left, -1, 0);
                                 return true;
                             }
+
+                            if (editor.SelectedShape is PlacedMapBox box)
+                            {
+                                editor.NudgeBox(box, Keys.Left, -1, 0);
+                                return true;
+                            }
                         }
                     }
                     break;
@@ -278,6 +319,12 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                             if (editor.SelectedShape is MapLabel label)
                             {
                                 editor.NudgeLabel(label, Keys.Right, +1, 0);
+                                return true;
+                            }
+
+                            if (editor.SelectedShape is PlacedMapBox box)
+                            {
+                                editor.NudgeBox(box, Keys.Right, +1, 0);
                                 return true;
                             }
                         }

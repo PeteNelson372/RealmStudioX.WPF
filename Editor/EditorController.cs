@@ -50,6 +50,7 @@ namespace RealmStudioX.WPF.Editor
         private Cmd_ModifyMapPaths? _activeModifyMapPathCommand;
         private Cmd_ModifySymbol? _activeModifyMapSymbolCommand;
         private Cmd_ModifyLabel? _activeModifyLabelCommand;
+        private Cmd_ModifyBox? _activeModifyBoxCommand;
 
         private bool _isTransforming;
         private SKRect _lastSymbolBounds;
@@ -69,6 +70,14 @@ namespace RealmStudioX.WPF.Editor
         private Cmd_ModifyLabel? _activeLabelNudgeCommand;
         private MapLabel? _nudgeLabel;
         private Keys _activeLabelNudgeKey;
+
+        // -------------------------------------------------
+        // PlacedMapBox arrow key nudging
+        // -------------------------------------------------
+
+        private Cmd_ModifyBox? _activeBoxNudgeCommand;
+        private PlacedMapBox? _nudgeBox;
+        private Keys _activeBoxNudgeKey;
 
         // -------------------------------------------------
         // Selection filter
@@ -91,20 +100,58 @@ namespace RealmStudioX.WPF.Editor
             _fontManager = fontManager;
 
             _editorState.DrawingModeChanged += OnDrawingModeChanged;
-
-            _symbolSelectionService.SelectionChanged += OnSymbolSelectionChanged;
         }
 
-        private void OnSymbolSelectionChanged()
+        public void Reset()
         {
+            SetDrawingMode(MapDrawingMode.None);
 
+            CommitSymbolNudge();
+            CommitLabelNudge();
+            CommitBoxNudge();
+
+            FinalizeOpenCommands();
+
+            _isDragging = false;
+            _dragShape = null;
+            _dragStartWorld = SKPoint.Empty;
+            _isTransforming = false;
+
+            _lastSymbolBounds = SKRect.Empty;
+
+            _selectedShape = null;
+            _selectionFilter = new([]);
+
+            _lastClickWorld = SKPoint.Empty;
+
+            _selectionCycleIndex = 0;
+
+            _activeSymbolNudgeCommand = null;
+            _nudgeSymbol = null;
+            _activeSymbolNudgeKey = Keys.None;
+
+            _activeLabelNudgeCommand = null;
+            _nudgeLabel = null;
+            _activeLabelNudgeKey = Keys.None;
+
+            ActiveEditorTool?.Deactivate();
+
+            ActiveEditorTool = null;
+
+            ResetCamera();
+
+            if (Scene != null)
+            {
+                Scene.TransformWidget.Target = null;
+                DeselectAllMapComponents(Scene, null);
+            }
         }
 
-        public void ActivateTool(EditorToolType type, object? context = null)
+        public IToolEditor? ActivateTool(EditorToolType type, object? context = null)
         {
             if (_toolFactory == null)
             {
-                return;
+                return null;
             }
 
             if (ActiveEditorTool != null)
@@ -114,10 +161,9 @@ namespace RealmStudioX.WPF.Editor
 
             ActiveEditorTool = _toolFactory.Create(type, context);
 
-            if (ActiveEditorTool != null)
-            {
-                ActiveEditorTool.Activate();
-            }
+            ActiveEditorTool?.Activate();
+
+            return ActiveEditorTool;
         }
 
         public MapScene? Scene => _scene;
@@ -218,6 +264,16 @@ namespace RealmStudioX.WPF.Editor
                 _commands.Execute(_activeModifyLabelCommand);
 
                 _activeModifyLabelCommand = null;
+                _isTransforming = false;
+                _isDragging = false;
+            }
+
+            if (_activeModifyBoxCommand != null)
+            {
+                _activeModifyBoxCommand.CaptureAfter();
+                _commands.Execute(_activeModifyBoxCommand);
+
+                _activeModifyBoxCommand = null;
                 _isTransforming = false;
                 _isDragging = false;
             }
@@ -479,6 +535,10 @@ namespace RealmStudioX.WPF.Editor
                 {
                     SelectedMapLabelMouseDown(ml, state.WorldPoint);
                 }
+                else if (SelectedShape is PlacedMapBox pmb && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
+                {
+                    SelectedMapBoxMouseDown(pmb, state.WorldPoint);
+                }
 
                 if (_editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect && !_isTransforming)
                 {
@@ -555,6 +615,12 @@ namespace RealmStudioX.WPF.Editor
                         SelectedLabelNoButtonMove(ml, state.WorldPoint);
                         return;
                     }
+
+                    if (SelectedShape is PlacedMapBox pmb && !_isTransforming)
+                    {
+                        SelectedBoxNoButtonMove(pmb, state.WorldPoint);
+                        return;
+                    }
                 }
             }
 
@@ -587,6 +653,12 @@ namespace RealmStudioX.WPF.Editor
                 if (SelectedShape is MapLabel ml && _isTransforming && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
                 {
                     SelectedLabelLeftButtonMove(ml, state.WorldPoint);
+                    return;
+                }
+
+                if (SelectedShape is PlacedMapBox pmb && _isTransforming && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
+                {
+                    SelectedBoxLeftButtonMove(pmb, state.WorldPoint);
                     return;
                 }
 
@@ -674,6 +746,12 @@ namespace RealmStudioX.WPF.Editor
                 return;
             }
 
+            if (SelectedShape is PlacedMapBox pmb && _isTransforming)
+            {
+                SelectedBoxMouseUp(pmb);
+                return;
+            }
+
             if (state.Button == EditorMouseButton.Left)
             {
                 if (_isDragging && _dragShape != null)
@@ -715,6 +793,8 @@ namespace RealmStudioX.WPF.Editor
             ActiveEditorTool?.OnMouseUp(state);
             RequestRedraw();
         }
+
+
 
         internal void OnMouseDoubleClick(PointerState state)
         {
@@ -836,6 +916,13 @@ namespace RealmStudioX.WPF.Editor
                 label.IsSelected = true;
                 _editorState.StatusMessage = "Label Selected ";
                 _selectedShape = label;
+            }
+            else if (_selectedShape is PlacedMapBox box)
+            {
+                DeselectAllMapComponents(Scene!, box);
+                box.IsSelected = true;
+                _editorState.StatusMessage = "Box Selected ";
+                _selectedShape = box;
             }
             else if (_selectedShape is WaterSystem waterSystem)
             {
@@ -1317,7 +1404,7 @@ namespace RealmStudioX.WPF.Editor
                 label.OutlineWidth = settings.OutlineWidth;
                 label.GlowColor = settings.GlowColor.ToSKColor();
                 label.GlowStrength = settings.GlowStrength;
-                label.Rotation = settings.LabelRotation;
+                label.Rotation = settings.Rotation;
 
                 cmd.CaptureAfter();
 
@@ -1400,6 +1487,7 @@ namespace RealmStudioX.WPF.Editor
 
             RequestRedraw();
         }
+
         private void SelectedLabelMouseUp(MapLabel ml)
         {
             Scene!.TransformWidget.OnMouseUp();
@@ -1475,6 +1563,165 @@ namespace RealmStudioX.WPF.Editor
         }
 
         // -------------------------------------------------
+        // Boxes
+        // -------------------------------------------------
+        public void UpdateSelectedBox(IBoxSettings settings)
+        {
+            if (SelectedShape is PlacedMapBox box)
+            {
+                Cmd_ModifyBox cmd = new(GetBoxLayer(), box);
+
+                box.BaseBox = settings.SelectedBox?.BoxDefinition;
+
+                box.BoxTint = settings.BoxTint.ToSKColor();
+                box.Rotation = settings.Rotation;
+
+                cmd.CaptureAfter();
+
+                _commands.Execute(cmd);
+            }
+        }
+
+        private void SelectedBoxNoButtonMove(PlacedMapBox pmb, SKPoint worldPosition)
+        {
+            Scene!.TransformWidget.Target = pmb;
+            HandleHoverUpdate(worldPosition);
+
+            RequestRedraw();
+        }
+
+        private void SelectedBoxLeftButtonMove(PlacedMapBox pmb, SKPoint worldPosition)
+        {
+            Scene!.TransformWidget.Target = pmb;
+            Scene.TransformWidget.OnMouseMove(worldPosition);
+
+            RequestRedraw();
+        }
+
+        private void SelectedBoxMouseUp(PlacedMapBox pmb)
+        {
+            Scene!.TransformWidget.OnMouseUp();
+
+            // capture AFTER
+            _activeModifyBoxCommand?.CaptureAfter();
+
+            // commit command
+            if (_activeModifyBoxCommand != null)
+            {
+                Commands.Execute(_activeModifyBoxCommand);
+            }
+
+            _activeModifyBoxCommand = null;
+            _isTransforming = false;
+
+            RequestRedraw();
+        }
+
+        private void SelectedMapBoxMouseDown(PlacedMapBox pmb, SKPoint worldPoint)
+        {
+            MapLayer boxLayer = GetBoxLayer();
+
+            Scene!.TransformWidget.Target = pmb;
+
+            var handle = Scene.TransformWidget.OnMouseDown(worldPoint);
+
+            switch (handle)
+            {
+                case TransformHandle.Rotate:
+                case TransformHandle.TopLeft:
+                case TransformHandle.BottomRight:
+                case TransformHandle.TopRight:
+                case TransformHandle.BottomLeft:
+                case TransformHandle.Left:
+                case TransformHandle.Right:
+                case TransformHandle.Top:
+                case TransformHandle.Bottom:
+                case TransformHandle.Move:
+                    _isTransforming = true;
+                    // create command (capture BEFORE)
+                    _activeModifyBoxCommand = new Cmd_ModifyBox(boxLayer, pmb);
+                    return;
+                case TransformHandle.ZTop:
+                    _isTransforming = true;
+                    boxLayer.MoveMapComponentZOrder(pmb, ZOrderMoveType.ToTop);
+                    RequestRedraw();
+                    return;
+                case TransformHandle.ZForward:
+                    _isTransforming = true;
+                    boxLayer.MoveMapComponentZOrder(pmb, ZOrderMoveType.AboveAllOverlaps);
+                    RequestRedraw();
+                    return;
+                case TransformHandle.ZBackward:
+                    _isTransforming = true;
+                    boxLayer.MoveMapComponentZOrder(pmb, ZOrderMoveType.BelowAllOverlaps);
+                    RequestRedraw();
+                    return;
+                case TransformHandle.ZBottom:
+                    _isTransforming = true;
+                    boxLayer.MoveMapComponentZOrder(pmb, ZOrderMoveType.ToBottom);
+                    RequestRedraw();
+                    return;
+                case TransformHandle.None:
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        public void NudgeBox(PlacedMapBox box, Keys key, int dx, int dy)
+        {
+            if (box == null)
+                return;
+
+            // If key changed → commit previous command
+            if (_activeBoxNudgeCommand != null &&
+                (_nudgeBox != box || _activeBoxNudgeKey != key))
+            {
+                CommitBoxNudge();
+            }
+
+            // Start new command if needed
+            if (_activeBoxNudgeCommand == null)
+            {
+                _nudgeBox = box;
+                _activeBoxNudgeKey = key;
+
+                _activeBoxNudgeCommand = new Cmd_ModifyBox(
+                    GetBoxLayer(), box);
+            }
+
+            // Apply movement
+            var loc = box.Location;
+            loc.X = Math.Clamp(loc.X + dx, 0, Scene!.Map.MapWidth);
+            loc.Y = Math.Clamp(loc.Y + dy, 0, Scene!.Map.MapHeight);
+
+            box.Location = loc;
+
+            RequestRedraw();
+        }
+
+        public void CommitBoxNudge()
+        {
+            if (_activeBoxNudgeCommand == null || _nudgeBox == null)
+                return;
+
+            _activeBoxNudgeCommand.CaptureAfter();
+
+            if (_activeBoxNudgeCommand.HasChange)
+            {
+                _commands.Execute(_activeBoxNudgeCommand);
+            }
+
+            _activeBoxNudgeCommand = null;
+            _nudgeBox = null;
+        }
+
+        private MapLayer GetBoxLayer()
+        {
+            return MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.BOXLAYER);
+        }
+
+        // -------------------------------------------------
         // End Class
         // -------------------------------------------------
     }
@@ -1509,6 +1756,7 @@ namespace RealmStudioX.WPF.Editor
         MapPathTool,
         PaintedShapeTool,
         SymbolTool,
-        WaterBodyTool
+        WaterBodyTool,
+        BoxTool,
     }
 }

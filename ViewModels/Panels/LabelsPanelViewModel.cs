@@ -2,9 +2,11 @@
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
+using RealmStudioX.WPF.Editor.Tools;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
 using SkiaSharp;
+using SkiaSharp.Views.WPF;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -16,7 +18,7 @@ using Color = System.Windows.Media.Color;
 
 namespace RealmStudioX.WPF.ViewModels.Panels
 {
-    public class LabelsPanelViewModel : ViewModelBase, ILabelSettings
+    public class LabelsPanelViewModel : ViewModelBase, ILabelSettings, IBoxSettings
     {
         private readonly MainWindowViewModel _mainWindowViewModel;
         public MainWindowViewModel MainViewModel => _mainWindowViewModel;
@@ -199,24 +201,25 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             }
         }
 
-        // label rotation
+        // rotation
 
-        public int MinLabelRotation { get; } = 0;
-        public int MaxLabelRotation { get; } = 359;
+        public int MinRotation { get; } = 0;
+        public int MaxRotation { get; } = 359;
 
-        private int _labelRotation = 0;
-        public int LabelRotation
+        private int _rotation = 0;
+        public int Rotation
         {
-            get => _labelRotation;
+            get => _rotation;
             set
             {
-                var clamped = Math.Clamp(value, MinLabelRotation, MaxLabelRotation);
+                var clamped = Math.Clamp(value, MinRotation, MaxRotation);
 
-                if (_labelRotation != clamped)
+                if (_rotation != clamped)
                 {
-                    _labelRotation = clamped;
+                    _rotation = clamped;
                     OnPropertyChanged();
                     LabelValuesChanged();
+                    BoxValuesChanged();
                 }
             }
         }
@@ -334,10 +337,39 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             set => SetProperty(ref _selectedBox, value);
         }
 
+        // box tint
+
+        private Color _boxTint = Colors.White;
+        public Color BoxTint
+        {
+            get => _boxTint;
+            set
+            {
+                if (SetProperty(ref _boxTint, value))
+                {
+                    _boxTintBrush.Color = value;
+                    BoxValuesChanged();
+                }
+            }
+        }
+
+        private SolidColorBrush _boxTintBrush = new(Colors.White);
+
+        public Brush BoxTintBrush => _boxTintBrush;
+
+        private void BoxValuesChanged()
+        {
+            if (SelectedBox == null)
+                return;
+
+            // apply changes to selected symbol
+            _editor.UpdateSelectedBox((IBoxSettings) this);
+        }
+
         public ICommand CreateBoxCommand => new RelayCommand(() =>
         {
             _editor.SetDrawingMode(MapDrawingMode.DrawBox);
-            _editor.ActivateTool(EditorToolType.LabelTool, (ILabelSettings)this);
+            BoxTool? bt = (BoxTool?)_editor.ActivateTool(EditorToolType.BoxTool, (IBoxSettings)this);
         });
 
         internal void AddBoxItems()
@@ -365,6 +397,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                                             mapBox.BoxName,
                                             StringComparison.OrdinalIgnoreCase)))
                                 {
+                                    mapBox.BoxBitmap = boxBitmap.Copy();
                                     BoxGridItem gridItem = new(mapBox, ToImageSource(boxBitmap));
                                     BoxItems.Add(gridItem);
                                 }
@@ -384,8 +417,15 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         float OutlineWidth { get; }
         Color GlowColor { get; }
         float GlowStrength { get; }
-        int LabelRotation { get; }
+        int Rotation { get; }
         float LabelScale { get; }
+    }
+
+    public interface IBoxSettings
+    {
+        Color BoxTint {  get; }
+        BoxGridItem? SelectedBox {  get; }
+        int Rotation { get; }
     }
 
     public class BoxGridItem

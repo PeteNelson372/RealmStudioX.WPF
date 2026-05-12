@@ -35,8 +35,6 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         public IToolEditor? Create(EditorToolType type, object? context)
         {
-            ArgumentNullException.ThrowIfNull(context, nameof(context));
-
             IToolEditor tool;
 
             // TODO: figure out how to reduce the number of parameters needed to construct tools
@@ -47,6 +45,8 @@ namespace RealmStudioX.WPF.Editor.Tools
                     {
                         if (_editor.ActiveEditorTool is not LandformTool)
                         {
+                            if (context is null) return null;
+
                             _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LANDFORMLAYER));
 
                             tool = new LandformTool(_commands, _assets,
@@ -64,6 +64,8 @@ namespace RealmStudioX.WPF.Editor.Tools
                     {
                         if (_editor.ActiveEditorTool is not WaterBodyTool)
                         {
+                            if (context is null) return null;
+
                             _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.WATERLAYER));
 
                             tool = new WaterBodyTool(_commands, _assets,
@@ -81,6 +83,8 @@ namespace RealmStudioX.WPF.Editor.Tools
                     {
                         if (_editor.ActiveEditorTool is not MapPathTool)
                         {
+                            if (context is null) return null;
+
                             MapLayer activeLayer;
 
                             IMapPathSettings settings = (IMapPathSettings)context;
@@ -110,6 +114,8 @@ namespace RealmStudioX.WPF.Editor.Tools
                     {
                         if (_editor.ActiveEditorTool is not SymbolTool)
                         {
+                            if (context is null) return null;
+
                             _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.SYMBOLLAYER));
 
                             _editor.SymbolSelectionService.SetPrimarySelectedSymbol(null);
@@ -133,11 +139,32 @@ namespace RealmStudioX.WPF.Editor.Tools
                     {
                         if (_editor.ActiveEditorTool is not LabelTool)
                         {
+                            if (context is null) return null;
+
                             _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LABELLAYER));
 
                             tool = new LabelTool(_commands, _assets,
                                 MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LABELLAYER),
                                 _scene, _editorState, _fontManager, _editor, (ILabelSettings)context);
+
+                            return tool;
+                        }
+                        else
+                        {
+                            return _editor.ActiveEditorTool;
+                        }
+                    }
+                case EditorToolType.BoxTool:
+                    {
+                        if (_editor.ActiveEditorTool is not BoxTool)
+                        {
+                            if (context is null) return null;
+
+                            _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.BOXLAYER));
+
+                            tool = new BoxTool(_commands, _assets,
+                                MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LABELLAYER),
+                                _scene, _editorState, _fontManager, _editor, (IBoxSettings)context);
 
                             return tool;
                         }

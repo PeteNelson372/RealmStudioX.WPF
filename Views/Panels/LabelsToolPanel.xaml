@@ -3,6 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Panels"
+             xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+             xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
+             xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
+             xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"             
              mc:Ignorable="d"
              d:DesignHeight="922" d:DesignWidth="152">
 
@@ -11,36 +18,54 @@
 
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="60"/>
+                <RowDefinition Height="80"/>
                 <!-- Search Box -->
                 <RowDefinition Height="*"/>
                 <!-- Symbol Grid -->
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0">
-                <StackPanel Orientation="Vertical">
-                    <TextBlock Text="Search"
-                            Foreground="#FF45443F"
-                            VerticalAlignment="Top"
-                            Margin="3,6,0,3"/>
+                <Button
+                        x:Name="BoxTintButton"
+                        Style="{StaticResource FlatToolButton}"
+                        Width="120"
+                        Height="50"
+                        Margin="3,10,3,10"
+                        Background="{Binding BoxTintBrush}"
+                        ToolTip="Select Label Color"
+                        PreviewMouseLeftButtonUp="BoxTint_LeftClick"
+                        PreviewMouseRightButtonUp="BoxTint_RightClick">
 
-                    <TextBox Width="122"
-                         Height="24"
-                         Margin="0,0,10,0"
-                         Text="{Binding SymbolFilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         ToolTip="Search symbols..." />
-                </StackPanel>
+                    <Grid>
+                        <materialDesign:PackIcon
+                                Kind="PaletteOutline"
+                                Width="36"
+                                Height="36"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Foreground="Tan"
+                                Opacity="0.7"/>
+
+                        <TextBlock Text="Select Color"
+                                   FontSize="12"
+                                   Foreground="#FF45443F"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,0,0"/>
+
+                    </Grid>
+                </Button>
             </Grid>
 
-            <Grid Grid.Row="1" Width="144">
+            <Grid Grid.Row="1" Width="144" Margin="0,0,0,10">
 
                 <ListBox
-        ItemsSource="{Binding BoxItems}"
-        SelectedItem="{Binding SelectedBox}"
-        BorderThickness="0"
-        Background="Transparent"
-        ScrollViewer.VerticalScrollBarVisibility="Auto"
-        ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    ItemsSource="{Binding BoxItems}"
+                    SelectedItem="{Binding SelectedBox}"
+                    BorderThickness="0"
+                    Background="Transparent"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 
                     <!-- Layout -->
                     <ListBox.ItemsPanel>

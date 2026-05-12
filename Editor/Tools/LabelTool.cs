@@ -119,7 +119,7 @@ namespace RealmStudioX
                     {
                         Text = string.Empty,
                         Location = state.WorldPoint,
-                        Rotation = _labelSettings.LabelRotation,
+                        Rotation = _labelSettings.Rotation,
                         Scale = _labelSettings.LabelScale,
                         Mirror = false,
                         FontColor = _labelSettings.LabelColor.ToSKColor(),
@@ -548,7 +548,11 @@ namespace RealmStudioX
                     }
 
                     var layer = MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LABELLAYER);
-                    layer.Add(label);
+                    Cmd_ModifyLabels cmd = new(layer);
+
+                    cmd.RegisterNewLabel(label);
+
+                    _commands.Execute(cmd);
                 }
             }
 
