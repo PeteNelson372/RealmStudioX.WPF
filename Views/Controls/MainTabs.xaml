@@ -77,7 +77,7 @@
             <panels:BackgroundPanel DataContext="{Binding BackgroundViewModel}"/>
         </TabItem>
         <TabItem Header="Ocean">
-            <panels:OceanPanel/>
+            <panels:OceanPanel DataContext="{Binding OceanViewModel}"/>
         </TabItem>
         <TabItem Header="Land">
             <panels:LandformPanel DataContext="{Binding LandformViewModel}"/>

@@ -6,6 +6,7 @@ using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
+using static System.Formats.Asn1.AsnWriter;
 using CommandManager = RealmStudioX.Core.CommandManager;
 
 namespace RealmStudioX.WPF.Editor
@@ -1069,6 +1070,107 @@ namespace RealmStudioX.WPF.Editor
         // Ocean
         // -------------------------------------------------
 
+        public void ApplyOceanTexture(TextureFillRequest request)
+        {
+            ArgumentNullException.ThrowIfNull(Scene, nameof(Scene));
+
+            if (request.TextureId == null)
+            {
+                return;
+            }
+
+            Scene.Map.Ocean.TextureId = request.TextureId;
+            Scene.Map.Ocean.TextureOpacity = request.Opacity;
+            Scene.Map.Ocean.Scale = request.Scale;
+            Scene.Map.Ocean.Mirror = request.Mirror;
+
+            Scene.Map.Ocean.OverlayColor = request.Color;
+            Scene.Map.Ocean.ColorOverlayEnabled = (request.Color != SKColors.Empty && request.Color != SKColors.Transparent && request.Color != SKColors.White);
+
+            var image = (_assetManager).GetImage(request.TextureId);
+            Scene.SetOceanTexture(image);
+            Scene.MarkOceanTextureModified();
+
+            RequestRedraw();
+        }
+
+        public void ClearOceanTexture()
+        {
+            ArgumentNullException.ThrowIfNull(Scene, nameof(Scene));
+
+            Scene.Map.Ocean.TextureId = null;
+            Scene.SetOceanTexture(null);
+            Scene.MarkOceanTextureModified();
+
+            RequestRedraw();
+        }
+
+        public void FillOceanColor(TextureFillRequest request)
+        {
+            ArgumentNullException.ThrowIfNull(Scene, nameof(Scene));
+
+            Scene.Map.Ocean.OverlayColor = request.Color;
+            Scene.Map.Ocean.ColorOverlayEnabled = (request.Color != SKColors.Empty && request.Color != SKColors.Transparent && request.Color != SKColors.White);
+
+            Scene.MarkOceanTextureModified();
+
+            RequestRedraw();
+        }
+
+        public void ClearOceanColor()
+        {
+            ArgumentNullException.ThrowIfNull(Scene, nameof(Scene));
+
+            Scene.Map.Ocean.OverlayColor = SKColor.Empty;
+            Scene.Map.Ocean.ColorOverlayEnabled = false;
+
+            Scene.MarkOceanTextureModified();
+
+            RequestRedraw();
+        }
+
+        public void UpdateOceanPreview(TextureFillRequest request)
+        {
+            if (Scene?.Map == null || request.TextureId == null)
+                return;
+
+            Scene.Map.Ocean.TextureId = request.TextureId;
+            Scene.Map.Ocean.TextureOpacity = request.Opacity;
+            Scene.Map.Ocean.Scale = request.Scale;
+            Scene.Map.Ocean.Mirror = request.Mirror;
+
+            Scene.Map.Ocean.OverlayColor = request.Color;
+            Scene.Map.Ocean.ColorOverlayEnabled = (request.Color != SKColors.Empty && request.Color != SKColors.Transparent && request.Color != SKColors.White);
+
+            var image = (_assetManager).GetImage(request.TextureId);
+            Scene.SetOceanTexture(image);
+            Scene.MarkOceanTextureModified();
+
+            OnSceneChanged();
+        }
+
+        // -------------------------------------------------
+        // Windroses
+        // -------------------------------------------------
+
+        public void ClearWindroses()
+        {
+            MapLayer windroseLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.WINDROSELAYER);
+
+            Cmd_ModifyWindroses cmd = new(windroseLayer);
+
+            foreach (var mapComponent in windroseLayer.Shapes)
+            {
+                if (mapComponent is MapWindrose mw)
+                {
+                    cmd.RegisterRemovedWindrose(mw);
+                }
+            }
+
+            _commands.Execute(cmd);
+        }
+
+
         // -------------------------------------------------
         // Landform
         // -------------------------------------------------
@@ -1751,6 +1853,7 @@ namespace RealmStudioX.WPF.Editor
     {
         // TODO: add other tools as they are implemented
         OceanTool,
+        WindroseTool,
         LandformTool,
         LabelTool,
         MapPathTool,

@@ -4,23 +4,497 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Panels"
+             xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+             xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
+             xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
+             xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"
              mc:Ignorable="d"
              d:DesignHeight="916" d:DesignWidth="235">
     <Grid Visibility="Visible" Background="#FFDFDBD2">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>            
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="72"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel
+            Grid.Row="1"
+            Grid.Column="1"
+            Orientation="Vertical"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Right"
+            Width="72"
+            Height="Auto"
+            Margin="0,3,3,0" Grid.RowSpan="3">
 
-        <StackPanel Orientation="Horizontal"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Top">
+            <Button
+                x:Name="ApplyTextureButton"
+                Width="50"
+                Height="50"
+                Margin="0,10,0,0"
+                ToolTip="Fill Ocean Texture"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding ApplyTextureCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Apply"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="TextureBox"
+                                     Width="22"
+                                     Height="22"
+                                     HorizontalAlignment="Center"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+            <Button
+                x:Name="ClearTextureButton"
+                Width="50"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Clear Ocean Texture"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding ClearTextureCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Clear"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="SquareOff"
+                                     Width="26"
+                                     Height="26"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+            
+            <Button
+                x:Name="FillColorButton"
+                Height="50"
+                Margin="0,160,0,0"
+                ToolTip="Fill Ocean Color"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding FillColorCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Fill"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="FormatColorFill"
+                                     Width="28"
+                                     Height="28"
+                                     Opacity="0.7">
+                    </materialDesign:PackIcon>
+                </StackPanel>
+            </Button>
+            <Button
+                x:Name="ClearColorButton"
+                Height="50"
+                Margin="0,30,0,0"
+                ToolTip="Clear Ocean Color"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding ClearOceanColorCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Clear"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="CancelBoxOutline"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
 
-            <TextBlock Text="Ocean"
-                Foreground="Black"
-                FontSize="16"
-                FontWeight="SemiBold"
-                VerticalAlignment="Center"
-                Margin="0,0,0,0"/>
+            <Button
+                x:Name="SetWindroseButton"
+                Height="55"
+                Margin="0,40,0,0"
+                ToolTip="Place Wind Rose"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding PlaceWindroseCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Wind Rose"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="CompassOutline"
+                                     Width="24"
+                                     Height="24"
+                                     HorizontalAlignment="Center"
+                                     Opacity="0.7">
+                    </materialDesign:PackIcon>
+                </StackPanel>
+            </Button>
+            <Button
+                x:Name="ClearWindroseButton"
+                Height="55"
+                Margin="0,30,0,0"
+                ToolTip="Clear Wind Rose"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding ClearWindroseCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Remove"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="CompassOffOutline"
+                                     Width="24"
+                                     Height="24"
+                                     HorizontalAlignment="Center"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
         </StackPanel>
+
+        <StackPanel
+            Grid.Row="0"
+            Grid.Column="0"
+            Orientation="Horizontal"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="74"
+            Height="32"
+            Margin="3,3,0,0" Grid.RowSpan="2">
+
+            <CheckBox x:Name="BackgroundEnabledToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        IsChecked="True"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+            <TextBlock Text="Show"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,6,3"/>
+        </StackPanel>
+
+        <GroupBox Header="Texture"
+            Grid.Row="1"
+            Grid.Column="0"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Left"
+            Width="154"
+            Height="Auto"
+            Margin="3,0,0,0">
+
+            <StackPanel
+                Orientation="Vertical"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Center"
+                Width="Auto"
+                Height="Auto"
+                Margin="3,3,3,3">
+
+                <controls:AssetBrowserControl x:Name="BackgroundTextureBrowser"
+                                           DataContext="{Binding TextureBrowser}" 
+                                           Width="136"
+                                           Height="160"
+                                           Margin="0,0,0,6"/>
+
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="130"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+
+                    <TextBlock Text="Opacity"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                    <Slider x:Name="OpacitySlider"
+                            Style="{StaticResource ModernSlider}"
+                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
+                            Width="126"
+                            Minimum="0.0"
+                            Maximum="1.0"
+                            Value="{Binding TextureOpacity}"/>
+
+                </StackPanel>
+
+                
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="130"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+
+                    <TextBlock Text="Scale"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                    <Slider x:Name="TextureScaleSlider"
+                            Style="{StaticResource ModernSlider}"
+                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
+                            Width="126"
+                            Minimum="0.0"
+                            Maximum="2.0"
+                            Value="{Binding TextureScale}"/>
+
+                </StackPanel>
+
+                <StackPanel
+                    Orientation="Horizontal"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,10,3,3">
+
+                    <CheckBox x:Name="MirrorTextureToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        IsChecked="{Binding MirrorTexture}"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                    <TextBlock Text="Mirror"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,6,3"/>
+                </StackPanel>
+
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="Color"
+            Grid.Row="2"
+            Grid.Column="0"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="154"
+            Height="Auto"
+            Margin="3,3,0,0">
+
+            <StackPanel
+                Orientation="Vertical"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Center"
+                Width="Auto"
+                Height="Auto"
+                Margin="3,3,3,3">
+
+                <Button
+                    Style="{StaticResource FlatToolButton}"
+                    Width="120"
+                    Height="50"
+                    Margin="3,3,3,3"
+                    Background="{Binding OceanColorBrush}"
+                    ToolTip="Select Ocean Color"
+                    PreviewMouseLeftButtonUp="OceanColor_LeftClick"
+                    PreviewMouseRightButtonUp="OceanColor_RightClick">
+
+                    <materialDesign:PackIcon Kind="PaletteOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Opacity="0.7"/>
+                </Button>
+
+
+
+            </StackPanel>
+
+        </GroupBox>
+        
+        <GroupBox Header="Wind Rose"
+            Grid.Row="3"
+            Grid.Column="0"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="154"
+            Height="Auto"
+            Margin="3,3,0,0">
+
+            <StackPanel
+                Orientation="Vertical"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Center"
+                Width="Auto"
+                Height="Auto"
+                Margin="3,3,3,3">
+
+                <Button
+                    Style="{StaticResource FlatToolButton}"
+                    Width="120"
+                    Height="50"
+                    Margin="3,3,3,3"
+                    Background="{Binding WindroseColorBrush}"
+                    ToolTip="Select Wind Rose Color"
+                    PreviewMouseLeftButtonUp="WindroseColor_LeftClick"
+                    PreviewMouseRightButtonUp="WindroseColor_RightClick">
+
+                    <materialDesign:PackIcon Kind="PaletteOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Opacity="0.7"/>
+                </Button>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="70"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <TextBlock Grid.Column="0" Text="Directions"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        FontSize="11"
+                        Margin="3,3,3,3"/>
+                    
+                    <controls:NumericUpDown x:Name="WindroseDirectionsBox"
+                                     Grid.Column="1"
+                                     HorizontalAlignment="Left"
+                                     Value="{Binding WindroseDirections}"
+                                     Minimum="16"
+                                     Increment="2"
+                                     Maximum="32"
+                                     DecimalPlaces="0"
+                                     Margin="3,3,3,3"
+                                     Width="65"/>
+                </Grid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="70"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="Line Width"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        FontSize="11"
+                        Margin="3,3,3,3"/>
+
+                    <controls:NumericUpDown x:Name="LineWidthBox"
+                                     Grid.Column="1"
+                                     HorizontalAlignment="Left"
+                                     Value="{Binding WindroseLineWidth}"
+                                     Minimum="1"
+                                     Increment="1"
+                                     Maximum="16"
+                                     DecimalPlaces="0"
+                                     Margin="3,3,3,3"
+                                     Width="65"/>
+                </Grid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="65"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="Inner Radius"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        FontSize="11"
+                        Margin="3,3,6,3"/>
+
+                    <controls:NumericUpDown x:Name="InnerRadiusBox"
+                                     Grid.Column="1"
+                                     HorizontalAlignment="Left"
+                                     Value="{Binding WindroseInnerRadius}"
+                                     Minimum="0"
+                                     Increment="1"
+                                     Maximum="1024"
+                                     DecimalPlaces="0"
+                                     Margin="3,3,3,3"
+                                     Width="60"/>
+                </Grid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="65"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="Outer Radius"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        FontSize="11"
+                        Margin="3,3,3,3"/>
+
+                    <controls:NumericUpDown x:Name="OuterRadiusBox"
+                                     Grid.Column="1"
+                                     HorizontalAlignment="Left"
+                                     Value="{Binding WindroseOuterRadius}"
+                                     Minimum="100"
+                                     Increment="1"
+                                     Maximum="20000"
+                                     DecimalPlaces="0"
+                                     Margin="3,3,3,3"
+                                     Width="60"/>
+                </Grid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="65"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="Inner Circles"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        FontSize="11"
+                        Margin="3,3,3,3"/>
+
+                    <controls:NumericUpDown x:Name="WindroseCirclesBox"
+                                     Grid.Column="1"
+                                     HorizontalAlignment="Left"
+                                     Value="{Binding WindroseCircles}"
+                                     Minimum="0"
+                                     Increment="1"
+                                     Maximum="2"
+                                     DecimalPlaces="0"
+                                     Margin="3,3,3,3"
+                                     Width="60"/>
+                </Grid>
+
+                <StackPanel
+                    Orientation="Horizontal"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="RIght"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="3,10,3,3">
+
+                    <TextBlock Text="Fade"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,6,3"/>
+                    
+                    <CheckBox x:Name="WindroseFadeToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        IsChecked="{Binding WindroseFade}"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+
+                </StackPanel>
+            </StackPanel>
+
+        </GroupBox>
     </Grid>
 </UserControl>

@@ -32,6 +32,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public BackgroundPanelViewModel BackgroundViewModel { get; }
 
+        public OceanPanelViewModel OceanViewModel { get; }
+
         public LandformPanelViewModel LandformViewModel { get; }
 
         public WaterPanelViewModel WaterViewModel { get; }
@@ -61,6 +63,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
             BackgroundViewModel = new BackgroundPanelViewModel(_editor, assetManager);
 
             // Ocean Panel
+            OceanViewModel = new OceanPanelViewModel(_editor, assetManager);
 
             // Landform Panel
             LandformViewModel = new LandformPanelViewModel(_editor, assetManager);

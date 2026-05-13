@@ -163,8 +163,27 @@ namespace RealmStudioX.WPF.Editor.Tools
                             _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.BOXLAYER));
 
                             tool = new BoxTool(_commands, _assets,
-                                MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LABELLAYER),
+                                MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.BOXLAYER),
                                 _scene, _editorState, _fontManager, _editor, (IBoxSettings)context);
+
+                            return tool;
+                        }
+                        else
+                        {
+                            return _editor.ActiveEditorTool;
+                        }
+                    }
+                case EditorToolType.WindroseTool:
+                    {
+                        if (_editor.ActiveEditorTool is not WindroseTool)
+                        {
+                            if (context is null) return null;
+
+                            _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.WINDROSELAYER));
+
+                            tool = new WindroseTool(_commands, _assets,
+                                MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.WINDROSELAYER),
+                                _scene, _editorState, _fontManager, _editor, (IWindroseSettings)context);
 
                             return tool;
                         }
