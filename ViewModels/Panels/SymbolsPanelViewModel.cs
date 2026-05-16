@@ -2,6 +2,7 @@
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
+using RealmStudioX.WPF.Utilities;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using SkiaSharp;
 using System.Collections.ObjectModel;
@@ -477,7 +478,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
                     if (pbm != null)
                     {
-                        SymbolGridItem gridItem = new(symbol, ToImageSource(pbm), _editor.SymbolSelectionService);
+                        SymbolGridItem gridItem = new(symbol, pbm.ToImageSource(), _editor.SymbolSelectionService);
                         SymbolGridItems.Add(gridItem);
                     }
                 }
@@ -516,22 +517,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 && q.TextFilter == currentQuery.TextFilter
                 && q.Collections.SequenceEqual(currentQuery.Collections)
                 && q.Tags.SequenceEqual(currentQuery.Tags);
-        }
-
-        public static ImageSource ToImageSource(SKBitmap bitmap)
-        {
-            using var image = SKImage.FromBitmap(bitmap);
-            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-            using var stream = new MemoryStream(data.ToArray());
-
-            var bmp = new BitmapImage();
-            bmp.BeginInit();
-            bmp.CacheOption = BitmapCacheOption.OnLoad;
-            bmp.StreamSource = stream;
-            bmp.EndInit();
-            bmp.Freeze(); // IMPORTANT for performance
-
-            return bmp;
         }
 
         public class SymbolGridItem

@@ -57,6 +57,7 @@ namespace RealmStudioX.WPF.Editor.Tools
         {
             _currentWindrose = new()
             {
+                Bounds = _scene.WorldBounds,
                 Location = state.WorldPoint,
                 InnerCircles = _settings.WindroseCircles,
                 InnerRadius = _settings.WindroseInnerRadius,

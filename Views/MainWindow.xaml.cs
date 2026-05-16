@@ -843,6 +843,11 @@ namespace RealmStudioX.WPF
                 ltp.DataContext = ViewModel.LabelsViewModel;
             }
 
+            if (_toolPanels[tab] is OverlaysToolPanel otp)
+            {
+                otp.DataContext = ViewModel.OverlaysViewModel;
+            }
+
             SecondaryPanelHost.Content = _toolPanels[tab];
         }
 

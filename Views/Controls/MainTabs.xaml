@@ -95,7 +95,7 @@
             <panels:LabelsPanel DataContext="{Binding LabelsViewModel}"/>
         </TabItem>
         <TabItem Header="Overlays">
-            <panels:OverlaysPanel/>
+            <panels:OverlaysPanel DataContext="{Binding OverlaysViewModel}"/>
         </TabItem>
         <TabItem Header="Regions">
             <panels:RegionsPanel/>

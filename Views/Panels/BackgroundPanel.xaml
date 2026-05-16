@@ -248,10 +248,12 @@
                     <Slider x:Name="VignetteStrengthSlider"
                             Style="{StaticResource ModernSlider}"
                             Width="126"
-                            Minimum="0"
-                            Maximum="255"
+                            Minimum="0.0"
+                            Maximum="1.0"
+                            SmallChange="0.01"
+                            LargeChange="0.1"
                             AutoToolTipPlacement="TopLeft"
-                            AutoToolTipPrecision="0"
+                            AutoToolTipPrecision="2"
                             Value="{Binding VignetteStrength}"/>
                 </StackPanel>
 

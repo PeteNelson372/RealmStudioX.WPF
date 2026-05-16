@@ -3,24 +3,517 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"             
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Panels"
+             xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+             xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
+             xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
+             xmlns:core="clr-namespace:RealmStudioX.Core;assembly=RealmStudioX.Core"
+             xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"
              mc:Ignorable="d" 
              d:DesignHeight="916" d:DesignWidth="235">
     <Grid Visibility="Visible" Background="#FFDFDBD2">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="72"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel
+            Grid.Row="1"
+            Orientation="Vertical"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Right"
+            Width="72"
+            Height="Auto"
+            Margin="0,3,3,0" Grid.ColumnSpan="2" Grid.RowSpan="2">
 
-        <StackPanel Orientation="Horizontal"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Top">
-
-            <TextBlock Text="Overlays"
-                Foreground="Black"
-                FontSize="16"
-                FontWeight="SemiBold"
-                VerticalAlignment="Center"
-                Margin="0,0,0,0"/>
+            <Button
+                x:Name="SetScaleButton"
+                Width="50"
+                Height="50"
+                Margin="0,10,0,0"
+                ToolTip="Set Scale"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding OpenScaleCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Scale"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,0"/>
+                    <materialDesign:PackIcon Kind="Ruler"
+                                     Width="28"
+                                     Height="28"
+                                     RenderTransformOrigin="0.5,0.5"
+                                     Opacity="0.7">
+                        <materialDesign:PackIcon.RenderTransform>
+                            <RotateTransform Angle="45"/>
+                        </materialDesign:PackIcon.RenderTransform>
+                    </materialDesign:PackIcon>
+                </StackPanel>
+            </Button>
+            <Button
+                x:Name="SetGridButton"
+                Width="50"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Set Grid"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding SetGridCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Grid"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="Grid"
+                                     Width="22"
+                                     Height="22"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+            <Button
+                x:Name="CreateMeasureButton"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Create Measure"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding CreateMeasureCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Measure"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="MathCompass"
+                                     Width="22"
+                                     Height="22"
+                                     HorizontalAlignment="Center"                                             
+                                     Opacity="0.7">
+                    </materialDesign:PackIcon>
+                </StackPanel>
+            </Button>
         </StackPanel>
+
+        <StackPanel
+            Grid.Row="0"
+            Grid.Column="0"
+            Orientation="Horizontal"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="74"
+            Height="32"
+            Margin="3,3,0,0" Grid.RowSpan="2">
+
+            <CheckBox x:Name="OverlayEnabledToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        IsChecked="True"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+            <TextBlock Text="Show"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,6,3"/>
+        </StackPanel>
+
+        <GroupBox Header="Frame"
+            Grid.Row="1"
+            Grid.Column="0"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="154"
+            Height="Auto"
+            Margin="3,0,0,0" Grid.ColumnSpan="2">
+            
+            <StackPanel
+                Orientation="Vertical"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Center"
+                Width="Auto"
+                Height="Auto"
+                Margin="3,3,3,3">
+
+                <StackPanel
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="74"
+                    Height="32"
+                    Margin="3,3,0,0" Grid.RowSpan="2">
+
+                    <CheckBox x:Name="FrameEnabledToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        IsChecked="{Binding FrameEnabled}"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                    <TextBlock Text="Enable"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,6,3"/>
+                </StackPanel>
+                
+                <Button
+                    Style="{StaticResource FlatToolButton}"
+                    Width="120"
+                    Height="50"
+                    Margin="3,20,3,10"
+                    Background="{Binding FrameBrush}"
+                    ToolTip="Select Frame Color"
+                    PreviewMouseLeftButtonUp="FrameColor_LeftClick"
+                    PreviewMouseRightButtonUp="FrameColor_RightClick">
+
+                    <materialDesign:PackIcon Kind="PaletteOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Opacity="0.7"/>
+                </Button>
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="130"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+
+                    <TextBlock Text="Scale"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                    <Slider x:Name="FrameScaleSlider"
+                            Style="{StaticResource ModernSlider}"
+                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                            AutoToolTipPlacement="TopLeft"
+                            AutoToolTipPrecision="1"
+                            Width="126"
+                            Minimum="0.1"
+                            Maximum="2.0"
+                            Value="{Binding FrameScale}"/>
+
+                </StackPanel>
+
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="Grid"
+            Grid.Row="2"
+            Grid.Column="0"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="154"
+            Height="Auto"
+            Margin="3,3,0,0" Grid.ColumnSpan="2">
+
+            <StackPanel
+                Orientation="Vertical"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Center"
+                Width="Auto"
+                Height="Auto"
+                Margin="3,3,3,3">
+
+                <StackPanel
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="74"
+                    Height="32"
+                    Margin="3,3,0,0" Grid.RowSpan="2">
+
+                    <CheckBox x:Name="GridEnabledToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        IsChecked="{Binding GridEnabled}"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                    <TextBlock Text="Enable"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,6,3"/>
+                </StackPanel>
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="130"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+
+                    <TextBlock Text="Grid Style"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                    <RadioButton Content="Square" GroupName="GridType"
+                                 Margin="10,3,3,3"
+                                 IsChecked="{Binding GridType,
+                                 Mode=TwoWay,
+                                 Converter={StaticResource EnumToBooleanConverter},
+                                 ConverterParameter={x:Static rendering:MapGridType.Square}}"/>
+
+                    <RadioButton Content="Flat Hex" GroupName="GridType"
+                                 Margin="10,3,3,3"
+                                 IsChecked="{Binding GridType,
+                                 Mode=TwoWay,
+                                 Converter={StaticResource EnumToBooleanConverter},
+                                 ConverterParameter={x:Static rendering:MapGridType.FlatHex}}"/>
+                    
+                    <RadioButton Content="Pointed Hex" GroupName="GridType"
+                                 Margin="10,3,3,3"
+                                 IsChecked="{Binding GridType,
+                                 Mode=TwoWay,
+                                 Converter={StaticResource EnumToBooleanConverter},
+                                 ConverterParameter={x:Static rendering:MapGridType.PointedHex}}"/>
+                </StackPanel>
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="130"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+
+                    <TextBlock Text="Grid Layer"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                    <RadioButton Content="Default" GroupName="GridLayer"
+                                 Margin="10,3,3,3"                                 
+                                 IsChecked="{Binding GridLayer,
+                                    Mode=TwoWay,
+                                    Converter={StaticResource IntToBooleanConverter},
+                                    ConverterParameter={x:Static rendering:MapBuilder.DEFAULTGRIDLAYER}}"/>
+
+                    <RadioButton Content="Above Ocean" GroupName="GridLayer"
+                                 Margin="10,3,3,3"
+                                 IsChecked="{Binding GridLayer,
+                                 Mode=TwoWay,
+                                 Converter={StaticResource IntToBooleanConverter},
+                                 ConverterParameter={x:Static rendering:MapBuilder.ABOVEOCEANGRIDLAYER}}"/>
+
+                    <RadioButton Content="Below Symbols" GroupName="GridLayer"
+                                 Margin="10,3,3,3"
+                                 IsChecked="{Binding GridLayer,
+                                 Mode=TwoWay,
+                                 Converter={StaticResource IntToBooleanConverter},
+                                 ConverterParameter={x:Static rendering:MapBuilder.BELOWSYMBOLSGRIDLAYER}}"/>
+                </StackPanel>
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="130"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+
+                    <TextBlock Text="Size"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                    <Slider x:Name="GridSizeSlider"
+                            Style="{StaticResource ModernSlider}"
+                            Width="126"
+                            Minimum="8"      
+                            Maximum="256"
+                            SmallChange="1"
+                            LargeChange="10"
+                            AutoToolTipPlacement="TopLeft"
+                            AutoToolTipPrecision="0"
+                            Value="{Binding GridSize}"/>
+                </StackPanel>
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="130"
+                    Height="Auto"
+                    Margin="3,3,3,3">
+
+                    <TextBlock Text="Line Width"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                    <Slider x:Name="GridLineWidthSlider"
+                            Style="{StaticResource ModernSlider}"
+                            Width="126"
+                            Minimum="1"
+                            Maximum="10"
+                            SmallChange="1"
+                            LargeChange="2"
+                            AutoToolTipPlacement="TopLeft"
+                            AutoToolTipPrecision="0"
+                            Value="{Binding GridLineWidth}"/>
+                </StackPanel>
+
+                <Button
+                    Style="{StaticResource FlatToolButton}"
+                    Width="120"
+                    Height="50"
+                    Margin="3,20,3,10"
+                    Background="{Binding GridBrush}"
+                    ToolTip="Select Grid Color"
+                    PreviewMouseLeftButtonUp="GridColor_LeftClick"
+                    PreviewMouseRightButtonUp="GridColor_RightClick">
+
+                    <materialDesign:PackIcon Kind="PaletteOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Opacity="0.7"/>
+                </Button>
+
+                <StackPanel
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="120"
+                    Height="32"
+                    Margin="3,3,0,0" Grid.RowSpan="2">
+
+                    <CheckBox x:Name="ShowGridSizeGridToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        IsChecked="{Binding GridSizeEnabled}"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                    <TextBlock Text="Show Grid Size"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,6,3"/>
+                </StackPanel>
+            </StackPanel>
+
+        </GroupBox>
+
+        <GroupBox Header="Measure"
+            Grid.Row="3"
+            Grid.Column="0"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="154"
+            Height="Auto"
+            Margin="3,0,0,0" Grid.ColumnSpan="2">
+
+            <StackPanel
+                Orientation="Vertical"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Center"
+                Width="Auto"
+                Height="Auto"
+                Margin="3,3,3,3">
+
+                <Button
+                    Style="{StaticResource FlatToolButton}"
+                    Width="120"
+                    Height="50"
+                    Margin="3,3,3,10"
+                    Background="{Binding MeasureColorBrush}"
+                    ToolTip="Select Measure Color"
+                    PreviewMouseLeftButtonUp="MeasureColor_LeftClick"
+                    PreviewMouseRightButtonUp="MeasureColor_RightClick">
+
+                    <materialDesign:PackIcon Kind="PaletteOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Opacity="0.7"/>
+                </Button>
+
+                <StackPanel
+                    Orientation="Horizontal"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="120"
+                    Height="32"
+                    Margin="3,3,0,0" Grid.RowSpan="2">
+
+                    <CheckBox x:Name="UseScaleUnitsToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        IsChecked="{Binding UseScaleUnits}"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                    <TextBlock Text="Use Scale Units"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,6,3"/>
+                </StackPanel>
+
+
+                <StackPanel
+                    Orientation="Horizontal"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Width="120"
+                    Height="32"
+                    Margin="3,3,0,0" Grid.RowSpan="2">
+
+                    <CheckBox x:Name="MeasureAreaToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        IsChecked="{Binding MeasureArea}"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                    <TextBlock Text="Measure Area"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,6,3"/>
+                </StackPanel>
+                <Button
+                    x:Name="ClearMeasureButton"
+                    Height="35"
+                    Margin="0,3,0,0"
+                    ToolTip="Clear Measure"
+                    Style="{StaticResource FlatToolButton}"
+                    Command="{Binding ClearMeasureCommand}">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="ClearBoxOutline"
+                                     Width="14"
+                                     Height="14"
+                                     VerticalAlignment="Center"
+                                     Opacity="0.7">
+                        </materialDesign:PackIcon>
+                        <TextBlock Text="Clear Measure"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               VerticalAlignment="Center"
+                               Margin="3,0,0,1"/>
+
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </GroupBox>
     </Grid>
 </UserControl>

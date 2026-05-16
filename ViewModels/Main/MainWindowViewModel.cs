@@ -6,7 +6,10 @@ using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
+using System.IO;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace RealmStudioX.WPF.ViewModels.Main
 {
@@ -44,6 +47,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public LabelsPanelViewModel LabelsViewModel { get; }
 
+        public OverlaysPanelViewModel OverlaysViewModel { get; }
+
         public FontSelectionViewModel FontPanelViewModel { get; }
 
         public event Action? RequestOpenNameGeneratorConfig;
@@ -79,6 +84,9 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
             // Labels Panel
             LabelsViewModel = new LabelsPanelViewModel(this, _editor, assetManager);
+
+            // Overlays Panel
+            OverlaysViewModel = new OverlaysPanelViewModel(_editor, assetManager);
 
             FontPanelViewModel = new FontSelectionViewModel(this, _fontManager);
 
@@ -387,6 +395,22 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
                 OnPropertyChanged();
             }
+        }
+
+        public static ImageSource ToImageSource(SKBitmap bitmap)
+        {
+            using var image = SKImage.FromBitmap(bitmap);
+            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            using var stream = new MemoryStream(data.ToArray());
+
+            var bmp = new BitmapImage();
+            bmp.BeginInit();
+            bmp.CacheOption = BitmapCacheOption.OnLoad;
+            bmp.StreamSource = stream;
+            bmp.EndInit();
+            bmp.Freeze(); // IMPORTANT for performance
+
+            return bmp;
         }
     }
 }

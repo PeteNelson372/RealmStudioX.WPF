@@ -3,6 +3,7 @@ using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor.Tools;
 using RealmStudioX.WPF.Editor.UserInterface;
+using RealmStudioX.WPF.Utilities;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
@@ -1821,6 +1822,167 @@ namespace RealmStudioX.WPF.Editor
         private MapLayer GetBoxLayer()
         {
             return MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.BOXLAYER);
+        }
+
+        // -------------------------------------------------
+        // Vignette
+        // -------------------------------------------------
+
+        public void SetVignette(VignetteShapeType vignetteType, float vignetteStrength, SKColor vignetteColor)
+        {
+            MapVignette vignette = new()
+            {
+                VignetteShape = vignetteType,
+                VignetteStrength = vignetteStrength,
+                VignetteColor = vignetteColor
+            };
+
+            MapLayer vignetteLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.VIGNETTELAYER);
+            vignetteLayer.Add(vignette);
+        }
+
+        public void ClearVignette()
+        {
+            MapLayer vignetteLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.VIGNETTELAYER);
+            vignetteLayer.Clear();
+        }
+
+        public void UpdateVignette(VignetteShapeType vignetteType, float vignetteStrength, SKColor vignetteColor)
+        {
+            MapLayer vignetteLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.VIGNETTELAYER);
+
+            foreach (var component in vignetteLayer.Shapes)
+            {
+                if (component is MapVignette existingVignette)
+                {
+                    existingVignette.VignetteShape = vignetteType;
+                    existingVignette.VignetteStrength = vignetteStrength;
+                    existingVignette.VignetteColor = vignetteColor;
+                    existingVignette.IsModified = true;
+                    break;
+                }
+            }
+
+            RequestRedraw();
+        }
+
+        // -------------------------------------------------
+        // Frame
+        // -------------------------------------------------
+
+        public void SetFrame(MapFrame frame, SKColor frameColor, float frameScale)
+        {
+            MapLayer frameLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.FRAMELAYER);
+
+            // Clear existing frame
+            frameLayer.Clear();
+
+            if (frame != null)
+            {
+                if (frame.FrameBitmap == null)
+                {
+                    if (!string.IsNullOrEmpty(frame.FrameBitmapPath))
+                    {
+                        frame.FrameBitmap = SKBitmap.Decode(frame.FrameBitmapPath);
+                    }
+                }
+
+                PlacedMapFrame placedFrame = new()
+                {
+                    FrameDefinition = frame,
+                    FrameTint = frameColor,
+                    FrameScale = frameScale,
+                    Bounds = Scene.WorldBounds,
+                };
+
+                CompletePlacedFrame(placedFrame);
+
+                frameLayer.Add(placedFrame);
+            }
+        }
+
+        internal void CompletePlacedFrame(
+            PlacedMapFrame mapFrame)
+        {
+            if (mapFrame.FrameDefinition?.FrameBitmap == null)
+            {
+                return;
+            }
+
+            SKBitmap bitmap =
+                mapFrame.FrameDefinition.FrameBitmap;
+
+            SKRectI center = new(
+                (int)mapFrame.FrameDefinition.FrameCenterLeft,
+                (int)mapFrame.FrameDefinition.FrameCenterTop,
+                bitmap.Width -
+                    (int)mapFrame.FrameDefinition.FrameCenterRight,
+                bitmap.Height -
+                    (int)mapFrame.FrameDefinition.FrameCenterBottom);
+
+            if (center.IsEmpty)
+            {
+                return;
+            }
+
+            // Fix inverted rects
+            if (center.Right < center.Left)
+            {
+                (center.Left, center.Right) =
+                    (center.Right, center.Left);
+            }
+
+            if (center.Bottom < center.Top)
+            {
+                (center.Top, center.Bottom) =
+                    (center.Bottom, center.Top);
+            }
+
+            SKBitmap[] slices = UserInterfaceUtilities.SliceNinePatchBitmap(bitmap, center);
+
+            mapFrame.PatchA = slices[0];
+            mapFrame.PatchB = slices[1];
+            mapFrame.PatchC = slices[2];
+            mapFrame.PatchD = slices[3];
+            mapFrame.PatchE = slices[4];
+            mapFrame.PatchF = slices[5];
+            mapFrame.PatchG = slices[6];
+            mapFrame.PatchH = slices[7];
+            mapFrame.PatchI = slices[8];
+        }
+
+        // -------------------------------------------------
+        // Frame
+        // -------------------------------------------------
+
+        internal void SetGrid(MapGrid grid)
+        {
+            // remove any existing grid, then add new one
+            MapLayer defaultGridLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.DEFAULTGRIDLAYER);
+            defaultGridLayer.Clear();
+
+            MapLayer aboveOceanGridLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.ABOVEOCEANGRIDLAYER);
+            aboveOceanGridLayer.Clear();
+
+            MapLayer belowSymbolsGridLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.BELOWSYMBOLSGRIDLAYER);
+            belowSymbolsGridLayer.Clear();
+
+            if (grid != null && grid.GridEnabled)
+            {
+                MapLayer? targetLayer = grid.GridLayerIndex switch
+                {
+                    MapBuilder.DEFAULTGRIDLAYER => defaultGridLayer,
+                    MapBuilder.ABOVEOCEANGRIDLAYER => aboveOceanGridLayer,
+                    MapBuilder.BELOWSYMBOLSGRIDLAYER => belowSymbolsGridLayer,
+                    _ => null
+                };
+
+                if (targetLayer != null)
+                {
+                    targetLayer.Add(grid);
+                }
+            }
+
         }
 
         // -------------------------------------------------

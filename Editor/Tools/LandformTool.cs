@@ -108,7 +108,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                     {
                         lf.EndInteractive();
 
-                        var simplified = Utilities.SimplifyPath(lf.HitPath);
+                        var simplified = RealmStudioShapeRenderingLib.Utilities.SimplifyPath(lf.HitPath);
                         lf.ReplaceGeometry(simplified);
                     }
 
@@ -350,7 +350,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                 return;
             }
 
-            var contours = Utilities.ExtractContours(lf.HitPath);
+            var contours = RealmStudioShapeRenderingLib.Utilities.ExtractContours(lf.HitPath);
 
             if (contours.Count <= 1)
             {

@@ -4,6 +4,7 @@ using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
+using SkiaSharp.Views.WPF;
 using System.Windows.Input;
 using System.Windows.Media;
 using Brush = System.Windows.Media.Brush;
@@ -89,18 +90,42 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             }
         }
 
+        // vignette
+
+        public ICommand SetVignetteCommand => new RelayCommand(() =>
+        {
+            _editor.SetVignette(VignetteType, VignetteStrength, VignetteColor.ToSKColor());
+        });
+
+        public ICommand ClearVignetteCommand => new RelayCommand(() =>
+        {
+            _editor.ClearVignette();
+        });
+
         private VignetteShapeType _vignetteType = VignetteShapeType.Oval;
         public VignetteShapeType VignetteType
         {
             get => _vignetteType;
-            set => SetProperty(ref _vignetteType, value);
+            set
+            {
+                if (SetProperty(ref _vignetteType, value))
+                {
+                    VignetteChanged();
+                }
+            }
         }
 
-        private int _vignetteStrength = 148;
-        public int VignetteStrength
+        private float _vignetteStrength = 0.5f;
+        public float VignetteStrength
         {
             get => _vignetteStrength;
-            set => SetProperty(ref _vignetteStrength, value);
+            set
+            {
+                if (SetProperty(ref _vignetteStrength, value))
+                {
+                    VignetteChanged();
+                }
+            }
         }
 
         private Color _vignetteColor = Color.FromArgb(255, 201, 151, 123);
@@ -112,6 +137,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 if (SetProperty(ref _vignetteColor, value))
                 {
                     _vignetteBrush.Color = value;
+                    VignetteChanged();
                 }
             }
         }
@@ -119,5 +145,10 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         private SolidColorBrush _vignetteBrush = new(Color.FromArgb(255, 201, 151, 123));
 
         public Brush VignetteBrush => _vignetteBrush;
+
+        private void VignetteChanged()
+        {
+            _editor.UpdateVignette(VignetteType, VignetteStrength, VignetteColor.ToSKColor());
+        }
     }
 }

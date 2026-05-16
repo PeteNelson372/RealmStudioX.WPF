@@ -9,27 +9,81 @@
     <Border Background="#FFDFDBD2"
             Padding="10">
 
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <!-- Header -->
-                <RowDefinition Height="*"/>
-                <!-- Content -->
-            </Grid.RowDefinitions>
+        <Grid Width="136" Margin="3,20,3,3" HorizontalAlignment="Center">
 
-            <!-- Header -->
-            <TextBlock Text="Overlay Tools"
-                       FontSize="14"
-                       FontWeight="SemiBold"
-                       Foreground="Black"
-                       Margin="0,0,0,8"/>
+            <ListBox Grid.Row="1"
+                 ItemsSource="{Binding FrameGridItems}"
+                 SelectedItem="{Binding SelectedFrameGridItem}"
+                 BorderThickness="0"
+                 Background="Transparent"
+                 Margin="3,3,3,3"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 
-            <!-- Placeholder Content -->
-            <TextBlock Grid.Row="1"
-                       Text="Overlay tool controls will go here..."
-                       Foreground="Black"
-                       Opacity="0.7"
-                       TextWrapping="Wrap"/>
+                <!-- Single vertical column -->
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Vertical"/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+
+                <!-- Remove default ListBoxItem padding -->
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="2"/>
+                        <Setter Property="Margin" Value="2"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <Border x:Name="Border"
+                                        BorderBrush="Gray"
+                                        BorderThickness="1"
+                                        Background="Transparent">
+
+                                        <ContentPresenter/>
+                                    </Border>
+
+                                    <ControlTemplate.Triggers>
+
+                                        <!-- Selected -->
+                                        <Trigger Property="IsSelected" Value="True">
+
+                                            <Setter TargetName="Border"
+                                                Property="Background"
+                                                Value="#4488CCFF"/>
+
+                                            <Setter TargetName="Border"
+                                                Property="BorderBrush"
+                                                Value="#66AAFFFF"/>
+
+                                            <Setter TargetName="Border"
+                                                Property="BorderThickness"
+                                                Value="2"/>
+
+                                            <Setter Property="Margin" Value="3"/>
+                                        </Trigger>
+
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+
+                <!-- Frame item -->
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+
+                        <Grid Width="100" Height="60" Margin="3,3,3,3">
+                            <Image Source="{Binding Thumbnail}" Stretch="Fill"/>
+                        </Grid>
+
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+
+            </ListBox>
 
         </Grid>
 

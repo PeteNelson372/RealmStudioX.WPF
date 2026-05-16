@@ -1,18 +1,16 @@
 ﻿using RealmStudioShapeRenderingLib;
-using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.Editor.Tools;
+using RealmStudioX.WPF.Utilities;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
 using SkiaSharp;
-using SkiaSharp.Views.WPF;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using System.Windows.Media;
-using static RealmStudioX.WPF.ViewModels.Panels.SymbolsPanelViewModel;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 
@@ -398,7 +396,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                                             StringComparison.OrdinalIgnoreCase)))
                                 {
                                     mapBox.BoxBitmap = boxBitmap.Copy();
-                                    BoxGridItem gridItem = new(mapBox, ToImageSource(boxBitmap));
+                                    BoxGridItem gridItem = new(mapBox, boxBitmap.ToImageSource());
                                     BoxItems.Add(gridItem);
                                 }
                             }

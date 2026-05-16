@@ -173,7 +173,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             mapPath.ControlPoints.Add(worldPos);
 
-            mapPath.RestoreGeometry(Utilities.BuildPath(mapPath.ControlPoints));
+            mapPath.RestoreGeometry(RealmStudioShapeRenderingLib.Utilities.BuildPath(mapPath.ControlPoints));
 
             mapPath.Editor.EndDraw();
 

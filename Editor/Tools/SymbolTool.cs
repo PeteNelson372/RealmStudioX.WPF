@@ -264,7 +264,7 @@ namespace RealmStudioX
                         center.X + offset.X,
                         center.Y + offset.Y);
 
-                    if (IsFarEnough(candidate, radius))
+                    if (IsFarEnough(candidate, radius) && _activeCommand != null)
                     {
                         _brushPlaced.Add((candidate, radius));
 
