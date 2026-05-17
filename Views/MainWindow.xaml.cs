@@ -131,7 +131,7 @@ namespace RealmStudioX.WPF
                         startup.FilePath = string.Empty;
                     }
 
-                    RealmStudioMap map = MapBuilder.CreateMap(startup.FilePath, startup.MapName, startup.Width, startup.Height);
+                    RealmStudioMap map = MapBuilder.CreateMap(startup.FilePath, startup.MapName, startup.Width, startup.Height, startup.MapAreaWidth, startup.MapAreaHeight, startup.MapAreaUnits);
                     MapScene newScene = new(map, _fontManager)
                     {
                         RenderContext = _renderContext
@@ -143,7 +143,7 @@ namespace RealmStudioX.WPF
                     ViewModel.AttachScene(newScene);
 
                     ViewModel.MapName = map.MapName;
-                    ViewModel.MapSizeLabel = $"Map Size: {map.MapWidth} x {map.MapHeight}";
+                    ViewModel.MapSizeLabel = $"Map Size: {map.MapWidth} x {map.MapHeight}, Map Area: {map.MapAreaWidth} x {map.MapAreaHeight} {map.MapAreaUnits}";
 
                     OnDrawingModeChanged(MapDrawingMode.None);
 
@@ -156,9 +156,17 @@ namespace RealmStudioX.WPF
                 }
 
                 _editor.State.StatusMessage = $"Loaded {_assetManager.AssetCount} assets.";
+
+                _editor.State.DrawingModeChanged += OnDrawingModeChanged;
             };
 
             InitializeSkiaControl();
+        }
+
+        private void OnDrawingModeChanged(MapDrawingMode previous, MapDrawingMode current)
+        {
+            // this handles editorState.DrawingModeChanged event
+            ViewModel.DrawingModeLabel = ViewModel.SetDrawingModeLabel();
         }
 
         private void OpenNameGeneratorConfigDialog()
@@ -613,7 +621,7 @@ namespace RealmStudioX.WPF
             ArgumentNullException.ThrowIfNull(e.Surface);
 
             var canvas = e.Surface.Canvas;
-            canvas.Clear(SKColors.White);
+            canvas.Clear(SKColors.WhiteSmoke);
 
             if (_editor != null && _editor.Scene != null && _editor.Scene.Map != null && _renderContext != null)
             {

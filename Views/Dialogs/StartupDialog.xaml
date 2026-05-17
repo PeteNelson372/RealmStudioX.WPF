@@ -429,8 +429,9 @@
                                   Grid.Column="1"
                                   Width="100"
                                   Margin="0,0,0,6"
-                                  Background="#FFDFDBD2"                                          
-                                  SelectedIndex="2">
+                                  Background="#FFDFDBD2"
+                                  SelectedValuePath="Content"
+                                  SelectedValue="{Binding MapAreaUnits, Mode=TwoWay}">
                                     <!-- Default = Meters -->
 
                                     <ComboBoxItem Content="Centimeters"/>

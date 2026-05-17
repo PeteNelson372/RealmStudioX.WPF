@@ -4,10 +4,10 @@ using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor.Tools;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.Utilities;
+using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
-using static System.Formats.Asn1.AsnWriter;
 using CommandManager = RealmStudioX.Core.CommandManager;
 
 namespace RealmStudioX.WPF.Editor
@@ -795,8 +795,6 @@ namespace RealmStudioX.WPF.Editor
             ActiveEditorTool?.OnMouseUp(state);
             RequestRedraw();
         }
-
-
 
         internal void OnMouseDoubleClick(PointerState state)
         {
@@ -1952,24 +1950,38 @@ namespace RealmStudioX.WPF.Editor
         }
 
         // -------------------------------------------------
-        // Frame
+        // Grid
         // -------------------------------------------------
 
-        internal void SetGrid(MapGrid grid)
+        internal void SetGrid(IGridSettings settings)
         {
-            // remove any existing grid, then add new one
+            // find existing grid, if any
             MapLayer defaultGridLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.DEFAULTGRIDLAYER);
-            defaultGridLayer.Clear();
-
             MapLayer aboveOceanGridLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.ABOVEOCEANGRIDLAYER);
-            aboveOceanGridLayer.Clear();
-
             MapLayer belowSymbolsGridLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.BELOWSYMBOLSGRIDLAYER);
+
+            defaultGridLayer.Clear();
+            aboveOceanGridLayer.Clear();
             belowSymbolsGridLayer.Clear();
 
-            if (grid != null && grid.GridEnabled)
+            if (settings.GridEnabled)
             {
-                MapLayer? targetLayer = grid.GridLayerIndex switch
+                MapGrid newGrid = new()
+                {
+                    GridEnabled = settings.GridEnabled,
+                    GridType = settings.GridType,
+                    GridLayerIndex = settings.GridLayer,
+                    GridSize = settings.GridSize,
+                    GridLineWidth = settings.GridLineWidth,
+                    GridColor = settings.GridColor.ToSKColor(),
+                    ShowGridSize = settings.ShowGridSize,
+                    MapAreaWidth = Scene!.Map.MapAreaWidth,
+                    MapAreaHeight = Scene!.Map.MapAreaHeight,
+                    MapAreaUnits = Scene!.Map.MapAreaUnits
+                };
+
+                // create new grid and add to appropriate layer
+                MapLayer? targetLayer = newGrid.GridLayerIndex switch
                 {
                     MapBuilder.DEFAULTGRIDLAYER => defaultGridLayer,
                     MapBuilder.ABOVEOCEANGRIDLAYER => aboveOceanGridLayer,
@@ -1979,10 +1991,26 @@ namespace RealmStudioX.WPF.Editor
 
                 if (targetLayer != null)
                 {
-                    targetLayer.Add(grid);
+                    newGrid.Bounds = Scene.WorldBounds;
+                    targetLayer.Add(newGrid);
                 }
             }
+        }
 
+        internal void UpdateGrid(IGridSettings settings)
+        {
+            SetGrid(settings);
+            RequestRedraw();
+        }
+
+        // -------------------------------------------------
+        // Map Measures
+        // -------------------------------------------------
+
+        internal void ClearMapMeasures()
+        {
+            MapLayer measureLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.MEASURELAYER);
+            measureLayer.Clear();
         }
 
         // -------------------------------------------------
@@ -2023,5 +2051,6 @@ namespace RealmStudioX.WPF.Editor
         SymbolTool,
         WaterBodyTool,
         BoxTool,
+        MeasureTool,
     }
 }

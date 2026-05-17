@@ -192,6 +192,24 @@ namespace RealmStudioX.WPF.Editor.Tools
                             return _editor.ActiveEditorTool;
                         }
                     }
+                case EditorToolType.MeasureTool:
+                    {
+                        if (_editor.ActiveEditorTool is not MeasureTool)
+                        {
+                            if (context is null) return null;
+
+                            _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.MEASURELAYER));
+
+                            tool = new MeasureTool(_commands, _assets,
+                                MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.MEASURELAYER),
+                                _scene, _editorState, _fontManager, _editor, (IMeasureSettings)context);
+                            return tool;
+                        }
+                        else
+                        {
+                            return _editor.ActiveEditorTool;
+                        }
+                    }
             }
 
             return null;

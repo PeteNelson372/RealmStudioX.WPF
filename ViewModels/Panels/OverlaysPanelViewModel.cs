@@ -1,4 +1,5 @@
-﻿using RealmStudioShapeRenderingLib;
+﻿using MaterialDesignThemes.Wpf;
+using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
@@ -16,7 +17,7 @@ using Color = System.Windows.Media.Color;
 
 namespace RealmStudioX.WPF.ViewModels.Panels
 {
-    public class OverlaysPanelViewModel : ViewModelBase
+    public class OverlaysPanelViewModel : ViewModelBase, IMeasureSettings, IGridSettings
     {
         private EditorController _editor;
         private AssetManager _assetManager;
@@ -51,7 +52,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             }
         }
 
-        private Color _frameColor = Color.FromArgb(255, 201, 151, 123);
+        private Color _frameColor = Colors.White;
         public Color FrameColor
         {
             get => _frameColor;
@@ -65,7 +66,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             }
         }
 
-        private SolidColorBrush _frameBrush = new(Color.FromArgb(255, 201, 151, 123));
+        private SolidColorBrush _frameBrush = new(Colors.White);
         public Brush FrameBrush => _frameBrush;
 
 
@@ -126,30 +127,19 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             }
         }
 
-        // grid
+
 
         public ICommand SetScaleCommand => new RelayCommand(() =>
         {
 
         });
 
+        // grid
+
         public ICommand SetGridCommand => new RelayCommand(() =>
         {
-            MapGrid grid = new()
-            {
-                GridEnabled = GridEnabled,
-                GridType = GridType,
-                GridLayerIndex = GridLayer,
-                GridSize = GridSize,
-                GridLineWidth = GridLineWidth,
-                GridColor = GridColor.ToSKColor(),
-                ShowGridSize = ShowGridSize,
-                MapAreaWidth = _editor.Scene!.Map.MapAreaWidth,
-                MapAreaHeight = _editor.Scene!.Map.MapAreaHeight,
-                MapAreaUnits = _editor.Scene!.Map.MapAreaUnits
-            };
-
-            _editor.SetGrid(grid);
+            GridEnabled = !GridEnabled;
+            _editor.SetGrid((IGridSettings)this);
         });
 
         private bool _gridEnabled = false;
@@ -161,9 +151,12 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 if (SetProperty(ref _gridEnabled, value))
                 {
                     GridChanged();
+                    OnPropertyChanged(nameof(GridIcon));
                 }
             }
         }
+
+        public PackIconKind GridIcon => GridEnabled ? PackIconKind.GridOn : PackIconKind.GridOff;
 
         private MapGridType _gridType = MapGridType.Square;
         public MapGridType GridType
@@ -191,7 +184,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             }
         }
 
-        private Color _gridColor = Color.FromArgb(255, 201, 151, 123);
+        private Color _gridColor = Color.FromArgb(126, 0, 0, 0);
         public Color GridColor
         {
             get => _gridColor;
@@ -205,7 +198,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             }
         }
 
-        private SolidColorBrush _gridBrush = new(Color.FromArgb(255, 201, 151, 123));
+        private SolidColorBrush _gridBrush = new(Color.FromArgb(126, 0, 0, 0));
         public Brush GridBrush => _gridBrush;
 
 
@@ -260,38 +253,25 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         private void GridChanged()
         {
-            MapGrid grid = new()
-            {
-                GridEnabled = GridEnabled,
-                GridType = GridType,
-                GridLayerIndex = GridLayer,
-                GridSize = GridSize,
-                GridLineWidth = GridLineWidth,
-                GridColor = GridColor.ToSKColor(),
-                ShowGridSize = ShowGridSize,
-                MapAreaWidth = _editor.Scene!.Map.MapAreaWidth,
-                MapAreaHeight = _editor.Scene!.Map.MapAreaHeight,
-                MapAreaUnits = _editor.Scene!.Map.MapAreaUnits
-            };
-
-            _editor.SetGrid(grid);
+            _editor.UpdateGrid((IGridSettings)this);
         }
 
         // measure
 
         public ICommand CreateMeasureCommand => new RelayCommand(() =>
         {
-
+            _editor.SetDrawingMode(MapDrawingMode.DrawMapMeasure);
+            _editor.ActivateTool(EditorToolType.MeasureTool, (IMeasureSettings)this);
         });
 
         public ICommand ClearMeasureCommand => new RelayCommand(() =>
         {
-
+            _editor.ClearMapMeasures();
         });
 
 
 
-        private Color _measureColor = Color.FromArgb(255, 201, 151, 123);
+        private Color _measureColor = Color.FromArgb(191, 138, 26, 0);
         public Color MeasureColor
         {
             get => _measureColor;
@@ -305,9 +285,10 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             }
         }
 
-        private SolidColorBrush _measureBrush = new(Color.FromArgb(255, 201, 151, 123));
+        private SolidColorBrush _measureBrush = new(Color.FromArgb(191, 138, 26, 0));
 
         public Brush MeasureBrush => _measureBrush;
+
 
         private bool _useScaleUnits = true;
         public bool UseScaleUnits
@@ -349,6 +330,24 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+
+    public interface IGridSettings
+    {
+        bool GridEnabled { get; }
+        MapGridType GridType { get; }
+        int GridLayer { get; }
+        int GridSize { get; }
+        int GridLineWidth { get; }
+        Color GridColor { get; }
+        bool ShowGridSize { get; }
+    }
+
+    public interface IMeasureSettings
+    {
+        Color MeasureColor { get; }
+        bool UseScaleUnits { get; }
+        bool MeasureArea { get; }
     }
 }
 

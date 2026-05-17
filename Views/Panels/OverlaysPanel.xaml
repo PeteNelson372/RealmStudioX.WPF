@@ -72,10 +72,11 @@
                                Foreground="#FF45443F"
                                HorizontalAlignment="Center"
                                Margin="0,0,0,3"/>
-                    <materialDesign:PackIcon Kind="Grid"
-                                     Width="22"
-                                     Height="22"
-                                     Opacity="0.7"/>
+                    <materialDesign:PackIcon
+                        Kind="{Binding GridIcon}"
+                        Width="22"
+                        Height="22"
+                        Opacity="0.7"/>
                 </StackPanel>
             </Button>
             <Button
@@ -228,30 +229,6 @@
                 Margin="3,3,3,3">
 
                 <StackPanel
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    Orientation="Horizontal"
-                    VerticalAlignment="Top"
-                    HorizontalAlignment="Left"
-                    Width="74"
-                    Height="32"
-                    Margin="3,3,0,0" Grid.RowSpan="2">
-
-                    <CheckBox x:Name="GridEnabledToggle"
-                        Grid.Row="0"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Center"
-                        IsChecked="{Binding GridEnabled}"
-                        Style="{StaticResource ToggleSwitchStyle}"
-                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
-
-                    <TextBlock Text="Enable"
-                        Foreground="#FF45443F"
-                        VerticalAlignment="Center"
-                        Margin="3,3,6,3"/>
-                </StackPanel>
-
-                <StackPanel
                     Orientation="Vertical"
                     VerticalAlignment="Top"
                     HorizontalAlignment="Left"
@@ -375,7 +352,7 @@
                     Style="{StaticResource FlatToolButton}"
                     Width="120"
                     Height="50"
-                    Margin="3,20,3,10"
+                    Margin="3,10,3,10"
                     Background="{Binding GridBrush}"
                     ToolTip="Select Grid Color"
                     PreviewMouseLeftButtonUp="GridColor_LeftClick"
@@ -401,7 +378,7 @@
                         Grid.Row="0"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
-                        IsChecked="{Binding GridSizeEnabled}"
+                        IsChecked="{Binding ShowGridSize}"
                         Style="{StaticResource ToggleSwitchStyle}"
                         shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
@@ -436,7 +413,7 @@
                     Width="120"
                     Height="50"
                     Margin="3,3,3,10"
-                    Background="{Binding MeasureColorBrush}"
+                    Background="{Binding MeasureBrush}"
                     ToolTip="Select Measure Color"
                     PreviewMouseLeftButtonUp="MeasureColor_LeftClick"
                     PreviewMouseRightButtonUp="MeasureColor_RightClick">

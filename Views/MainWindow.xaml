@@ -137,12 +137,12 @@
                 </StatusBarItem>
             </StatusBar>
 
-            <Grid Grid.Row="1">
+            <Grid Grid.Row="1" Background="WhiteSmoke">
                 
             <!-- SKGLControl host -->
             <wfi:WindowsFormsHost x:Name="FormsHost"
                 Visibility="Visible"
-                Background="WhiteSmoke"
+                Background="White"
                 Cursor="None"
                 SizeChanged="OnViewportSizeChanged"/>
 
@@ -195,7 +195,7 @@
             <DockPanel LastChildFill="True">
                 <!-- Map Size -->
                 <StatusBarItem
-                    Width="150"
+                    Width="450"
                     DockPanel.Dock="Left"
                     Margin="10,0" Foreground="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}">
                     <TextBlock Text="{Binding MapSizeLabel}"/>
@@ -214,7 +214,7 @@
 
                     <!-- Drawing Mode -->
                     <StatusBarItem
-                        Width="650"
+                        Width="390"
                         Margin="10,0" Foreground="ForestGreen" FontWeight="Bold">
                         <TextBlock Text="{Binding DrawingModeLabel}"/>
                     </StatusBarItem>

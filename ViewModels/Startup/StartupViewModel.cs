@@ -76,7 +76,7 @@ namespace RealmStudioX.WPF.ViewModels.Startup
             set => SetProperty(ref _areaHeight, value);
         }
 
-        private string _mapAreaUnits = "feet";
+        private string _mapAreaUnits = "Miles";
         public string MapAreaUnits
         {
             get => _mapAreaUnits;
