@@ -195,6 +195,7 @@ namespace RealmStudioX.WPF.ViewModels.Controls
             AddFontToRecentList(fm);
 
             _mainViewModel.LabelsViewModel.FontStyle = fm.Clone();
+            _mainViewModel.ScaleViewModel.FontStyle = fm.Clone();
 
             _ = CloseAndRefreshAsync();
         });

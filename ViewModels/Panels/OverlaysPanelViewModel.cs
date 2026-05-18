@@ -31,10 +31,30 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             AddFrameItems();
         }
 
+        private bool _isMapScalePopupOpen = false;
+        public bool IsMapScalePopupOpen
+        {
+            get => _isMapScalePopupOpen;
+            set
+            {
+                if (_isMapScalePopupOpen != value)
+                {
+                    _isMapScalePopupOpen = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public ICommand SelectCommand => new RelayCommand(() =>
+        {
+            _editor.SetDrawingMode(MapDrawingMode.ShapeSelect);
+        });
+
+
         // scale
         public ICommand OpenScaleCommand => new RelayCommand(() =>
         {
-
+            IsMapScalePopupOpen = !IsMapScalePopupOpen;
         });
 
         // frame

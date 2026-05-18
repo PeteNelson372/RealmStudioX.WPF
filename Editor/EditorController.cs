@@ -4,7 +4,7 @@ using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor.Tools;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.Utilities;
-using RealmStudioX.WPF.ViewModels.Main;
+using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
@@ -559,6 +559,13 @@ namespace RealmStudioX.WPF.Editor
                                 lf.BeginInteractive();
                             }
                         }
+
+                        if (SelectedShape is MapScale scale)
+                        {
+                            _dragShape = scale;
+                            _dragStartWorld = new SKPoint(scale.Location.X + scale.ScaleWidth / 2, scale.Location.Y + scale.ScaleHeight / 2);
+                            _isDragging = true;
+                        }
                     }
 
                     return;
@@ -665,18 +672,40 @@ namespace RealmStudioX.WPF.Editor
                 }
 
                 if (_isDragging
-                    && _dragShape != null
-                    && _dragOriginalGeometry != null)
+                    && _dragShape != null)
                 {
                     // drag selected shape
                     float dx = state.WorldPoint.X - _dragStartWorld.X;
                     float dy = state.WorldPoint.Y - _dragStartWorld.Y;
 
-                    if (_dragShape is Landform lf)
+                    if (_dragShape is Landform lf && _dragOriginalGeometry != null)
                     {
                         lf.RestoreGeometry(_dragOriginalGeometry);
-
                         lf.Translate(dx, dy);
+                    }
+
+                    if (_dragShape is MapScale scale)
+                    {
+                        float newX = _dragStartWorld.X + dx;
+                        float newY = _dragStartWorld.Y + dy;
+
+                        newX = Math.Clamp(newX, 0, Scene.Map.MapWidth);
+                        newY = Math.Clamp(newY, 0, Scene.Map.MapHeight);
+
+                        SKPoint newLocation = new(newX - scale.ScaleWidth / 2, newY - scale.ScaleHeight / 2);
+
+                        scale.Location = newLocation;
+
+                        SKRect scaleBounds = new()
+                        {
+                            Left = scale.Location.X,
+                            Top = scale.Location.Y // 100 pixels from the bottom edge
+                        };
+
+                        scaleBounds.Right = scaleBounds.Left + scale.ScaleWidth;
+                        scaleBounds.Bottom = scaleBounds.Top + scale.ScaleHeight;
+
+                        scale.Bounds = scaleBounds;
                     }
                 }
             }
@@ -758,12 +787,9 @@ namespace RealmStudioX.WPF.Editor
             {
                 if (_isDragging && _dragShape != null)
                 {
-                    if (_dragShape is Shape2D)
+                    if (_dragShape is Landform lf)
                     {
-                        if (_dragShape is Landform lf)
-                        {
-                            lf.EndInteractive();
-                        }
+                        lf.EndInteractive();
 
                         var cmd = new Cmd_ModifyShapeGeometry(
                             (Shape2D)_dragShape,
@@ -771,14 +797,14 @@ namespace RealmStudioX.WPF.Editor
                             new SKPath(((Shape2D)_dragShape).HitPath));
 
                         _commands.Execute(cmd);
-
-                        RequestRedraw();
                     }
 
                     _dragOriginalGeometry?.Dispose();
                     _dragOriginalGeometry = null;
                     _dragShape = null;
                     _isDragging = false;
+
+                    RequestRedraw();
                 }
             }
 
@@ -923,6 +949,13 @@ namespace RealmStudioX.WPF.Editor
                 box.IsSelected = true;
                 _editorState.StatusMessage = "Box Selected ";
                 _selectedShape = box;
+            }
+            else if (_selectedShape is MapScale mapScale)
+            {
+                DeselectAllMapComponents(Scene!, mapScale);
+                mapScale.IsSelected = true;
+                _editorState.StatusMessage = "Map Scale Selected ";
+                _selectedShape = mapScale;
             }
             else if (_selectedShape is WaterSystem waterSystem)
             {
@@ -2011,6 +2044,56 @@ namespace RealmStudioX.WPF.Editor
         {
             MapLayer measureLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.MEASURELAYER);
             measureLayer.Clear();
+        }
+
+        // -------------------------------------------------
+        // Map Scale
+        // -------------------------------------------------
+
+        internal void CreateMapScale(IMapScaleSettings mapScaleSettings)
+        {
+            MapScale scale = new()
+            {
+                ScaleWidth = mapScaleSettings.ScaleWidth,
+                ScaleHeight = mapScaleSettings.ScaleHeight,
+                ScaleSegmentCount = mapScaleSettings.ScaleSegments,
+                ScaleLineWidth = mapScaleSettings.ScaleLineWidth,
+                ScaleColor1 = mapScaleSettings.SegmentColor1.ToSKColor(),
+                ScaleColor2 = mapScaleSettings.SegmentColor2.ToSKColor(),
+                ScaleColor3 = mapScaleSettings.SegmentColor3.ToSKColor(),
+                ScaleDistance = mapScaleSettings.SegmentDistance,
+                ScaleDistanceUnit = mapScaleSettings.UnitLabel,
+                ScaleNumbersDisplayType = mapScaleSettings.ScaleNumbersDisplayLocation,
+                ScaleFont = mapScaleSettings.FontStyle,
+                ScaleFontColor = mapScaleSettings.FontColor.ToSKColor(),
+                ScaleOutlineColor = mapScaleSettings.NumbersOutlineColor.ToSKColor(),
+                ScaleOutlineWidth = mapScaleSettings.NumbersOutlineWidth
+            };
+
+
+            SKRect scaleBounds = new()
+            {
+                Left = _scene!.WorldBounds.Left + 100, // 100 pixels from the left edge
+                Top = _scene!.WorldBounds.Bottom - 100 // 100 pixels from the bottom edge
+            };
+
+            scale.Location = new SKPoint(scaleBounds.Left, scaleBounds.Top);
+
+            scaleBounds.Right = scaleBounds.Left + mapScaleSettings.ScaleWidth;
+            scaleBounds.Bottom = scaleBounds.Top + mapScaleSettings.ScaleHeight;
+
+            scale.Bounds = scaleBounds;
+            scale.LocalBounds = new SKRect(0, 0, mapScaleSettings.ScaleWidth, mapScaleSettings.ScaleHeight);
+
+            MapLayer overlayLayer = MapBuilder.GetMapLayerByIndex(_scene!.Map, MapBuilder.OVERLAYLAYER);
+            overlayLayer.Clear(); // Clear existing scale if any
+            overlayLayer.Add(scale);
+        }
+
+        internal void RemoveMapScale()
+        {
+            MapLayer overlayLayer = MapBuilder.GetMapLayerByIndex(_scene!.Map, MapBuilder.OVERLAYLAYER);
+            overlayLayer.Clear(); // Clear existing scale if any
         }
 
         // -------------------------------------------------

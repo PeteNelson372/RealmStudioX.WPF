@@ -161,6 +161,22 @@
                     </Border>
 
                 </Popup>
+
+                <!-- Floating map scale picker -->
+                <Popup x:Name="MapScalePopup"
+                   IsOpen="{Binding OverlaysViewModel.IsMapScalePopupOpen}"
+                   Placement="Right"
+                   PlacementTarget="{Binding ElementName=FormsHost}"
+                   HorizontalOffset="-210"
+                   VerticalOffset="10"
+                   StaysOpen="True"
+                   AllowsTransparency="False">
+
+                    <Border Background="Transparent">
+                        <controls:MapScaleControl DataContext="{Binding ScaleViewModel}"/>
+                    </Border>
+
+                </Popup>
             </Grid>
             
             <!-- Horizontal ScrollBar -->

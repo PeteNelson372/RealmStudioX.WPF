@@ -145,6 +145,13 @@ namespace RealmStudioX.WPF
                     ViewModel.MapName = map.MapName;
                     ViewModel.MapSizeLabel = $"Map Size: {map.MapWidth} x {map.MapHeight}, Map Area: {map.MapAreaWidth} x {map.MapAreaHeight} {map.MapAreaUnits}";
 
+                    ViewModel.ScaleViewModel.UnitLabel = map.MapAreaUnits;
+                    ViewModel.ScaleViewModel.FontStyle = new FontStyleModel
+                    {
+                        Family = "Segoe UI",
+                        Size = 14,
+                    };
+
                     OnDrawingModeChanged(MapDrawingMode.None);
 
                     _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.DRAWINGLAYER));
@@ -632,8 +639,6 @@ namespace RealmStudioX.WPF
                     canvas.Translate(_editor.Scene.Camera.Pan.X, _editor.Scene.Camera.Pan.Y);
                     canvas.Scale(_editor.Scene.Camera.Zoom);
 
-                    canvas.DrawRect(new SKRect(0, 0, _editor.Scene.Map.MapWidth, _editor.Scene.Map.MapHeight), PaintObjects.MapOutlinePaint);
-
                     if (_skiaControl.GRContext != null
                         && _editor.Scene.Map != null
                         && _editor.Scene.Map.MapLayers.Count == MapBuilder.MAP_LAYER_COUNT)
@@ -644,7 +649,10 @@ namespace RealmStudioX.WPF
                         _editor.RenderOverlay(canvas);
 
                         // TODO: handle rendering height map
+
+                        canvas.DrawRect(new SKRect(0, 0, _editor.Scene.Map!.MapWidth, _editor.Scene.Map.MapHeight), PaintObjects.MapBoundaryPaint);
                     }
+
                 }
             }
         }

@@ -51,6 +51,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public FontSelectionViewModel FontPanelViewModel { get; }
 
+        public MapScaleViewModel ScaleViewModel { get; }
+
         public event Action? RequestOpenNameGeneratorConfig;
 
 
@@ -88,7 +90,11 @@ namespace RealmStudioX.WPF.ViewModels.Main
             // Overlays Panel
             OverlaysViewModel = new OverlaysPanelViewModel(_editor, assetManager);
 
+            // Font Panel (Font selection control)
             FontPanelViewModel = new FontSelectionViewModel(this, _fontManager);
+
+            // Map Scale Control
+            ScaleViewModel = new MapScaleViewModel(_editor);
 
             MapName = "Default";
         }
