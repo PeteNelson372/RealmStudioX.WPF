@@ -3,35 +3,110 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+             xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Panels"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+             xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
+             xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
+             xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"              
              mc:Ignorable="d"
              d:DesignHeight="922" d:DesignWidth="152">
 
     <Border Background="#FFDFDBD2"
             Padding="10">
 
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <!-- Header -->
-                <RowDefinition Height="*"/>
-                <!-- Content -->
-            </Grid.RowDefinitions>
+        <StackPanel Orientation="Vertical">
 
-            <!-- Header -->
-            <TextBlock Text="Drawing Tools"
-                       FontSize="14"
-                       FontWeight="SemiBold"
-                       Foreground="Black"
-                       Margin="0,0,0,8"/>
+            <TextBlock Text="Color Brush"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Left"
+                               Margin="0,0,0,3"/>
 
-            <!-- Placeholder Content -->
-            <TextBlock Grid.Row="1"
-                       Text="Drawing tool controls will go here..."
-                       Foreground="Black"
-                       Opacity="0.7"
-                       TextWrapping="Wrap"/>
+            <Grid>
 
-        </Grid>
+                <!-- COLLAPSED BUTTON -->
+                <ToggleButton x:Name="BrushPickerButton"
+                  Width="120"
+                  Height="40">
+
+                    <StackPanel Orientation="Horizontal">
+
+                        <Image Source="{Binding SelectedBrushPattern.PreviewImage}"
+                           Width="32"
+                           Height="32"
+                           Margin="4"/>
+
+                        <TextBlock Text="{Binding SelectedBrushPattern.Name}"
+                           VerticalAlignment="Center"
+                           Margin="6,0,0,0"/>
+
+                    </StackPanel>
+
+                </ToggleButton>
+
+                <!-- POPUP -->
+                <Popup Placement="Bottom"
+                   PlacementTarget="{Binding ElementName=BrushPickerButton}"
+                   IsOpen="{Binding IsChecked,
+                   ElementName=BrushPickerButton}"
+                    StaysOpen="False">
+
+                    <Border Background="#FF2A2A2A"
+                        BorderBrush="Gray"
+                        BorderThickness="1"
+                        Padding="4">
+
+                        <ScrollViewer MaxHeight="300">
+
+                            <ItemsControl ItemsSource="{Binding BrushPatterns}">
+
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+
+                                        <Button Width="80"
+                                        Height="80"
+                                        Margin="2"
+                                        Command="{Binding DataContext.SelectBrushPatternCommand,
+                                        RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}">
+
+                                            <StackPanel>
+
+                                                <Image Source="{Binding PreviewImage}"
+                                                   Width="48"
+                                                   Height="48"
+                                                   Margin="2"/>
+
+                                                <TextBlock Text="{Binding Name}"
+                                                   FontSize="10"
+                                                   HorizontalAlignment="Center"/>
+
+                                            </StackPanel>
+
+                                        </Button>
+
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+
+                            </ItemsControl>
+
+                        </ScrollViewer>
+
+                    </Border>
+
+                </Popup>
+
+            </Grid>
+
+        </StackPanel>
 
     </Border>
 

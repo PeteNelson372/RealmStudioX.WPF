@@ -3,24 +3,544 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
              xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Panels"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+             xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
+             xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
+             xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"             
              mc:Ignorable="d" 
              d:DesignHeight="916" d:DesignWidth="235">
     <Grid Visibility="Visible" Background="#FFDFDBD2">
         <Grid.RowDefinitions>
-            <RowDefinition Height="916"/>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="72"/>
+        </Grid.ColumnDefinitions>
 
-        <StackPanel Orientation="Horizontal"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Top">
+        <StackPanel
+            Grid.Row="1"
+            Grid.Column="1"
+            Orientation="Vertical"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Right"
+            Width="72"
+            Height="Auto"
+            Margin="0,3,3,0" Grid.RowSpan="3">
 
-            <TextBlock Text="Drawing"
-                                Foreground="Black"
-                                FontSize="16"
-                                FontWeight="SemiBold"
-                                VerticalAlignment="Center"
-                                Margin="0,0,0,0"/>
+            <Button
+                x:Name="SelectButton"
+                Height="50"
+                Margin="0,10,0,0"
+                ToolTip="Select Map Object"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding SelectCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Select"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="CursorDefault"
+                                     HorizontalAlignment="Center"
+                                     Width="20"
+                                     Height="20"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+            <Button
+                x:Name="PencilDrawButton"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Draw Path"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding PencilDrawCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Draw"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="Draw"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
+            <Button
+                x:Name="PaintDrawButton"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Draw Path"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding PaintDrawCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Paint"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="Paintbrush"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
+            <Button
+                x:Name="FillShapeButton"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Fill Shape"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding FillShapeCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Fill"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="FormatColorFill"
+                                     Width="28"
+                                     Height="28"
+                                     Opacity="0.7">
+                    </materialDesign:PackIcon>
+                </StackPanel>
+            </Button>
+            <!-- Dropdown -->
+            <ToggleButton
+                    x:Name="DropDownButton"
+                    Content="Type ▾"
+                    FontSize="12"
+                    Background="#00FFFFFF"
+                    BorderBrush="#00FFFFFF"
+                    Width="58"
+                    Height="28"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,1,1"
+                    Focusable="False">
+                <ToggleButton.Template>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Root"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="0">
+                            <ContentPresenter
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+                        </Border>
+
+                        <!-- Optional: keep state visuals under your control -->
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#FFCAC7BF"/>
+                            </Trigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="Transparent"/>
+                            </Trigger>
+
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="Transparent"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </ToggleButton.Template>
+            </ToggleButton>
+
+            <!-- Popup -->
+            <Popup
+                    IsOpen="{Binding IsChecked, ElementName=DropDownButton}"
+                    PlacementTarget="{Binding ElementName=DropDownButton}"
+                    Placement="Bottom"
+                    StaysOpen="False">
+
+                <Border Background="#FFCAC7BF" BorderBrush="#FFCAC7BF" Padding="4">
+                    <StackPanel MinWidth="140">
+
+                        <Button Style="{StaticResource FlatToolButtonDarker}"
+                                Click="SelectShapeFillType_Click"
+                                Tag="Texture">
+
+                            <StackPanel Orientation="Horizontal">
+
+                                <!-- Checkmark -->
+                                <TextBlock Width="16"
+                                       Margin="0,0,6,0"
+                                       Text="✔">
+
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Hidden"/>
+
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedShapeFillType}"
+                                                            Value="Texture">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+
+                                        </Style>
+                                    </TextBlock.Style>
+
+                                </TextBlock>
+
+                                <!-- Label -->
+                                <TextBlock Text="Texture"/>
+
+                            </StackPanel>
+
+                        </Button>
+
+                        <Button Style="{StaticResource FlatToolButtonDarker}"
+                                Click="SelectShapeFillType_Click"
+                                Tag="Color">
+
+                            <StackPanel Orientation="Horizontal">
+
+                                <!-- Checkmark -->
+                                <TextBlock Width="16"
+                                       Margin="0,0,6,0"
+                                       Text="✔">
+
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Hidden"/>
+
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedShapeFillType}"
+                                                            Value="Color">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+
+                                        </Style>
+                                    </TextBlock.Style>
+
+                                </TextBlock>
+
+                                <!-- Label -->
+                                <TextBlock Text="Color"/>
+
+                            </StackPanel>
+
+                        </Button>
+
+                    </StackPanel>
+                </Border>
+            </Popup>
+            
+            <Separator
+                Margin="0,20,0,20"
+                Background="#FFB9B5AD"
+                Height="1"/>
+
+            <Button
+                x:Name="PlaceRectangleButton"
+                Height="50"
+                Margin="0,0,0,0"
+                ToolTip="Place Rectangle"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding PlaceRectangleCommand}">
+
+                    <materialDesign:PackIcon Kind="SquareOutline"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+
+            </Button>
+
+            <Button
+                x:Name="PlaceEllipseButton"
+                Height="55"
+                Margin="0,10,0,0"
+                ToolTip="Place Ellipse"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding PlaceEllipseCommand}">
+
+                    <materialDesign:PackIcon Kind="CircleOutline"
+                                     Width="24"
+                                     Height="24"
+                                     HorizontalAlignment="Center"
+                                     Opacity="0.7">
+                    </materialDesign:PackIcon>
+
+            </Button>
+            <Button
+                x:Name="PlacePolygonButton"
+                Height="55"
+                Margin="0,10,0,0"
+                ToolTip="Place Polygon"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding PlacePolygonCommand}">
+
+                <materialDesign:PackIcon Kind="VectorPolygon"
+                                     Width="24"
+                                     Height="24"
+                                     HorizontalAlignment="Center"
+                                     Opacity="0.7"/>
+            </Button>
+            <Button
+                x:Name="PlaceStampButton"
+                Height="55"
+                Margin="0,10,0,0"
+                ToolTip="Place Stamp"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding PlaceStampCommand}">
+
+                <materialDesign:PackIcon Kind="Stamper"
+                                     Width="24"
+                                     Height="24"
+                                     HorizontalAlignment="Center"
+                                     Opacity="0.7"/>
+            </Button>
+
+            <Separator
+                Margin="0,20,0,20"
+                Background="#FFB9B5AD"
+                Height="1"/>
+
+            <Button
+                x:Name="EraseDrawingButton"
+                Height="55"
+                Margin="0,10,0,0"
+                ToolTip="Erase Drawing"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding EraseDrawingCommand}">
+
+                <materialDesign:PackIcon Kind="Eraser"
+                                     Width="24"
+                                     Height="24"
+                                     HorizontalAlignment="Center"
+                                     Opacity="0.7"/>
+            </Button>
+
+            <Button
+                x:Name="PixelEditButton"
+                Height="55"
+                Margin="0,10,0,0"
+                ToolTip="Pixel Edit"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding PixelEditCommand}">
+
+                <materialDesign:PackIcon Kind="Grid"
+                                     Width="24"
+                                     Height="24"
+                                     HorizontalAlignment="Center"
+                                     Opacity="0.7"/>
+            </Button>
+
         </StackPanel>
+
+        <StackPanel
+            Grid.Row="0"
+            Grid.Column="0"
+            Orientation="Horizontal"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="74"
+            Height="32"
+            Margin="3,3,0,0" Grid.RowSpan="2">
+
+            <CheckBox x:Name="DrawingEnabledToggle"
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        IsChecked="True"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+            <TextBlock Text="Show"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,6,3"/>
+        </StackPanel>
+
+        <GroupBox Header="Drawing"
+            Grid.Row="1"
+            Grid.Column="0"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="154"
+            Height="Auto"
+            Margin="3,0,0,0">
+
+            <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+                    Margin="3,3,3,3"
+                    Width="146"
+                    Height="Auto">
+
+                <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                    <TextBlock Text="Draw and Paint Color"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,3,3,3"/>
+                    <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Width="120"
+                        Height="50"
+                        Margin="3,3,3,3"
+                        Background="{Binding PathColorBrush}"
+                        ToolTip="Select Drawing and Painting Color"
+                        PreviewMouseLeftButtonUp="DrawColor_LeftClick"
+                        PreviewMouseRightButtonUp="DrawColor_RightClick">
+
+                        <materialDesign:PackIcon Kind="PaletteOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Opacity="0.7"/>
+                    </Button>
+
+                </StackPanel>
+
+                <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                    <TextBlock Text="Fill Color"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,3,3,3"/>
+                    <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Width="120"
+                        Height="50"
+                        Margin="3,3,3,3"
+                        Background="{Binding FillColorBrush}"
+                        ToolTip="Select Fill Color"
+                        PreviewMouseLeftButtonUp="FillColor_LeftClick"
+                        PreviewMouseRightButtonUp="FillColor_RightClick">
+
+                        <materialDesign:PackIcon Kind="PaletteOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Opacity="0.7"/>
+                    </Button>
+
+                </StackPanel>
+
+                <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                    <TextBlock Text="Line/Brush Size"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                    <Slider x:Name="LineBrushSizeSlider"
+                            Style="{StaticResource ModernSlider}"
+                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
+                            Width="126"
+                            Minimum="0"
+                            Maximum="1.0"
+                            Value="{Binding LineBrushSize}"/>
+
+                </StackPanel>
+
+                <controls:AssetBrowserControl x:Name="DrawingFillTextureBrowser"
+                                           DataContext="{Binding FillTextureBrowser}"
+                                           Width="136"
+                                           Height="160"
+                                           Margin="0,15,0,6"/>
+
+                <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="136"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                    <TextBlock Text="Opacity"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                    <Slider x:Name="TextureOpacitySlider"
+                            Style="{StaticResource ModernSlider}"
+                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
+                            Width="126"
+                            Minimum="0"
+                            Maximum="1.0"
+                            Value="{Binding LineBrushSize}"/>
+
+                </StackPanel>
+
+                <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="136"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                    <TextBlock Text="Scale"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                    <Slider x:Name="TextureScaleSlider"
+                            Style="{StaticResource ModernSlider}"
+                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
+                            Width="126"
+                            Minimum="0"
+                            Maximum="1.0"
+                            Value="{Binding LineBrushSize}"/>
+
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="Drawing Layers"
+            Grid.Row="2"
+            Grid.Column="0"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="154"
+            Height="Auto"
+            Margin="3,0,0,0">
+            
+            <ListBox x:Name="MapLayerList"
+                     Width="135"
+                     Height="260"
+                     Margin="3,6,3,3"
+                     ItemsSource="{Binding DrawableMapLayers}">
+
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <CheckBox Content="{Binding Name}"
+                                IsChecked="{Binding IsChecked, Mode=TwoWay}"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+
+            </ListBox>
+        </GroupBox>
     </Grid>
 </UserControl>

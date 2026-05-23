@@ -229,13 +229,13 @@
                     <Run Text="Shift+click on a landform coastline to begin snapping the region to the coastline of the landform."/>
                 </Paragraph>
                 <Paragraph>
-                    <Run Text="Drag down then shift+click on the coastline to snap the region to the east (right) coastline of the landform."/>
+                    <Run Text="When the cursor is close enough to the coastline to snap to it, a gold-colored circle will be displayed at the snap point."/>
                 </Paragraph>
                 <Paragraph>
-                    <Run Text="Drag up then shift+click on the coastline to snap the region to the west (left) coastline of the landform."/>
+                    <Run Text="To snap the region to the coastline, click on the snap point, then hold down the shift key and trace around the coastline while pressing the left mouse button."/>
                 </Paragraph>
                 <Paragraph>
-                    <Run Text="To snap a region to the north (top) or south (bottom) of a landform, shift+click on the east (right) coastline, then drag left and up or down to the opposite coastline, and shift+click."/>
+                    <Run Text="Release the shift key to stop snapping. Hold down the shift key to begin snapping again. When not snapping, click the left mouse button to set points on the region boundary."/>
                 </Paragraph>                
             </FlowDocument>
         </RichTextBox>

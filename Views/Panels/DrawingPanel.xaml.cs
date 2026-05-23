@@ -9,5 +9,30 @@
         {
             InitializeComponent();
         }
+
+        private void SelectShapeFillType_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+
+        }
+
+        private void DrawColor_LeftClick(object sender, System.Windows.RoutedEventArgs e)
+        {
+
+        }
+
+        private void DrawColor_RightClick(object sender, System.Windows.RoutedEventArgs e)
+        {
+
+        }
+
+        private void FillColor_LeftClick(object sender, System.Windows.RoutedEventArgs e)
+        {
+
+        }
+
+        private void FillColor_RightClick(object sender, System.Windows.RoutedEventArgs e)
+        {
+
+        }
     }
 }

@@ -101,7 +101,7 @@
             <panels:RegionsPanel DataContext="{Binding RegionViewModel}"/>
         </TabItem>
         <TabItem Header="Drawing">
-            <panels:DrawingPanel/>
+            <panels:DrawingPanel DataContext="{Binding DrawingViewModel}"/>
         </TabItem>
         <TabItem Header="Interior" Visibility="Collapsed">
             <panels:InteriorPanel/>

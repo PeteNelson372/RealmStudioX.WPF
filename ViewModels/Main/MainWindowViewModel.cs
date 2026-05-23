@@ -55,6 +55,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public RegionPanelViewModel RegionViewModel { get; }
 
+        public DrawingPanelViewModel DrawingViewModel { get; }
+
         public event Action? RequestOpenNameGeneratorConfig;
 
 
@@ -100,6 +102,9 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
             // Regions Panel
             RegionViewModel = new RegionPanelViewModel(_editor, assetManager);
+
+            // Drawing Panel
+            DrawingViewModel = new DrawingPanelViewModel(this, _editor, assetManager);
 
             MapName = "Default";
         }

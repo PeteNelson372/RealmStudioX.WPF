@@ -869,6 +869,11 @@ namespace RealmStudioX.WPF
                 rtp.DataContext = ViewModel.RegionViewModel;
             }
 
+            if (_toolPanels[tab] is DrawingToolPanel dtp)
+            {
+                dtp.DataContext = ViewModel.DrawingViewModel;
+            }
+
             SecondaryPanelHost.Content = _toolPanels[tab];
         }
 

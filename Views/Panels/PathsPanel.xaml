@@ -164,7 +164,7 @@
                     Height="50"
                     Margin="3,3,3,3"
                     Background="{Binding PathColorBrush}"
-                    ToolTip="Select Shallow Water Color"
+                    ToolTip="Select Path Color"
                     PreviewMouseLeftButtonUp="PathColor_LeftClick"
                     PreviewMouseRightButtonUp="PathColor_RightClick">
 
