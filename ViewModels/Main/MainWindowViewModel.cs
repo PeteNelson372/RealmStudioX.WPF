@@ -53,6 +53,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public MapScaleViewModel ScaleViewModel { get; }
 
+        public RegionPanelViewModel RegionViewModel { get; }
+
         public event Action? RequestOpenNameGeneratorConfig;
 
 
@@ -95,6 +97,9 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
             // Map Scale Control
             ScaleViewModel = new MapScaleViewModel(_editor);
+
+            // Regions Panel
+            RegionViewModel = new RegionPanelViewModel(_editor, assetManager);
 
             MapName = "Default";
         }

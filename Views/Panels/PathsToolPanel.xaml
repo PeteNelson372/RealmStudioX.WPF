@@ -222,7 +222,7 @@
                     Margin="3,3,3,3">
                     <RadioButton GroupName="PathStyleGroup"
                                  VerticalAlignment="Center"
-                                 Tag="{x:Static rendering:PathType.DoubleSolidBorderPath}"
+                                 Tag="{x:Static rendering:PathType.SolidBlackBorderPath}"
                                  Checked="PathStyle_Checked">
                         <Image Source="/Assets/png/BorderedLinePath.png"
                            Width="110"

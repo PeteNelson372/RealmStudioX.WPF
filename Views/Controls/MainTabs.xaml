@@ -98,7 +98,7 @@
             <panels:OverlaysPanel DataContext="{Binding OverlaysViewModel}"/>
         </TabItem>
         <TabItem Header="Regions">
-            <panels:RegionsPanel/>
+            <panels:RegionsPanel DataContext="{Binding RegionViewModel}"/>
         </TabItem>
         <TabItem Header="Drawing">
             <panels:DrawingPanel/>

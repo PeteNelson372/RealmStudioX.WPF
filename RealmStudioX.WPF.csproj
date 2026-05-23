@@ -65,15 +65,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MaterialDesignColors" Version="5.3.1" />
-    <PackageReference Include="MaterialDesignThemes" Version="5.3.1" />
+    <PackageReference Include="Clipper2" Version="2.0.0" />
+    <PackageReference Include="MaterialDesignColors" Version="5.3.2" />
+    <PackageReference Include="MaterialDesignThemes" Version="5.3.2" />
     <PackageReference Include="SimplexNoise" Version="2.0.0" />
     <PackageReference Include="SkiaSharp" Version="3.119.2" />
     <PackageReference Include="SkiaSharp.Views" Version="3.119.2" />
     <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="3.119.2" />
     <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="3.119.2" />
     <PackageReference Include="SkiaSharp.Views.WPF" Version="3.119.2" />
-    <PackageReference Include="Svg.Skia" Version="4.5.0" />
+    <PackageReference Include="Svg.Skia" Version="4.9.0" />
   </ItemGroup>
 
   <ItemGroup>

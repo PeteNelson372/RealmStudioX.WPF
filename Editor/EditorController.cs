@@ -93,6 +93,7 @@ namespace RealmStudioX.WPF.Editor
 
         private MapComponent2D? _dragShape;
         private SKPoint _dragStartWorld;
+        private SKPoint _previousWorld;
         private SKPath? _dragOriginalGeometry;
         private bool _isDragging;
 
@@ -566,6 +567,21 @@ namespace RealmStudioX.WPF.Editor
                             _dragStartWorld = new SKPoint(scale.Location.X + scale.ScaleWidth / 2, scale.Location.Y + scale.ScaleHeight / 2);
                             _isDragging = true;
                         }
+
+
+                        if (SelectedShape is MapRegion region)
+                        {
+                            ActivateTool(EditorToolType.RegionTool);
+                            ActiveEditorTool?.OnMouseDown(state);
+                        }
+
+                    }
+                    else
+                    {
+                        if (ActiveEditorTool is RegionTool regionTool)
+                        {
+                            regionTool.SelectedRegion = null;
+                        }
                     }
 
                     return;
@@ -699,7 +715,7 @@ namespace RealmStudioX.WPF.Editor
                         SKRect scaleBounds = new()
                         {
                             Left = scale.Location.X,
-                            Top = scale.Location.Y // 100 pixels from the bottom edge
+                            Top = scale.Location.Y
                         };
 
                         scaleBounds.Right = scaleBounds.Left + scale.ScaleWidth;
@@ -727,6 +743,8 @@ namespace RealmStudioX.WPF.Editor
 
         internal void OnMouseUp(PointerState state)
         {
+            _previousWorld = SKPoint.Empty;
+
             if (Scene == null)
             {
                 return;
@@ -880,12 +898,20 @@ namespace RealmStudioX.WPF.Editor
                 hits = [.. hits.Where(shape => _selectionFilter.Allows(shape))];
             }
 
+            if (SelectedShape != null && SelectedShape is MapRegion mr && mr.IsEditing)
+            {
+                // clicking on empty space while a MapRegion is selected keeps the MapRegion selected (to allow for easier dragging of region points)
+                return;
+            }
+
             if (hits.Count == 0)
             {
                 // clicking off of any landform or other ISelectable component deselects everything
                 DeselectAllMapComponents(Scene!, null);
                 _selectedShape = null;
                 _selectionCycleIndex = 0;
+
+                _editorState.StatusMessage = "";
                 return;
             }
 
@@ -956,6 +982,13 @@ namespace RealmStudioX.WPF.Editor
                 mapScale.IsSelected = true;
                 _editorState.StatusMessage = "Map Scale Selected ";
                 _selectedShape = mapScale;
+            }
+            else if (_selectedShape is MapRegion mapRegion)
+            {
+                DeselectAllMapComponents(Scene!, mapRegion);
+                mapRegion.IsSelected = true;
+                _editorState.StatusMessage = "Map Region Selected " + (!string.IsNullOrEmpty(mapRegion.RegionName) ? ": " + mapRegion.RegionName : "");
+                _selectedShape = mapRegion;
             }
             else if (_selectedShape is WaterSystem waterSystem)
             {
@@ -2097,6 +2130,18 @@ namespace RealmStudioX.WPF.Editor
         }
 
         // -------------------------------------------------
+        // Map Region
+        // -------------------------------------------------
+
+        internal void UpdateSelectedRegion(IRegionSettings regionSettings)
+        {
+            if (ActiveEditorTool is RegionTool tool)
+            {
+                tool.UpdatedSelectedRegion(regionSettings);
+            }
+        }
+
+        // -------------------------------------------------
         // End Class
         // -------------------------------------------------
     }
@@ -2135,5 +2180,6 @@ namespace RealmStudioX.WPF.Editor
         WaterBodyTool,
         BoxTool,
         MeasureTool,
+        RegionTool,
     }
 }

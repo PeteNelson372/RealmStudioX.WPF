@@ -203,6 +203,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                             tool = new MeasureTool(_commands, _assets,
                                 MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.MEASURELAYER),
                                 _scene, _editorState, _fontManager, _editor, (IMeasureSettings)context);
+
                             return tool;
                         }
                         else
@@ -210,6 +211,25 @@ namespace RealmStudioX.WPF.Editor.Tools
                             return _editor.ActiveEditorTool;
                         }
                     }
+                case EditorToolType.RegionTool:
+                    {
+                        if (_editor.ActiveEditorTool is not RegionTool)
+                        {
+                            if (context is null) return null;
+
+                            _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.REGIONLAYER));
+
+                            tool = new RegionTool(_commands, _assets,
+                                MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.REGIONLAYER), _editor,
+                                _scene, _editorState, _fontManager, _editor, (IRegionSettings)context);
+
+                            return tool;
+                        }
+                        else
+                        {
+                            return _editor.ActiveEditorTool;
+                        }
+                    }            
             }
 
             return null;

@@ -864,6 +864,11 @@ namespace RealmStudioX.WPF
                 otp.DataContext = ViewModel.OverlaysViewModel;
             }
 
+            if (_toolPanels[tab] is RegionsToolPanel rtp)
+            {
+                rtp.DataContext = ViewModel.RegionViewModel;
+            }
+
             SecondaryPanelHost.Content = _toolPanels[tab];
         }
 
