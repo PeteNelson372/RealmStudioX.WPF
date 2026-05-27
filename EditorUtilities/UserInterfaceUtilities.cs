@@ -1,12 +1,37 @@
-﻿using SkiaSharp;
+﻿using RealmStudioX.WPF.Properties;
+using SkiaSharp;
 using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
-namespace RealmStudioX.WPF.Utilities
+namespace RealmStudioX.WPF.EditorUtilities
 {
     public static class UserInterfaceUtilities
     {
+        public static string SelectBitmapFile()
+        {
+            OpenFileDialog dialog = new()
+            {
+                Title = "Select Image File",               
+                Filter = GetCommonImageFilter(),
+                Multiselect = false,
+                InitialDirectory = Settings.Default.LastFileDirectory
+            };
+
+            bool? result = dialog.ShowDialog();
+
+            if (result == true)
+            {
+                Settings.Default.LastFileDirectory = Path.GetDirectoryName(dialog.FileName);
+                Settings.Default.Save();
+
+                return dialog.FileName;
+            }
+
+            return string.Empty;
+        }
+
         public static ImageSource ToImageSource(this SKBitmap bitmap)
         {
             using var image = SKImage.FromBitmap(bitmap);
@@ -21,6 +46,26 @@ namespace RealmStudioX.WPF.Utilities
             bmp.Freeze(); // IMPORTANT for performance
 
             return bmp;
+        }
+
+        public static BitmapImage LoadBitmapImage(string path)
+        {
+            BitmapImage image = new();
+
+            image.BeginInit();
+
+            image.CacheOption =
+                BitmapCacheOption.OnLoad;
+
+            image.UriSource =
+                new Uri(
+                    Path.GetFullPath(path));
+
+            image.EndInit();
+
+            image.Freeze();
+
+            return image;
         }
 
         internal static SKBitmap[] SliceNinePatchBitmap(
@@ -167,6 +212,37 @@ namespace RealmStudioX.WPF.Utilities
             bitmapImage.Freeze();
 
             return bitmapImage;
+        }
+
+        internal static string GetImageFilter()
+        {
+            return
+                "All Files (*.*)|*.*" +
+                "|All Pictures (*.emf;*.wmf;*.jpg;*.jpeg;*.jfif;*.jpe;*.png;*.bmp;*.dib;*.rle;*.gif;*.emz;*.wmz;*.tif;*.tiff;*.svg;*.ico)" +
+                    "|*.emf;*.wmf;*.jpg;*.jpeg;*.jfif;*.jpe;*.png;*.bmp;*.dib;*.rle;*.gif;*.emz;*.wmz;*.tif;*.tiff;*.svg;*.ico" +
+                "|Windows Enhanced Metafile (*.emf)|*.emf" +
+                "|Windows Metafile (*.wmf)|*.wmf" +
+                "|JPEG File Interchange Format (*.jpg;*.jpeg;*.jfif;*.jpe)|*.jpg;*.jpeg;*.jfif;*.jpe" +
+                "|Portable Network Graphics (*.png)|*.png" +
+                "|Bitmap Image File (*.bmp;*.dib;*.rle)|*.bmp;*.dib;*.rle" +
+                "|Graphics Interchange Format (*.gif)|*.gif" +
+                "|Compressed Windows Enhanced Metafile (*.emz)|*.emz" +
+                "|Compressed Windows MetaFile (*.wmz)|*.wmz" +
+                "|Tag Image File Format (*.tif;*.tiff)|*.tif;*.tiff" +
+                "|Scalable Vector Graphics (*.svg)|*.svg" +
+                "|Icon (*.ico)|*.ico";
+        }
+
+        internal static string GetCommonImageFilter()
+        {
+            return
+                "All Image Files (*.jpg;*.jpeg;*.jfif;*.jpe;*.png;*.bmp;*.dib;*.rle;*.gif)" +
+                    "|*.jpg;*.jpeg;*.jfif;*.jpe;*.png;*.bmp;*.dib;*.rle;*.gif;" +
+                "|JPEG File Interchange Format (*.jpg;*.jpeg;*.jfif;*.jpe)|*.jpg;*.jpeg;*.jfif;*.jpe" +
+                "|Portable Network Graphics (*.png)|*.png" +
+                "|Bitmap Image File (*.bmp;*.dib;*.rle)|*.bmp;*.dib;*.rle" +
+                "|Graphics Interchange Format (*.gif)|*.gif" +
+                "|All Files (*.*)|*.*";
         }
     }
 

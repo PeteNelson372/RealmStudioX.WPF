@@ -2,7 +2,7 @@
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.Editor.Tools;
-using RealmStudioX.WPF.Utilities;
+using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
 using SkiaSharp;
@@ -112,7 +112,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         }
 
         private SolidColorBrush _labelColorBrush = new(Color.FromRgb(61, 53, 30));
-
         public Brush LabelColorBrush => _labelColorBrush;
 
         // outline color

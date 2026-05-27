@@ -60,7 +60,7 @@
                 Margin="0,35,0,0"
                 ToolTip="Draw Path"
                 Style="{StaticResource FlatToolButton}"
-                Command="{Binding PencilDrawCommand}">
+                Command="{Binding DrawCommand}">
                 <StackPanel Orientation="Vertical">
                     <TextBlock Text="Draw"
                                FontSize="12"
@@ -75,12 +75,12 @@
             </Button>
 
             <Button
-                x:Name="PaintDrawButton"
+                x:Name="PaintButton"
                 Height="50"
                 Margin="0,35,0,0"
                 ToolTip="Draw Path"
                 Style="{StaticResource FlatToolButton}"
-                Command="{Binding PaintDrawCommand}">
+                Command="{Binding PaintCommand}">
                 <StackPanel Orientation="Vertical">
                     <TextBlock Text="Paint"
                                FontSize="12"
@@ -164,11 +164,11 @@
                     StaysOpen="False">
 
                 <Border Background="#FFCAC7BF" BorderBrush="#FFCAC7BF" Padding="4">
-                    <StackPanel MinWidth="140">
+                    <StackPanel MinWidth="100">
 
                         <Button Style="{StaticResource FlatToolButtonDarker}"
                                 Click="SelectShapeFillType_Click"
-                                Tag="Texture">
+                                Tag="{x:Static rendering:DrawingFillType.None}">
 
                             <StackPanel Orientation="Horizontal">
 
@@ -183,26 +183,25 @@
 
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding SelectedShapeFillType}"
-                                                            Value="Texture">
+                                                            Value="{x:Static rendering:DrawingFillType.None}">
                                                     <Setter Property="Visibility" Value="Visible"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
 
                                         </Style>
                                     </TextBlock.Style>
-
                                 </TextBlock>
-
+                                
                                 <!-- Label -->
-                                <TextBlock Text="Texture"/>
-
+                                <TextBlock Text="None"/>
+                                    
                             </StackPanel>
 
                         </Button>
 
                         <Button Style="{StaticResource FlatToolButtonDarker}"
                                 Click="SelectShapeFillType_Click"
-                                Tag="Color">
+                                Tag="{x:Static rendering:DrawingFillType.Color}">
 
                             <StackPanel Orientation="Horizontal">
 
@@ -217,24 +216,59 @@
 
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding SelectedShapeFillType}"
-                                                            Value="Color">
+                                                            Value="{x:Static rendering:DrawingFillType.Color}">
                                                     <Setter Property="Visibility" Value="Visible"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
 
                                         </Style>
                                     </TextBlock.Style>
-
                                 </TextBlock>
-
+                                
                                 <!-- Label -->
                                 <TextBlock Text="Color"/>
+                                
+                            </StackPanel>
 
+                        </Button>
+
+                        <Button Style="{StaticResource FlatToolButtonDarker}"
+                                Click="SelectShapeFillType_Click"
+                                Tag="{x:Static rendering:DrawingFillType.Texture}">
+
+                            <StackPanel Orientation="Horizontal">
+
+                                <!-- Checkmark -->
+                                <TextBlock Width="16"
+                                       Margin="0,0,6,0"
+                                       Text="✔">
+
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Hidden"/>
+
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedShapeFillType}"
+                                                            Value="{x:Static rendering:DrawingFillType.Texture}">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                
+                                    <!-- Label -->
+                                <TextBlock Text="Texture"/>
+                                
                             </StackPanel>
 
                         </Button>
 
                     </StackPanel>
+                    
+                    
+                    
                 </Border>
             </Popup>
             
@@ -398,7 +432,7 @@
                         Width="120"
                         Height="50"
                         Margin="3,3,3,3"
-                        Background="{Binding PathColorBrush}"
+                        Background="{Binding DrawingColorBrush}"
                         ToolTip="Select Drawing and Painting Color"
                         PreviewMouseLeftButtonUp="DrawColor_LeftClick"
                         PreviewMouseRightButtonUp="DrawColor_RightClick">
@@ -406,6 +440,7 @@
                         <materialDesign:PackIcon Kind="PaletteOutline"
                                     Width="36"
                                     Height="36"
+                                    Foreground="Tan"
                                     Opacity="0.7"/>
                     </Button>
 
@@ -436,6 +471,7 @@
                         <materialDesign:PackIcon Kind="PaletteOutline"
                                     Width="36"
                                     Height="36"
+                                    Foreground="Tan"
                                     Opacity="0.7"/>
                     </Button>
 
@@ -456,19 +492,17 @@
 
                     <Slider x:Name="LineBrushSizeSlider"
                             Style="{StaticResource ModernSlider}"
-                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
+                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
                             Width="126"
-                            Minimum="0"
-                            Maximum="1.0"
+                            Minimum="1"
+                            Maximum="256"
+                            AutoToolTipPlacement="TopLeft"
+                            AutoToolTipPrecision="0"
                             Value="{Binding LineBrushSize}"/>
 
                 </StackPanel>
 
-                <controls:AssetBrowserControl x:Name="DrawingFillTextureBrowser"
-                                           DataContext="{Binding FillTextureBrowser}"
-                                           Width="136"
-                                           Height="160"
-                                           Margin="0,15,0,6"/>
+
 
                 <StackPanel
                         Orientation="Vertical"
@@ -489,7 +523,7 @@
                             Width="126"
                             Minimum="0"
                             Maximum="1.0"
-                            Value="{Binding LineBrushSize}"/>
+                            Value="{Binding TextureOpacity}"/>
 
                 </StackPanel>
 
@@ -512,7 +546,7 @@
                             Width="126"
                             Minimum="0"
                             Maximum="1.0"
-                            Value="{Binding LineBrushSize}"/>
+                            Value="{Binding TextureScale}"/>
 
                 </StackPanel>
             </StackPanel>
@@ -525,18 +559,21 @@
             HorizontalAlignment="Left"
             Width="154"
             Height="Auto"
-            Margin="3,0,0,0">
-            
+            Margin="3,12,0,0">
+
             <ListBox x:Name="MapLayerList"
-                     Width="135"
-                     Height="260"
-                     Margin="3,6,3,3"
-                     ItemsSource="{Binding DrawableMapLayers}">
+                 Width="136"
+                 Height="260"
+                 Margin="3,6,3,3"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 ItemsSource="{Binding DrawableMapLayers}"
+                 SelectedItem="{Binding SelectedDrawableMapLayer, Mode=TwoWay}">
 
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <CheckBox Content="{Binding Name}"
-                                IsChecked="{Binding IsChecked, Mode=TwoWay}"/>
+
+                        <TextBlock Text="{Binding Name}" Width="110" FontSize="10"  Margin="0,0,0,0"/>
+
                     </DataTemplate>
                 </ListBox.ItemTemplate>
 

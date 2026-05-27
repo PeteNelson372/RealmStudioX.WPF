@@ -3,7 +3,7 @@ using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
-using RealmStudioX.WPF.Utilities;
+using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
@@ -280,6 +280,8 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public ICommand CreateMeasureCommand => new RelayCommand(() =>
         {
+            MapLayer measureLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.MEASURELAYER);
+            _editor.SetActiveDrawingLayer(measureLayer);
             _editor.SetDrawingMode(MapDrawingMode.DrawMapMeasure);
             _editor.ActivateTool(EditorToolType.MeasureTool, (IMeasureSettings)this);
         });

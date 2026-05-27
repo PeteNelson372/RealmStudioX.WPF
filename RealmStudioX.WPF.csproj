@@ -40,6 +40,15 @@
     <None Remove="Assets\png\LineDashPath.png" />
     <None Remove="Assets\png\RailroadTracksPath.png" />
     <None Remove="Assets\png\ShadedLinePath.png" />
+    <None Remove="Assets\png\shape_icons\arrow.png" />
+    <None Remove="Assets\png\shape_icons\diamond.png" />
+    <None Remove="Assets\png\shape_icons\fivepointstar.png" />
+    <None Remove="Assets\png\shape_icons\hexagon.png" />
+    <None Remove="Assets\png\shape_icons\pentagon.png" />
+    <None Remove="Assets\png\shape_icons\righttriangle.png" />
+    <None Remove="Assets\png\shape_icons\roundedrectangle.png" />
+    <None Remove="Assets\png\shape_icons\sixpointstar.png" />
+    <None Remove="Assets\png\shape_icons\triangle.png" />
     <None Remove="Assets\png\SingleBorderLinePath.png" />
     <None Remove="Assets\png\SmallDashesPath.png" />
     <None Remove="Assets\png\SolidPath.png" />
@@ -136,6 +145,15 @@
     <Resource Include="Assets\png\ShadedLinePath.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Assets\png\shape_icons\arrow.png" />
+    <Resource Include="Assets\png\shape_icons\diamond.png" />
+    <Resource Include="Assets\png\shape_icons\fivepointstar.png" />
+    <Resource Include="Assets\png\shape_icons\hexagon.png" />
+    <Resource Include="Assets\png\shape_icons\pentagon.png" />
+    <Resource Include="Assets\png\shape_icons\righttriangle.png" />
+    <Resource Include="Assets\png\shape_icons\roundedrectangle.png" />
+    <Resource Include="Assets\png\shape_icons\sixpointstar.png" />
+    <Resource Include="Assets\png\shape_icons\triangle.png" />
     <Resource Include="Assets\png\SingleBorderLinePath.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>

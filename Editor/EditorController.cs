@@ -3,7 +3,7 @@ using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor.Tools;
 using RealmStudioX.WPF.Editor.UserInterface;
-using RealmStudioX.WPF.Utilities;
+using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
@@ -2057,6 +2057,7 @@ namespace RealmStudioX.WPF.Editor
 
                 if (targetLayer != null)
                 {
+                    SetActiveDrawingLayer(targetLayer);
                     newGrid.Bounds = Scene.WorldBounds;
                     targetLayer.Add(newGrid);
                 }
@@ -2181,5 +2182,6 @@ namespace RealmStudioX.WPF.Editor
         BoxTool,
         MeasureTool,
         RegionTool,
+        DrawingTool,
     }
 }

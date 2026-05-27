@@ -143,8 +143,8 @@
 
                                                         <!-- Label -->
                                                         <TextBlock Text="{Binding Name}"
-                                                       FontSize="14"
-                                                       VerticalAlignment="Center"/>
+                                                           FontSize="14"
+                                                           VerticalAlignment="Center"/>
 
                                                     </StackPanel>
 

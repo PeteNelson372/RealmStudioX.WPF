@@ -104,7 +104,21 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         public bool DrawOverSymbols
         {
             get => _drawOverSymbols;
-            set => SetProperty(ref _drawOverSymbols, value);
+            set
+            {
+                SetProperty(ref _drawOverSymbols, value);
+
+                if (_drawOverSymbols)
+                {
+                    MapLayer layer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.PATHUPPERLAYER);
+                    _editor.SetActiveDrawingLayer(layer);
+                }
+                else
+                {
+                    MapLayer layer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.PATHLOWERLAYER);
+                    _editor.SetActiveDrawingLayer(layer);
+                }
+            }
         }
 
         // edit path points

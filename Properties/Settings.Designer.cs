@@ -166,5 +166,17 @@ namespace RealmStudioX.WPF.Properties {
                 this["WorldAnvilApiToken"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastFileDirectory {
+            get {
+                return ((string)(this["LastFileDirectory"]));
+            }
+            set {
+                this["LastFileDirectory"] = value;
+            }
+        }
     }
 }

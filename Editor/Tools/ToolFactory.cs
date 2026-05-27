@@ -229,7 +229,24 @@ namespace RealmStudioX.WPF.Editor.Tools
                         {
                             return _editor.ActiveEditorTool;
                         }
-                    }            
+                    }
+                case EditorToolType.DrawingTool:
+                    {
+                        if (_editor.ActiveEditorTool is not DrawingTool)
+                        {
+                            if (context is null) return null;
+
+
+                            tool = new DrawingTool(_commands, _assets, _editor, _editor.ActiveDrawingLayer!,
+                                _scene, _editorState, (IDrawingSettings)context);
+
+                            return tool;
+                        }
+                        else
+                        {
+                            return _editor.ActiveEditorTool;
+                        }
+                    }
             }
 
             return null;

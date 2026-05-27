@@ -24,22 +24,26 @@
                                HorizontalAlignment="Left"
                                Margin="0,0,0,3"/>
 
-            <Grid>
+            <Grid x:Name="Root">
 
                 <!-- COLLAPSED BUTTON -->
                 <ToggleButton x:Name="BrushPickerButton"
-                  Width="120"
-                  Height="40">
+                      Style="{StaticResource FlatToolToggleButton}"
+                      Width="120"
+                      Height="40">
 
                     <StackPanel Orientation="Horizontal">
 
                         <Image Source="{Binding SelectedBrushPattern.PreviewImage}"
                            Width="32"
                            Height="32"
-                           Margin="4"/>
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Center"
+                           Margin="0,0,0,0"/>
 
                         <TextBlock Text="{Binding SelectedBrushPattern.Name}"
                            VerticalAlignment="Center"
+                           HorizontalAlignment="Right"
                            Margin="6,0,0,0"/>
 
                     </StackPanel>
@@ -47,24 +51,29 @@
                 </ToggleButton>
 
                 <!-- POPUP -->
-                <Popup Placement="Bottom"
+                <Popup Placement="Left"
+                   HorizontalOffset="-10"
                    PlacementTarget="{Binding ElementName=BrushPickerButton}"
                    IsOpen="{Binding IsChecked,
-                   ElementName=BrushPickerButton}"
-                    StaysOpen="False">
+                                    ElementName=BrushPickerButton}"
+                   StaysOpen="False">
 
-                    <Border Background="#FF2A2A2A"
+                    <Border Background="#FFDFDBD2"
                         BorderBrush="Gray"
                         BorderThickness="1"
-                        Padding="4">
+                        Padding="2">
 
-                        <ScrollViewer MaxHeight="300">
+                        <ScrollViewer MaxHeight="510"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
 
                             <ItemsControl ItemsSource="{Binding BrushPatterns}">
 
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <WrapPanel/>
+
+                                        <UniformGrid Columns="2"/>
+
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
 
@@ -72,17 +81,19 @@
                                     <DataTemplate>
 
                                         <Button Width="80"
-                                        Height="80"
-                                        Margin="2"
-                                        Command="{Binding DataContext.SelectBrushPatternCommand,
-                                        RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                        CommandParameter="{Binding}">
+                                            Height="80"
+                                            Margin="2"
+                                            Background="DarkGray"
+                                            Command="{Binding DataContext.SelectBrushPatternCommand,
+                                                              RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}">
 
                                             <StackPanel>
 
                                                 <Image Source="{Binding PreviewImage}"
                                                    Width="48"
                                                    Height="48"
+                                                   HorizontalAlignment="Center"
                                                    Margin="2"/>
 
                                                 <TextBlock Text="{Binding Name}"
@@ -106,6 +117,375 @@
 
             </Grid>
 
+            <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="124"
+                        Height="Auto"
+                        Margin="3,10,3,3">
+
+                <TextBlock Text="Brush Velocity"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                <Slider x:Name="TextureScaleSlider"
+                            Style="{StaticResource ModernSlider}"
+                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
+                            Width="120"
+                            Minimum="0"
+                            Maximum="1.0"
+                            Value="{Binding BrushVelocity}"/>
+
+            </StackPanel>
+
+            <Border Background="#EEE"
+                CornerRadius="4"
+                Margin="4"
+                Width="120"
+                Height="120"
+                ClipToBounds="True">
+
+                <Grid>
+
+                    <Image Source="{Binding StampImage}"
+                           Stretch="Uniform"
+                           Opacity="{Binding StampOpacity}"
+                           RenderOptions.BitmapScalingMode="HighQuality"
+                           RenderTransformOrigin="0.5,0.5">
+
+                        <Image.RenderTransform>
+
+                            <TransformGroup>
+
+                                <ScaleTransform
+                                    ScaleX="{Binding StampScale}"
+                                    ScaleY="{Binding StampScale}"/>
+
+                                <RotateTransform
+                                    Angle="{Binding StampRotation}"/>
+
+                            </TransformGroup>
+
+                        </Image.RenderTransform>
+
+                    </Image>
+
+                </Grid>
+
+            </Border>
+
+            <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Width="120"
+                        Height="50"
+                        Margin="3,3,3,3"
+                        Background="#EEE"
+                        ToolTip="Select Stamp"
+                        Command="{Binding SelectStampCommand}">
+
+                    <Grid>
+                        <TextBlock Text="Click to Select"
+                                   FontSize="12"
+                                   Foreground="#FF45443F"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,0,0"/>
+                        
+                        <materialDesign:PackIcon Kind="Stamper"
+                                    Width="32"
+                                    Height="32"
+                                    Foreground="DarkSeaGreen"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"                                             
+                                    Opacity="0.7"/>
+
+
+                    </Grid>
+                </Button>
+
+            </StackPanel>
+
+            <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="124"
+                        Height="Auto"
+                        Margin="3,10,3,3">
+
+                <TextBlock Text="Stamp Scale"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                <Slider x:Name="StampScaleSlider"
+                            Style="{StaticResource ModernSlider}"
+                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
+                            Width="120"
+                            Minimum="0"
+                            Maximum="1.0"
+                            Value="{Binding StampScale}"/>
+
+            </StackPanel>
+
+            <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="124"
+                        Height="Auto"
+                        Margin="3,10,3,3">
+
+                <TextBlock Text="Stamp Rotation"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                <Slider x:Name="StampRotationSlider"
+                            Style="{StaticResource ModernSlider}"
+                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                            Width="120"
+                            Minimum="0"
+                            Maximum="359"
+                            Value="{Binding StampRotation}"/>
+
+            </StackPanel>
+
+            <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="124"
+                        Height="Auto"
+                        Margin="3,10,3,3">
+
+                <TextBlock Text="Stamp Opacity"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                <Slider x:Name="StampOpacitySlider"
+                            Style="{StaticResource ModernSlider}"
+                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                            Width="120"
+                            Minimum="0.0"
+                            Maximum="1.0"
+                            Value="{Binding StampOpacity}"/>
+
+            </StackPanel>
+
+            <TextBlock Text="Other Shapes"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,20,3,3"/>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition Height="40"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="40"/>
+                    <ColumnDefinition Width="40"/>
+                    <ColumnDefinition Width="40"/>
+                </Grid.ColumnDefinitions>
+
+                <Button
+                    x:Name="PlaceRectangleButton"
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Height="36"
+                    Width="36"
+                    Margin="0,0,0,0"
+                    ToolTip="Place Rounded Rectangle"
+                    Style="{StaticResource FlatToolButton}"
+                    Command="{Binding PlaceRoundedRectangleCommand}">
+
+                    <Image Source="/Assets/png/shape_icons/roundedrectangle.png"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Width="28"
+                        Height="28"/>
+
+                </Button>
+
+                <Button
+                    x:Name="PlaceTriangleButton"
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Height="36"
+                    Width="36"
+                    Margin="0,0,0,0"
+                    ToolTip="Place Triangle"
+                    Style="{StaticResource FlatToolButton}"
+                    Command="{Binding PlaceTriangleCommand}">
+
+                    <Image Source="/Assets/png/shape_icons/triangle.png"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Width="28"
+                        Height="28"/>
+
+                </Button>
+
+                <Button
+                    x:Name="PlaceRightTriangleButton"
+                    Grid.Row="0"
+                    Grid.Column="2"
+                    Height="36"
+                    Width="36"
+                    Margin="0,0,0,0"
+                    ToolTip="Place Right Triangle"
+                    Style="{StaticResource FlatToolButton}"
+                    Command="{Binding PlaceRightTriangleCommand}">
+
+                    <Image Source="/Assets/png/shape_icons/righttriangle.png"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Width="28"
+                        Height="28"/>
+
+                </Button>
+
+                <Button
+                    x:Name="PlaceDiamondButton"
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Height="36"
+                    Width="36"
+                    Margin="0,0,0,0"
+                    ToolTip="Place Diamond"
+                    Style="{StaticResource FlatToolButton}"
+                    Command="{Binding PlaceDiamondCommand}">
+
+                    <Image Source="/Assets/png/shape_icons/diamond.png"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Width="28"
+                        Height="28"/>
+
+                </Button>
+
+                <Button
+                    x:Name="PlacePentagonButton"
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Height="36"
+                    Width="36"
+                    Margin="0,0,0,0"
+                    ToolTip="Place Pentagon"
+                    Style="{StaticResource FlatToolButton}"
+                    Command="{Binding PlacePentagonCommand}">
+
+                    <Image Source="/Assets/png/shape_icons/pentagon.png"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Width="28"
+                        Height="28"/>
+
+                </Button>
+
+                <Button
+                    x:Name="PlaceHexagonButton"
+                    Grid.Row="1"
+                    Grid.Column="2"
+                    Height="36"
+                    Width="36"
+                    Margin="0,0,0,0"
+                    ToolTip="Place Hexagon"
+                    Style="{StaticResource FlatToolButton}"
+                    Command="{Binding PlaceHexagonCommand}">
+
+                    <Image Source="/Assets/png/shape_icons/hexagon.png"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Width="28"
+                        Height="28"/>
+
+                </Button>
+
+                <Button
+                    x:Name="PlaceArrowButton"
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    Height="36"
+                    Width="36"
+                    Margin="0,0,0,0"
+                    ToolTip="Place Arrow"
+                    Style="{StaticResource FlatToolButton}"
+                    Command="{Binding PlaceArrowCommand}">
+
+                    <Image Source="/Assets/png/shape_icons/arrow.png"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Width="28"
+                        Height="28"/>
+
+                </Button>
+
+                <Button
+                    x:Name="PlaceFivePointStarButton"
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    Height="36"
+                    Width="36"
+                    Margin="0,0,0,0"
+                    ToolTip="Place Five Point Star"
+                    Style="{StaticResource FlatToolButton}"
+                    Command="{Binding PlaceFivePointStarCommand}">
+
+                    <Image Source="/Assets/png/shape_icons/fivepointstar.png"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Width="28"
+                        Height="28"/>
+
+                </Button>
+
+                <Button
+                    x:Name="PlaceSixPointStarButton"
+                    Grid.Row="2"
+                    Grid.Column="2"
+                    Height="36"
+                    Width="36"
+                    Margin="0,0,0,0"
+                    ToolTip="Place Six Point Star"
+                    Style="{StaticResource FlatToolButton}"
+                    Command="{Binding PlaceSixPointStarCommand}">
+
+                    <Image Source="/Assets/png/shape_icons/sixpointstar.png"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Width="28"
+                        Height="28"/>
+
+                </Button>
+
+            </Grid>
+
+            <TextBlock Text="Shape Rotation"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,12,3,3"/>
+
+            <Slider x:Name="ShapeRotationSlider"
+                            Style="{StaticResource ModernSlider}"
+                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                            Width="120"
+                            Minimum="0"
+                            Maximum="359"
+                            Value="{Binding ShapeRotation}"/>
         </StackPanel>
 
     </Border>

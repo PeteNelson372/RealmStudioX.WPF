@@ -1,5 +1,5 @@
-﻿using RealmStudioShapeRenderingLib;
-using RealmStudioX.Infrastructure;
+﻿using RealmStudioX.Infrastructure;
+using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using SkiaSharp;
 using System.IO;
@@ -36,30 +36,9 @@ namespace RealmStudioX.WPF.ViewModels.Controls
         {
             var img = _browser.GetCurrentImage();
 
-            ImageSource = SkiaToWpfConverter.ToBitmapSource(img);
+            ImageSource = (BitmapSource?)SKBitmap.FromImage(img).ToImageSource();
             CurrentName = _browser.GetCurrentAsset()?.Name;
             TextureSelectionChanged?.Invoke();
-        }
-
-        public static class SkiaToWpfConverter
-        {
-            public static BitmapSource? ToBitmapSource(SKImage? image)
-            {
-                if (image == null)
-                    return null;
-
-                using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-                using var stream = new MemoryStream(data.ToArray());
-
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.StreamSource = stream;
-                bitmap.EndInit();
-                bitmap.Freeze();
-
-                return bitmap;
-            }
         }
 
         // -------------------------
