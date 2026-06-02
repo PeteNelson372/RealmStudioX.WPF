@@ -2,7 +2,9 @@
 using RealmStudioX.WPF.ViewModels.Panels;
 using RealmStudioX.WPF.Views.Dialogs;
 using System.Windows;
+using System.Windows.Controls;
 using Point = System.Windows.Point;
+using System.Windows.Controls.Primitives;
 
 namespace RealmStudioX.WPF.Views.Panels
 {
@@ -40,6 +42,36 @@ namespace RealmStudioX.WPF.Views.Panels
                 new () { Name="USERDRAWING",        Index=MapBuilder.DRAWINGLAYER,},
                 new () { Name="VIGNETTE",           Index=MapBuilder.VIGNETTELAYER,},
             };
+        }
+
+
+
+        private void LineBrushSizeSlider_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Slider slider)
+            {
+                return;
+            }
+
+            Track? track =
+                slider.Template.FindName(
+                    "PART_Track",
+                    slider) as Track;
+
+            if (track == null)
+            {
+                return;
+            }
+
+            track.Thumb.DragCompleted += LineBrushSizeSlider_DragCompleted;
+        }
+
+        private void LineBrushSizeSlider_DragCompleted(object? sender, DragCompletedEventArgs e)
+        {
+            if (DataContext is not DrawingPanelViewModel vm)
+                return;
+
+            vm.UpdateDrawingParameters();
         }
 
         private void SelectShapeFillType_Click(object sender, RoutedEventArgs e)

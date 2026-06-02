@@ -15,7 +15,7 @@ namespace RealmStudioX.WPF.Editor
     public class EditorController : IRedrawRequester
     {
         public event Action<MapDrawingMode>? DrawingModeChanged;
-        public event Action<ColorPaintBrush>? ColorPaintBrushChanged;
+        //public event Action<ColorPaintBrush>? ColorPaintBrushChanged;
         public event Action<MapLayer>? ActiveDrawingLayerChanged;
 
         private CommandManager _commands { get; } = new();
@@ -287,29 +287,9 @@ namespace RealmStudioX.WPF.Editor
             _activeModifyMapPathCommand = null;
         }
 
-        private ColorPaintBrush _colorPaintBrush = ColorPaintBrush.None;
-
-        public ColorPaintBrush SelectedColorPaintBrush
-        {
-            get { return _colorPaintBrush; }
-            private set
-            {
-                if (_colorPaintBrush != value)
-                {
-                    _colorPaintBrush = value;
-                    ColorPaintBrushChanged?.Invoke(_colorPaintBrush);
-                }
-            }
-        }
-
         public void SetDrawingMode(MapDrawingMode mode)
         {
             CurrentDrawingMode = mode;
-        }
-
-        public void SetColorPaintBrush(ColorPaintBrush brush)
-        {
-            SelectedColorPaintBrush = brush;
         }
 
         private MapLayer? _activeDrawingLayer;

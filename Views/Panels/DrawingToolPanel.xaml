@@ -123,20 +123,20 @@
                         HorizontalAlignment="Left"
                         Width="124"
                         Height="Auto"
-                        Margin="3,10,3,3">
+                        Margin="3,10,3,15">
 
-                <TextBlock Text="Brush Velocity"
+                <TextBlock Text="Brush Spacing"
                         Foreground="#FF45443F"
                         VerticalAlignment="Center"
                         Margin="3,3,3,3"/>
 
-                <Slider x:Name="TextureScaleSlider"
+                <Slider x:Name="BrushSpacingSlider"
                             Style="{StaticResource ModernSlider}"
                             behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
                             Width="120"
-                            Minimum="0"
-                            Maximum="1.0"
-                            Value="{Binding BrushVelocity}"/>
+                            Minimum="{Binding MinBrushSpacing}"
+                            Maximum="{Binding MaxBrushSpacing}"
+                            Value="{Binding BrushSpacing}"/>
 
             </StackPanel>
 

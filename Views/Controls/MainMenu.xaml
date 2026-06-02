@@ -30,6 +30,7 @@
         </MenuItem>
 
         <MenuItem Header="Assets" Margin="0,6,0,0">
+            <MenuItem Header="Import _GIMP Brush..." Command="{Binding OpenGimpBrushCommand}"/>
         </MenuItem>
 
         <MenuItem Header="Theme" Margin="0,6,0,0">

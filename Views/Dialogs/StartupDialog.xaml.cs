@@ -16,7 +16,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX", "Assets", "Themes");
 
         private readonly string _mapsFolder =
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX", "Maps");
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX", "Realms");
 
         public StartupResult? Result { get; private set; }
 

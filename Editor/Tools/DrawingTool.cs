@@ -21,12 +21,20 @@ namespace RealmStudioX.WPF.Editor.Tools
         private readonly EditorController _editor = editor;
         private readonly MapScene _scene = scene;
         private readonly EditorState _editorState = editorState;
-        private readonly IDrawingSettings _drawingSettings = drawingSettings;
+        private  IDrawingSettings _drawingSettings = drawingSettings;
 
         private SKPoint _lastMouseWorld;
+        private long _lastPaintTimestamp;
 
         private DrawnLine? _currentDrawnline = null;
         private PaintedLine? _currentPaintedLine = null;
+        private PreparedBrush? _currentPreparedBrush = null;
+
+        public PreparedBrush? CurrentPreparedBrush
+        {
+            get { return _currentPreparedBrush; } 
+            set { _currentPreparedBrush = value; }
+        }
 
         private bool disposedValue;
 
@@ -69,16 +77,41 @@ namespace RealmStudioX.WPF.Editor.Tools
                         break;
                     case MapDrawingMode.DrawingPaint:
                         {
-                            _currentPaintedLine = new PaintedLine
+                            if (_drawingSettings.SelectedBrushPattern != null
+                                && _drawingSettings.SelectedBrushPattern.BrushDefinition != null)
                             {
-                                Brush = _drawingSettings.SelectedBrushPattern?.BrushDefinition,
-                                BrushSize = _drawingSettings.LineBrushSize,
-                                Color = _drawingSettings.DrawingColor.ToSKColor(),
-                                FillType = _drawingSettings.SelectedShapeFillType,
-                                StrokeBitmap = _drawingSettings.SelectedBrushPattern?.BrushDefinition?.BrushBitmap
-                            };
+                                if (_currentPreparedBrush == null)
+                                {
+                                    // this will only happen if the user starts painting
+                                    // without changing brush type, size, or color
+                                    _currentPreparedBrush = new PreparedBrush()
+                                    {
+                                        SourceBrush = _drawingSettings.SelectedBrushPattern.BrushDefinition,
+                                        Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                        BrushSize = (int)_drawingSettings.LineBrushSize,
+                                        BrushSpacing = _drawingSettings.BrushSpacing,
+                                    };
 
-                            _currentPaintedLine.Points.Add(state.WorldPoint);
+                                    DrawingPanelViewModel.GetPreparedBrushBitmaps(_currentPreparedBrush);
+                                    CurrentPreparedBrush = _currentPreparedBrush;
+                                }
+
+                                _currentPaintedLine = new PaintedLine
+                                {
+                                    Brush = _currentPreparedBrush,
+                                    DefaultSpacing = _drawingSettings.SelectedBrushPattern.BrushDefinition.BrushSpacing,
+                                    BrushSpacing = _drawingSettings.BrushSpacing,
+                                    RandomRotation = _drawingSettings.SelectedBrushPattern.BrushDefinition.RandomRotation,
+                                };
+
+                                _currentPaintedLine.Initialize(_editor.Scene!.Map.MapWidth, _editor.Scene!.Map.MapHeight);
+
+                                long now = Environment.TickCount64;
+
+                                _lastPaintTimestamp = now;
+
+                                _currentPaintedLine.AddPoint(state.WorldPoint);
+                            }
                         }
                         break;
                 }
@@ -101,7 +134,16 @@ namespace RealmStudioX.WPF.Editor.Tools
                         break;
                     case MapDrawingMode.DrawingPaint:
                         {
-                            _currentPaintedLine?.Points.Add(state.WorldPoint);
+                            if (_currentPaintedLine != null)
+                            {
+                                long now = Environment.TickCount64;
+
+                                float deltaTime = (now - _lastPaintTimestamp) / 1000f;
+
+                                _lastPaintTimestamp = now;
+
+                                _currentPaintedLine.AddPoint(state.WorldPoint);
+                            }
                         }
                         break;
                 }
@@ -125,7 +167,11 @@ namespace RealmStudioX.WPF.Editor.Tools
                             {
                                 _currentDrawnline.Points.Add(state.WorldPoint);
 
-                                drawLayer.Add(_currentDrawnline);
+                                if (_editor.ActiveDrawingLayer != null)
+                                {
+                                    Cmd_AddDrawnLine cmd = new(_editor.ActiveDrawingLayer, _currentDrawnline);
+                                    _commands.Execute(cmd);
+                                }
 
                                 _currentDrawnline = null;
                             }
@@ -135,9 +181,24 @@ namespace RealmStudioX.WPF.Editor.Tools
                         {
                             if (_currentPaintedLine != null)
                             {
-                                _currentPaintedLine.Points.Add(state.WorldPoint);
+                                long now = Environment.TickCount64;
 
-                                drawLayer.Add(_currentPaintedLine);
+                                float deltaTime = (now - _lastPaintTimestamp) / 1000f;
+
+                                _lastPaintTimestamp = now;
+
+                                if (state.WorldPoint != _currentPaintedLine.Points[^1])
+                                {
+                                    _currentPaintedLine.AddPoint(state.WorldPoint);
+                                }
+
+                                _currentPaintedLine.FinalizeStroke();
+
+                                if (_editor.ActiveDrawingLayer != null)
+                                {
+                                    Cmd_AddPaintedLine cmd = new(_editor.ActiveDrawingLayer, _currentPaintedLine);
+                                    _commands.Execute(cmd);
+                                }
 
                                 _currentPaintedLine = null;
                             }
@@ -159,7 +220,10 @@ namespace RealmStudioX.WPF.Editor.Tools
             // no action
         }
 
-
+        public void UpdateDrawingParameters(IDrawingSettings newSettings)
+        {
+            _drawingSettings = newSettings;
+        }
 
         public void RenderOverlay(SKCanvas canvas, SKPoint world)
         {

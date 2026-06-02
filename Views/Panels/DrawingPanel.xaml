@@ -498,7 +498,8 @@
                             Maximum="256"
                             AutoToolTipPlacement="TopLeft"
                             AutoToolTipPrecision="0"
-                            Value="{Binding LineBrushSize}"/>
+                            Value="{Binding LineBrushSize}"
+                            Loaded="LineBrushSizeSlider_Loaded"/>
 
                 </StackPanel>
 
@@ -511,7 +512,13 @@
                         Width="136"
                         Height="Auto"
                         Margin="3,3,3,3">
-
+                    
+                    <controls:AssetBrowserControl x:Name="DrawingTextureBrowser"
+                                           DataContext="{Binding TextureBrowser}" 
+                                           Width="136"
+                                           Height="160"
+                                           Margin="0,0,0,6"/>
+                    
                     <TextBlock Text="Opacity"
                         Foreground="#FF45443F"
                         VerticalAlignment="Center"

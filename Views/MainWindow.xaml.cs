@@ -76,7 +76,6 @@ namespace RealmStudioX.WPF
 
             _editor = new EditorController(_assetManager, _fontManager);
             _editor.DrawingModeChanged += OnDrawingModeChanged;
-            _editor.ColorPaintBrushChanged += OnColorPaintBrushChanged;
             _editor.ActiveDrawingLayerChanged += OnActiveDrawingLayerChanged;
             _editor.MouseMoved += OnMouseMoved;
             _editor.MouseDown += OnMouseDown;
@@ -215,11 +214,6 @@ namespace RealmStudioX.WPF
         private void OnActiveDrawingLayerChanged(MapLayer layer)
         {
             ViewModel.SetDrawingLayerLabel();
-        }
-
-        private void OnColorPaintBrushChanged(ColorPaintBrush brush)
-        {
-            ViewModel.DrawingModeLabel = ViewModel.SetDrawingModeLabel();
         }
 
         private void OnOpen(object sender, RoutedEventArgs e)
