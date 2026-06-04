@@ -9,11 +9,9 @@ using RealmStudioX.WPF.ViewModels.Main;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
 using System.Collections.ObjectModel;
-using System.Drawing.Imaging;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Xml.Linq;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 
@@ -61,12 +59,16 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
             BuildBrushPatterns();
 
+            SelectedTextureChanged();
+
             UpdateDrawingParameters();
+            UpdatePreparedBrush();
         }
 
         private void SelectedTextureChanged()
         {
             CurrentSelectedTexture = TextureBrowser.CurrentImage;
+            CurrentSelectedTextureId = TextureBrowser.SelectedAssetId;
         }
 
         private void OnActiveDrawingLayerChanged(MapLayer layer)
@@ -87,6 +89,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 SetProperty(ref _selectedBrushPattern, value);
                 BrushSpacing = value?.BrushDefinition?.BrushSpacing ?? 10;
                 UpdateDrawingParameters();
+                UpdatePreparedBrush();
             }
         }
 
@@ -126,6 +129,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 {
                     _drawingColorBrush.Color = value;
                     UpdateDrawingParameters();
+                    UpdatePreparedBrush();
                 }
             }
         }
@@ -178,6 +182,20 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         }
 
         // fill texture
+        private string? _currentSelectedTextureId = string.Empty;
+
+        public string? CurrentSelectedTextureId
+        {
+            get => _currentSelectedTextureId;
+            set
+            {
+                if (_currentSelectedTextureId != value)
+                {
+                    _currentSelectedTextureId = value;
+                    UpdateDrawingParameters();
+                }
+            }
+        }
 
         private SKImage? _currentSelectedTexture;
 
@@ -246,17 +264,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             set => SetProperty(ref _selectedShapeFillType, value);
         }
 
-
-        private bool _fillDrawnShape = false;
-        public bool FillDrawnShape
-        {
-            get => _fillDrawnShape;
-            set
-            {
-                _fillDrawnShape = value;
-                UpdateDrawingParameters();
-            }
-        }
 
         // brush spacing
 
@@ -436,11 +443,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             _editor.ActivateTool(EditorToolType.DrawingTool, (IDrawingSettings)this);
         });
 
-        public ICommand FillShapeCommand => new RelayCommand(() =>
-        {
-            _fillDrawnShape = SelectedShapeFillType != DrawingFillType.None;
-        });
-
         public ICommand PlaceRectangleCommand => new RelayCommand(() =>
         {
 
@@ -574,7 +576,15 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             if (dt != null)
             {
                 dt.UpdateDrawingParameters((IDrawingSettings)this);
+            }
+        }
 
+        public void UpdatePreparedBrush()
+        {
+            DrawingTool? dt = (DrawingTool?)_editor.ActivateTool(EditorToolType.DrawingTool, this);
+
+            if (dt != null)
+            {
                 PreparedBrush newPreparedBrush = new()
                 {
                     SourceBrush = SelectedBrushPattern?.BrushDefinition,
@@ -585,7 +595,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
                 GetPreparedBrushBitmaps(newPreparedBrush);
                 dt.CurrentPreparedBrush = newPreparedBrush;
-
             }
         }
 
@@ -682,11 +691,11 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         Color DrawingColor { get; }
         Color FillColor { get; }
         int LineBrushSize { get; }
+        string? CurrentSelectedTextureId { get; }
         SKImage? CurrentSelectedTexture { get; }
         float TextureOpacity { get; }
         float TextureScale { get; }
         DrawingFillType SelectedShapeFillType { get; }
-        bool FillDrawnShape { get; }
         int BrushSpacing { get; }
         float StampScale { get; }
         int StampRotation { get; }

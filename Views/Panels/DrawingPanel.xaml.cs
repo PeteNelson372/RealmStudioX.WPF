@@ -72,6 +72,7 @@ namespace RealmStudioX.WPF.Views.Panels
                 return;
 
             vm.UpdateDrawingParameters();
+            vm.UpdatePreparedBrush();
         }
 
         private void SelectShapeFillType_Click(object sender, RoutedEventArgs e)

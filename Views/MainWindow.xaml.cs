@@ -100,13 +100,6 @@ namespace RealmStudioX.WPF
                 TitleBar.ExitClicked += (s, e) => ExitHandler();
                 TitleBar.UpdateAvailableClicked += (s, e) => NewVersionHandler();
 
-                MainMenu.NewClicked += (s, e) => NewHandler();
-                MainMenu.OpenClicked += (s, e) => OpenHandler();
-                MainMenu.SaveClicked += (s, e) => SaveHandler();
-                MainMenu.ExitClicked += (s, e) => ExitHandler();
-                MainMenu.UndoClicked += (s, e) => UndoHandler();
-                MainMenu.RedoClicked += (s, e) => RedoHandler();
-
                 MainTabs.TabSelectionChanged += (s, e) => MainTabControl_SelectionChanged(s, e);
 
                 ViewModel.RequestOpenNameGeneratorConfig +=
@@ -784,7 +777,7 @@ namespace RealmStudioX.WPF
         }
 
         //==========================================
-        // Main Menu Event Handlers
+        // Main Menu Commands
         //==========================================
 
         private void NewHandler()
@@ -805,16 +798,6 @@ namespace RealmStudioX.WPF
         private void ExitHandler()
         {
             Close();
-        }
-
-        private void UndoHandler()
-        {
-            // undo the last action
-        }
-
-        private void RedoHandler()
-        {
-            // redo the last undone action
         }
 
         private static void NewVersionHandler()

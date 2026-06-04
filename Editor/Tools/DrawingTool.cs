@@ -40,7 +40,6 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         public void Activate()
         {
-
         }
 
         public void Cancel()
@@ -68,8 +67,13 @@ namespace RealmStudioX.WPF.Editor.Tools
                         {
                             _currentDrawnline = new DrawnLine
                             {
-                                BrushSize = (int)_drawingSettings.LineBrushSize,
-                                Color = _drawingSettings.DrawingColor.ToSKColor()
+                                BrushSize = _drawingSettings.LineBrushSize,
+                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
+                                TextureScale = _drawingSettings.TextureScale,
+                                DrawTexture = _drawingSettings.SelectedShapeFillType == DrawingFillType.Texture,
+                                TextureId = _drawingSettings.CurrentSelectedTextureId ?? string.Empty,
+                                Texture = _drawingSettings.CurrentSelectedTextureId != null ? _drawingSettings.CurrentSelectedTexture : null,
                             };
 
                             _currentDrawnline.Points.Add(state.WorldPoint);
@@ -237,7 +241,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                 _currentPaintedLine.Render(canvas);
             }
 
-            if (_editorState.CurrentDrawingMode == MapDrawingMode.DrawingPaint)
+            if (_editorState.CurrentDrawingMode == MapDrawingMode.DrawingPaint || _editorState.CurrentDrawingMode == MapDrawingMode.DrawingLine)
             {
                 var brushRadius = _drawingSettings.LineBrushSize / 2;
 

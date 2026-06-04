@@ -7,9 +7,12 @@ using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using System.IO;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Application = System.Windows.Application;
+using MessageBox = System.Windows.MessageBox;
 
 namespace RealmStudioX.WPF.ViewModels.Main
 {
@@ -201,16 +204,53 @@ namespace RealmStudioX.WPF.ViewModels.Main
         }
 
         // -------------------------
-        // Commands (buttons)
+        // Commands (menu and buttons)
         // -------------------------
+
+        public ICommand NewCommand => new RelayCommand(() =>
+        {
+            MessageBox.Show("New Map", "New", MessageBoxButton.OK, MessageBoxImage.Information);
+        });
+
+        public ICommand OpenCommand => new RelayCommand(() =>
+        {
+            MessageBox.Show("Open Map", "Open", MessageBoxButton.OK, MessageBoxImage.Information);
+        });
+
+        public ICommand SaveCommand => new RelayCommand(() =>
+        {
+            MessageBox.Show("Save Map", "Save", MessageBoxButton.OK, MessageBoxImage.Information);
+        });
+
+        public ICommand ExportCommand => new RelayCommand(() =>
+        {
+            MessageBox.Show("Export Map", "Export", MessageBoxButton.OK, MessageBoxImage.Information);
+        });
+
+        public ICommand PrintCommand => new RelayCommand(() =>
+        {
+            MessageBox.Show("Print Map", "Print", MessageBoxButton.OK, MessageBoxImage.Information);
+        });
+
         public ICommand ResetZoomCommand => new RelayCommand(() =>
         {
             _editor.Scene?.Camera?.Reset(_editor.Scene.Map.MapWidth, _editor.Scene.Map.MapHeight);
         });
 
+
         public ICommand OpenNameGeneratorConfigCommand => new RelayCommand(() =>
         {
             RequestOpenNameGeneratorConfig?.Invoke();
+        });
+
+        public ICommand ExitCommand => new RelayCommand(() =>
+        {
+            MessageBoxResult result = MessageBox.Show("Are you sure you want to exit?", "Confirm Exit", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                Application.Current.Shutdown();
+            }
         });
 
         public ICommand UndoCommand => new RelayCommand(() =>

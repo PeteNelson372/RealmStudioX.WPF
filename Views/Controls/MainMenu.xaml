@@ -12,24 +12,49 @@
         Height="32">
 
         <MenuItem Header="_File" Margin="10,6,0,0">
-            <MenuItem Header="_New" Click="OnNew"/>
-            <MenuItem Header="_Open..." Click="OnOpen"/>
-            <MenuItem Header="_Save" Click="OnSave"/>
+            <MenuItem Header="_New" Command="{Binding NewCommand}"/>
+            <MenuItem Header="_Open..." Command="{Binding OpenCommand}"/>
+            <MenuItem Header="_Save" Command="{Binding SaveCommand}"/>
 
             <Separator/>
 
-            <MenuItem Header="E_xit" Click="OnExit"/>
+            <MenuItem Header="_Export..." Command="{Binding ExportCommand}"/>
+            
+            <Separator/>
+
+            <MenuItem Header="_Print..." Command="{Binding PrintCommand}"/>
+
+            <Separator/>
+
+            <MenuItem Header="E_xit" Command="{Binding ExitCommand}"/>
         </MenuItem>
 
         <MenuItem Header="_Edit" Margin="0,6,0,0">
             <MenuItem Header="_Undo" Command="{Binding UndoCommand}" InputGestureText="Ctrl+Z"/>
             <MenuItem Header="_Redo" Command="{Binding RedoCommand}" InputGestureText="Ctrl+Y"/>
+            <Separator/>
+            <MenuItem Header="Cu_t" Command="{Binding CutCommand}" InputGestureText="Ctrl+X"/>
+            <MenuItem Header="_Copy" Command="{Binding CopyCommand}" InputGestureText="Ctrl+C"/>
+            <MenuItem Header="_Paste" Command="{Binding PasteCommand}" InputGestureText="Ctrl+V"/>
+            <MenuItem Header="Clea_r Selection" Command="{Binding ClearSelectionCommand}" InputGestureText="Ctrl+R"/>
         </MenuItem>
 
         <MenuItem Header="Realm" Margin="0,6,0,0">
+            <MenuItem Header="_Properties" Command="{Binding OpenPropertiesCommand}"/>
+            <MenuItem Header="Change Map _Size" Command="{Binding ChangeMapSizeCommand}"/>
+            <MenuItem Header="Create _Detail Map" Command="{Binding CreateDetailMapCommand}"/>
+            <MenuItem Header="_Trace Outline" Command="{Binding TraceOutlineCommand}"/>
+            <Separator/>
+            <MenuItem Header="Display _Height Map..." Command="{Binding DisplayHeightMapCommand}"/>
+            <MenuItem Header="Display World _Globe..." Command="{Binding DisplayWorldGlobeCommand}"/>
         </MenuItem>
 
         <MenuItem Header="Assets" Margin="0,6,0,0">
+            <MenuItem Header="_Create Symbol Collection..." Command="{Binding CreateSymbolCollectionCommand}"/>
+            <MenuItem Header="_Import Assets From">
+                <MenuItem Header="Wonderdraft Asset _Zip File..." Command="{Binding ImportWonderdraftZipCommand}"/>
+                <MenuItem Header="Wonderdraft _User Folder..." Command="{Binding ImportWonderdraftUserFolderCommand}"/>
+            </MenuItem>
             <MenuItem Header="Import _GIMP Brush..." Command="{Binding OpenGimpBrushCommand}"/>
         </MenuItem>
 
@@ -42,6 +67,11 @@
         </MenuItem>
 
         <MenuItem Header="Help" Margin="0,6,0,0">
+            <MenuItem Header="_Contents" Command="{Binding OpenHelpContentsCommand}"/>
+            <Separator/>
+            <MenuItem Header="Check For New _Release" Command="{Binding CheckNewReleaseCommand}"/>
+            <Separator/>
+            <MenuItem Header="_About" Command="{Binding OpenAboutCommand}"/>
         </MenuItem>
 
     </Menu>

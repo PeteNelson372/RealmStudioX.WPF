@@ -21,8 +21,33 @@
             <Border Background="#EEE"
                     CornerRadius="4"
                     Margin="4">
+
                 <Image Source="{Binding ImageSource}"
-                       Stretch="UniformToFill"/>
+                   Stretch="UniformToFill"
+                   Opacity="{Binding PreviewOpacity,
+                                     RelativeSource={RelativeSource AncestorType=UserControl}}"
+                   RenderTransformOrigin="0.5,0.5">
+
+                    <Image.RenderTransform>
+
+                        <TransformGroup>
+
+                            <ScaleTransform
+                                ScaleX="{Binding PreviewScale,
+                                                 RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                ScaleY="{Binding PreviewScale,
+                                                 RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+
+                            <RotateTransform
+                                Angle="{Binding PreviewRotation,
+                                                RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+
+                        </TransformGroup>
+
+                    </Image.RenderTransform>
+
+                </Image>
+
             </Border>
 
             <!-- Previous -->

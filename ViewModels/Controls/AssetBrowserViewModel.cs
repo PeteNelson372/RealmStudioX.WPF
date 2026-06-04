@@ -2,7 +2,6 @@
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using SkiaSharp;
-using System.IO;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
@@ -37,6 +36,7 @@ namespace RealmStudioX.WPF.ViewModels.Controls
             var img = _browser.GetCurrentImage();
 
             ImageSource = (BitmapSource?)SKBitmap.FromImage(img).ToImageSource();
+            CurrentImage = img;
             CurrentName = _browser.GetCurrentAsset()?.Name;
             TextureSelectionChanged?.Invoke();
         }
