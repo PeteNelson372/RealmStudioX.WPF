@@ -3,6 +3,7 @@ using RealmStudioX.Core;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
+using System.Windows.Controls;
 
 namespace RealmStudioX.WPF.Editor.Tools
 {
@@ -29,6 +30,15 @@ namespace RealmStudioX.WPF.Editor.Tools
         private DrawnLine? _currentDrawnline = null;
         private PaintedLine? _currentPaintedLine = null;
         private PreparedBrush? _currentPreparedBrush = null;
+        private DrawnRectangle? _currentDrawnRectangle = null;
+        private DrawnEllipse? _currentDrawnEllipse = null;
+        private DrawnPolygon? _currentDrawnPolygon = null;
+        private DrawnTriangle? _currentDrawnTriangle = null;
+        private DrawnDiamond? _currentDrawnDiamond = null;
+        private DrawnRegularPolygon? _currentDrawnRegularPolygon = null;
+        private DrawnArrow? _currentDrawnArrow = null;
+        private DrawnFivePointStar? _currentDrawnFivePointStar = null;
+        private DrawnSixPointStar? _currentDrawnSixPointStar = null;
 
         public PreparedBrush? CurrentPreparedBrush
         {
@@ -118,6 +128,245 @@ namespace RealmStudioX.WPF.Editor.Tools
                             }
                         }
                         break;
+                    case MapDrawingMode.DrawingRectangle:
+                        {
+                            _currentDrawnRectangle = new DrawnRectangle
+                            {
+                                TopLeft = state.WorldPoint,
+                                BottomRight = state.WorldPoint,
+                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                Rotation = _drawingSettings.ShapeRotation,
+                                TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
+                                TextureScale = _drawingSettings.TextureScale,
+                                BrushSize = _drawingSettings.LineBrushSize,
+                                FillType = _drawingSettings.SelectedShapeFillType,
+                                FillColor = _drawingSettings.FillColor.ToSKColor(),
+                                FillImage = _drawingSettings.CurrentSelectedTexture,
+                                FillImageId = _drawingSettings.CurrentSelectedTextureId ?? string.Empty,
+                            };
+                        }
+                        break;
+                    case MapDrawingMode.DrawingEllipse:
+                        {
+                            _currentDrawnEllipse = new DrawnEllipse
+                            {
+                                TopLeft = state.WorldPoint,
+                                BottomRight = state.WorldPoint,
+                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                Rotation = _drawingSettings.ShapeRotation,
+                                TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
+                                TextureScale = _drawingSettings.TextureScale,
+                                BrushSize = _drawingSettings.LineBrushSize,
+                                FillType = _drawingSettings.SelectedShapeFillType,
+                                FillColor = _drawingSettings.FillColor.ToSKColor(),
+                                FillImage = _drawingSettings.CurrentSelectedTexture,
+                                FillImageId = _drawingSettings.CurrentSelectedTextureId ?? string.Empty,
+                            };
+                        }
+                        break;
+                    case MapDrawingMode.DrawingPolygon:
+                        {
+                            if (_currentDrawnPolygon == null)
+                            {
+                                _currentDrawnPolygon = new DrawnPolygon
+                                {
+                                    Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                    Rotation = _drawingSettings.ShapeRotation,
+                                    TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
+                                    TextureScale = _drawingSettings.TextureScale,
+                                    BrushSize = _drawingSettings.LineBrushSize,
+                                    FillType = _drawingSettings.SelectedShapeFillType,
+                                    FillColor = _drawingSettings.FillColor.ToSKColor(),
+                                    FillImage = _drawingSettings.CurrentSelectedTexture,
+                                    FillImageId = _drawingSettings.CurrentSelectedTextureId ?? string.Empty,
+                                };
+                            }
+
+                            _currentDrawnPolygon.Points.Add(state.WorldPoint);
+                        }
+                        break;
+                    case MapDrawingMode.DrawingRoundedRectangle:
+                        {
+                            _currentDrawnRectangle = new DrawnRectangle
+                            {
+                                TopLeft = state.WorldPoint,
+                                BottomRight = state.WorldPoint,
+                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                Rotation = _drawingSettings.ShapeRotation,
+                                TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
+                                TextureScale = _drawingSettings.TextureScale,
+                                BrushSize = _drawingSettings.LineBrushSize,
+                                FillType = _drawingSettings.SelectedShapeFillType,
+                                FillColor = _drawingSettings.FillColor.ToSKColor(),
+                                FillImage = _drawingSettings.CurrentSelectedTexture,
+                                FillImageId = _drawingSettings.CurrentSelectedTextureId ?? string.Empty,
+                                DrawRounded = true,
+                            };
+                        }
+                        break;
+                    case MapDrawingMode.DrawingTriangle:
+                        {
+                            _currentDrawnTriangle = new DrawnTriangle
+                            {
+                                TopLeft = state.WorldPoint,
+                                BottomRight = state.WorldPoint,
+                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                Rotation = _drawingSettings.ShapeRotation,
+                                TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
+                                TextureScale = _drawingSettings.TextureScale,
+                                BrushSize = _drawingSettings.LineBrushSize,
+                                FillType = _drawingSettings.SelectedShapeFillType,
+                                FillColor = _drawingSettings.FillColor.ToSKColor(),
+                                FillImage = _drawingSettings.CurrentSelectedTexture,
+                                FillImageId = _drawingSettings.CurrentSelectedTextureId ?? string.Empty,
+                            };
+                        }
+                        break;
+                    case MapDrawingMode.DrawingRightTriangle:
+                        {
+                            _currentDrawnTriangle = new DrawnTriangle
+                            {
+                                TopLeft = state.WorldPoint,
+                                BottomRight = state.WorldPoint,
+                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                Rotation = _drawingSettings.ShapeRotation,
+                                TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
+                                TextureScale = _drawingSettings.TextureScale,
+                                BrushSize = _drawingSettings.LineBrushSize,
+                                FillType = _drawingSettings.SelectedShapeFillType,
+                                FillColor = _drawingSettings.FillColor.ToSKColor(),
+                                FillImage = _drawingSettings.CurrentSelectedTexture,
+                                FillImageId = _drawingSettings.CurrentSelectedTextureId ?? string.Empty,
+                                DrawRight = true,
+                            };
+                        }
+                        break;
+                    case MapDrawingMode.DrawingDiamond:
+                        {
+                            _currentDrawnDiamond = new DrawnDiamond
+                            {
+                                TopLeft = state.WorldPoint,
+                                BottomRight = state.WorldPoint,
+                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                Rotation = _drawingSettings.ShapeRotation,
+                                TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
+                                TextureScale = _drawingSettings.TextureScale,
+                                BrushSize = _drawingSettings.LineBrushSize,
+                                FillType = _drawingSettings.SelectedShapeFillType,
+                                FillColor = _drawingSettings.FillColor.ToSKColor(),
+                                FillImage = _drawingSettings.CurrentSelectedTexture,
+                                FillImageId = _drawingSettings.CurrentSelectedTextureId ?? string.Empty,
+                            };
+                        }
+                        break;
+                    case MapDrawingMode.DrawingPentagon:
+                        {
+                            _currentDrawnRegularPolygon = new DrawnRegularPolygon
+                            {
+                                TopLeft = state.WorldPoint,
+                                BottomRight = state.WorldPoint,
+                                Sides = 5,
+                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                Rotation = _drawingSettings.ShapeRotation,
+                                TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
+                                TextureScale = _drawingSettings.TextureScale,
+                                BrushSize = _drawingSettings.LineBrushSize,
+                                FillType = _drawingSettings.SelectedShapeFillType,
+                                FillColor = _drawingSettings.FillColor.ToSKColor(),
+                                FillImage = _drawingSettings.CurrentSelectedTexture,
+                                FillImageId = _drawingSettings.CurrentSelectedTextureId ?? string.Empty,
+                            };
+                        }
+                        break;
+                    case MapDrawingMode.DrawingHexagon:
+                        {
+                            _currentDrawnRegularPolygon = new DrawnRegularPolygon
+                            {
+                                TopLeft = state.WorldPoint,
+                                BottomRight = state.WorldPoint,
+                                Sides = 6,
+                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                Rotation = _drawingSettings.ShapeRotation,
+                                TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
+                                TextureScale = _drawingSettings.TextureScale,
+                                BrushSize = _drawingSettings.LineBrushSize,
+                                FillType = _drawingSettings.SelectedShapeFillType,
+                                FillColor = _drawingSettings.FillColor.ToSKColor(),
+                                FillImage = _drawingSettings.CurrentSelectedTexture,
+                                FillImageId = _drawingSettings.CurrentSelectedTextureId ?? string.Empty,
+                            };
+                        }
+                        break;
+                    case MapDrawingMode.DrawingArrow:
+                        {
+                            _currentDrawnArrow = new DrawnArrow
+                            {
+                                TopLeft = state.WorldPoint,
+                                BottomRight = state.WorldPoint,
+                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                Rotation = _drawingSettings.ShapeRotation,
+                                TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
+                                TextureScale = _drawingSettings.TextureScale,
+                                BrushSize = _drawingSettings.LineBrushSize,
+                                FillType = _drawingSettings.SelectedShapeFillType,
+                                FillColor = _drawingSettings.FillColor.ToSKColor(),
+                                FillImage = _drawingSettings.CurrentSelectedTexture,
+                                FillImageId = _drawingSettings.CurrentSelectedTextureId ?? string.Empty,
+                            };
+                        }
+                        break;
+                    case MapDrawingMode.DrawingFivePointStar:
+                        {
+                            _currentDrawnFivePointStar = new DrawnFivePointStar
+                            {
+                                Center = state.WorldPoint,
+                                Radius = 0,
+                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                Rotation = _drawingSettings.ShapeRotation,
+                                TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
+                                TextureScale = _drawingSettings.TextureScale,
+                                BrushSize = _drawingSettings.LineBrushSize,
+                                FillType = _drawingSettings.SelectedShapeFillType,
+                                FillColor = _drawingSettings.FillColor.ToSKColor(),
+                                FillImage = _drawingSettings.CurrentSelectedTexture,
+                                FillImageId = _drawingSettings.CurrentSelectedTextureId ?? string.Empty,
+                            };
+                        }
+                        break;
+                    case MapDrawingMode.DrawingSixPointStar:
+                        {
+                            _currentDrawnSixPointStar = new DrawnSixPointStar
+                            {
+                                Center = state.WorldPoint,
+                                Radius = 0,
+                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                Rotation = _drawingSettings.ShapeRotation,
+                                TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
+                                TextureScale = _drawingSettings.TextureScale,
+                                BrushSize = _drawingSettings.LineBrushSize,
+                                FillType = _drawingSettings.SelectedShapeFillType,
+                                FillColor = _drawingSettings.FillColor.ToSKColor(),
+                                FillImage = _drawingSettings.CurrentSelectedTexture,
+                                FillImageId = _drawingSettings.CurrentSelectedTextureId ?? string.Empty,
+                            };
+                        }
+                        break;
+                }
+            }
+
+            if (state.Button == EditorMouseButton.Right)
+            {
+                if (_editorState.CurrentDrawingMode == MapDrawingMode.DrawingPolygon)
+                {
+                    // commit the polygon
+                    if (_editor.ActiveDrawingLayer != null && _currentDrawnPolygon != null)
+                    {
+                        _currentDrawnPolygon.Points.Add(state.WorldPoint);
+
+                        Cmd_AddDrawnShape cmd = new(_editor.ActiveDrawingLayer, _currentDrawnPolygon);
+                        _commands.Execute(cmd);
+                    }
+                    _currentDrawnPolygon = null;
                 }
             }
         }
@@ -150,6 +399,129 @@ namespace RealmStudioX.WPF.Editor.Tools
                             }
                         }
                         break;
+                    case MapDrawingMode.DrawingRectangle:
+                        {
+                            if (_currentDrawnRectangle != null)
+                            {
+                                SKRect rect = new(_currentDrawnRectangle.TopLeft.X, _currentDrawnRectangle.TopLeft.Y,
+                                    state.WorldPoint.X, state.WorldPoint.Y);
+
+                                if (ctrl)
+                                {
+                                    // if the ctrl key is pressed, make the rectangle a square
+                                    float size = Math.Max(rect.Width, rect.Height);
+                                    rect = new SKRect(rect.Left, rect.Top, rect.Left + size, rect.Top + size);
+                                }
+
+                                _currentDrawnRectangle.BottomRight = new SKPoint(rect.Right, rect.Bottom);
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingEllipse:
+                        {
+                            if (_currentDrawnEllipse != null)
+                            {
+                                SKRect rect = new(_currentDrawnEllipse.TopLeft.X, _currentDrawnEllipse.TopLeft.Y,
+                                    state.WorldPoint.X, state.WorldPoint.Y);
+                                if (ctrl)
+                                {
+                                    // if the ctrl key is pressed, make the ellipse a circle
+                                    float size = Math.Max(rect.Width, rect.Height);
+                                    rect = new SKRect(rect.Left, rect.Top, rect.Left + size, rect.Top + size);
+                                }
+                                _currentDrawnEllipse.BottomRight = new SKPoint(rect.Right, rect.Bottom);
+                            }
+                            break;
+                        }
+                    case MapDrawingMode.DrawingPolygon:
+                        {
+                            _editor.RequestRedraw();
+                        }
+                        break;
+                    case MapDrawingMode.DrawingRoundedRectangle:
+                        {
+                            if (_currentDrawnRectangle != null)
+                            {
+                                SKRect rect = new(_currentDrawnRectangle.TopLeft.X, _currentDrawnRectangle.TopLeft.Y,
+                                    state.WorldPoint.X, state.WorldPoint.Y);
+
+                                if (ctrl)
+                                {
+                                    // if the ctrl key is pressed, make the rectangle a square
+                                    float size = Math.Max(rect.Width, rect.Height);
+                                    rect = new SKRect(rect.Left, rect.Top, rect.Left + size, rect.Top + size);
+                                }
+
+                                _currentDrawnRectangle.BottomRight = new SKPoint(rect.Right, rect.Bottom);
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingTriangle:
+                        {
+                            if (_currentDrawnTriangle != null)
+                            {
+                                _currentDrawnTriangle.BottomRight = state.WorldPoint;
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingRightTriangle:
+                        {
+                            if (_currentDrawnTriangle != null)
+                            {
+                                _currentDrawnTriangle.BottomRight = state.WorldPoint;
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingDiamond:
+                        {
+                            if (_currentDrawnDiamond != null)
+                            {
+                                _currentDrawnDiamond.BottomRight = state.WorldPoint;
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingPentagon:
+                        {
+                            if (_currentDrawnRegularPolygon != null)
+                            {
+                                _currentDrawnRegularPolygon.BottomRight = state.WorldPoint;
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingHexagon:
+                        {
+                            if (_currentDrawnRegularPolygon != null)
+                            {
+                                _currentDrawnRegularPolygon.BottomRight = state.WorldPoint;
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingArrow:
+                        {
+                            if (_currentDrawnArrow != null)
+                            {
+                                _currentDrawnArrow.BottomRight = state.WorldPoint;
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingFivePointStar:
+                        {
+                            if (_currentDrawnFivePointStar != null)
+                            {
+                                float radius = SKPoint.Distance(_currentDrawnFivePointStar.Center, state.WorldPoint);
+                                _currentDrawnFivePointStar.Radius = radius;
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingSixPointStar:
+                        {
+                            if (_currentDrawnSixPointStar != null)
+                            {
+                                float radius = SKPoint.Distance(_currentDrawnSixPointStar.Center, state.WorldPoint);
+                                _currentDrawnSixPointStar.Radius = radius;
+                            }
+                        }
+                        break;
                 }
             }
 
@@ -158,6 +530,9 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         public void OnMouseUp(PointerState state)
         {
+            bool ctrl = (state.Modifiers & InputModifiers.Control) == InputModifiers.Control;
+            bool shift = (state.Modifiers & InputModifiers.Shift) == InputModifiers.Shift;
+
             if (state.Button == EditorMouseButton.Left)
             {
                 MapLayer drawLayer = _editor.ActiveDrawingLayer != null ?
@@ -173,7 +548,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                                 if (_editor.ActiveDrawingLayer != null)
                                 {
-                                    Cmd_AddDrawnLine cmd = new(_editor.ActiveDrawingLayer, _currentDrawnline);
+                                    Cmd_AddDrawnShape cmd = new(_editor.ActiveDrawingLayer, _currentDrawnline);
                                     _commands.Execute(cmd);
                                 }
 
@@ -185,12 +560,6 @@ namespace RealmStudioX.WPF.Editor.Tools
                         {
                             if (_currentPaintedLine != null)
                             {
-                                long now = Environment.TickCount64;
-
-                                float deltaTime = (now - _lastPaintTimestamp) / 1000f;
-
-                                _lastPaintTimestamp = now;
-
                                 if (state.WorldPoint != _currentPaintedLine.Points[^1])
                                 {
                                     _currentPaintedLine.AddPoint(state.WorldPoint);
@@ -200,11 +569,206 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                                 if (_editor.ActiveDrawingLayer != null)
                                 {
-                                    Cmd_AddPaintedLine cmd = new(_editor.ActiveDrawingLayer, _currentPaintedLine);
+                                    Cmd_AddDrawnShape cmd = new(_editor.ActiveDrawingLayer, _currentPaintedLine);
                                     _commands.Execute(cmd);
                                 }
 
                                 _currentPaintedLine = null;
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingRectangle:
+                        {
+                            if (_currentDrawnRectangle != null)
+                            {
+                                SKRect rect = new(_currentDrawnRectangle.TopLeft.X, _currentDrawnRectangle.TopLeft.Y,
+                                    state.WorldPoint.X, state.WorldPoint.Y);
+
+                                if (ctrl)
+                                {
+                                    // if the ctrl key is pressed, make the rectangle a square
+                                    float size = Math.Max(rect.Width, rect.Height);
+                                    rect = new SKRect(rect.Left, rect.Top, rect.Left + size, rect.Top + size);
+                                }
+
+                                _currentDrawnRectangle.BottomRight = new SKPoint(rect.Right, rect.Bottom);
+
+                                if (_editor.ActiveDrawingLayer != null)
+                                {
+                                    Cmd_AddDrawnShape cmd = new(_editor.ActiveDrawingLayer, _currentDrawnRectangle);
+                                    _commands.Execute(cmd);
+                                }
+                                _currentDrawnRectangle = null;
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingEllipse:
+                        {
+                            if (_currentDrawnEllipse != null)
+                            {
+                                SKRect rect = new(_currentDrawnEllipse.TopLeft.X, _currentDrawnEllipse.TopLeft.Y,
+                                    state.WorldPoint.X, state.WorldPoint.Y);
+
+                                if (ctrl)
+                                {
+                                    // if the ctrl key is pressed, make the ellipse a circle
+                                    float size = Math.Max(rect.Width, rect.Height);
+                                    rect = new SKRect(rect.Left, rect.Top, rect.Left + size, rect.Top + size);
+                                }
+
+                                _currentDrawnEllipse.BottomRight = new SKPoint(rect.Right, rect.Bottom);
+
+                                if (_editor.ActiveDrawingLayer != null)
+                                {
+                                    Cmd_AddDrawnShape cmd = new(_editor.ActiveDrawingLayer, _currentDrawnEllipse);
+                                    _commands.Execute(cmd);
+                                }
+                                _currentDrawnEllipse = null;
+                            }
+                            break;
+                        }
+                    case MapDrawingMode.DrawingPolygon:
+                        {
+                            // no op
+                        }
+                        break;
+                    case MapDrawingMode.DrawingRoundedRectangle:
+                        {
+                            if (_currentDrawnRectangle != null)
+                            {
+                                SKRect rect = new(_currentDrawnRectangle.TopLeft.X, _currentDrawnRectangle.TopLeft.Y,
+                                    state.WorldPoint.X, state.WorldPoint.Y);
+
+                                if (ctrl)
+                                {
+                                    // if the ctrl key is pressed, make the rectangle a square
+                                    float size = Math.Max(rect.Width, rect.Height);
+                                    rect = new SKRect(rect.Left, rect.Top, rect.Left + size, rect.Top + size);
+                                }
+
+                                _currentDrawnRectangle.BottomRight = new SKPoint(rect.Right, rect.Bottom);
+
+                                if (_editor.ActiveDrawingLayer != null)
+                                {
+                                    Cmd_AddDrawnShape cmd = new(_editor.ActiveDrawingLayer, _currentDrawnRectangle);
+                                    _commands.Execute(cmd);
+                                }
+                                _currentDrawnRectangle = null;
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingTriangle:
+                        {
+                            if (_currentDrawnTriangle != null)
+                            {
+                                _currentDrawnTriangle.BottomRight = state.WorldPoint;
+                                if (_editor.ActiveDrawingLayer != null)
+                                {
+                                    Cmd_AddDrawnShape cmd = new(_editor.ActiveDrawingLayer, _currentDrawnTriangle);
+                                    _commands.Execute(cmd);
+                                }
+                                _currentDrawnTriangle = null;
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingRightTriangle:
+                        {
+                            if (_currentDrawnTriangle != null)
+                            {
+                                _currentDrawnTriangle.BottomRight = state.WorldPoint;
+                                if (_editor.ActiveDrawingLayer != null)
+                                {
+                                    Cmd_AddDrawnShape cmd = new(_editor.ActiveDrawingLayer, _currentDrawnTriangle);
+                                    _commands.Execute(cmd);
+                                }
+                                _currentDrawnTriangle = null;
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingDiamond:
+                        {
+                            if (_currentDrawnDiamond != null)
+                            {
+                                _currentDrawnDiamond.BottomRight = state.WorldPoint;
+                                if (_editor.ActiveDrawingLayer != null)
+                                {
+                                    Cmd_AddDrawnShape cmd = new(_editor.ActiveDrawingLayer, _currentDrawnDiamond);
+                                    _commands.Execute(cmd);
+                                }
+                                _currentDrawnDiamond = null;
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingPentagon:
+                        {
+                            if (_currentDrawnRegularPolygon != null)
+                            {
+                                _currentDrawnRegularPolygon.BottomRight = state.WorldPoint;
+                                if (_editor.ActiveDrawingLayer != null)
+                                {
+                                    Cmd_AddDrawnShape cmd = new(_editor.ActiveDrawingLayer, _currentDrawnRegularPolygon);
+                                    _commands.Execute(cmd);
+                                }
+                                _currentDrawnRegularPolygon = null;
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingHexagon:
+                        {
+                            if (_currentDrawnRegularPolygon != null)
+                            {
+                                _currentDrawnRegularPolygon.BottomRight = state.WorldPoint;
+                                if (_editor.ActiveDrawingLayer != null)
+                                {
+                                    Cmd_AddDrawnShape cmd = new(_editor.ActiveDrawingLayer, _currentDrawnRegularPolygon);
+                                    _commands.Execute(cmd);
+                                }
+                                _currentDrawnRegularPolygon = null;
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingArrow:
+                        {
+                            if (_currentDrawnArrow != null)
+                            {
+                                _currentDrawnArrow.BottomRight = state.WorldPoint;
+                                if (_editor.ActiveDrawingLayer != null)
+                                {
+                                    Cmd_AddDrawnShape cmd = new(_editor.ActiveDrawingLayer, _currentDrawnArrow);
+                                    _commands.Execute(cmd);
+                                }
+                                _currentDrawnArrow = null;
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingFivePointStar:
+                        {
+                            if (_currentDrawnFivePointStar != null)
+                            {
+                                float radius = SKPoint.Distance(_currentDrawnFivePointStar.Center, state.WorldPoint);
+                                _currentDrawnFivePointStar.Radius = radius;
+
+                                if (_editor.ActiveDrawingLayer != null)
+                                {
+                                    Cmd_AddDrawnShape cmd = new(_editor.ActiveDrawingLayer, _currentDrawnFivePointStar);
+                                    _commands.Execute(cmd);
+                                }
+                                _currentDrawnFivePointStar = null;
+                            }
+                        }
+                        break;
+                    case MapDrawingMode.DrawingSixPointStar:
+                        {
+                            if (_currentDrawnSixPointStar != null)
+                            {
+                                float radius = SKPoint.Distance(_currentDrawnSixPointStar.Center, state.WorldPoint);
+                                _currentDrawnSixPointStar.Radius = radius;
+                                if (_editor.ActiveDrawingLayer != null)
+                                {
+                                    Cmd_AddDrawnShape cmd = new(_editor.ActiveDrawingLayer, _currentDrawnSixPointStar);
+                                    _commands.Execute(cmd);
+                                }
+                                _currentDrawnSixPointStar = null;
                             }
                         }
                         break;
@@ -231,15 +795,30 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         public void RenderOverlay(SKCanvas canvas, SKPoint world)
         {
-            if (_currentDrawnline != null)
-            {
-                _currentDrawnline.Render(canvas);
-            }
 
-            if (_currentPaintedLine != null)
-            {
-                _currentPaintedLine.Render(canvas);
-            }
+            _currentDrawnline?.Render(canvas);
+
+            _currentPaintedLine?.Render(canvas);
+
+            _currentDrawnRectangle?.Render(canvas);
+
+            _currentDrawnEllipse?.Render(canvas);
+
+            _currentDrawnPolygon?.Points.Add(world);
+            _currentDrawnPolygon?.Render(canvas);
+            _currentDrawnPolygon?.Points.RemoveAt(_currentDrawnPolygon.Points.Count - 1);
+
+            _currentDrawnTriangle?.Render(canvas);
+
+            _currentDrawnDiamond?.Render(canvas);
+
+            _currentDrawnRegularPolygon?.Render(canvas);
+
+            _currentDrawnArrow?.Render(canvas);
+
+            _currentDrawnFivePointStar?.Render(canvas);
+
+            _currentDrawnSixPointStar?.Render(canvas);
 
             if (_editorState.CurrentDrawingMode == MapDrawingMode.DrawingPaint || _editorState.CurrentDrawingMode == MapDrawingMode.DrawingLine)
             {
@@ -249,6 +828,12 @@ namespace RealmStudioX.WPF.Editor.Tools
                     world,
                     brushRadius,
                     PaintObjects.CursorCirclePaint);
+            }
+            else if (_editorState.CurrentDrawingMode == MapDrawingMode.DrawingPixelEdit)
+            {
+                // draw a square cursor for pixel editing
+                SKRect rect = new(world.X - 32, world.Y - 32, world.X + 32, world.Y + 32);
+                canvas.DrawRect(rect, PaintObjects.CursorSquarePaint);
             }
 
         }

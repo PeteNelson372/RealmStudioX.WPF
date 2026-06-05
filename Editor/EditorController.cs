@@ -1945,8 +1945,7 @@ namespace RealmStudioX.WPF.Editor
             }
         }
 
-        internal void CompletePlacedFrame(
-            PlacedMapFrame mapFrame)
+        internal static void CompletePlacedFrame(PlacedMapFrame mapFrame)
         {
             if (mapFrame.FrameDefinition?.FrameBitmap == null)
             {

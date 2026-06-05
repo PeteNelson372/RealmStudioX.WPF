@@ -445,32 +445,38 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public ICommand PlaceRectangleCommand => new RelayCommand(() =>
         {
-
+            _editor.SetDrawingMode(MapDrawingMode.DrawingRectangle);
+            _editor.ActivateTool(EditorToolType.DrawingTool, (IDrawingSettings)this);
         });
 
         public ICommand PlaceEllipseCommand => new RelayCommand(() =>
         {
-
+            _editor.SetDrawingMode(MapDrawingMode.DrawingEllipse);
+            _editor.ActivateTool(EditorToolType.DrawingTool, (IDrawingSettings)this);
         });
 
         public ICommand PlacePolygonCommand => new RelayCommand(() =>
         {
-
+            _editor.SetDrawingMode(MapDrawingMode.DrawingPolygon);
+            _editor.ActivateTool(EditorToolType.DrawingTool, (IDrawingSettings)this);
         });
 
         public ICommand PlaceStampCommand => new RelayCommand(() =>
         {
-
+            _editor.SetDrawingMode(MapDrawingMode.DrawingStamp);
+            _editor.ActivateTool(EditorToolType.DrawingTool, (IDrawingSettings)this);
         });
 
         public ICommand EraseDrawingCommand => new RelayCommand(() =>
         {
-
+            _editor.SetDrawingMode(MapDrawingMode.DrawingErase);
+            _editor.ActivateTool(EditorToolType.DrawingTool, (IDrawingSettings)this);
         });
 
         public ICommand PixelEditCommand => new RelayCommand(() =>
         {
-
+            _editor.SetDrawingMode(MapDrawingMode.DrawingPixelEdit);
+            _editor.ActivateTool(EditorToolType.DrawingTool, (IDrawingSettings)this);
         });
 
         public ICommand SelectStampCommand => new RelayCommand(() =>
@@ -487,47 +493,56 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public ICommand PlaceRoundedRectangleCommand => new RelayCommand(() =>
         {
-
+            _editor.SetDrawingMode(MapDrawingMode.DrawingRoundedRectangle);
+            _editor.ActivateTool(EditorToolType.DrawingTool, (IDrawingSettings)this);
         });
 
         public ICommand PlaceTriangleCommand => new RelayCommand(() =>
         {
-
+            _editor.SetDrawingMode(MapDrawingMode.DrawingTriangle);
+            _editor.ActivateTool(EditorToolType.DrawingTool, (IDrawingSettings)this);
         });
 
         public ICommand PlaceRightTriangleCommand => new RelayCommand(() =>
         {
-
+            _editor.SetDrawingMode(MapDrawingMode.DrawingRightTriangle);
+            _editor.ActivateTool(EditorToolType.DrawingTool, (IDrawingSettings)this);
         });
 
         public ICommand PlaceDiamondCommand => new RelayCommand(() =>
         {
-
+            _editor.SetDrawingMode(MapDrawingMode.DrawingDiamond);
+            _editor.ActivateTool(EditorToolType.DrawingTool, (IDrawingSettings)this);
         });
 
         public ICommand PlacePentagonCommand => new RelayCommand(() =>
         {
-
+            _editor.SetDrawingMode(MapDrawingMode.DrawingPentagon);
+            _editor.ActivateTool(EditorToolType.DrawingTool, (IDrawingSettings)this);
         });
 
         public ICommand PlaceHexagonCommand => new RelayCommand(() =>
         {
-
+            _editor.SetDrawingMode(MapDrawingMode.DrawingHexagon);
+            _editor.ActivateTool(EditorToolType.DrawingTool, (IDrawingSettings)this);
         });
 
         public ICommand PlaceArrowCommand => new RelayCommand(() =>
         {
-
+            _editor.SetDrawingMode(MapDrawingMode.DrawingArrow);
+            _editor.ActivateTool(EditorToolType.DrawingTool, (IDrawingSettings)this);
         });
 
         public ICommand PlaceFivePointStarCommand => new RelayCommand(() =>
         {
-
+            _editor.SetDrawingMode(MapDrawingMode.DrawingFivePointStar);
+            _editor.ActivateTool(EditorToolType.DrawingTool, (IDrawingSettings)this);
         });
 
         public ICommand PlaceSixPointStarCommand => new RelayCommand(() =>
         {
-
+            _editor.SetDrawingMode(MapDrawingMode.DrawingSixPointStar);
+            _editor.ActivateTool(EditorToolType.DrawingTool, (IDrawingSettings)this);
         });
 
         // private methods

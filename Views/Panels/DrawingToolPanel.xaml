@@ -257,6 +257,8 @@
                             Width="120"
                             Minimum="0"
                             Maximum="359"
+                            AutoToolTipPlacement="TopLeft"
+                            AutoToolTipPrecision="0"
                             Value="{Binding StampRotation}"/>
 
             </StackPanel>
@@ -276,7 +278,7 @@
 
                 <Slider x:Name="StampOpacitySlider"
                             Style="{StaticResource ModernSlider}"
-                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
                             Width="120"
                             Minimum="0.0"
                             Maximum="1.0"
@@ -485,6 +487,8 @@
                             Width="120"
                             Minimum="0"
                             Maximum="359"
+                            AutoToolTipPlacement="TopLeft"
+                            AutoToolTipPrecision="0"
                             Value="{Binding ShapeRotation}"/>
         </StackPanel>
 
