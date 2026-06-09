@@ -1,0 +1,191 @@
+﻿<Window x:Class="RealmStudioX.WPF.Views.Dialogs.PixelEditDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"        
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"        
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Dialogs"
+        xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"        
+        mc:Ignorable="d"
+        Background="#FF45443F"
+        WindowStyle="None"        
+        Title="NameGenConfig" Height="660" Width="700">
+
+    <!-- WindowChrome -->
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="32"
+                            ResizeBorderThickness="0"
+                            CornerRadius="0"/>
+    </shell:WindowChrome.WindowChrome>
+
+    <Grid Background="#FFDFDBD2" Margin="10,0,10,10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="522"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="524"/>
+            <ColumnDefinition Width="*"/>
+
+        </Grid.ColumnDefinitions>
+
+        <!-- ========================= -->
+        <!-- CUSTOM TITLE BAR -->
+        <!-- ========================= -->
+        <Border Grid.Row="0"
+            Grid.ColumnSpan="3"
+            Background="#FF45443F">
+
+            <controls:PixelEditTitleBar />
+
+        </Border>
+
+        <!-- Pixel Editing Surface -->
+        <Border Grid.Column="0"
+                Grid.Row="1"
+                BorderBrush="#666"
+                BorderThickness="1"
+                Background="#FFFFFF"
+                Margin="10,10,0,0">
+
+            <Grid>
+
+                <!-- Enlarged Pixel View -->
+                <Image x:Name="PixelEditorImageCtrl"
+                       Source="{Binding PixelEditorImage}"
+                       Width="512"
+                       Height="512"
+                       Stretch="Fill"
+                       SnapsToDevicePixels="True"
+                       RenderOptions.BitmapScalingMode="NearestNeighbor"
+                       MouseLeftButtonDown="PixelEditorImage_MouseLeftButtonDown"
+                       MouseMove="PixelEditorImage_MouseMove"
+                       MouseLeftButtonUp="PixelEditorImage_MouseLeftButtonUp"/>
+
+                <!-- Optional Pixel Grid Overlay -->
+                <Canvas IsHitTestVisible="False">
+                </Canvas>
+
+            </Grid>
+
+        </Border>
+
+        <!-- Tool Panel -->
+        <Grid Grid.Column="1" Grid.Row="1" Margin="10,0,10,0">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Color Selection -->
+            <GroupBox Header="Color"
+                      Grid.Row="0">
+
+                <Grid Margin="0" Width="Auto">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="88"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Row="0" Grid.Column="1" Style="{StaticResource FlatToolButton}"
+                            Margin="0,0,0,8"
+                            Click="SelectPixelColorButton_Click">
+                        <materialDesign:PackIcon Kind="Eyedropper"
+                             Width="22"
+                             Height="22"
+                             HorizontalAlignment="Right"
+                             ToolTip="Select Color From Image"
+                             BorderBrush="LightGray"
+                             Foreground="Black"/>
+                    </Button>
+                    
+                    <Button
+                        Grid.Row="1"
+                        Grid.ColumnSpan="2"
+                        Style="{StaticResource FlatToolButton}"
+                        Width="100"
+                        Height="50"
+                        Margin="0"
+                        Background="{Binding PixelColorBrush}"
+                        ToolTip="Select Pixel Color"
+                        PreviewMouseLeftButtonUp="PixelColor_LeftClick"
+                        PreviewMouseRightButtonUp="PixelColor_RightClick">
+
+                        <materialDesign:PackIcon Kind="PaletteOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Foreground="Tan"
+                                    Opacity="0.7"/>
+                    </Button>
+
+                </Grid>
+
+            </GroupBox>
+
+            <!-- Status -->
+            <GroupBox Header="Pixel"
+                      Grid.Row="2"
+                      Margin="0,8,0,8">
+
+                <StackPanel Margin="6">
+
+                    <TextBlock Text="{Binding HoverPixelText}" />
+
+                    <Separator Margin="0,4"/>
+
+                    <TextBlock Text="{Binding OriginalColorText}" />
+
+                    <TextBlock Text="{Binding CurrentColorText}" />
+
+                </StackPanel>
+
+            </GroupBox>
+
+            <StackPanel Margin="6" Grid.Row="3">
+
+                <Button Content="Clear All Changes"
+                            Style="{StaticResource FlatToolButton}"
+                            Height="32"
+                            Click="ClearChangesButton_Click"/>
+
+                <TextBlock Text="{Binding ChangeCount}"
+                               HorizontalAlignment="Center"
+                               Margin="0,8,0,0"/>
+
+            </StackPanel>
+        </Grid>
+
+        <!-- OK / Cancel -->
+        <StackPanel Grid.Column="2" Grid.Row="3"
+                    Margin="0,10,10,10"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+
+            <Button Content="OK"
+                Style="{StaticResource FlatToolButton}"
+                Width="45"
+                Height="45"
+                Margin="0,0,6,0"
+                IsDefault="True"                
+                Click="Okay_Click"/>
+
+            <Button Content="Cancel"
+                Style="{StaticResource FlatToolButton}"
+                Width="45"
+                Height="45"
+                IsCancel="True"/>
+
+        </StackPanel>
+    </Grid>
+
+</Window>

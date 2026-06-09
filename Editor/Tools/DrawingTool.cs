@@ -1,9 +1,11 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
+using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Panels;
+using RealmStudioX.WPF.Views.Dialogs;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
-using System.Windows.Controls;
+using Application = System.Windows.Application;
 
 namespace RealmStudioX.WPF.Editor.Tools
 {
@@ -39,6 +41,7 @@ namespace RealmStudioX.WPF.Editor.Tools
         private DrawnArrow? _currentDrawnArrow = null;
         private DrawnFivePointStar? _currentDrawnFivePointStar = null;
         private DrawnSixPointStar? _currentDrawnSixPointStar = null;
+        private DrawingErase? _currentDrawingErase = null;
 
         public PreparedBrush? CurrentPreparedBrush
         {
@@ -71,6 +74,9 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             if (state.Button == EditorMouseButton.Left)
             {
+                MapLayer drawLayer = _editor.ActiveDrawingLayer != null ?
+                _editor.ActiveDrawingLayer : MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.DRAWINGLAYER);
+
                 switch (_editorState.CurrentDrawingMode)
                 {
                     case MapDrawingMode.DrawingLine:
@@ -78,7 +84,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                             _currentDrawnline = new DrawnLine
                             {
                                 BrushSize = _drawingSettings.LineBrushSize,
-                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                LineColor = _drawingSettings.DrawingColor.ToSKColor(),
                                 TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
                                 TextureScale = _drawingSettings.TextureScale,
                                 DrawTexture = _drawingSettings.SelectedShapeFillType == DrawingFillType.Texture,
@@ -134,7 +140,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                             {
                                 TopLeft = state.WorldPoint,
                                 BottomRight = state.WorldPoint,
-                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                RectangleColor = _drawingSettings.DrawingColor.ToSKColor(),
                                 Rotation = _drawingSettings.ShapeRotation,
                                 TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
                                 TextureScale = _drawingSettings.TextureScale,
@@ -152,7 +158,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                             {
                                 TopLeft = state.WorldPoint,
                                 BottomRight = state.WorldPoint,
-                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                EllipseColor = _drawingSettings.DrawingColor.ToSKColor(),
                                 Rotation = _drawingSettings.ShapeRotation,
                                 TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
                                 TextureScale = _drawingSettings.TextureScale,
@@ -170,7 +176,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                             {
                                 _currentDrawnPolygon = new DrawnPolygon
                                 {
-                                    Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                    PolygonColor = _drawingSettings.DrawingColor.ToSKColor(),
                                     Rotation = _drawingSettings.ShapeRotation,
                                     TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
                                     TextureScale = _drawingSettings.TextureScale,
@@ -191,7 +197,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                             {
                                 TopLeft = state.WorldPoint,
                                 BottomRight = state.WorldPoint,
-                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                RectangleColor = _drawingSettings.DrawingColor.ToSKColor(),
                                 Rotation = _drawingSettings.ShapeRotation,
                                 TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
                                 TextureScale = _drawingSettings.TextureScale,
@@ -210,7 +216,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                             {
                                 TopLeft = state.WorldPoint,
                                 BottomRight = state.WorldPoint,
-                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                TriangleColor = _drawingSettings.DrawingColor.ToSKColor(),
                                 Rotation = _drawingSettings.ShapeRotation,
                                 TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
                                 TextureScale = _drawingSettings.TextureScale,
@@ -228,7 +234,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                             {
                                 TopLeft = state.WorldPoint,
                                 BottomRight = state.WorldPoint,
-                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                TriangleColor = _drawingSettings.DrawingColor.ToSKColor(),
                                 Rotation = _drawingSettings.ShapeRotation,
                                 TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
                                 TextureScale = _drawingSettings.TextureScale,
@@ -247,7 +253,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                             {
                                 TopLeft = state.WorldPoint,
                                 BottomRight = state.WorldPoint,
-                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                DiamondColor = _drawingSettings.DrawingColor.ToSKColor(),
                                 Rotation = _drawingSettings.ShapeRotation,
                                 TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
                                 TextureScale = _drawingSettings.TextureScale,
@@ -266,7 +272,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                                 TopLeft = state.WorldPoint,
                                 BottomRight = state.WorldPoint,
                                 Sides = 5,
-                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                PolygonColor = _drawingSettings.DrawingColor.ToSKColor(),
                                 Rotation = _drawingSettings.ShapeRotation,
                                 TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
                                 TextureScale = _drawingSettings.TextureScale,
@@ -285,7 +291,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                                 TopLeft = state.WorldPoint,
                                 BottomRight = state.WorldPoint,
                                 Sides = 6,
-                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                PolygonColor = _drawingSettings.DrawingColor.ToSKColor(),
                                 Rotation = _drawingSettings.ShapeRotation,
                                 TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
                                 TextureScale = _drawingSettings.TextureScale,
@@ -303,7 +309,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                             {
                                 TopLeft = state.WorldPoint,
                                 BottomRight = state.WorldPoint,
-                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                ArrowColor = _drawingSettings.DrawingColor.ToSKColor(),
                                 Rotation = _drawingSettings.ShapeRotation,
                                 TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
                                 TextureScale = _drawingSettings.TextureScale,
@@ -321,7 +327,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                             {
                                 Center = state.WorldPoint,
                                 Radius = 0,
-                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                StarColor = _drawingSettings.DrawingColor.ToSKColor(),
                                 Rotation = _drawingSettings.ShapeRotation,
                                 TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
                                 TextureScale = _drawingSettings.TextureScale,
@@ -339,7 +345,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                             {
                                 Center = state.WorldPoint,
                                 Radius = 0,
-                                Color = _drawingSettings.DrawingColor.ToSKColor(),
+                                StarColor = _drawingSettings.DrawingColor.ToSKColor(),
                                 Rotation = _drawingSettings.ShapeRotation,
                                 TextureOpacity = (int)(_drawingSettings.TextureOpacity * 255),
                                 TextureScale = _drawingSettings.TextureScale,
@@ -351,7 +357,57 @@ namespace RealmStudioX.WPF.Editor.Tools
                             };
                         }
                         break;
+                    case MapDrawingMode.DrawingStamp:
+                        {
+                            PlaceStampAtCursor(state.WorldPoint);
+                        }
+                        break;
+                    case MapDrawingMode.DrawingErase:
+                        {
+                            _currentDrawingErase = new DrawingErase
+                            {
+                                BrushSize = _drawingSettings.LineBrushSize,
+                            };
+
+                            _currentDrawingErase.AddPoint(state.WorldPoint);
+
+                            Cmd_AddDrawnShape cmd = new(drawLayer, _currentDrawingErase);
+                            _commands.Execute(cmd);                            
+                        }
+                        break;
+                    case MapDrawingMode.DrawingPixelEdit:
+                        {
+                            // snapshop the map and get the pixels at the cursor location
+                            using SKBitmap mapBitmap = new((int)_editor.Scene!.WorldBounds.Width, (int)_editor.Scene!.WorldBounds.Height);
+                            using SKCanvas canvas = new(mapBitmap);
+
+                            _editor.Scene.RenderForExport(canvas);
+
+                            // Clone the specified area
+                            SKBitmap clonedBitmap = Utilities.ExtractRegion(mapBitmap, (int)state.WorldPoint.X - 16, (int)state.WorldPoint.Y - 16, 32, 32);
+
+                            PixelEditorViewModel vm = new(_editor);
+
+                            PixelEditDialog dlg = new(vm)
+                            {
+                                Owner = Application.Current.MainWindow
+                            };
+
+                            vm.WorkingBitmap = clonedBitmap;
+                            vm.EditLocation = new SKPoint((int)state.WorldPoint.X - 16, (int)state.WorldPoint.Y - 16);
+
+                            bool? result = dlg.ShowDialog();
+
+                            if (result != null && result == true)
+                            {
+                                // commit the changes
+                                CommitPixelEdits((IPixelEditSettings)vm);
+                            }
+                        }
+                        break;
                 }
+
+                drawLayer.InvalidateAllTiles();
             }
 
             if (state.Button == EditorMouseButton.Right)
@@ -378,6 +434,9 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             if (state.Button == EditorMouseButton.Left)
             {
+                MapLayer drawLayer = _editor.ActiveDrawingLayer != null ?
+                _editor.ActiveDrawingLayer : MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.DRAWINGLAYER);
+
                 switch (_editorState.CurrentDrawingMode)
                 {
                     case MapDrawingMode.DrawingLine:
@@ -522,7 +581,24 @@ namespace RealmStudioX.WPF.Editor.Tools
                             }
                         }
                         break;
+                    case MapDrawingMode.DrawingErase:
+                        {
+                            if (_currentDrawingErase != null)
+                            {
+                                SKRect oldEraseBounds = _currentDrawingErase.Bounds;
+                                
+                                _currentDrawingErase.AddPoint(state.WorldPoint);
+                                
+                                SKRect newEraseBounds = _currentDrawingErase.Bounds;
+
+                                drawLayer.UpdateShapeTiles(_currentDrawingErase, oldEraseBounds, newEraseBounds);
+                                drawLayer.InvalidateAllTiles();
+                            }
+                            break;
+                        }
                 }
+
+                
             }
 
             _lastMouseWorld = state.WorldPoint;
@@ -772,7 +848,14 @@ namespace RealmStudioX.WPF.Editor.Tools
                             }
                         }
                         break;
+                    case MapDrawingMode.DrawingErase:
+                        {
+                            _currentDrawingErase = null;
+                        }
+                        break;
                 }
+
+                drawLayer.InvalidateAllTiles();
             }
 
             _lastMouseWorld = state.WorldPoint;
@@ -791,6 +874,62 @@ namespace RealmStudioX.WPF.Editor.Tools
         public void UpdateDrawingParameters(IDrawingSettings newSettings)
         {
             _drawingSettings = newSettings;
+        }
+
+        public void PlaceStampAtCursor(SKPoint currentCursorPoint)
+        {
+            if (_drawingSettings.StampImage != null &&
+                _drawingSettings.StampImage.Width > 0 &&
+                _drawingSettings.StampImage.Height > 0)
+            {
+
+                SKRect r = new(
+                    (float)(currentCursorPoint.X - _editor.Scene!.WorldBounds.Width * _drawingSettings.StampScale / 2f),
+                    (float)(currentCursorPoint.Y - _editor.Scene!.WorldBounds.Height * _drawingSettings.StampScale / 2f),
+                    (float)(currentCursorPoint.X + _editor.Scene!.WorldBounds.Width * _drawingSettings.StampScale / 2f),
+                    (float)(currentCursorPoint.Y + _editor.Scene!.WorldBounds.Height * _drawingSettings.StampScale / 2f));
+
+                using SKBitmap resized = Utilities.ResizeBitmap(_drawingSettings.StampImage.ToSKBitmap(), (int)r.Width, (int)r.Height);
+
+                using SKBitmap stampBitmap = Utilities.SetBitmapOpacity(resized, _drawingSettings.StampOpacity);
+
+                SKRect bounds = new(currentCursorPoint.X - (stampBitmap.Width / 2), currentCursorPoint.Y - (stampBitmap.Height / 2),
+                    currentCursorPoint.X + (stampBitmap.Width / 2), currentCursorPoint.Y + (stampBitmap.Height / 2));
+
+                DrawnStamp drawnStamp = new()
+                {
+                    TopLeft = currentCursorPoint,
+                    Opacity = _drawingSettings.StampOpacity,
+                    Rotation = (int)_drawingSettings.StampRotation,
+                    Scale = _drawingSettings.StampScale,
+                    StampImage = SKImage.FromBitmap(stampBitmap),
+                    StampPath = _drawingSettings.SelectedStampPath ?? string.Empty,
+                    Bounds = bounds,
+                    IsSelected = false,
+                };
+
+                MapLayer drawLayer = _editor.ActiveDrawingLayer != null ?
+                        _editor.ActiveDrawingLayer : MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.DRAWINGLAYER);
+
+                Cmd_AddDrawnShape cmd = new(drawLayer, drawnStamp);
+                _commands.Execute(cmd);
+            }
+        }
+
+        internal void CommitPixelEdits(IPixelEditSettings pixelEditSettings)
+        {
+            List<PixelEdit> pixelEdits = pixelEditSettings.PixelEdits;
+
+            DrawnPixelEdits edits = new()
+            {
+                MapPixelEdits = pixelEdits,
+                Bounds = new SKRect(pixelEditSettings.EditLocation.X, pixelEditSettings.EditLocation.Y,
+                    pixelEditSettings.EditLocation.X + 32, pixelEditSettings.EditLocation.Y + 32)
+            };
+
+            MapLayer drawingLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.DRAWINGLAYER);
+            Cmd_AddDrawnShape cmd = new(drawingLayer, edits);
+            _commands.Execute(cmd);
         }
 
         public void RenderOverlay(SKCanvas canvas, SKPoint world)
@@ -820,7 +959,10 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             _currentDrawnSixPointStar?.Render(canvas);
 
-            if (_editorState.CurrentDrawingMode == MapDrawingMode.DrawingPaint || _editorState.CurrentDrawingMode == MapDrawingMode.DrawingLine)
+            // draw the cursor
+            if (_editorState.CurrentDrawingMode == MapDrawingMode.DrawingPaint
+                || _editorState.CurrentDrawingMode == MapDrawingMode.DrawingLine
+                || _editorState.CurrentDrawingMode == MapDrawingMode.DrawingErase)
             {
                 var brushRadius = _drawingSettings.LineBrushSize / 2;
 
@@ -835,7 +977,20 @@ namespace RealmStudioX.WPF.Editor.Tools
                 SKRect rect = new(world.X - 32, world.Y - 32, world.X + 32, world.Y + 32);
                 canvas.DrawRect(rect, PaintObjects.CursorSquarePaint);
             }
+            else if (_editorState.CurrentDrawingMode == MapDrawingMode.DrawingStamp)
+            {
+                // draw a rectangle with the size of the scaled stamp
+                if (_drawingSettings.StampImage != null)
+                {
+                    SKRect r = new(
+                        (float)(world.X - _editor.Scene!.WorldBounds.Width * _drawingSettings.StampScale / 2f),
+                        (float)(world.Y - _editor.Scene!.WorldBounds.Height * _drawingSettings.StampScale / 2f),
+                        (float)(world.X + _editor.Scene!.WorldBounds.Width * _drawingSettings.StampScale / 2f),
+                        (float)(world.Y + _editor.Scene!.WorldBounds.Height * _drawingSettings.StampScale / 2f));
 
+                    canvas.DrawRect(r, PaintObjects.CursorSquarePaint);
+                }
+            }
         }
 
         private void Dispose(bool disposing)

@@ -265,7 +265,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                                 // undo/redo support for adding a snapped region point
 
-                                if (SKPoint.Distance(closestPoint, _currentRegion.RegionPoints[^1].RegionPoint) > _minSegmentDistance)
+                                if (SKPoint.Distance(closestPoint, _currentRegion.MapRegionPoints[^1].RegionPoint) > _minSegmentDistance)
                                 {
                                     MapRegionState beforeState = (MapRegionState)_currentRegion.CaptureState();
 
@@ -422,10 +422,10 @@ namespace RealmStudioX.WPF.Editor.Tools
             SKPoint segmentPoint = SKPoint.Empty;
 
             // is the cursor on a line segment between 2 region vertices? if so, draw a circle at the cursor location
-            for (int i = 0; i < region.RegionPoints.Count - 1; i++)
+            for (int i = 0; i < region.MapRegionPoints.Count - 1; i++)
             {
                 if (RealmStudioShapeRenderingLib.Utilities.LineContainsPoint(worldPoint,
-                    region.RegionPoints[i].RegionPoint, region.RegionPoints[i + 1].RegionPoint))
+                    region.MapRegionPoints[i].RegionPoint, region.MapRegionPoints[i + 1].RegionPoint))
                 {
                     _editingRegion = true;
 
@@ -439,13 +439,13 @@ namespace RealmStudioX.WPF.Editor.Tools
             }
 
             // is the cursor on the segment between the first and last region vertices?
-            if (RealmStudioShapeRenderingLib.Utilities.LineContainsPoint(worldPoint, region.RegionPoints[0].RegionPoint,
-                region.RegionPoints[^1].RegionPoint))
+            if (RealmStudioShapeRenderingLib.Utilities.LineContainsPoint(worldPoint, region.MapRegionPoints[0].RegionPoint,
+                region.MapRegionPoints[^1].RegionPoint))
             {
                 _editingRegion = true;
 
                 _previousRegionPointIndex = 0;
-                _nextRegionPointIndex = region.RegionPoints.Count;
+                _nextRegionPointIndex = region.MapRegionPoints.Count;
 
                 segmentPoint = worldPoint;
             }
@@ -457,7 +457,7 @@ namespace RealmStudioX.WPF.Editor.Tools
         {
             MapRegionPoint? selectedMapRegionPoint = null;
 
-            foreach (MapRegionPoint p in mapRegion.RegionPoints)
+            foreach (MapRegionPoint p in mapRegion.MapRegionPoints)
             {
                 using SKPath path = new();
                 path.AddCircle(p.RegionPoint.X, p.RegionPoint.Y, 5);
@@ -556,7 +556,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                 {
                     if (_currentRegion.RegionPointCount == 1)
                     {
-                        canvas.DrawLine(_currentRegion.RegionPoints[0].RegionPoint, world, _currentRegion.RegionBorderPaint);
+                        canvas.DrawLine(_currentRegion.MapRegionPoints[0].RegionPoint, world, _currentRegion.RegionBorderPaint);
                     }
                     else
                     {

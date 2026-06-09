@@ -589,7 +589,7 @@ namespace RealmStudioX
                 throw new InvalidOperationException("Map Symbol Local Bounds cannot be empty.");
             }
 
-            MapSymbol newSymbol = new(localBounds)
+            MapSymbol newSymbol = new()
             {
                 SymbolDefinition = def,
 
@@ -602,6 +602,7 @@ namespace RealmStudioX
                     _symbolSettings.SymbolColor3.ToSKColor()
                 ],
 
+                LocalBounds = localBounds,
                 Location = worldPos,
                 Scale = (float)_symbolSettings.SymbolScale,
                 Rotation = _symbolSettings.SymbolRotation,
@@ -660,7 +661,7 @@ namespace RealmStudioX
                     MapSymbol newSymbol = CreateSymbolInstance(def, world);                      
                     newSymbol.Render(canvas, null);
                 }
-            }
+            }            
         }
 
         protected virtual void Dispose(bool disposing)

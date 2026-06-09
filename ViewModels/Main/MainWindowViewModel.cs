@@ -1,4 +1,5 @@
-﻿using RealmStudioShapeRenderingLib;
+﻿using Microsoft.VisualBasic.ApplicationServices;
+using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
@@ -215,11 +216,27 @@ namespace RealmStudioX.WPF.ViewModels.Main
         public ICommand OpenCommand => new RelayCommand(() =>
         {
             MessageBox.Show("Open Map", "Open", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            string mapPath = "C:\\Users\\Pete Nelson\\OneDrive\\Documents\\RealmStudioX\\Realms\\mapName.rsmx";
+
+            RealmStudioMap? map = MapFileMethods.OpenMap(mapPath);
+
+            if (map != null)
+            {
+                MapScene newScene = new(map, _fontManager);
+                _editor.SetScene(newScene);
+            }
         });
 
         public ICommand SaveCommand => new RelayCommand(() =>
         {
             MessageBox.Show("Save Map", "Save", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            string mapPath = "C:\\Users\\Pete Nelson\\OneDrive\\Documents\\RealmStudioX\\Realms\\mapName.rsmx";
+
+            _editor.Scene!.Map.MapPath = mapPath;
+
+            MapFileMethods.SaveMap(_editor.Scene.Map);
         });
 
         public ICommand ExportCommand => new RelayCommand(() =>

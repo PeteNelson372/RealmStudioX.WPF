@@ -1391,7 +1391,7 @@ namespace RealmStudioX.WPF.Editor
             Scene!.TransformWidget.Target = ms;
             Scene.TransformWidget.OnMouseMove(worldPosition);
 
-            var oldBounds = _lastSymbolBounds;
+            var oldBounds = ms.Bounds;
 
             ms.UpdateBounds();
 
@@ -1399,9 +1399,10 @@ namespace RealmStudioX.WPF.Editor
 
             MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.SYMBOLLAYER);
 
-            symbolLayer.UpdateSymbolTiles(ms, oldBounds, newBounds);
-
             _lastSymbolBounds = newBounds;
+
+            symbolLayer.UpdateShapeTiles(ms, oldBounds, newBounds);
+            symbolLayer.InvalidateSymbol(ms);
 
             RequestRedraw();
         }
@@ -2120,6 +2121,7 @@ namespace RealmStudioX.WPF.Editor
                 tool.UpdatedSelectedRegion(regionSettings);
             }
         }
+
 
         // -------------------------------------------------
         // End Class

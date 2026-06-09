@@ -289,7 +289,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         // stamp scale
 
-        public float MinStampScale { get; } = 0;
+        public float MinStampScale { get; } = 0.1f;
         public float MaxStampScale { get; } = 1.0f;
 
         private float _stampScale = 1.0f;

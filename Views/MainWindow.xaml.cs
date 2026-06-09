@@ -527,46 +527,42 @@ namespace RealmStudioX.WPF
             {
                 //ViewModel.WaterViewModel.WaterColorEraserSize += sizeDelta;
             }
-            /*
-            else if (ModifierKeys == Keys.None && _editorState.CurrentDrawingMode == MapDrawingMode.MapHeightIncrease)
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.MapHeightIncrease)
             {
                 //MainMediator.SelectedBrushSize = RealmMapMethods.GetNewBrushSize(LandBrushSizeTrack, sizeDelta);
             }
-            else if (ModifierKeys == Keys.None && _editorState.CurrentDrawingMode == MapDrawingMode.MapHeightDecrease)
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.MapHeightDecrease)
             {
                 //MainMediator.SelectedBrushSize = RealmMapMethods.GetNewBrushSize(LandBrushSizeTrack, sizeDelta);
             }
-            else if (ModifierKeys == Keys.None && _editorState.CurrentDrawingMode == MapDrawingMode.DrawingLine)
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.DrawingLine)
             {
-                DrawingMediator.DrawingLineBrushSize = RealmMapMethods.GetNewBrushSize(LineBrushSizeTrack, sizeDelta);
+                ViewModel.DrawingViewModel.LineBrushSize += sizeDelta;
             }
-            else if (ModifierKeys == Keys.None && _editorState.CurrentDrawingMode == MapDrawingMode.DrawingPaint)
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.DrawingPaint)
             {
-                DrawingMediator.DrawingLineBrushSize = RealmMapMethods.GetNewBrushSize(LineBrushSizeTrack, sizeDelta);
+                ViewModel.DrawingViewModel.LineBrushSize += sizeDelta;
             }
-            else if (ModifierKeys == Keys.None && _editorState.CurrentDrawingMode == MapDrawingMode.DrawingPolygon)
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.DrawingPolygon)
             {
-                DrawingMediator.DrawingLineBrushSize = RealmMapMethods.GetNewBrushSize(LineBrushSizeTrack, sizeDelta);
+                ViewModel.DrawingViewModel.LineBrushSize += sizeDelta;
             }
-            else if (ModifierKeys == Keys.None && _editorState.CurrentDrawingMode == MapDrawingMode.DrawingEllipse)
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.DrawingEllipse)
             {
-                DrawingMediator.DrawingLineBrushSize = RealmMapMethods.GetNewBrushSize(LineBrushSizeTrack, sizeDelta);
+                ViewModel.DrawingViewModel.LineBrushSize += sizeDelta;
             }
-            else if (ModifierKeys == Keys.None && _editorState.CurrentDrawingMode == MapDrawingMode.DrawingRectangle)
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.DrawingRectangle)
             {
-                DrawingMediator.DrawingLineBrushSize = RealmMapMethods.GetNewBrushSize(LineBrushSizeTrack, sizeDelta);
+                ViewModel.DrawingViewModel.LineBrushSize += sizeDelta;
             }
-            else if (ModifierKeys == Keys.None && _editorState.CurrentDrawingMode == MapDrawingMode.DrawingErase)
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.DrawingErase)
             {
-                DrawingMediator.DrawingLineBrushSize = RealmMapMethods.GetNewBrushSize(LineBrushSizeTrack, sizeDelta);
+                ViewModel.DrawingViewModel.LineBrushSize += sizeDelta;
             }
-            else if (ModifierKeys == Keys.None && _editorState.CurrentDrawingMode == MapDrawingMode.DrawingStamp)
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.DrawingStamp)
             {
-                int newValue = (int)Math.Max(DrawingStampScaleTrack.Minimum, DrawingStampScaleTrack.Value + sizeDelta);
-                newValue = (int)Math.Min(DrawingStampScaleTrack.Maximum, newValue);
-                DrawingMediator.DrawingStampScale = newValue / 100.0F;
-            }
-            */
+                ViewModel.DrawingViewModel.StampScale += sizeDelta / 100f;
+            }            
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.SymbolPlace)
             {
                 if (ViewModel.SymbolsViewModel.UseAreaBrush)
@@ -891,7 +887,7 @@ namespace RealmStudioX.WPF
                 return;
             }
 
-            if (_editor.ActiveEditorTool is IKeyHandler tool)
+            if (_editor.ActiveEditorTool is IKeyHandler)
             {
                 if (!string.IsNullOrEmpty(e.Text))
                 {
