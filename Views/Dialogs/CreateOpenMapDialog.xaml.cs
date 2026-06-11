@@ -1,16 +1,16 @@
-﻿using RealmStudioX.WPF.ViewModels.Startup;
+﻿using RealmStudioX.Infrastructure;
+using RealmStudioX.WPF.ViewModels.CreateOpenMap;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 
-
 namespace RealmStudioX.WPF.Views.Dialogs
 {
     /// <summary>
-    /// Interaction logic for StartupDialog.xaml
+    /// Interaction logic for CreateOpenMapDialog.xaml
     /// </summary>
-    public partial class StartupDialog : Window, INotifyPropertyChanged
+    public partial class CreateOpenMapDialog : Window, INotifyPropertyChanged
     {
         private readonly string _themesFolder =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX", "Assets", "Themes");
@@ -18,18 +18,18 @@ namespace RealmStudioX.WPF.Views.Dialogs
         private readonly string _mapsFolder =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX", "Realms");
 
-        public StartupResult? Result { get; private set; }
+        public CreateOpenMapResult? Result { get; private set; }
 
         private double _aspectRatio = 1920.0 / 1080.0;
         private bool _lockAspect = true;
 
-        public StartupViewModel ViewModel { get; }
+        public CreateOpenMapViewModel ViewModel { get; }
 
-        public StartupDialog()
+        public CreateOpenMapDialog()
         {
             InitializeComponent();
 
-            ViewModel = new StartupViewModel(_mapsFolder, _themesFolder);
+            ViewModel = new CreateOpenMapViewModel(_mapsFolder, _themesFolder);
             ViewModel.RequestClose += OnRequestClose;
 
             DataContext = ViewModel;
@@ -100,6 +100,43 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
                 ViewModel.Height = (int)HeightBox.Value;
             };
+
+            LoadExistingMaps();
+        }
+
+        private void LoadExistingMaps()
+        {
+            string realmDir = _mapsFolder;
+
+            if (!Directory.Exists(realmDir))
+            {
+                return;
+            }
+
+            ViewModel.Maps.Clear();
+
+            foreach (string file in Directory.EnumerateFiles(
+                realmDir,
+                "*.rsmx",
+                SearchOption.TopDirectoryOnly))
+            {
+                FileInfo fi = new(file);
+
+                ViewModel.Maps.Add(new MapFileInfo
+                {
+                    Name = Path.GetFileNameWithoutExtension(file),
+                    Path = file,
+                    LastModified = fi.LastWriteTime,
+                    FileSize = fi.Length
+                });
+            }
+
+            foreach (var map in ViewModel.Maps
+                .OrderByDescending(m => m.LastModified)
+                .ToList())
+            {
+                // repopulate in sorted order if desired
+            }
         }
 
         private void OnRequestClose(bool? dialogResult)

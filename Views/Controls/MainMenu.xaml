@@ -12,8 +12,7 @@
         Height="32">
 
         <MenuItem Header="_File" Margin="10,6,0,0">
-            <MenuItem Header="_New" Command="{Binding NewCommand}"/>
-            <MenuItem Header="_Open..." Command="{Binding OpenCommand}"/>
+            <MenuItem Header="_New/Open" Command="{Binding NewOpenCommand}"/>
             <MenuItem Header="_Save" Command="{Binding SaveCommand}"/>
 
             <Separator/>

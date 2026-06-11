@@ -1903,7 +1903,6 @@ namespace RealmStudioX.WPF.Editor
                     existingVignette.VignetteShape = vignetteType;
                     existingVignette.VignetteStrength = vignetteStrength;
                     existingVignette.VignetteColor = vignetteColor;
-                    existingVignette.IsModified = true;
                     break;
                 }
             }

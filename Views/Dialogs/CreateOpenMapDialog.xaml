@@ -1,4 +1,4 @@
-﻿<Window x:Class="RealmStudioX.WPF.Views.Dialogs.StartupDialog"
+﻿<Window x:Class="RealmStudioX.WPF.Views.Dialogs.CreateOpenMapDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -7,9 +7,9 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:views="clr-namespace:RealmStudioX.WPF.Views"
         xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
-        xmlns:vm="clr-namespace:RealmStudioX.WPF.ViewModels.Startup"
+        xmlns:vm="clr-namespace:RealmStudioX.WPF.ViewModels.CreateOpenMap"
         mc:Ignorable="d"
-        Title="RealmStudioX"
+        Title="Create Or Open Map"
         Width="1100"
         Height="700"
         MinWidth="1100"
@@ -55,7 +55,7 @@
             Grid.ColumnSpan="3"
             Background="#FF45443F">
 
-            <controls:StartupDialogTitleBar />
+            <controls:CreateOpenDialogTitleBar />
 
         </Border>
         <!-- LEFT: Create New -->
@@ -503,19 +503,96 @@
         <!-- RIGHT: Open Existing -->
         <Border Grid.Row="1" Grid.Column="2" Padding="10" BorderBrush="#CCC" BorderThickness="1">
             <StackPanel>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>                        
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-                <TextBlock Text="Open Existing Map"
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Open Existing Map"
                            FontSize="12"
                            FontWeight="SemiBold"
                            Margin="0,0,0,10"/>
 
-                <ListBox x:Name="MapList"
-                         Height="300"
-                         Margin="0,0,0,10"/>
+                    <ListBox x:Name="MapList"
+                             ItemsSource="{Binding Maps}"
+                             SelectedItem="{Binding SelectedMap}"
+                             Grid.Row="1" Grid.ColumnSpan="3"
+                             Height="300"
+                             Width="320"
+                             Margin="0,0,0,10">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding Path}" FontSize="11"/>
+                                    <TextBlock Text="{Binding LastModified}" FontSize="11"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
 
-                <Button Content="Browse..."
-                        Click="OnBrowse"/>
+                    <GroupBox Grid.Row="2" Grid.Column="0" Grid.RowSpan="2"  Grid.ColumnSpan="2"
+                              Header="Realm Data" Height="195" Margin="0,0,0,0">
 
+                    </GroupBox>
+                    
+                    <Button
+                        x:Name="SelectMapFileButton"
+                        Grid.Row="2"
+                        Grid.Column="2"
+                        Width="60"
+                        Height="60"
+                        Margin="0,0,0,0"
+                        ToolTip="Select Map File"
+                        Style="{StaticResource FlatToolButton}"
+                        Command="{Binding SelectMapFileCommand}">
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock Text="Select"
+                                       FontSize="12"
+                                       Foreground="#FF45443F"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,0,0,3"/>
+                                <materialDesign:PackIcon Kind="FileOutline"
+                                             Width="24"
+                                             Height="24"
+                                             HorizontalAlignment="Center"
+                                             Opacity="0.7"/>
+                            </StackPanel>
+                    </Button>
+
+                    <Button
+                        x:Name="ClearMapFileButton"
+                        Grid.Row="3"
+                        Grid.Column="2"
+                        Width="60"
+                        Height="60"
+                        Margin="0,0,0,0"
+                        ToolTip="Clear Selected Map File"
+                        Style="{StaticResource FlatToolButton}"
+                        Command="{Binding ClearMapFileCommand}">
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="Clear"
+                                       FontSize="12"
+                                       Foreground="#FF45443F"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,0,0,3"/>
+                            <materialDesign:PackIcon Kind="ClearBoxOutline"
+                                             Width="24"
+                                             Height="24"
+                                             HorizontalAlignment="Center"
+                                             Opacity="0.7"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
             </StackPanel>
         </Border>
 

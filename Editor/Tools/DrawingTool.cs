@@ -1,5 +1,6 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
+using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Panels;
 using RealmStudioX.WPF.Views.Dialogs;
@@ -112,7 +113,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                                         BrushSpacing = _drawingSettings.BrushSpacing,
                                     };
 
-                                    DrawingPanelViewModel.GetPreparedBrushBitmaps(_currentPreparedBrush);
+                                    AssetInitializer.GetPreparedBrushBitmaps(_currentPreparedBrush);
                                     CurrentPreparedBrush = _currentPreparedBrush;
                                 }
 

@@ -84,7 +84,8 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                     _activeRiver = new River
                     {
-                        RenderSettings = CreateRenderSettings()
+                        RenderSettings = CreateRenderSettings(),
+                        VariationSeed = Random.Shared.NextSingle() * 1000f
                     };
 
                     _activeRiver.Editor.BeginDraw(worldPos);

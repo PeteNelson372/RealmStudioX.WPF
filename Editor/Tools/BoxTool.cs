@@ -3,8 +3,6 @@ using RealmStudioX.Core;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
-using System.Windows.Media.Imaging;
-using System.Windows.Media.Media3D;
 
 namespace RealmStudioX.WPF.Editor.Tools
 {

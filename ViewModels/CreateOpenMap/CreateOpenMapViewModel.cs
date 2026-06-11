@@ -3,15 +3,15 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Input;
 
-namespace RealmStudioX.WPF.ViewModels.Startup
+namespace RealmStudioX.WPF.ViewModels.CreateOpenMap
 {
-    public class StartupViewModel : ViewModelBase
+    public class CreateOpenMapViewModel : ViewModelBase
     {
         private readonly string _mapsFolder;
         private readonly string _themesFolder;
 
         public ObservableCollection<string> Themes { get; } = [];
-        public ObservableCollection<string> Maps { get; } = [];
+        public ObservableCollection<MapFileInfo> Maps { get; } = [];
 
 
         private string _mapName = string.Empty;
@@ -28,8 +28,8 @@ namespace RealmStudioX.WPF.ViewModels.Startup
             set => SetProperty(ref _selectedTheme, value);
         }
 
-        private string? _selectedMap;
-        public string? SelectedMap
+        private MapFileInfo? _selectedMap;
+        public MapFileInfo? SelectedMap
         {
             get => _selectedMap;
             set
@@ -83,7 +83,7 @@ namespace RealmStudioX.WPF.ViewModels.Startup
             set => SetProperty(ref _mapAreaUnits, value);
         }
 
-        public StartupResult? Result { get; private set; }
+        public CreateOpenMapResult? Result { get; private set; }
 
         public ICommand CreateCommand { get; }
         public ICommand OpenCommand { get; }
@@ -91,7 +91,7 @@ namespace RealmStudioX.WPF.ViewModels.Startup
 
         public event Action<bool?>? RequestClose;
 
-        public StartupViewModel(string mapsFolder, string themesFolder)
+        public CreateOpenMapViewModel(string mapsFolder, string themesFolder)
         {
             _mapsFolder = mapsFolder;
             _themesFolder = themesFolder;
@@ -101,18 +101,6 @@ namespace RealmStudioX.WPF.ViewModels.Startup
             CancelCommand = new RelayCommand(Cancel);
 
             LoadThemes();
-            LoadMaps();
-        }
-
-        private void LoadMaps()
-        {
-            if (!Directory.Exists(_mapsFolder))
-                return;
-
-            foreach (var file in Directory.GetFiles(_mapsFolder, "*.rsm"))
-            {
-                Maps.Add(Path.GetFileNameWithoutExtension(file));
-            }
         }
 
         private void LoadThemes()
@@ -130,7 +118,7 @@ namespace RealmStudioX.WPF.ViewModels.Startup
 
         private void Create()
         {
-            Result = new StartupResult
+            Result = new CreateOpenMapResult
             {
                 MapName = MapName,
                 IsNew = true,
@@ -158,9 +146,9 @@ namespace RealmStudioX.WPF.ViewModels.Startup
             if (SelectedMap == null)
                 return;
 
-            var file = Path.Combine(_mapsFolder, SelectedMap + ".rsm");
+            var file = SelectedMap.Path;
 
-            Result = new StartupResult
+            Result = new CreateOpenMapResult
             {
                 IsNew = false,
                 FilePath = file
@@ -177,5 +165,16 @@ namespace RealmStudioX.WPF.ViewModels.Startup
             Result = null;
             RequestClose?.Invoke(false);
         }
+    }
+
+    public sealed class MapFileInfo
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Path { get; set; } = string.Empty;
+        public DateTime LastModified { get; set; }
+        public long FileSize { get; set; }
+
+        public string DisplayText =>
+            $"{Name} ({LastModified:g})";
     }
 }

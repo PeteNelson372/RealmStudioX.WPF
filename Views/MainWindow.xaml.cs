@@ -65,7 +65,7 @@ namespace RealmStudioX.WPF
             ["Planet"] = new PlanetToolPanel()
         };
 
-        public MainWindow(StartupResult startup, AssetManager assetManager, FontManager fontManager)
+        public MainWindow(CreateOpenMapResult startup, AssetManager assetManager, FontManager fontManager)
         {
             InitializeComponent();
 
@@ -75,7 +75,7 @@ namespace RealmStudioX.WPF
             _fontManager = fontManager ?? throw new ArgumentNullException(nameof(fontManager));
 
             _editor = new EditorController(_assetManager, _fontManager);
-            _editor.DrawingModeChanged += OnDrawingModeChanged;
+
             _editor.ActiveDrawingLayerChanged += OnActiveDrawingLayerChanged;
             _editor.MouseMoved += OnMouseMoved;
             _editor.MouseDown += OnMouseDown;
@@ -90,6 +90,8 @@ namespace RealmStudioX.WPF
 
             ViewModel = new MainWindowViewModel(_editor, _assetManager, _fontManager);
             DataContext = ViewModel;
+
+            ViewModel.RenderContext = _renderContext;
 
             Loaded += async (s, e) =>
             {
@@ -110,49 +112,7 @@ namespace RealmStudioX.WPF
                 MainTabs.SelectTab("Ocean");
                 MainTabs.SelectTab("Background");
 
-                if (startup.IsNew)
-                {
-                    // Create new map
-                    if (string.IsNullOrEmpty(startup.MapName))
-                    {
-                        startup.MapName = "Default";
-                    }
-
-                    if (string.IsNullOrEmpty(startup.FilePath))
-                    {
-                        startup.FilePath = string.Empty;
-                    }
-
-                    RealmStudioMap map = MapBuilder.CreateMap(startup.FilePath, startup.MapName, startup.Width, startup.Height, startup.MapAreaWidth, startup.MapAreaHeight, startup.MapAreaUnits);
-                    MapScene newScene = new(map, _fontManager)
-                    {
-                        RenderContext = _renderContext
-                    };
-
-                    newScene.Camera.Viewport = new SKRect(0, 0, _skiaControl!.Width, _skiaControl.Height);
-                    _editor.SetScene(newScene);
-
-                    ViewModel.AttachScene(newScene);
-
-                    ViewModel.MapName = map.MapName;
-                    ViewModel.MapSizeLabel = $"Map Size: {map.MapWidth} x {map.MapHeight}, Map Area: {map.MapAreaWidth} x {map.MapAreaHeight} {map.MapAreaUnits}";
-
-                    ViewModel.ScaleViewModel.UnitLabel = map.MapAreaUnits;
-                    ViewModel.ScaleViewModel.FontStyle = new FontStyleModel
-                    {
-                        Family = "Segoe UI",
-                        Size = 14,
-                    };
-
-                    OnDrawingModeChanged(MapDrawingMode.None);
-
-                    _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.DRAWINGLAYER));
-                }
-                else
-                {
-                    // Load existing map
-                    // e.g. _controller.LoadMap(startup.FilePath);
-                }
+                ViewModel.CreateOrOpenMap(startup);
 
                 _editor.State.StatusMessage = $"Loaded {_assetManager.AssetCount} assets.";
 
@@ -197,11 +157,6 @@ namespace RealmStudioX.WPF
 
             ViewModel.SetViewPortSize(
                 new SKRect(0, 0, (float)_skiaControl.Width, (float)_skiaControl.Height));
-        }
-
-        private void OnDrawingModeChanged(MapDrawingMode mode)
-        {
-            ViewModel.DrawingModeLabel = ViewModel.SetDrawingModeLabel();
         }
 
         private void OnActiveDrawingLayerChanged(MapLayer layer)

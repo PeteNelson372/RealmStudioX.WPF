@@ -608,94 +608,9 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     BrushSpacing = BrushSpacing,
                 };
 
-                GetPreparedBrushBitmaps(newPreparedBrush);
+                AssetInitializer.GetPreparedBrushBitmaps(newPreparedBrush);
                 dt.CurrentPreparedBrush = newPreparedBrush;
             }
-        }
-
-        public static void GetPreparedBrushBitmaps(PreparedBrush brush)
-        {
-            if (brush == null || brush.SourceBrush == null || brush.SourceBrush.BrushBitmaps == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < brush!.SourceBrush.BrushBitmaps.Count; i++)
-            {
-                if (brush!.SourceBrush!.BrushBitmaps![i] is SKBitmap bitmap)
-                {
-                    if (brush!.SourceBrush!.PixelMode == BrushPixelMode.Color)
-                    {
-                        // bitmap is already colorized, just scale it
-                        brush.Bitmaps.Add(
-                            Utilities.ScaleSKBitmap(
-                                bitmap,
-                                brush.BrushSize / (float)bitmap.Width));
-                    }
-                    else
-                    {
-                        SKBitmap _colorizedBrushBitmap =
-                            BuildColorizedBrushBitmap(
-                                bitmap,
-                                brush.Color);
-
-                        brush?.Bitmaps.Add(
-                            Utilities.ScaleSKBitmap(
-                            _colorizedBrushBitmap,
-                            brush.BrushSize / (float)_colorizedBrushBitmap.Width));
-                    }
-                }
-
-            }
-        }
-
-        private static SKBitmap BuildColorizedBrushBitmap(SKBitmap densityBrush, SKColor selectedColor)
-        {
-            SKBitmap result =
-                new(
-                    densityBrush.Width,
-                    densityBrush.Height,
-                    SKColorType.Rgba8888,
-                    SKAlphaType.Premul);
-
-            for (int y = 0; y < densityBrush.Height; y++)
-            {
-                for (int x = 0; x < densityBrush.Width; x++)
-                {
-                    SKColor brushPixel =
-                        densityBrush.GetPixel(x, y);
-
-                    //
-                    // Brush is grayscale:
-                    // Black = full paint
-                    // White = no paint
-                    //
-
-                    byte gray =
-                        (byte)((brushPixel.Red +
-                                brushPixel.Green +
-                                brushPixel.Blue) / 3);
-
-                    byte coverage =
-                        (byte)(255 - gray);
-
-                    byte alpha =
-                        (byte)(
-                            (selectedColor.Alpha * coverage)
-                            / 255);
-
-                    result.SetPixel(
-                        x,
-                        y,
-                        new SKColor(
-                            selectedColor.Red,
-                            selectedColor.Green,
-                            selectedColor.Blue,
-                            alpha));
-                }
-            }
-
-            return result;
         }
     }
 

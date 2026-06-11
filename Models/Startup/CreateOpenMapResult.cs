@@ -1,6 +1,6 @@
 ﻿namespace RealmStudioX.WPF
 {
-    public class StartupResult
+    public class CreateOpenMapResult
     {
         public bool IsNew { get; set; }
         public string? MapName { get; set; }

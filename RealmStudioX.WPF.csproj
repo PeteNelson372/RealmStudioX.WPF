@@ -180,7 +180,7 @@
     <Compile Update="Views\Controls\NameGenTitleBar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Controls\StartupDialogTitleBar.xaml.cs">
+    <Compile Update="Views\Controls\CreateOpenDialogTitleBar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

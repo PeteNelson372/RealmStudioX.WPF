@@ -1,12 +1,15 @@
-﻿using Microsoft.VisualBasic.ApplicationServices;
-using RealmStudioShapeRenderingLib;
+﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
+using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Panels;
+using RealmStudioX.WPF.Views.Dialogs;
 using SkiaSharp;
+using SkiaSharp.Views.WPF;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
@@ -117,6 +120,13 @@ namespace RealmStudioX.WPF.ViewModels.Main
         // UI State
         // -------------------------
 
+        private RenderContext _renderContext;
+        public RenderContext RenderContext
+        {
+            get => _renderContext;
+            set => _renderContext = value;
+        }
+
         private string _mapName = string.Empty;
         public string MapName
         {
@@ -208,31 +218,29 @@ namespace RealmStudioX.WPF.ViewModels.Main
         // Commands (menu and buttons)
         // -------------------------
 
-        public ICommand NewCommand => new RelayCommand(() =>
+        public ICommand NewOpenCommand => new RelayCommand(() =>
         {
-            MessageBox.Show("New Map", "New", MessageBoxButton.OK, MessageBoxImage.Information);
-        });
+            var dialog = new CreateOpenMapDialog();
+            var result = dialog.ShowDialog();
 
-        public ICommand OpenCommand => new RelayCommand(() =>
-        {
-            MessageBox.Show("Open Map", "Open", MessageBoxButton.OK, MessageBoxImage.Information);
-
-            string mapPath = "C:\\Users\\Pete Nelson\\OneDrive\\Documents\\RealmStudioX\\Realms\\mapName.rsmx";
-
-            RealmStudioMap? map = MapFileMethods.OpenMap(mapPath);
-
-            if (map != null)
+            if (result != true || dialog.ViewModel.Result == null)
             {
-                MapScene newScene = new(map, _fontManager);
-                _editor.SetScene(newScene);
+                return;
+            }
+
+            if ((bool)result)
+            {
+                CreateOpenMapResult dlgResult = dialog.ViewModel.Result;
+
+                CreateOrOpenMap(dlgResult);
             }
         });
 
         public ICommand SaveCommand => new RelayCommand(() =>
         {
-            MessageBox.Show("Save Map", "Save", MessageBoxButton.OK, MessageBoxImage.Information);
+            string mapPath = Path.Join(AssetManager.RootRealmsDirectory, MapName + ".rsmx");
 
-            string mapPath = "C:\\Users\\Pete Nelson\\OneDrive\\Documents\\RealmStudioX\\Realms\\mapName.rsmx";
+            MessageBox.Show(mapPath, "Save", MessageBoxButton.OK, MessageBoxImage.Information);
 
             _editor.Scene!.Map.MapPath = mapPath;
 
@@ -284,6 +292,187 @@ namespace RealmStudioX.WPF.ViewModels.Main
         // -------------------------
         // Other Methods
         // -------------------------
+
+        public void OnDrawingModeChanged(MapDrawingMode mode)
+        {
+            DrawingModeLabel = SetDrawingModeLabel();
+        }
+
+        public void CreateOrOpenMap(CreateOpenMapResult result)
+        {
+            RealmStudioMap? map = null;
+
+            if (result.IsNew)
+            {
+                // Create new map
+                if (string.IsNullOrEmpty(result.MapName))
+                {
+                    result.MapName = "Default";
+                }
+
+                if (string.IsNullOrEmpty(result.FilePath))
+                {
+                    result.FilePath = string.Empty;
+                }
+
+                map = MapBuilder.CreateMap(result.FilePath, result.MapName, result.Width, result.Height, result.MapAreaWidth, result.MapAreaHeight, result.MapAreaUnits);
+
+                InitializeScene(map);
+            }
+            else
+            {
+                // Load existing map
+                
+                if (!string.IsNullOrEmpty(result.FilePath))
+                {
+                    try
+                    {
+                        map = MapFileMethods.OpenMap(result.FilePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex);
+                        map = null;
+                    }
+
+                    if (map != null)
+                    {
+
+                    }
+                    else
+                    {
+                        MessageBox.Show("Could not open selected map.", "Error Opening Map", MessageBoxButton.OK);
+                    }
+                }
+            }
+
+            if (map != null)
+            {                
+                InitializeScene(map);
+
+                MapName = map.MapName;
+                MapSizeLabel = $"Map Size: {map.MapWidth} x {map.MapHeight}, Map Area: {map.MapAreaWidth} x {map.MapAreaHeight} {map.MapAreaUnits}";
+
+                ScaleViewModel.UnitLabel = map.MapAreaUnits;
+                ScaleViewModel.FontStyle = new FontStyleModel
+                {
+                    Family = "Segoe UI",
+                    Size = 14,
+                };
+
+                OnDrawingModeChanged(MapDrawingMode.None);
+
+                _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.DRAWINGLAYER));
+
+                FinalizeMapLoad(map);
+            }
+        }
+
+        public void FinalizeMapLoad(RealmStudioMap map)
+        {
+            PlacedMapFrame? pmf = null;
+            MapGrid? grid = null;
+
+            // go through the map and load textures and bitmaps, etc.
+            // load shape assets
+            AssetInitializer.InitializeMapShapeAssets(map, _assetManager, _fontManager);
+
+            // finalize the geometry of the shapes
+            foreach (MapLayer layer in map.MapLayers)
+            {
+                foreach (MapComponent2D shape  in layer.Shapes)
+                {
+                    shape.FinalizeShapeGeometry(map);
+
+                    // special handling to set frame
+                    if (shape is PlacedMapFrame frame && frame.FrameDefinition != null)
+                    {
+                        pmf = frame;
+                    }
+
+                    // special handling to set grid
+                    if (shape is MapGrid mg)
+                    {
+                        grid = mg;
+                    }
+
+                    layer.RebuildIndexes();
+                }
+            }
+
+            foreach (WaterSystem ws in map.WaterSystems)
+            {
+                ws.FinalizeWaterSystem(map);
+            }
+
+            // background
+            if (!string.IsNullOrEmpty(map.Background.TextureId))
+            {
+                TextureFillRequest fillRequest = new()
+                {
+                    TextureId = map.Background.TextureId,
+                    Scale = (float)map.Background.Scale,
+                    Mirror = map.Background.Mirror,
+                };
+
+                _editor.FillBackground(fillRequest);
+            }
+
+            // ocean texture
+            if (!string.IsNullOrEmpty(map.Ocean.TextureId))
+            {
+                TextureFillRequest applyTextureRequest = new()
+                {
+                    TextureId = map.Ocean.TextureId,
+                    Scale = (float)map.Ocean.Scale,
+                    Opacity = map.Ocean.TextureOpacity,
+                    Mirror = map.Ocean.Mirror,
+                    Color = map.Ocean.OverlayColor,
+                };
+
+                _editor.ApplyOceanTexture(applyTextureRequest);
+            }
+
+            // set the frame
+            if (pmf != null && pmf.FrameDefinition != null)
+            {
+                _editor.SetFrame(pmf.FrameDefinition, pmf.FrameTint, pmf.FrameScale);
+            }
+
+            // set the grid (the view model has to be set with the grid values)
+            if (grid != null)
+            {
+                OverlaysViewModel.GridColor = grid.GridColor.ToColor();
+                OverlaysViewModel.GridEnabled = true;
+                OverlaysViewModel.GridLineWidth = grid.GridLineWidth;
+                OverlaysViewModel.GridLayer = grid.GridLayerIndex;
+                OverlaysViewModel.GridSize = grid.GridSize;
+                OverlaysViewModel.GridType = grid.GridType;
+                OverlaysViewModel.ShowGridSize = grid.ShowGridSize;
+            }
+
+
+            // ensure tiles and spatial grid are updated
+            foreach (MapLayer layer in map.MapLayers)
+            {
+
+                layer.InvalidateAllTiles();
+            }
+
+        }
+
+        public void InitializeScene(RealmStudioMap map)
+        {
+            MapScene newScene = new(map, _fontManager)
+            {
+                RenderContext = _renderContext
+            };
+
+            newScene.Camera.Viewport = new SKRect(0, 0, map.MapWidth, map.MapHeight);
+            _editor.SetScene(newScene);
+
+            AttachScene(newScene);
+        }
 
         public void AttachScene(MapScene scene)
         {

@@ -37,10 +37,12 @@ namespace RealmStudioX.WPF
 
             // Ensure splash is closed (in case load finished last)
             if (splash.IsVisible)
+            {
                 splash.Close();
+            }
 
-            // Continue startup
-            var dialog = new StartupDialog();
+            // Continue startup - open the CreateOpenMapDialog
+            var dialog = new CreateOpenMapDialog();
             var result = dialog.ShowDialog();
 
             if (result != true || dialog.ViewModel.Result == null)

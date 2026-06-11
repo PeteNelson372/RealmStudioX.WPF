@@ -230,7 +230,7 @@
 
                     <!-- Drawing Mode -->
                     <StatusBarItem
-                        Width="390"
+                        Width="380"
                         Margin="10,0" Foreground="ForestGreen" FontWeight="Bold">
                         <TextBlock Text="{Binding DrawingModeLabel}"/>
                     </StatusBarItem>
@@ -239,7 +239,7 @@
 
                     <!-- Drawing Layer -->
                     <StatusBarItem
-                        Width="250"
+                        Width="230"
                         Margin="10,0" Foreground="SkyBlue" FontWeight="Bold">
                         <TextBlock Text="{Binding DrawingLayerLabel}"/>
                     </StatusBarItem>
@@ -248,7 +248,7 @@
 
                     <!-- Drawing Point -->
                     <StatusBarItem
-                        Width="140" Foreground="#FFDFDBD2" FontWeight="Bold">
+                        Width="160" Foreground="#FFDFDBD2" FontWeight="Bold">
                         <TextBlock Text="{Binding DrawingPointLabel}"/>
                     </StatusBarItem>
 
@@ -256,7 +256,7 @@
 
                     <!-- Cursor Point -->
                     <StatusBarItem
-                        Width="140"
+                        Width="150"
                         Margin="10,0" Foreground="#FFDFDBD2" FontWeight="Bold">
                         <TextBlock Text="{Binding CursorPointLabel}"/>
                     </StatusBarItem>
