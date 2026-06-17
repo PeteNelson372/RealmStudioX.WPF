@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="RealmStudioX.WPF.Views.Controls.CreateOpenDialogTitleBar"
+﻿<UserControl x:Class="RealmStudioX.WPF.Views.Controls.CreateMapDialogTitleBar"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -20,7 +20,7 @@
                     VerticalAlignment="Center">
 
             <!-- App Title -->
-            <TextBlock Text="Create or Select a Map Project"
+            <TextBlock Text="Create a New Map"
                    Foreground="#E5E5E5"
                    FontSize="16"
                    FontWeight="SemiBold"

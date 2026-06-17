@@ -1,8 +1,15 @@
-﻿namespace RealmStudioX.WPF
+﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.Infrastructure;
+
+namespace RealmStudioX.WPF.Models.Startup
 {
-    public class CreateOpenMapResult
+    public class CreateOpenPackageResult
     {
+        public RealmCreationOperation CreationOperation { get; set; } = RealmCreationOperation.NotSet;
+        public RealmProjectType ProjectType { get; set; } = RealmProjectType.NotSet;
+        public RealmMapType MapType { get; set; } = RealmMapType.NotSet;
         public bool IsNew { get; set; }
+        public RealmStudioProject? Project { get; set; }
         public string? MapName { get; set; }
         public string? FilePath { get; set; }
         public int Width { get; set; }

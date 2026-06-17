@@ -1,4 +1,4 @@
-﻿<Window x:Class="RealmStudioX.WPF.Views.Dialogs.CreateOpenMapDialog"
+﻿<Window x:Class="RealmStudioX.WPF.Views.Dialogs.CreateMapDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -10,12 +10,12 @@
         xmlns:vm="clr-namespace:RealmStudioX.WPF.ViewModels.CreateOpenMap"
         mc:Ignorable="d"
         Title="Create Or Open Map"
-        Width="1200"
-        Height="700"
-        MinWidth="1200"
-        MaxWidth="1200"
-        MinHeight="700"
-        MaxHeight="700"
+        Width="760"
+        Height="670"
+        MinWidth="760"
+        MaxWidth="760"
+        MinHeight="670"
+        MaxHeight="670"
         Background="#FF45443F"
         WindowStyle="None"
         ResizeMode="CanResize"
@@ -36,7 +36,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
             <!-- Custom Title Bar -->
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="530"/>
             <!-- Main -->
             <RowDefinition Height="80"/>
             <!-- Buttons -->
@@ -44,8 +44,7 @@
 
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="10"/>
-            <ColumnDefinition Width="440" />
+
         </Grid.ColumnDefinitions>
 
         <!-- ========================= -->
@@ -55,17 +54,16 @@
             Grid.ColumnSpan="3"
             Background="#FF45443F">
 
-            <controls:CreateOpenDialogTitleBar />
+            <controls:CreateMapDialogTitleBar />
 
         </Border>
         <!-- LEFT: Create New -->
         <Border Grid.Row="1" Grid.Column="0" Padding="10" BorderBrush="#CCC" BorderThickness="1">
             <StackPanel>
 
-                <TextBlock Text="Create New Realm Project"
+                <TextBlock Text="Create New Map"
                            FontSize="12"
                            FontWeight="SemiBold"
-                           ToolTip="Create a new project and map"
                            Margin="0,0,0,10"/>
 
                 <!-- Map Name -->
@@ -110,79 +108,8 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Grid.Row="0">
-                    <GroupBox Height="230" Header="Realm Type" Width="190" HorizontalAlignment="Left" Margin="10,10,0,0">
-                        <ListBox x:Name="RealmTypeList"
-                         SelectedValue="{Binding SelectedRealmType}"
-                         SelectedValuePath="RealmProjectType"                                 
-                         BorderThickness="0"
-                         Background="Transparent"
-                         SelectedIndex="0">
 
-                            <ListBox.ItemContainerStyle>
-                                <Style TargetType="ListBoxItem">
-                                    <Setter Property="Margin" Value="2"/>
-                                    <Setter Property="Padding" Value="4"/>
-                                    <Setter Property="Cursor" Value="Hand"/>
-
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="ListBoxItem">
-
-                                                <Border x:Name="Border"
-                                                    Background="#EEE"
-                                                    BorderBrush="#CCC"
-                                                    BorderThickness="1"
-                                                    CornerRadius="4"
-                                                    Padding="6">
-
-                                                    <StackPanel Orientation="Horizontal"
-                                                        VerticalAlignment="Center">
-
-                                                        <!-- Icon -->
-                                                        <materialDesign:PackIcon Kind="{Binding Icon}"
-                                                         Width="20"
-                                                         Height="20"
-                                                         Margin="0,0,8,0"
-                                                         VerticalAlignment="Center"/>
-
-                                                        <!-- Label -->
-                                                        <TextBlock Text="{Binding Name}"
-                                                           FontSize="14"
-                                                           VerticalAlignment="Center"/>
-
-                                                    </StackPanel>
-
-                                                </Border>
-
-                                                <ControlTemplate.Triggers>
-
-                                                    <!-- Selected -->
-                                                    <Trigger Property="IsSelected" Value="True">
-                                                        <Setter TargetName="Border"
-                                                        Property="Background"
-                                                        Value="#99b0a4"/>
-                                                        <Setter Property="Foreground"
-                                                        Value="White"/>
-                                                    </Trigger>
-
-                                                    <!-- Hover -->
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="Border"
-                                                        Property="Background"
-                                                        Value="#DDD"/>
-                                                    </Trigger>
-
-                                                </ControlTemplate.Triggers>
-
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </ListBox.ItemContainerStyle>
-
-                        </ListBox>
-                    </GroupBox>
-                        <GroupBox Height="230" Header="Realm Map Type" Width="190" HorizontalAlignment="Left" Margin="10,10,0,0">
+                        <GroupBox Header="Realm Map Type" Width="190" Height="435" HorizontalAlignment="Left" Margin="10,10,0,0">
                             <ListBox x:Name="MapTypeList"
                                  SelectedValue="{Binding SelectedMapType}"
                                  SelectedValuePath="MapType"
@@ -482,7 +409,7 @@
                         </GroupBox>
 
                         <GroupBox Header="Realm Map Area"
-                          Padding="10,10,10,44"
+                          Padding="10,10,10,10"
                           Margin="0,10,0,0">
 
                             <Grid>
@@ -572,243 +499,16 @@
             <Button Content="Create"
                     Command="{Binding CreateProjectCommand}"
                     Style="{StaticResource FlatToolButton}"
-                    Width="60"
-                    Height="60"/>
-
-        </StackPanel>
-
-        <!-- RIGHT: Open Existing -->
-        <Border Grid.Row="1" Grid.Column="2" Padding="10" BorderBrush="#CCC" BorderThickness="1">
-            <StackPanel>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Open Existing Realm Project"
-                           FontSize="12"
-                           FontWeight="SemiBold"
-                           Margin="0,0,0,10"/>
-
-                    <ListBox x:Name="ProjectList"
-                         ItemsSource="{Binding ProjectListEntries}"
-                         SelectedItem="{Binding SelectedProjectEntry}"
-                         Grid.Row="1"
-                         Grid.ColumnSpan="3"
-                         Height="505"
-                         Width="420"
-                         Margin="0,0,0,10"
-                         BorderThickness="0"
-                         Background="Transparent">
-
-
-                        <ListBox.ItemContainerStyle>
-                            <Style TargetType="ListBoxItem">
-
-                                <EventSetter Event="MouseDoubleClick"
-                                        Handler="ProjectListItem_MouseDoubleClick"/>
-
-                                <Setter Property="Margin" Value="2"/>
-                                <Setter Property="Padding" Value="0"/>
-                                <Setter Property="Cursor" Value="Hand"/>
-
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="ListBoxItem">
-
-                                            <Border x:Name="Border"
-                                                Background="#EEE"
-                                                BorderBrush="#CCC"
-                                                BorderThickness="1"
-                                                CornerRadius="4"
-                                                Padding="6">
-
-                                                <ContentPresenter VerticalAlignment="Stretch"
-                                                    HorizontalAlignment="Stretch"/>
-
-                                            </Border>
-
-                                            <ControlTemplate.Triggers>
-
-                                                <!-- Selected -->
-                                                <Trigger Property="IsSelected" Value="True">
-
-                                                    <Setter TargetName="Border"
-                                                        Property="Background"
-                                                        Value="#99b0a4"/>
-
-                                                    <Setter Property="Foreground" Value="White"/>
-
-                                                </Trigger>
-
-                                                <!-- Hover -->
-                                                <Trigger Property="IsMouseOver" Value="True">
-
-                                                    <Setter TargetName="Border"
-                                                        Property="Background"
-                                                        Value="#DDD"/>
-
-                                                </Trigger>
-
-                                            </ControlTemplate.Triggers>
-
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-
-                            </Style>
-                        </ListBox.ItemContainerStyle>
-
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-
-                                <Grid>
-
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="140"/>
-                                        <ColumnDefinition Width="10"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <!-- Preview -->
-
-                                    <Border Grid.Column="0"
-                                        BorderBrush="#BBB"
-                                        BorderThickness="1">
-
-                                        <Image
-                                           Height="100"
-                                           Stretch="Uniform"                                    
-                                           Source="{Binding PreviewImage}"/>
-                                    </Border>
-
-                                    <!-- Metadata -->
-
-                                    <StackPanel Grid.Column="2"
-                                        VerticalAlignment="Center">
-
-                                        <TextBlock Text="{Binding Name}"
-                                           FontWeight="Bold"
-                                           FontSize="14"
-                                           TextTrimming="CharacterEllipsis"/>
-
-                                        <TextBlock Text="{Binding ProjectPath}"
-                                           FontSize="10"
-                                           Width="250"
-                                           ToolTip="{Binding ProjectPath}"
-                                           TextWrapping="NoWrap"                                                   
-                                           TextTrimming="CharacterEllipsis"/>
-
-                                        <TextBlock FontSize="12">
-                                            <Run Text="Type: "/>
-                                            <Run Text="{Binding RealmType}"/>
-                                        </TextBlock>
-
-                                        <TextBlock FontSize="12">
-                                            <Run Text="Maps: "/>
-                                            <Run Text="{Binding NumberMaps}"/>
-                                        </TextBlock>
-
-                                        <TextBlock FontSize="12"
-                                                   TextWrapping="Wrap">
-                                            <Run Text="Modified: "/>
-                                            <Run Text="{Binding LastModified,
-                                            StringFormat={}{0:g}}"/>
-                                        </TextBlock>
-
-                                    </StackPanel>
-
-                                </Grid>
-
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-
-                    </ListBox>
-                </Grid>
-            </StackPanel>
-        </Border>
-
-        <!-- Bottom buttons -->
-        <Grid Grid.Row="2" Grid.ColumnSpan="3"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Bottom"
-                    Margin="0,0,10,10">
-
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            
-            <Button x:Name="SelectMapFileButton"
-                    Grid.Column="0"
-                        Width="60"
-                        Height="60"                    
-                        Margin="0,0,0,0"
-                        ToolTip="Select Map File"
-                        Style="{StaticResource FlatToolButton}"
-                        Command="{Binding SelectMapFileCommand}">
-                <StackPanel Orientation="Vertical">
-                    <TextBlock Text="Select"
-                                       FontSize="12"
-                                       Foreground="#FF45443F"
-                                       HorizontalAlignment="Center"
-                                       Margin="0,0,0,3"/>
-                    <materialDesign:PackIcon Kind="FileOutline"
-                                             Width="24"
-                                             Height="24"
-                                             HorizontalAlignment="Center"
-                                             Opacity="0.7"/>
-                </StackPanel>
-            </Button>
-            <Button x:Name="ClearMapFileButton"
-                Grid.Column="1"
-                Width="60"
-                Height="60"
-                Margin="0,0,160,0"
-                ToolTip="Clear Selected Map File"
-                Style="{StaticResource FlatToolButton}"
-                Command="{Binding ClearMapFileCommand}">
-                <StackPanel Orientation="Vertical">
-                    <TextBlock Text="Clear"
-                                       FontSize="12"
-                                       Foreground="#FF45443F"
-                                       HorizontalAlignment="Center"
-                                       Margin="0,0,0,3"/>
-                    <materialDesign:PackIcon Kind="ClearBoxOutline"
-                                             Width="24"
-                                             Height="24"
-                                             HorizontalAlignment="Center"
-                                             Opacity="0.7"/>
-                </StackPanel>
-            </Button>
-            <Button 
-                Grid.Column="2"
-                Content="Open"
-                    Command="{Binding OpenCommand}"
-                    Style="{StaticResource FlatToolButton}"
-                    Width="60"
                     Margin="0,0,20,0"
+                    Width="60"
                     Height="60"/>
-            
+
             <Button Content="Cancel"
-                    Grid.Column="3"
                     Command="{Binding CancelCommand}"
                     Style="{StaticResource FlatToolButton}"
                     Width="60"
                     Height="60"/>
-
-
-        </Grid>
+        </StackPanel>
 
     </Grid>
 </Window>

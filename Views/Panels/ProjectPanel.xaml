@@ -1,0 +1,404 @@
+﻿<UserControl x:Class="RealmStudioX.WPF.Views.Panels.ProjectPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"             
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Panels"
+             xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+             xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
+             xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
+             xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"
+             mc:Ignorable="d"
+             d:DesignHeight="916" d:DesignWidth="226">
+    
+    <Grid Visibility="Visible" Background="#FFDFDBD2">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="72"/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel
+            Grid.Row="0"
+            Orientation="Vertical"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Right"
+            Width="72"
+            Height="Auto"
+            Margin="0,3,3,0" Grid.ColumnSpan="2" Grid.RowSpan="2">
+
+            <Button
+                x:Name="SaveMapButton"
+                Width="50"
+                Height="50"
+                Margin="0,20,0,17"
+                ToolTip="Save the current realm project"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding SaveProjectCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Save"
+                               FontSize="12"
+                               FontWeight="Regular"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="ContentSaveAddOutline"
+                                     HorizontalAlignment="Center"
+                                     Width="20"
+                                     Height="20"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
+            <Separator></Separator>
+
+            <Button
+                x:Name="OpenMapButton"
+                Width="50"
+                Height="50"
+                Margin="0,17,0,0"
+                ToolTip="Open the selected map"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding OpenMapCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Open"
+                               FontSize="12"
+                               FontWeight="Regular"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="MapCheckOutline"
+                                     HorizontalAlignment="Center"
+                                     Width="20"
+                                     Height="20"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>            
+            
+            <Button
+                x:Name="CreateMapButton"
+                Width="50"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Create a new map and add to the current project"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding CreateMapCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Create"
+                               FontSize="12"
+                               FontWeight="Regular"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="MapPlus"
+                                     HorizontalAlignment="Center"
+                                     Width="20"
+                                     Height="20"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
+            <Button
+                x:Name="DeleteMapButton"
+                Width="50"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Delete the selected map from the current project"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding DeleteMapCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Delete"
+                               FontSize="12"
+                               FontWeight="Regular"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="MapMinus"
+                                     HorizontalAlignment="Center"
+                                     Width="22"
+                                     Height="22"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
+            <Button
+                x:Name="ImportMapButton"
+                Width="50"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Import a map from a folder and add it to the current project"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding ImportMapCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Import"
+                               FontSize="12"
+                               FontWeight="Regular"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="FilePlusOutline"
+                                     Width="22"
+                                     Height="22"
+                                     HorizontalAlignment="Center"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+            
+            <Button
+                x:Name="ExportMapButton"
+                Width="50"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Export the selected map and save it to a folder"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding ExportMapCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Export"
+                               FontSize="12"
+                               FontWeight="Regular"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="FolderFileOutline"
+                                     HorizontalAlignment="Center"
+                                     Width="22"
+                                     Height="22"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
+        </StackPanel>
+
+        <StackPanel Grid.Row="0" Grid.Column="0">
+            <GroupBox Header="Project" Margin="5" FontSize="14" FontWeight="Regular">
+
+                <StackPanel Margin="8">
+
+                    <!-- Name -->
+
+                    <TextBlock Text="Name"
+                       FontSize="11"
+                       FontWeight="Regular"/>
+
+                    <TextBox Margin="0,2,0,8"
+                        FontSize="12"
+                        Text="{Binding Metadata.ProjectName,
+                                UpdateSourceTrigger=LostFocus}"/>
+
+                    <!-- Description -->
+
+                    <TextBlock Text="Description"
+                       FontSize="11"
+                       FontWeight="Regular"/>
+
+                    <TextBox Margin="0,2,0,8"
+                         Height="60"
+                         FontSize="11"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto"
+                         Text="{Binding Metadata.Description,
+                            UpdateSourceTrigger=LostFocus}"/>
+
+                    <!-- Type -->
+
+                    <TextBlock Text="Type"
+                       FontSize="11"
+                       FontWeight="Regular"/>
+
+                    <TextBlock Margin="0,2,0,8"
+                       FontSize="12"
+                       Text="{Binding Metadata.RealmType}"/>
+
+                    <!-- Maps -->
+
+                    <TextBlock Text="Maps"
+                       FontSize="11"
+                       FontWeight="Regular"/>
+
+                    <TextBlock Margin="0,2,0,8"
+                       FontSize="12"
+                       Text="{Binding MapCount}"/>
+
+                    <!-- Created -->
+
+                    <TextBlock Text="Created"
+                       FontSize="11"
+                       FontWeight="Regular"/>
+
+                    <TextBlock Margin="0,2,0,8"
+                       FontSize="12"
+                       Text="{Binding Metadata.Created,
+                                      StringFormat={}{0:g}}"/>
+
+                    <!-- Modified -->
+
+                    <TextBlock Text="Modified"
+                       FontSize="11"
+                       FontWeight="Regular"/>
+
+                    <TextBlock Margin="0,2,0,8"
+                       FontSize="12"
+                       Text="{Binding Metadata.Modified,
+                                      StringFormat={}{0:g}}"/>
+
+                    <!-- File -->
+
+                    <TextBlock Text="File"
+                       FontSize="12"
+                       FontWeight="Regular"/>
+
+                    <TextBlock Text="{Binding Metadata.ProjectFilePath}"
+                            FontSize="10"
+                            Width="110"
+                            HorizontalAlignment="Left"
+                            ToolTip="{Binding Metadata.ProjectFilePath}"
+                            TextWrapping="NoWrap"                                                   
+                            TextTrimming="CharacterEllipsis"/>
+
+                </StackPanel>
+
+            </GroupBox>
+
+            <GroupBox Header="Maps" Margin="5,5,5,5" FontSize="14" FontWeight="Regular" Padding="0">
+                <StackPanel>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <ListBox x:Name="MapList"
+                             ItemsSource="{Binding MapTiles}"
+                             SelectedItem="{Binding SelectedMapTile}"
+                             Height="465"
+                             Width="130"
+                             Margin="0,0,0,0"
+                             HorizontalAlignment="Left"
+                             BorderThickness="0"
+                             Background="Transparent">
+
+
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+
+                                    <EventSetter Event="MouseDoubleClick"
+                                        Handler="MapListItem_MouseDoubleClick"/>
+                                    
+                                    <Setter Property="Margin" Value="0"/>
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="Cursor" Value="Hand"/>
+
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+
+                                                <Border x:Name="Border"
+                                                    Background="#FFF2EDE4"
+                                                    BorderBrush="#CCC"
+                                                    BorderThickness="1"
+                                                    CornerRadius="3"
+                                                    Margin="0,2,0,0"
+                                                    Padding="0">
+
+                                                    <ContentPresenter VerticalAlignment="Top" HorizontalAlignment="Center"/>
+
+                                                </Border>
+
+                                                <ControlTemplate.Triggers>
+
+                                                    <!-- Selected -->
+                                                    <Trigger Property="IsSelected" Value="True">
+
+                                                        <Setter TargetName="Border"
+                                                            Property="Background"
+                                                            Value="#99b0a4"/>
+
+                                                        <Setter Property="Foreground" Value="White"/>
+
+                                                    </Trigger>
+
+                                                    <!-- Hover -->
+                                                    <Trigger Property="IsMouseOver" Value="True">
+
+                                                        <Setter TargetName="Border"
+                                                        Property="Background"
+                                                        Value="#DDD"/>
+
+                                                    </Trigger>
+
+                                                </ControlTemplate.Triggers>
+
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Image Grid.Column="0"
+                                           Height="45"
+                                           Stretch="UniformToFill"                                    
+                                           Source="{Binding PreviewImage}"/>
+
+                                        <Border x:Name="TileOverlay"
+                                                Grid.Column="0"
+                                                Background="#80D3D3D3"
+                                                BorderBrush="#80D3D3D3"
+                                                VerticalAlignment="Center"
+                                                HorizontalAlignment="Center"
+                                                BorderThickness="1"
+                                                CornerRadius="2"
+                                                Width="80"
+                                                Height="40"
+                                                Padding="0">
+
+                                            <StackPanel 
+                                                VerticalAlignment="Center"
+                                                HorizontalAlignment="Center">
+                                                <TextBlock Text="{Binding MapName}"
+                                                    FontWeight="Bold"
+                                                    FontSize="12"
+                                                    VerticalAlignment="Center"
+                                                    HorizontalAlignment="Center"
+                                                    TextTrimming="CharacterEllipsis"/>
+
+                                                <TextBlock Text="{Binding RealmType}"
+                                                    FontWeight="Regular"
+                                                    FontSize="10"
+                                                    VerticalAlignment="Center"
+                                                    HorizontalAlignment="Center"                                                           
+                                                    TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+
+                        </ListBox>
+                    </Grid>
+                </StackPanel>
+            </GroupBox>
+
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -15,11 +15,10 @@ namespace RealmStudioX.WPF.Editor
     public class EditorController : IRedrawRequester
     {
         public event Action<MapDrawingMode>? DrawingModeChanged;
-        //public event Action<ColorPaintBrush>? ColorPaintBrushChanged;
         public event Action<MapLayer>? ActiveDrawingLayerChanged;
 
         private CommandManager _commands { get; } = new();
-        public CommandManager Commands => _commands;
+        public CommandManager Commands => _commands;        
 
         private readonly AssetManager _assetManager;
         private readonly FontManager _fontManager;
@@ -27,6 +26,8 @@ namespace RealmStudioX.WPF.Editor
         private readonly EditorState _editorState = new();
 
         public EditorState State => _editorState;
+
+        private RealmStudioProject? _currentMapProject;
 
         private MapScene? _scene;
 
@@ -102,7 +103,7 @@ namespace RealmStudioX.WPF.Editor
             _assetManager = assetManager;
             _fontManager = fontManager;
 
-            _editorState.DrawingModeChanged += OnDrawingModeChanged;
+            _editorState.DrawingModeChanged += OnDrawingModeChanged;            
         }
 
         public void Reset()

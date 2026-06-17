@@ -3,22 +3,19 @@ using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.Models.Startup;
 using RealmStudioX.WPF.ViewModels.CreateOpenMap;
-using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 
 namespace RealmStudioX.WPF.Views.Dialogs
 {
     /// <summary>
-    /// Interaction logic for CreateOpenMapDialog.xaml
+    /// Interaction logic for CreateMapDialog.xaml
     /// </summary>
-    public partial class CreateOpenMapDialog : Window, INotifyPropertyChanged
+    public partial class CreateMapDialog : Window, INotifyPropertyChanged
     {
         private readonly string _themesFolder =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX", "Assets", "Themes");
@@ -31,13 +28,13 @@ namespace RealmStudioX.WPF.Views.Dialogs
         private double _aspectRatio = 1920.0 / 1080.0;
         private bool _lockAspect = true;
 
-        public CreateOpenMapViewModel ViewModel { get; }
+        public CreateMapViewModel ViewModel { get; }
 
-        public CreateOpenMapDialog()
+        public CreateMapDialog()
         {
             InitializeComponent();
 
-            ViewModel = new CreateOpenMapViewModel(_mapsFolder, _themesFolder);
+            ViewModel = new CreateMapViewModel(_mapsFolder, _themesFolder);
             ViewModel.RequestClose += OnRequestClose;
 
             DataContext = ViewModel;
@@ -51,16 +48,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 new() { Name="Dungeon Level",       Icon="Layers",       MapType = RealmMapType.DungeonLevel },
                 new() { Name="Ship Deck",           Icon="Ferry",        MapType = RealmMapType.ShipDeck },
                 new() { Name="Solar System Body",   Icon="Orbit",        MapType = RealmMapType.SolarSystemBody },
-            };
-
-            RealmTypeList.ItemsSource = new List<RealmTypeOption>
-            {
-                new() { Name="World",    Icon="Earth",        RealmProjectType = RealmProjectType.World },
-                new() { Name="Region",   Icon="Map",          RealmProjectType = RealmProjectType.Region  },
-                new() { Name="City",     Icon="City",         RealmProjectType = RealmProjectType.City  },
-                new() { Name="Dungeon",  Icon="ViewList",     RealmProjectType = RealmProjectType.Dungeon },
-                new() { Name="Ship",     Icon="ViewList",     RealmProjectType = RealmProjectType.Ship  },
-                new() { Name="Interior", Icon="ViewList",     RealmProjectType = RealmProjectType.Interior },
             };
 
             PresetList.ItemsSource = new List<MapSizePreset>
@@ -113,97 +100,13 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 ViewModel.Height = (int)HeightBox.Value;
             };
 
-            LoadExistingMapProjects();
         }
-
-        private void LoadExistingMapProjects()
-        {
-            string realmDir = _mapsFolder;
-
-            if (!Directory.Exists(realmDir))
-            {
-                return;
-            }
-
-            ViewModel.ProjectListEntries.Clear();
-
-            string searchPath = "*" + RealmStudioFileFormat.PackageExtension;
-
-            List<RealmStudioProject> projects = [];
-
-            foreach (string file in Directory.EnumerateFiles(
-                realmDir,
-                searchPath,
-                SearchOption.TopDirectoryOnly))
-            {
-                FileInfo fi = new(file);
-
-                RealmStudioProject project = MapFileMethods.OpenProject(file);
-
-                projects.Add(project);
-            }
-
-            foreach (var mapProject in projects
-                .OrderByDescending(m => m.Metadata.Modified)
-                .ToList())
-            {
-                // get the preview for the active map
-                string activeMapId = mapProject.ActiveMapId;
-
-                SKBitmap preview = new();
-
-                foreach (MapProjectEntry entry in mapProject.Maps)
-                {
-                    if (entry.MapId == activeMapId)
-                    {
-                        if (entry.Preview != null)
-                        {
-                            preview = entry.Preview;
-                        }
-                        break;
-                    }
-                }
-
-                // populate in sorted order
-                ProjectListEntry projectListEntry = new()
-                {
-                    Name = mapProject.Metadata.ProjectName,
-                    ProjectPath = mapProject.Metadata.ProjectFilePath,
-                    RealmType = mapProject.Metadata.RealmType.GetDescription() ?? mapProject.Metadata.RealmType.ToString(),
-                    LastModified = mapProject.Metadata.Modified,
-                    Project = mapProject,
-                    NumberMaps = mapProject.Maps.Count,
-                    PreviewImage = preview.ToImageSource(),
-                };
-
-                ViewModel.ProjectListEntries.Add(projectListEntry);
-            }
-        }       
+    
 
         private void OnRequestClose(bool? dialogResult)
         {
             DialogResult = dialogResult;
             Close();
-        }
-
-        private void ProjectListItem_MouseDoubleClick(
-            object sender,
-            MouseButtonEventArgs e)
-        {
-            if (sender is ListBoxItem item &&
-                 DataContext is CreateOpenMapViewModel vm &&
-                 item.DataContext is ProjectListEntry entry)
-            {
-                vm.Result = new CreateOpenPackageResult
-                {
-                    CreationOperation = RealmCreationOperation.CreateProject,
-                    IsNew = false,
-                    Project = entry.Project
-                };
-
-                DialogResult = true;
-                Close();
-            }
         }
 
         private void AreaWidthBox_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -275,40 +178,5 @@ namespace RealmStudioX.WPF.Views.Dialogs
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-    }
-
-    public class MapTypeOption
-    {
-        public string Name { get; set; } = "";
-        public string Icon { get; set; } = "";
-        public RealmMapType MapType { get; set; } = RealmMapType.World;
-        public bool IsSelected { get; set; }
-    }
-
-    public class RealmTypeOption
-    {
-        public string Name { get; set; } = "";
-        public string Icon { get; set; } = "";
-        public RealmProjectType RealmProjectType { get; set; } = RealmProjectType.World;
-        public bool IsSelected { get; set; }
-    }
-
-    public class MapSizePreset
-    {
-        public int Width { get; set; }
-        public int Height { get; set; }
-        public string Display { get; set; } = string.Empty;
-        public bool IsSelected { get; set; }
-    }
-
-    public sealed class ProjectListEntry
-    {
-        public string Name { get; set; } = string.Empty;
-        public string ProjectPath { get; set; } = string.Empty;
-        public string RealmType { get; set; } = string.Empty;
-        public DateTime LastModified { get; set; }
-        public int NumberMaps { get; set; }
-        public RealmStudioProject? Project { get; set; }
-        public ImageSource? PreviewImage { get; set; }
     }
 }

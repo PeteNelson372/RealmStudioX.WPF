@@ -2,14 +2,14 @@
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
-using RealmStudioX.WPF.EditorUtilities;
+using RealmStudioX.WPF.Models.Startup;
 using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Panels;
 using RealmStudioX.WPF.Views.Dialogs;
+using RealmStudioX.WPF.Views.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
-using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
@@ -29,6 +29,13 @@ namespace RealmStudioX.WPF.ViewModels.Main
             get { return _editor; }
         }
 
+        private readonly ProjectManager _projectManager;
+
+        public ProjectManager ProjectManager
+        {
+            get => _projectManager;
+        }
+
         private readonly AssetManager _assetManager;
 
         public AssetManager AssetManager => _assetManager;
@@ -39,6 +46,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public double ViewportPixelWidth => _viewPortSize.Width;
         public double ViewportPixelHeight => _viewPortSize.Height;
+
+        public ProjectPanelViewModel ProjectViewModel { get; }
 
         public BackgroundPanelViewModel BackgroundViewModel { get; }
 
@@ -72,10 +81,14 @@ namespace RealmStudioX.WPF.ViewModels.Main
             _editor = editor;
             _assetManager = assetManager;
             _fontManager = fontManager;
+            _projectManager = new();
 
             // instantiate ViewModels for the panels; when adding a view model
             // remember to add a reference to it on the TabItem <panel:...> in MainTabs.xaml
             // and in MainWindow.xaml.cs ShowToolPanel() method
+
+            // Project Panel
+            ProjectViewModel = new ProjectPanelViewModel(this, _editor, _projectManager);
 
             // Background Panel
             BackgroundViewModel = new BackgroundPanelViewModel(_editor, assetManager);
@@ -120,8 +133,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
         // UI State
         // -------------------------
 
-        private RenderContext _renderContext;
-        public RenderContext RenderContext
+        private RenderContext? _renderContext;
+        public RenderContext? RenderContext
         {
             get => _renderContext;
             set => _renderContext = value;
@@ -230,22 +243,110 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
             if ((bool)result)
             {
-                CreateOpenMapResult dlgResult = dialog.ViewModel.Result;
+                CreateOpenPackageResult dlgResult = dialog.ViewModel.Result;
 
-                CreateOrOpenMap(dlgResult);
+                if (dlgResult.CreationOperation == RealmCreationOperation.CreateProject)
+                {
+                    if (dlgResult.IsNew)
+                    {
+                        CreateMapProject(dlgResult);
+                    }
+                    else
+                    {
+                        OpenMapProject(dlgResult);
+                    }
+                }
             }
         });
 
         public ICommand SaveCommand => new RelayCommand(() =>
         {
-            string mapPath = Path.Join(AssetManager.RootRealmsDirectory, MapName + ".rsmx");
-
-            MessageBox.Show(mapPath, "Save", MessageBoxButton.OK, MessageBoxImage.Information);
-
-            _editor.Scene!.Map.MapPath = mapPath;
-
-            MapFileMethods.SaveMap(_editor.Scene.Map);
+            SaveRealmProject();
         });
+
+        public void SaveRealmProject()
+        {
+            // save the map project as a zip package
+            RealmStudioProject? currentProject = ProjectManager.CurrentProject;
+
+            if (currentProject == null)
+            {
+                return;
+            }
+
+            RealmStudioMap map = _editor.Scene!.Map;
+
+            currentProject.ActiveMapId = map.MapId;
+
+            string mapFileName = map.MapId + RealmStudioFileFormat.RawMapExtension;
+
+            if (string.IsNullOrEmpty(map.MapPath))
+            {
+                string mapPath = Path.Join(AssetManager.RootRealmsDirectory, mapFileName);
+                map.MapPath = mapPath;
+            }
+
+            string mapPreviewFileName = map.MapId + ".png";
+
+            MapProjectMetadata projectMeta = currentProject.Metadata;
+
+            MapProjectEntry? mapEntry = null;
+            int entryIndex = -1;
+
+            // find the project entry for the map
+            for (int i = 0; i < currentProject.Maps.Count; i++)
+            {
+                MapProjectEntry mpe = currentProject.Maps[i];
+
+                if (mpe.MapId == map.MapId)
+                {
+                    mapEntry = mpe;
+                    entryIndex = i;
+                    break;
+                }
+            }
+
+            // create a bitmap with the same aspect ratio as the map
+            using SKBitmap previewFull = new(map.MapWidth, map.MapHeight);
+            using SKCanvas canvas = new(previewFull);
+
+            _editor.Scene.RenderForExport(canvas);
+
+            using SKBitmap preview = Utilities.ResizeBitmap(previewFull, 200, 200 * map.MapHeight / map.MapWidth);
+
+            if (mapEntry == null)
+            {
+                mapEntry ??= MapProjectHandler.CreateProjectEntry(map, preview);
+            }
+            else
+            {
+                mapEntry.Preview = preview.Copy();
+            }
+
+            MapMetadata mapMetadata = mapEntry.Metadata;
+
+            mapMetadata.PreviewFile = mapPreviewFileName;
+            mapMetadata.Modified = DateTime.Now;
+            projectMeta.Modified = DateTime.Now;
+
+            mapEntry.Metadata = mapMetadata;
+
+            if (entryIndex > -1)
+            {
+                currentProject.Maps[entryIndex] = mapEntry;
+            }
+            else
+            {
+                currentProject.Maps.Add(mapEntry);
+            }
+
+            string projectFileName = currentProject.Metadata.ProjectName;
+            string mapProjectPath = Path.Join(AssetManager.RootRealmsDirectory, projectFileName + RealmStudioFileFormat.PackageExtension);
+
+            MapFileMethods.SaveProject(mapProjectPath, currentProject);
+
+            ProjectViewModel.LoadProject(currentProject);
+        }
 
         public ICommand ExportCommand => new RelayCommand(() =>
         {
@@ -298,13 +399,14 @@ namespace RealmStudioX.WPF.ViewModels.Main
             DrawingModeLabel = SetDrawingModeLabel();
         }
 
-        public void CreateOrOpenMap(CreateOpenMapResult result)
+        public void CreateMapProject(CreateOpenPackageResult result)
         {
-            RealmStudioMap? map = null;
-
-            if (result.IsNew)
+            if (!result.IsNew)
             {
-                // Create new map
+                OpenMapProject(result);
+            }
+            else
+            {
                 if (string.IsNullOrEmpty(result.MapName))
                 {
                     result.MapName = "Default";
@@ -312,60 +414,142 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
                 if (string.IsNullOrEmpty(result.FilePath))
                 {
-                    result.FilePath = string.Empty;
+                    result.FilePath = result.MapName + RealmStudioFileFormat.RawMapExtension;
                 }
 
-                map = MapBuilder.CreateMap(result.FilePath, result.MapName, result.Width, result.Height, result.MapAreaWidth, result.MapAreaHeight, result.MapAreaUnits);
+                // Create new map
+                RealmStudioMap map = CreateMap(result);
+
+                RealmStudioProject mapProject = new();
+
+                MapProjectMetadata metadata = new()
+                {
+                    ProjectName = result.MapName,
+                    ProjectFilePath = result.FilePath,
+                    Description = map.RealmDescription,
+                    RealmType = result.ProjectType,
+                    Created = DateTime.Now,
+                    Modified = DateTime.Now,
+                };
+
+
+                mapProject.Metadata = metadata;
+
+                mapProject.ActiveMapId = map.MapId;
+
+                MapProjectEntry entry = MapProjectHandler.CreateProjectEntry(map, null);
+
+                mapProject.Maps.Add(entry);
+
+                ProjectManager.OpenProject(mapProject);
 
                 InitializeScene(map);
+            }
+        }
+
+        public RealmStudioMap CreateMap(CreateOpenPackageResult result)
+        {
+            if (string.IsNullOrEmpty(result.MapName))
+            {
+                result.MapName = "Default";
+            }
+
+            if (string.IsNullOrEmpty(result.FilePath))
+            {
+                result.FilePath = result.MapName + RealmStudioFileFormat.RawMapExtension;
+            }
+
+            RealmStudioMap map = MapBuilder.CreateMap(result.FilePath, result.MapName, result.Width, result.Height, result.MapAreaWidth, result.MapAreaHeight, result.MapAreaUnits);
+            map.RealmType = result.MapType;
+
+            return map;
+        }
+
+        public void OpenMapProject(CreateOpenPackageResult result)
+        {
+            RealmStudioMap? map = null;
+            RealmStudioProject? project = null;
+
+            if (result.IsNew)
+            {
+                CreateMapProject(result);
             }
             else
             {
-                // Load existing map
-                
-                if (!string.IsNullOrEmpty(result.FilePath))
+                if (result.Project == null)
                 {
-                    try
-                    {
-                        map = MapFileMethods.OpenMap(result.FilePath);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex);
-                        map = null;
-                    }
+                    return;
+                }
 
-                    if (map != null)
-                    {
-
-                    }
-                    else
-                    {
-                        MessageBox.Show("Could not open selected map.", "Error Opening Map", MessageBoxButton.OK);
-                    }
+                // Load existing map project
+                project = result.Project;
+                
+                if (project != null)
+                {
+                    map = FindActiveMap(project);
                 }
             }
 
-            if (map != null)
-            {                
-                InitializeScene(map);
+            if (project != null && map != null)
+            {
+                ProjectManager.OpenProject(project);
 
-                MapName = map.MapName;
-                MapSizeLabel = $"Map Size: {map.MapWidth} x {map.MapHeight}, Map Area: {map.MapAreaWidth} x {map.MapAreaHeight} {map.MapAreaUnits}";
+                ProjectViewModel.LoadProject(project);
 
-                ScaleViewModel.UnitLabel = map.MapAreaUnits;
-                ScaleViewModel.FontStyle = new FontStyleModel
+                OpenMap(project, map);
+
+                if (string.IsNullOrEmpty(project.Metadata.ProjectFilePath) && !string.IsNullOrEmpty(result.FilePath))
                 {
-                    Family = "Segoe UI",
-                    Size = 14,
-                };
-
-                OnDrawingModeChanged(MapDrawingMode.None);
-
-                _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.DRAWINGLAYER));
-
-                FinalizeMapLoad(map);
+                    project.Metadata.ProjectFilePath = result.FilePath;
+                }
             }
+        }
+
+        public RealmStudioMap FindActiveMap(RealmStudioProject project)
+        {
+            RealmStudioMap? map = null;
+            string activeMapId = project.ActiveMapId;
+
+            // get the active map
+
+            foreach (MapProjectEntry entry in project.Maps)
+            {
+                if (entry.MapId == activeMapId)
+                {
+                    map = entry.Map;
+                    break;
+                }
+            }
+
+            // couldn't find an active map, so use the first map in the project
+            if (map == null)
+            {
+                map = project.Maps[0].Map;
+                project.ActiveMapId = project.Maps[0].MapId;
+            }
+
+            return map;
+        }
+
+        public void OpenMap(RealmStudioProject project, RealmStudioMap map)
+        {
+            InitializeScene(map);
+
+            MapName = project.Metadata.ProjectName + ": " + map.MapName;
+            MapSizeLabel = $"Map Size: {map.MapWidth} x {map.MapHeight}, Map Area: {map.MapAreaWidth} x {map.MapAreaHeight} {map.MapAreaUnits}";
+
+            ScaleViewModel.UnitLabel = map.MapAreaUnits;
+            ScaleViewModel.FontStyle = new FontStyleModel
+            {
+                Family = "Segoe UI",
+                Size = 14,
+            };
+
+            OnDrawingModeChanged(MapDrawingMode.None);
+
+            _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.DRAWINGLAYER));
+
+            FinalizeMapLoad(map);
         }
 
         public void FinalizeMapLoad(RealmStudioMap map)
@@ -395,9 +579,9 @@ namespace RealmStudioX.WPF.ViewModels.Main
                     {
                         grid = mg;
                     }
-
-                    layer.RebuildIndexes();
                 }
+
+                layer.RebuildIndexes();
             }
 
             foreach (WaterSystem ws in map.WaterSystems)
@@ -455,14 +639,14 @@ namespace RealmStudioX.WPF.ViewModels.Main
             // ensure tiles and spatial grid are updated
             foreach (MapLayer layer in map.MapLayers)
             {
-
                 layer.InvalidateAllTiles();
             }
-
         }
 
         public void InitializeScene(RealmStudioMap map)
         {
+            ArgumentNullException.ThrowIfNull(_renderContext);
+
             MapScene newScene = new(map, _fontManager)
             {
                 RenderContext = _renderContext

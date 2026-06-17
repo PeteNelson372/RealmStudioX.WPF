@@ -1,4 +1,7 @@
-﻿using RealmStudioX.WPF.ViewModels.Infrastructure;
+﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.WPF.Models.Startup;
+using RealmStudioX.WPF.ViewModels.Infrastructure;
+using RealmStudioX.WPF.Views.Dialogs;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Input;
@@ -11,7 +14,7 @@ namespace RealmStudioX.WPF.ViewModels.CreateOpenMap
         private readonly string _themesFolder;
 
         public ObservableCollection<string> Themes { get; } = [];
-        public ObservableCollection<MapFileInfo> Maps { get; } = [];
+        public ObservableCollection<ProjectListEntry> ProjectListEntries { get; } = [];
 
 
         private string _mapName = string.Empty;
@@ -28,13 +31,13 @@ namespace RealmStudioX.WPF.ViewModels.CreateOpenMap
             set => SetProperty(ref _selectedTheme, value);
         }
 
-        private MapFileInfo? _selectedMap;
-        public MapFileInfo? SelectedMap
+        private ProjectListEntry? _selectedProjectEntry;
+        public ProjectListEntry? SelectedProjectEntry
         {
-            get => _selectedMap;
+            get => _selectedProjectEntry;
             set
             {
-                if (SetProperty(ref _selectedMap, value))
+                if (SetProperty(ref _selectedProjectEntry, value))
                 {
                     ((RelayCommand)OpenCommand).RaiseCanExecuteChanged();
                 }
@@ -83,9 +86,26 @@ namespace RealmStudioX.WPF.ViewModels.CreateOpenMap
             set => SetProperty(ref _mapAreaUnits, value);
         }
 
-        public CreateOpenMapResult? Result { get; private set; }
+        private RealmProjectType _selectedRealmType = RealmProjectType.World;
 
-        public ICommand CreateCommand { get; }
+        public RealmProjectType SelectedRealmType
+        {
+            get => _selectedRealmType;
+            set => _selectedRealmType = value;
+        }
+
+        private RealmMapType _selectedMapType = RealmMapType.World;
+
+        public RealmMapType SelectedMapType
+        {
+            get => _selectedMapType;
+            set => _selectedMapType = value;
+        }
+
+
+        public CreateOpenPackageResult? Result { get; set; }
+
+        public ICommand CreateProjectCommand { get; }
         public ICommand OpenCommand { get; }
         public ICommand CancelCommand { get; }
 
@@ -96,7 +116,7 @@ namespace RealmStudioX.WPF.ViewModels.CreateOpenMap
             _mapsFolder = mapsFolder;
             _themesFolder = themesFolder;
 
-            CreateCommand = new RelayCommand(Create);
+            CreateProjectCommand = new RelayCommand(Create);
             OpenCommand = new RelayCommand(Open, CanOpen);
             CancelCommand = new RelayCommand(Cancel);
 
@@ -118,10 +138,45 @@ namespace RealmStudioX.WPF.ViewModels.CreateOpenMap
 
         private void Create()
         {
-            Result = new CreateOpenMapResult
+            if (SelectedRealmType == RealmProjectType.NotSet && SelectedMapType != RealmMapType.NotSet)
             {
+                // derive the realm type from the map type
+                switch (SelectedMapType)
+                {
+                    case RealmMapType.World: SelectedRealmType = RealmProjectType.World; break;
+                    case RealmMapType.Region: SelectedRealmType = RealmProjectType.Region; break;
+                    case RealmMapType.City: SelectedRealmType = RealmProjectType.City; break;
+                    case RealmMapType.InteriorFloor: SelectedRealmType = RealmProjectType.Interior; break;
+                    case RealmMapType.DungeonLevel: SelectedRealmType = RealmProjectType.Dungeon; break;
+                    case RealmMapType.ShipDeck: SelectedRealmType = RealmProjectType.Ship; break;
+                    case RealmMapType.SolarSystemBody: SelectedRealmType = RealmProjectType.SolarSystem; break;
+                    case RealmMapType.Other: SelectedRealmType = RealmProjectType.Other; break;
+                }
+            }
+
+            if (SelectedRealmType != RealmProjectType.NotSet && SelectedMapType == RealmMapType.NotSet)
+            {
+                // derive the realm type from the map type
+                switch (SelectedRealmType)
+                {
+                    case RealmProjectType.World: SelectedMapType = RealmMapType.World; break;
+                    case RealmProjectType.Region: SelectedMapType = RealmMapType.Region; break;
+                    case RealmProjectType.City: SelectedMapType = RealmMapType.City; break;
+                    case RealmProjectType.Interior: SelectedMapType = RealmMapType.InteriorFloor; break;
+                    case RealmProjectType.Dungeon: SelectedMapType = RealmMapType.DungeonLevel; break;
+                    case RealmProjectType.Ship: SelectedMapType = RealmMapType.ShipDeck; break;
+                    case RealmProjectType.SolarSystem: SelectedMapType = RealmMapType.SolarSystemBody; break;
+                    case RealmProjectType.Other: SelectedMapType = RealmMapType.Other; break;
+                }
+            }
+
+            Result = new CreateOpenPackageResult
+            {
+                CreationOperation = RealmCreationOperation.CreateProject,
                 MapName = MapName,
                 IsNew = true,
+                ProjectType = SelectedRealmType,
+                MapType = SelectedMapType,
                 Width = Width,
                 Height = Height,
                 MapAreaUnits = MapAreaUnits,
@@ -138,20 +193,19 @@ namespace RealmStudioX.WPF.ViewModels.CreateOpenMap
         // -------------------------
         private bool CanOpen()
         {
-            return SelectedMap != null;
+            return SelectedProjectEntry != null;
         }
 
         private void Open()
         {
-            if (SelectedMap == null)
+            if (SelectedProjectEntry == null)
                 return;
 
-            var file = SelectedMap.Path;
-
-            Result = new CreateOpenMapResult
+            Result = new CreateOpenPackageResult
             {
+                CreationOperation = RealmCreationOperation.CreateProject,
                 IsNew = false,
-                FilePath = file
+                Project = SelectedProjectEntry.Project
             };
 
             RequestClose?.Invoke(true);
@@ -165,16 +219,5 @@ namespace RealmStudioX.WPF.ViewModels.CreateOpenMap
             Result = null;
             RequestClose?.Invoke(false);
         }
-    }
-
-    public sealed class MapFileInfo
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Path { get; set; } = string.Empty;
-        public DateTime LastModified { get; set; }
-        public long FileSize { get; set; }
-
-        public string DisplayText =>
-            $"{Name} ({LastModified:g})";
     }
 }

@@ -32,8 +32,13 @@ namespace RealmStudioX.WPF.EditorUtilities
             return string.Empty;
         }
 
-        public static ImageSource ToImageSource(this SKBitmap bitmap)
+        public static ImageSource? ToImageSource(this SKBitmap bitmap)
         {
+            if (bitmap == null || bitmap.IsEmpty)
+            {
+                return null;
+            }
+
             using var image = SKImage.FromBitmap(bitmap);
             using var data = image.Encode(SKEncodedImageFormat.Png, 100);
             using var stream = new MemoryStream(data.ToArray());

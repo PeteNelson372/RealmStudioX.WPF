@@ -3,6 +3,7 @@ using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.Editor.UserInterface;
+using RealmStudioX.WPF.Models.Startup;
 using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views;
@@ -49,6 +50,7 @@ namespace RealmStudioX.WPF
 
         private readonly Dictionary<string, UserControl> _toolPanels = new()
         {
+            ["Project"] = new ProjectToolPanel(),
             ["Background"] = new BackgroundToolPanel(),
             ["Ocean"] = new OceanToolPanel(),
             ["Land"] = new LandToolPanel(),
@@ -65,7 +67,7 @@ namespace RealmStudioX.WPF
             ["Planet"] = new PlanetToolPanel()
         };
 
-        public MainWindow(CreateOpenMapResult startup, AssetManager assetManager, FontManager fontManager)
+        public MainWindow(CreateOpenPackageResult startup, AssetManager assetManager, FontManager fontManager)
         {
             InitializeComponent();
 
@@ -112,7 +114,10 @@ namespace RealmStudioX.WPF
                 MainTabs.SelectTab("Ocean");
                 MainTabs.SelectTab("Background");
 
-                ViewModel.CreateOrOpenMap(startup);
+                // if the user chooses to create a new project,
+                // OpenMapProject will forward the startup result
+                // to CreateMapProject
+                ViewModel.OpenMapProject(startup);
 
                 _editor.State.StatusMessage = $"Loaded {_assetManager.AssetCount} assets.";
 
@@ -770,6 +775,11 @@ namespace RealmStudioX.WPF
             {
                 SecondaryPanelHost.Content = null;
                 return;
+            }
+
+            if (_toolPanels[tab] is ProjectToolPanel prtp)
+            {
+                prtp.DataContext = ViewModel.ProjectViewModel;
             }
 
             if (_toolPanels[tab] is PathsToolPanel ptp)

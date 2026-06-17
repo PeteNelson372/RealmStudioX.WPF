@@ -7,13 +7,28 @@
              xmlns:panels="clr-namespace:RealmStudioX.WPF.Views.Panels"
              mc:Ignorable="d" 
              d:DesignHeight="922" d:DesignWidth="278">
+    
+    <UserControl.Resources>
+
+        <Style x:Key="ProjectTabStyle"
+           TargetType="TabItem"
+           BasedOn="{StaticResource {x:Type TabItem}}">
+
+            <Setter Property="Background"
+                Value="#C7DDF0"/>
+
+        </Style>
+
+    </UserControl.Resources>
+
+
     <TabControl x:Name="MainTabControl" TabStripPlacement="Left">
         <TabControl.Resources>
             <Style TargetType="{x:Type TabItem}">
 
                 <Setter Property="Padding" Value="2"/>
                 <Setter Property="Width" Value="35"/>
-                <Setter Property="Height" Value="75"/>
+                <Setter Property="Height" Value="77"/>
                 <Setter Property="Background" Value="#FFDFDBD2"/>
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="Margin" Value="1"/>
@@ -73,6 +88,9 @@
             </Style>
 
         </TabControl.Resources>
+        <TabItem Header="Project" FontWeight="Bold" FontSize="16" Height="94" Background="#FFC8C4BC">
+            <panels:ProjectPanel DataContext="{Binding ProjectViewModel}"/>
+        </TabItem>        
         <TabItem Header="Background">
             <panels:BackgroundPanel DataContext="{Binding BackgroundViewModel}"/>
         </TabItem>
