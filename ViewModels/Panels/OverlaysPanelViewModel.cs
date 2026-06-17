@@ -9,6 +9,7 @@ using SkiaSharp;
 using SkiaSharp.Views.WPF;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -136,7 +137,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
             foreach (MapFrame frame in frames)
             {
-                if (string.IsNullOrEmpty(frame.FrameBitmapPath))
+                if (string.IsNullOrEmpty(frame.FrameBitmapPath) || !File.Exists(frame.FrameBitmapPath))
                 {
                     continue;
                 }
