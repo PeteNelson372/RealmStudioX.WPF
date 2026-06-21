@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Input;
 
-namespace RealmStudioX.WPF.ViewModels.CreateOpenMap
+namespace RealmStudioX.WPF.ViewModels.Dialogs
 {
     public class CreateOpenMapViewModel : ViewModelBase
     {

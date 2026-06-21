@@ -15,7 +15,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             FontManager fontManager,
             IRedrawRequester redraw,
             IMeasureSettings settings) : IToolEditor, IDisposable
-        {
+    {
 
         private bool disposedValue;
         // -------------------------------------------------

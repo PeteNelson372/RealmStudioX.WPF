@@ -7,6 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>True</UseWindowsForms>
+    <ApplicationIcon>Assets\ico\realm_studio_icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -53,6 +54,16 @@
     <None Remove="Assets\png\SmallDashesPath.png" />
     <None Remove="Assets\png\SolidPath.png" />
     <None Remove="Assets\png\ThickLinePath.png" />
+    <None Remove="Properties\Logging\log4net.config" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\ico\realm_studio_icon.ico">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Content Include="Properties\Logging\log4net.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -75,15 +86,16 @@
 
   <ItemGroup>
     <PackageReference Include="Clipper2" Version="2.0.0" />
+    <PackageReference Include="log4net" Version="3.3.1" />
     <PackageReference Include="MaterialDesignColors" Version="5.3.2" />
     <PackageReference Include="MaterialDesignThemes" Version="5.3.2" />
     <PackageReference Include="SimplexNoise" Version="2.0.0" />
-    <PackageReference Include="SkiaSharp" Version="3.119.2" />
-    <PackageReference Include="SkiaSharp.Views" Version="3.119.2" />
-    <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="3.119.2" />
-    <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="3.119.2" />
-    <PackageReference Include="SkiaSharp.Views.WPF" Version="3.119.2" />
-    <PackageReference Include="Svg.Skia" Version="5.0.0" />
+    <PackageReference Include="SkiaSharp" Version="3.119.4" />
+    <PackageReference Include="SkiaSharp.Views" Version="3.119.4" />
+    <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="3.119.4" />
+    <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="3.119.4" />
+    <PackageReference Include="SkiaSharp.Views.WPF" Version="3.119.4" />
+    <PackageReference Include="Svg.Skia" Version="5.1.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -102,7 +114,6 @@
     <Resource Include="Assets\cur\eyedropper.cur">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Assets\ico\realm_studio_icon.ico" />
     <Resource Include="Assets\png\AnimalTracksPath.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>

@@ -12,12 +12,13 @@
         Width="1580"
         Height="1024"
         Background="#FFDFDBD2"
+        ShowInTaskbar="True"
         WindowStyle="None"
         ResizeMode="CanResize"
-        Icon="pack://application:,,,/Assets/ico/realm_studio_icon.ico"
         PreviewKeyDown="OnPreviewKeyDown"
         PreviewKeyUp="OnPreviewKeyUp"
-        PreviewTextInput="OnTextInput">
+        PreviewTextInput="OnTextInput"
+        Icon="pack://application:,,,/Assets/ico/realm_studio_icon.ico">
 
     <Window.Resources>
     </Window.Resources>
@@ -25,14 +26,14 @@
     <Window.InputBindings>
 
         <KeyBinding
-        Key="Z"
-        Modifiers="Control"
-        Command="{Binding UndoCommand}" />
+            Key="Z"
+            Modifiers="Control"
+            Command="{Binding UndoCommand}" />
 
         <KeyBinding
-        Key="Y"
-        Modifiers="Control"
-        Command="{Binding RedoCommand}" />
+            Key="Y"
+            Modifiers="Control"
+            Command="{Binding RedoCommand}" />
 
     </Window.InputBindings>
 
@@ -129,6 +130,38 @@
             <StatusBar x:Name="TitleStatusBar" Grid.Row="0"
                    Background="#FF45443F"
                    Foreground="White">
+
+                <StatusBarItem Margin="10,0,0,0">
+
+                    <materialDesign:PackIcon
+                        Kind="FloppyDisk"
+                        Width="12"
+                        Height="12"
+                        Foreground="IndianRed"
+                        ToolTip="Project has unsaved changes">
+
+                        <materialDesign:PackIcon.Style>
+                            <Style TargetType="materialDesign:PackIcon">
+
+                                <Setter Property="Visibility" Value="Hidden"/>
+
+                                <Style.Triggers>
+
+                                    <DataTrigger Binding="{Binding CommandService.HasUnsavedChanges}" Value="True">
+
+                                        <Setter Property="Visibility"  Value="Visible"/>
+
+                                    </DataTrigger>
+
+                                </Style.Triggers>
+
+                            </Style>
+                        </materialDesign:PackIcon.Style>
+
+                    </materialDesign:PackIcon>
+
+                </StatusBarItem>
+
                 <StatusBarItem
                     HorizontalAlignment="Left"
                     Width="350"

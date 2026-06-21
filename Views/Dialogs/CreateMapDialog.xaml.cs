@@ -2,7 +2,7 @@
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.Models.Startup;
-using RealmStudioX.WPF.ViewModels.CreateOpenMap;
+using RealmStudioX.WPF.ViewModels.Dialogs;
 using SkiaSharp;
 using System.ComponentModel;
 using System.IO;

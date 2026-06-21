@@ -1,14 +1,17 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
+using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.Models.Startup;
+using RealmStudioX.WPF.ViewModels.Dialogs;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Dialogs;
+using SkiaSharp;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -105,7 +108,16 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public ICommand SaveProjectCommand => new RelayCommand(() =>
         {
-            _mainWindowViewModel.SaveRealmProject();
+            try
+            {
+                _mainWindowViewModel.SaveRealmProject();
+            }
+            catch (Exception ex)
+            {
+                RealmStudioXLogger.Exception("SaveProjectCommand", ex);
+                MessageDialog dlg = MessageDialogFactory.ErrorDialog("Error Saving Project", "An error occured saving the project. Check the log file for details.");
+                dlg.ShowDialog();
+            }
         });
 
         public ICommand CreateMapCommand => new RelayCommand(() =>
@@ -120,26 +132,38 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
             if ((bool)result)
             {
-                CreateOpenPackageResult dlgResult = dialog.ViewModel.Result;
-
-                if (dlgResult != null && Project != null)
+                try
                 {
-                    if (dlgResult.CreationOperation == RealmCreationOperation.CreateMap)
+                    CreateOpenPackageResult dlgResult = dialog.ViewModel.Result;
+
+                    if (dlgResult != null && Project != null)
                     {
-                        RealmStudioMap newMap = _mainWindowViewModel.CreateMap(dlgResult);
+                        if (dlgResult.CreationOperation == RealmCreationOperation.CreateMap)
+                        {
+                            RealmStudioMap newMap = MainWindowViewModel.CreateMap(dlgResult);
 
-                        MapProjectEntry entry = MapProjectHandler.CreateProjectEntry(newMap, null);
+                            MapProjectEntry entry = MapProjectHandler.CreateProjectEntry(newMap, null);
 
-                        entry.Map = newMap;
+                            entry.Map = newMap;
 
-                        Project.Maps.Add(entry);
+                            Project.Maps.Add(entry);
+                            Project.ActiveMapId = newMap.MapId;
 
-                        _mainWindowViewModel.InitializeScene(newMap);
+                            _mainWindowViewModel.InitializeScene(newMap);
 
-                        _projectManager.NotifyProjectChanged();
+                            _mainWindowViewModel.CommandService.MarkProjectDataModified();
+                            _projectManager.NotifyProjectChanged();
+
+                            _editor.State.StatusMessage = $"Map {newMap.MapName} created.";
+                        }
                     }
                 }
-
+                catch (Exception ex)
+                {
+                    RealmStudioXLogger.Exception("CreateMapCommand", ex);
+                    MessageDialog dlg = MessageDialogFactory.ErrorDialog("Error Creating Map", "An error occured creating the map. Check the log file for details.");
+                    dlg.ShowDialog();
+                }
             }
         });
 
@@ -147,28 +171,160 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         {
             if (SelectedMapTile != null && Project != null)
             {
-                RealmStudioMap selectedMap = SelectedMapTile.MapProjectEntry.Map;
+                try
+                {
+                    RealmStudioMap selectedMap = SelectedMapTile.MapProjectEntry.Map;
 
-                _mainWindowViewModel.OpenMap(Project, selectedMap);
+                    _mainWindowViewModel.OpenMap(Project, selectedMap);
+                }
+                catch (Exception ex)
+                {
+                    RealmStudioXLogger.Exception("OpenMapCommand", ex);
+                    MessageDialog dlg = MessageDialogFactory.ErrorDialog("Error Opening Map", "An error occured opening the map. Check the log file for details.");
+                    dlg.ShowDialog();
+                }
             }
         });
 
         public ICommand DeleteMapCommand => new RelayCommand(() =>
         {
-            // TODO: confirm deletion
             if (SelectedMapTile != null && Project != null)
             {
-                if (Project.Maps.Count <= 1)
+                try
                 {
-                    // the project must contain at least 1 map
-                    return;
+                    if (Project.Maps.Count <= 1)
+                    {
+                        // the project must contain at least 1 map
+                        return;
+                    }
+
+                    MessageDialog dlg = MessageDialogFactory.DeleteConfirmationDialog("Delete Map", "Are you sure you want to delete the selected map?\nThe deletion can be undone.");
+
+                    dlg.ShowDialog();
+
+                    if (((MessageDialogViewModel)dlg.DataContext).Result == MessageDialogResult.Delete)
+                    {
+                        MapProjectEntry selectedMapEntry = SelectedMapTile.MapProjectEntry;
+
+                        Cmd_DeleteMapFromProject cmd = new(_projectManager, Project, selectedMapEntry);
+
+                        _mainWindowViewModel.CommandService.ActiveCommands.Execute(cmd);
+                    }
                 }
+                catch (Exception ex)
+                {
+                    RealmStudioXLogger.Exception("DeleteMapCommand", ex);
+                    MessageDialog dlg = MessageDialogFactory.ErrorDialog("Error Deleting Map", "An error occured deleting the map from the project. CHeck the log file for details.");
+                    dlg.ShowDialog();
+                }
+            }
+        });
 
-                MapProjectEntry selectedMapEntry = SelectedMapTile.MapProjectEntry;
+        public ICommand ImportMapCommand => new RelayCommand(() =>
+        {
+            OpenFileDialog ofd = new()
+            {
+                InitialDirectory = AssetManager.RootRealmsDirectory,
+                Filter = "RealmStudioX Map|*.rsmx",
+                Title = "Open RealmStudioX Map"
+            };
 
-                Cmd_DeleteMapFromProject cmd = new(_projectManager, Project, selectedMapEntry);
+            DialogResult result = ofd.ShowDialog();
 
-                _editor.Commands.Execute(cmd);
+            if (result == DialogResult.OK && Project != null)
+            {
+                try
+                {
+                    RealmStudioMap? newMap = MapFileMethods.OpenMap(ofd.FileName);
+
+                    if (newMap != null)
+                    {
+                        // does the map already exist in the project?
+                        foreach (MapProjectEntry mapEntry in Project.Maps)
+                        {
+                            if (mapEntry.MapId == newMap.MapId)
+                            {
+                                // TODO: allow the imported map to be renamed and given a new id, then imported?
+                                // This would be useful if creating a base map, then creating additional maps (e.g. political boundaries, etc.) from it
+
+                                // map already exists - cannot import it
+                                MessageDialog dlg = MessageDialogFactory.ErrorDialog("Cannot Import Map", "The selected map is already in the map project.");
+                                dlg.ShowDialog();
+
+                                return;
+                            }
+                        }
+
+                        _mainWindowViewModel.OpenMap(Project, newMap);
+
+                        // create a bitmap with the same aspect ratio as the map
+                        using SKBitmap previewFull = new(newMap.MapWidth, newMap.MapHeight);
+                        using SKCanvas canvas = new(previewFull);
+
+                        _editor.Scene!.RenderForExport(canvas);
+
+                        using SKBitmap preview = Utilities.ResizeBitmap(previewFull, 200, 200 * newMap.MapHeight / newMap.MapWidth);
+                        string mapPreviewFileName = newMap.MapId + ".png";
+
+                        MapProjectEntry entry = MapProjectHandler.CreateProjectEntry(newMap, preview);
+
+                        MapProjectMetadata projectMeta = Project.Metadata;
+                        projectMeta.Modified = DateTime.Now;
+
+                        Project.Maps.Add(entry);
+                        Project.ActiveMapId = newMap.MapId;
+
+                        _mainWindowViewModel.CommandService.MarkProjectDataModified();
+                        _projectManager.NotifyProjectChanged();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    RealmStudioXLogger.Exception("ImportMapCommand", ex);
+                    MessageDialog dlg = MessageDialogFactory.ErrorDialog("Error Importing Map", "An error occured importing the map. Please verify that the map file is valid. Check the log file for details.");
+                    dlg.ShowDialog();
+                }
+            }
+        });
+
+        public ICommand ExportMapCommand => new RelayCommand(() =>
+        {
+            if (SelectedMapTile != null && Project != null)
+            {
+                try
+                {
+                    RealmStudioMap selectedMap = SelectedMapTile.MapProjectEntry.Map;
+
+                    string mapXml = MapFileMethods.SerializeMap(selectedMap);
+
+                    string fileName = selectedMap.MapName + RealmStudioFileFormat.RawMapExtension;
+
+                    SaveFileDialog saveMapDialog = new()
+                    {
+                        InitialDirectory = AssetManager.RootRealmsDirectory,
+                        FileName = fileName,
+                        Filter = "RealmStudioX Map|*.rsmx",
+                        Title = "Save RealmStudioX Map"
+                    };
+
+                    saveMapDialog.ShowDialog();
+
+                    // If the file name is not an empty string open it for saving.
+                    if (saveMapDialog.FileName != "")
+                    {
+                        // Saves the Image via a FileStream created by the OpenFile method.
+                        System.IO.FileStream fs =
+                            (System.IO.FileStream)saveMapDialog.OpenFile();
+
+                        MapFileMethods.SaveMap(selectedMap, fs);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    RealmStudioXLogger.Exception("ExportMapCommand", ex);
+                    MessageDialog dlg = MessageDialogFactory.ErrorDialog("Error Exporting Map", "An error occured exporting the map. Check the log file for details.");
+                    dlg.ShowDialog();
+                }
             }
         });
     }

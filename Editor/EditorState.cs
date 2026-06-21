@@ -25,6 +25,9 @@ namespace RealmStudioX.WPF.Editor
 
         public event Action<MapDrawingMode, MapDrawingMode>? DrawingModeChanged;
 
+
+        // TODO: move status message out of EditorState?
+        // does StatusMessage need to be set anywhere outside of the UI?
         private string _statusMessage = string.Empty;
         public string StatusMessage
         {

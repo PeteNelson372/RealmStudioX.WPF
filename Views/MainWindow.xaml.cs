@@ -1,4 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
@@ -12,6 +13,7 @@ using RealmStudioX.WPF.Views.Dialogs;
 using RealmStudioX.WPF.Views.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -71,7 +73,6 @@ namespace RealmStudioX.WPF
         {
             InitializeComponent();
 
-            // create the AssetManager instance
             _assetManager = assetManager ?? throw new ArgumentNullException(nameof(assetManager));
 
             _fontManager = fontManager ?? throw new ArgumentNullException(nameof(fontManager));
@@ -97,6 +98,8 @@ namespace RealmStudioX.WPF
 
             Loaded += async (s, e) =>
             {
+                TitleBar.DataContext = ViewModel;
+
                 TitleBar.OpenClicked += (s, e) => OpenHandler();
                 TitleBar.SaveClicked += (s, e) => SaveHandler();
                 TitleBar.MinimizeClicked += (s, e) => MinimizeHandler();
@@ -106,8 +109,9 @@ namespace RealmStudioX.WPF
 
                 MainTabs.TabSelectionChanged += (s, e) => MainTabControl_SelectionChanged(s, e);
 
-                ViewModel.RequestOpenNameGeneratorConfig +=
-                    OpenNameGeneratorConfigDialog;
+                ViewModel.RequestOpenNameGeneratorConfig += OpenNameGeneratorConfigDialog;
+
+                ViewModel.AutosaveService.AutosaveCompleted += AutosaveService_AutosaveCompleted;
 
                 // force an update to the MainTabs selection to ensure the correct tool panel is displayed on startup
                 MainTabs.SelectTab("Background");
@@ -117,7 +121,7 @@ namespace RealmStudioX.WPF
                 // if the user chooses to create a new project,
                 // OpenMapProject will forward the startup result
                 // to CreateMapProject
-                ViewModel.OpenMapProject(startup);
+                ViewModel.OpenRealmProject(startup);
 
                 _editor.State.StatusMessage = $"Loaded {_assetManager.AssetCount} assets.";
 
@@ -125,6 +129,12 @@ namespace RealmStudioX.WPF
             };
 
             InitializeSkiaControl();
+        }
+
+        private void AutosaveService_AutosaveCompleted(object? sender, EventArgs e)
+        {
+            RealmStudioXLogger.Info($"Autosave completed at {DateTime.Now}");
+            _editor!.State.StatusMessage = $"Autosave completed.";
         }
 
         private void OnDrawingModeChanged(MapDrawingMode previous, MapDrawingMode current)
@@ -736,19 +746,29 @@ namespace RealmStudioX.WPF
         // Main Menu Commands
         //==========================================
 
-        private void NewHandler()
-        {
-            // create a new map
-        }
-
         private void OpenHandler()
         {
-            // open a map
+            // open a project
+            ViewModel.ShowCreateOpenDialog();
+
         }
 
         private void SaveHandler()
         {
-            // save the current map
+            // save the current project
+            ViewModel.SaveRealmProject();
+        }
+
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            if (!ViewModel.TryShutdown())
+            {
+                e.Cancel = true;
+                return;
+            }
+
+            base.OnClosing(e);
         }
 
         private void ExitHandler()
@@ -758,7 +778,9 @@ namespace RealmStudioX.WPF
 
         private static void NewVersionHandler()
         {
-            MessageBox.Show("New version available! Please update to the latest version.", "Update Available", MessageBoxButton.OK, MessageBoxImage.Information);
+            // TODO: check for a new version
+            MessageDialog dlg = MessageDialogFactory.InformationDialog("Update Available", "New version available. Please update to the latest version.");
+            dlg.ShowDialog();
         }
 
         //==========================================

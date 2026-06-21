@@ -5,7 +5,6 @@ using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
 using System.Windows.Input;
-using static System.Windows.Forms.AxHost;
 using CommandManager = RealmStudioX.Core.CommandManager;
 
 namespace RealmStudioX.WPF.Editor.Tools
@@ -20,7 +19,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             FontManager fontManager,
             IRedrawRequester redraw,
             IRegionSettings settings) : IToolEditor, IKeyHandler, IDisposable
-        {
+    {
 
         private const int _pointCircleRadius = 5;
         private const int _maxPointToCoastlineDistance = 15;
@@ -313,6 +312,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                         // undo/redo is not supported for region point movement
                         // move the selected region point to the current mouse position
                         _selectedRegion.MoveRegionPoint(_selectedRegionPoint, state.WorldPoint);
+                        _editor.MarkMapModified();
                     }
                 }
 
@@ -323,6 +323,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                     // undo/redo is not supported for region movement
                     _selectedRegion.Move(dx, dy);
+                    _editor.MarkMapModified();
                 }
             }
 

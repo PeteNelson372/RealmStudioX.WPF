@@ -1,9 +1,12 @@
-﻿using RealmStudioShapeRenderingLib;
+﻿using log4net;
+using RealmStudioShapeRenderingLib;
+using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Views.Dialogs;
 using System.IO;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Media.Imaging;
 using Application = System.Windows.Application;
 
 namespace RealmStudioX.WPF
@@ -15,6 +18,30 @@ namespace RealmStudioX.WPF
     {
         protected override async void OnStartup(StartupEventArgs e)
         {
+            // set up and configure the RealmStudioXLogger
+            string logFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "RealmStudioX", "Logs");
+
+            Directory.CreateDirectory(logFolder);
+
+            GlobalContext.Properties["LogFileName"] = Path.Combine(logFolder, "RealmStudioX");
+
+            string configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Properties", "Logging", "log4net.config");
+
+            Assembly? assembly = Assembly.GetEntryAssembly();
+
+            if (assembly == null)
+            {
+                Application.Current.Shutdown(-1);
+                return;
+            }
+
+            SetupExceptionHandling();
+
+            RealmStudioXLogger.Info("===========================================================");
+            RealmStudioXLogger.Info($"Starting RealmStudioX at {DateTime.Now}; Version={ApplicationInfo.Version}");
+            RealmStudioXLogger.Info("===========================================================");
+
             base.OnStartup(e);
 
             Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
@@ -41,8 +68,10 @@ namespace RealmStudioX.WPF
                 splash.Close();
             }
 
+
             // Continue startup - open the CreateOpenMapDialog
             var dialog = new CreateOpenMapDialog();
+
             var result = dialog.ShowDialog();
 
             if (result != true || dialog.ViewModel.Result == null)
@@ -51,12 +80,80 @@ namespace RealmStudioX.WPF
                 return;
             }
 
-            var mainWindow = new MainWindow(dialog.ViewModel.Result, assetManager, fontManager);
+            // TODO: display a loading dialog that is hidden/closed
+            // when the main window is shown
 
+            var mainWindow = new MainWindow(dialog.ViewModel.Result, assetManager, fontManager);
+            
+            BitmapFrame bmpf = BitmapFrame.Create(new Uri("pack://application:,,,/Assets/ico/realm_studio_icon.ico", UriKind.Absolute));
+
+            mainWindow.Icon = bmpf;
+
+            // Required to ensure the taskbar displays the
+            // application icon correctly after the startup dialog.
+            // Without yielding, Windows may associate the taskbar
+            // button before MainWindow initialization is complete.
+            // See https://github.com/dotnet/wpf/issues/11222
+            await Task.Yield();
+
+            Current.MainWindow = mainWindow;
             MainWindow = mainWindow;
+
             mainWindow.Show();
 
             Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            try
+            {
+                RealmStudioXLogger.Info("===========================================================");
+                RealmStudioXLogger.Info($"RealmStudioX shutting down at {DateTime.Now}. Exit Code: {e.ApplicationExitCode}");
+                RealmStudioXLogger.Info("===========================================================");
+            }
+            catch (Exception ex)
+            {
+                RealmStudioXLogger.Exception("Application Shutdown", ex);
+            }
+
+            base.OnExit(e);
+        }
+
+        private void SetupExceptionHandling()
+        {
+            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+                LogUnhandledException((Exception)e.ExceptionObject, "AppDomain.CurrentDomain.UnhandledException");
+
+            DispatcherUnhandledException += (s, e) =>
+            {
+                LogUnhandledException(e.Exception, "Application.Current.DispatcherUnhandledException");
+                e.Handled = true;
+            };
+
+            TaskScheduler.UnobservedTaskException += (s, e) =>
+            {
+                LogUnhandledException(e.Exception, "TaskScheduler.UnobservedTaskException");
+                e.SetObserved();
+            };
+        }
+
+        private static void LogUnhandledException(Exception exception, string source)
+        {
+            string message = $"Unhandled exception ({source})";
+            try
+            {
+                System.Reflection.AssemblyName assemblyName = System.Reflection.Assembly.GetExecutingAssembly().GetName();
+                message = string.Format("Unhandled exception in {0} v{1}", assemblyName.Name, assemblyName.Version);
+            }
+            catch (Exception ex)
+            {
+                RealmStudioXLogger.Exception("Exception in LogUnhandledException", ex);
+            }
+            finally
+            {
+                RealmStudioXLogger.Exception(message, exception);
+            }
         }
     }
 

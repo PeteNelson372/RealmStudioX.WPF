@@ -20,7 +20,7 @@
                     VerticalAlignment="Center">
 
             <!-- App Title -->
-            <TextBlock Text="Create or Select a Map Project"
+            <TextBlock Text="Create or Select a Realm Project"
                    Foreground="#E5E5E5"
                    FontSize="16"
                    FontWeight="SemiBold"

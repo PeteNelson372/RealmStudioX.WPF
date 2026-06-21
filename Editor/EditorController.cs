@@ -1,6 +1,7 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
+using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.Editor.Tools;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
@@ -17,6 +18,8 @@ namespace RealmStudioX.WPF.Editor
         public event Action<MapDrawingMode>? DrawingModeChanged;
         public event Action<MapLayer>? ActiveDrawingLayerChanged;
 
+        private CommandService? _commandService;
+
         private CommandManager _commands { get; } = new();
         public CommandManager Commands => _commands;        
 
@@ -26,8 +29,6 @@ namespace RealmStudioX.WPF.Editor
         private readonly EditorState _editorState = new();
 
         public EditorState State => _editorState;
-
-        private RealmStudioProject? _currentMapProject;
 
         private MapScene? _scene;
 
@@ -104,6 +105,16 @@ namespace RealmStudioX.WPF.Editor
             _fontManager = fontManager;
 
             _editorState.DrawingModeChanged += OnDrawingModeChanged;            
+        }
+
+        public void SetCommandService(CommandService commandService)
+        {
+            _commandService = commandService;
+        }
+
+        public void MarkMapModified()
+        {
+            _commandService?.MarkMapModified();
         }
 
         public void Reset()

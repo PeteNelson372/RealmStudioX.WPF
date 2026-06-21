@@ -22,7 +22,7 @@
     </UserControl.Resources>
 
 
-    <TabControl x:Name="MainTabControl" TabStripPlacement="Left">
+    <TabControl x:Name="MainTabControl" TabStripPlacement="Left" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
         <TabControl.Resources>
             <Style TargetType="{x:Type TabItem}">
 

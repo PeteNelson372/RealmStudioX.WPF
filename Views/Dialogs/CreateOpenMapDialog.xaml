@@ -7,7 +7,7 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:views="clr-namespace:RealmStudioX.WPF.Views"
         xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
-        xmlns:vm="clr-namespace:RealmStudioX.WPF.ViewModels.CreateOpenMap"
+        xmlns:vm="clr-namespace:RealmStudioX.WPF.ViewModels.Dialogs"
         mc:Ignorable="d"
         Title="Create Or Open Map"
         Width="1200"
@@ -18,8 +18,7 @@
         MaxHeight="700"
         Background="#FF45443F"
         WindowStyle="None"
-        ResizeMode="CanResize"
-        Icon="../../Assets/ico/realm_studio_icon.ico">
+        ResizeMode="NoResize">
 
     <Window.Resources>
         <ScaleTransform x:Key="RadioScaleTransform" ScaleX="1.0" ScaleY="1.0"/>

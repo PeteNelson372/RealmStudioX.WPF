@@ -52,6 +52,7 @@
             <CheckBox x:Name="AutosaveToggle"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
+                        IsChecked="{Binding AutoSaveEnabled, Mode=TwoWay}"
                         Style="{StaticResource ToggleSwitchStyle}"
                         shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
