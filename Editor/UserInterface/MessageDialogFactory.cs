@@ -153,8 +153,8 @@ namespace RealmStudioX.WPF.Editor.UserInterface
             return new MessageDialogViewModel(owner)
             {
                 DialogIcon = PackIconKind.ContentSaveCheckOutline,
-                IconBrush = Brushes.Firebrick,
-                IsDestructive = true,
+                IconBrush = Brushes.DarkCyan,
+                IsDestructive = false,
                 PrimaryButtonText = "Yes",
                 PrimaryResult = MessageDialogResult.Yes,
                 SecondaryButtonText = "No",
@@ -162,6 +162,37 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                 SecondaryButtonVisibility = Visibility.Visible,
                 TertiaryButtonText = "Cancel",
                 TertiaryResult = MessageDialogResult.Cancel,
+                TertiaryButtonVisibility = Visibility.Visible
+            };
+        }
+
+        public static MessageDialog MapRecoveryDialog(string title, string message)
+        {
+            MessageDialog dlg = new();
+
+            MessageDialogViewModel vm = MapRecoveryVM(dlg);
+            vm.Message = message;
+            vm.DialogTitle = title;
+
+            dlg.DataContext = vm;
+
+            return dlg;
+        }
+
+        private static MessageDialogViewModel MapRecoveryVM(Window owner)
+        {
+            return new MessageDialogViewModel(owner)
+            {
+                DialogIcon = PackIconKind.ContentSaveCheckOutline,
+                IconBrush = Brushes.SlateBlue,
+                IsDestructive = true,
+                PrimaryButtonText = "Restore",
+                PrimaryResult = MessageDialogResult.Restore,
+                SecondaryButtonText = "Import as New",
+                SecondaryResult = MessageDialogResult.Import,
+                SecondaryButtonVisibility = Visibility.Visible,
+                TertiaryButtonText = "Ignore",
+                TertiaryResult = MessageDialogResult.Ignore,
                 TertiaryButtonVisibility = Visibility.Visible
             };
         }

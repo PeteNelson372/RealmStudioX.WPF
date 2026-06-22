@@ -18,7 +18,7 @@ namespace RealmStudioX.WPF.Editor.Services
 
         private bool _hasUnsavedChanges = false;
 
-        private readonly int _minimumAutosaveMinutes = 5;
+        private readonly int _minimumAutosaveMinutes = 1;
         private readonly int _maximumAutosaveMinutes = 10;
 
         public event EventHandler? AutosaveCompleted;
@@ -34,7 +34,7 @@ namespace RealmStudioX.WPF.Editor.Services
         {
             RecoveryPackage recoveryPackage = new()
             {
-                ProjectId = project.Metadata.ProjectId,
+                ProjectId = project.Metadata!.ProjectId,
                 ProjectName = project.Metadata.ProjectName,
                 ProjectPath = project.Metadata.ProjectFilePath,
                 Map = map,
@@ -66,6 +66,34 @@ namespace RealmStudioX.WPF.Editor.Services
             }
         }
 
+        internal List<RecoveryPackage> GetRecoveryPackages(RealmStudioProject project)
+        {
+            List<RecoveryPackage> recoveryPackages = [];
+
+            string projectId = project.Metadata!.ProjectId;
+
+            try
+            {
+                var files = Directory.EnumerateFiles(autosaveRoot, "*" + RealmStudioFileFormat.MapRecoveryFileExtension, SearchOption.TopDirectoryOnly).ToList();
+
+                foreach (var file in files)
+                {
+                    if (file.Contains(projectId))
+                    {
+                        string xml = File.ReadAllText(file);
+                        RecoveryPackage package = MapFileMethods.DeserializeObject<RecoveryPackage>(xml);
+                        recoveryPackages.Add(package);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                RealmStudioXLogger.Exception("Error getting recovery files", ex);
+            }
+
+            return recoveryPackages;
+        }
+
         private void SaveTimer_Tick(object? sender, EventArgs e)
         {
             if (_selectedMap != null && !string.IsNullOrEmpty(autosaveRoot) && _selectedProject != null)
@@ -90,11 +118,13 @@ namespace RealmStudioX.WPF.Editor.Services
                         File.Move(tempFile, autosavePath, true);
 
                         AutosaveCompleted?.Invoke(this, EventArgs.Empty);
+
+                        RealmStudioXLogger.Info($"Realm Project {_selectedProject.Metadata!.ProjectId} Map {_selectedMap.MapId} autosaved at {DateTime.Now.ToString()}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    RealmStudioXLogger.Exception("Map autosave failed", ex);
+                    RealmStudioXLogger.Exception($"Realm Project {_selectedProject.Metadata!.ProjectId} Map {_selectedMap.MapId} autosave failed", ex);
                 }
             }
         }
@@ -139,7 +169,7 @@ namespace RealmStudioX.WPF.Editor.Services
                 if (value != null && _selectedMap != value && _selectedProject != null)
                 {
                     _selectedMap = value;
-                    autosavePath = Path.Combine(autosaveRoot, _selectedProject.Metadata.ProjectId + "_"
+                    autosavePath = Path.Combine(autosaveRoot, _selectedProject.Metadata!.ProjectId + "_"
                         + _selectedMap.MapId
                         + RealmStudioFileFormat.MapRecoveryFileExtension);
 
@@ -152,7 +182,7 @@ namespace RealmStudioX.WPF.Editor.Services
             }
         }
 
-        private int _saveInterval = 5;  // default is 5 minutes between autosaves
+        private int _saveInterval = 2;  // default is 5 minutes between autosaves
         
         public int SaveInterval
         {

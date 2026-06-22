@@ -93,7 +93,6 @@
                         Command="{Binding PrimaryCommand}">
 
                     <Button.Style>
-
                         
                         <Style TargetType="Button">
 

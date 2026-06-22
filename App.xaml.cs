@@ -1,4 +1,5 @@
 ﻿using log4net;
+using log4net.Config;
 using RealmStudioShapeRenderingLib;
 using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX.Infrastructure;
@@ -35,6 +36,8 @@ namespace RealmStudioX.WPF
                 Application.Current.Shutdown(-1);
                 return;
             }
+
+            XmlConfigurator.Configure(LogManager.GetRepository(assembly), new FileInfo(configPath));
 
             SetupExceptionHandling();
 

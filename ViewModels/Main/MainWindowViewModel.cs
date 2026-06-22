@@ -335,7 +335,16 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
                 string mapPreviewFileName = map.MapId + ".png";
 
-                MapProjectMetadata projectMeta = currentProject.Metadata;
+                MapProjectMetadata projectMeta = currentProject.Metadata!;
+
+                if (string.IsNullOrWhiteSpace(projectMeta.ProjectId))
+                {
+                    projectMeta.ProjectId = Guid.NewGuid().ToString();
+
+                    RealmStudioXLogger.Info(
+                        $"Assigned ProjectId {projectMeta.ProjectId} " +
+                        $"to legacy project '{projectMeta.ProjectName}'.");
+                }
 
                 MapProjectEntry? mapEntry = null;
                 int entryIndex = -1;
@@ -354,23 +363,18 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 }
 
                 // create a bitmap with the same aspect ratio as the map
-                using SKBitmap previewFull = new(map.MapWidth, map.MapHeight);
-                using SKCanvas canvas = new(previewFull);
-
-                _editor.Scene.RenderForExport(canvas);
-
-                using SKBitmap preview = Utilities.ResizeBitmap(previewFull, 200, 200 * map.MapHeight / map.MapWidth);
+                SKBitmap preview = CreateMapPreview(map);
 
                 if (mapEntry == null)
                 {
-                    mapEntry ??= MapProjectHandler.CreateProjectEntry(map, preview);
+                    mapEntry ??= MapProjectHandler.CreateProjectEntry(map, preview.Copy());
                 }
                 else
                 {
                     mapEntry.Preview = preview.Copy();
                 }
 
-                MapMetadata mapMetadata = mapEntry.Metadata;
+                MapMetadata mapMetadata = mapEntry.Metadata!;
 
                 mapMetadata.PreviewFile = mapPreviewFileName;
                 mapMetadata.Modified = DateTime.Now;
@@ -387,7 +391,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
                     currentProject.Maps.Add(mapEntry);
                 }
 
-                string projectFileName = currentProject.Metadata.ProjectName;
+                string projectFileName = currentProject.Metadata!.ProjectName;
                 string mapProjectPath = Path.Join(AssetManager.RootRealmsDirectory, projectFileName + RealmStudioFileFormat.PackageExtension);
 
                 MapFileMethods.SaveProject(mapProjectPath, currentProject);
@@ -395,8 +399,6 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 ProjectViewModel.LoadProject(currentProject);
 
                 CommandService.MarkSaved();
-
-                AutosaveService.RemoveRecoveryPackages(currentProject);
 
                 _editor.State.StatusMessage = $"Project {currentProject.Metadata.ProjectName} saved.";
 
@@ -406,6 +408,18 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 MessageDialogFactory.ErrorDialog("Error Saving Realm Project", "An error occurred while saving the project. Check the log file for details.");
                 RealmStudioXLogger.Exception("SaveRealmProject", ex);
             }
+        }
+
+        private SKBitmap CreateMapPreview(RealmStudioMap map)
+        {
+            using SKBitmap previewFull = new(map.MapWidth, map.MapHeight);
+            using SKCanvas canvas = new(previewFull);
+
+            _editor.Scene!.RenderForExport(canvas);
+
+            SKBitmap preview = Utilities.ResizeBitmap(previewFull, 200, 200 * map.MapHeight / map.MapWidth);
+
+            return preview;
         }
 
         public ICommand ExportCommand => new RelayCommand(() =>
@@ -456,14 +470,16 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public bool TryShutdown()
         {
+            bool shutdown = false;
+
             if (ProjectManager.CurrentProject == null)
             {
-                return true;
+                shutdown = true;
             }
 
             if (!CommandService.HasUnsavedChanges)
             {
-                return true;
+                shutdown = true;
             }
 
             // Save / Don't Save / Cancel
@@ -475,12 +491,22 @@ namespace RealmStudioX.WPF.ViewModels.Main
             {
                 case MessageDialogResult.Yes:
                     SaveRealmProject();
-                    return true;
-                case MessageDialogResult.No: return true;
-                case MessageDialogResult.Cancel: return false;
+                    shutdown = true;
+                    break;
+                case MessageDialogResult.No:
+                    shutdown = true;
+                    break;
+                case MessageDialogResult.Cancel:
+                    shutdown = false;
+                    break;
             }
 
-            return true;
+            if (shutdown && ProjectManager.CurrentProject != null)
+            {
+                AutosaveService.RemoveRecoveryPackages(ProjectManager.CurrentProject);
+            }
+
+            return shutdown;
         }
 
         public void OnDrawingModeChanged(MapDrawingMode mode)
@@ -506,7 +532,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
                     result.FilePath = result.MapName + RealmStudioFileFormat.RawMapExtension;
                 }
 
-                // Create new map
+                // Create new realm project and map
                 RealmStudioMap map = CreateMap(result);
 
                 RealmStudioProject mapProject = new();
@@ -583,22 +609,141 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
             if (project != null && map != null)
             {
+                if (string.IsNullOrWhiteSpace(project.Metadata!.ProjectId))
+                {
+                    project.Metadata.ProjectId =
+                        Guid.NewGuid().ToString();
+
+                    RealmStudioXLogger.Info(
+                        $"Assigned ProjectId {project.Metadata.ProjectId} " +
+                        $"to legacy project '{project.Metadata.ProjectName}'.");
+                }
+
+                // check for recovery files
+                List<RecoveryPackage> recoveryPackages = AutosaveService.GetRecoveryPackages(project);
+
                 ProjectManager.OpenProject(project);
 
                 ProjectViewModel.LoadProject(project);
 
                 OpenMap(project, map);
 
-                if (string.IsNullOrEmpty(project.Metadata.ProjectFilePath) && !string.IsNullOrEmpty(result.FilePath))
+                if (string.IsNullOrEmpty(project.Metadata!.ProjectFilePath) && !string.IsNullOrEmpty(result.FilePath))
                 {
                     project.Metadata.ProjectFilePath = result.FilePath;
                 }
 
                 _editor.State.StatusMessage = $"Project {project.Metadata.ProjectName} opened.";
+
+                ProcessRecoveryPackages(project, recoveryPackages);
             }
         }
 
-        public RealmStudioMap FindActiveMap(RealmStudioProject project)
+        private void ProcessRecoveryPackages(RealmStudioProject project, List<RecoveryPackage> recoveryPackages)
+        {
+            foreach (RecoveryPackage recoveryPackage in recoveryPackages)
+            {
+                MessageDialog dlg = MessageDialogFactory.MapRecoveryDialog("Recovery File Found",
+                    $"A recovery package for map {recoveryPackage.Map.MapName} has been found. Would you like to restore the map, import it as a new map, or ignore it?");
+
+                dlg.ShowDialog();
+
+                switch (((MessageDialogViewModel)dlg.DataContext).Result)
+                {
+                    case MessageDialogResult.Restore:
+                        RestoreMap(project, recoveryPackage);
+                        break;
+                    case MessageDialogResult.Import:
+                        ImportMapFromRecovery(project, recoveryPackage);
+                        break;
+                    case MessageDialogResult.Ignore:
+                        break;
+                }
+            }
+        }
+
+        public void RestoreMap(RealmStudioProject project,  RecoveryPackage recoveryPackage)
+        {
+            RealmStudioMap map = recoveryPackage.Map;
+            MapProjectEntry? mapEntry = null;
+            int entryIndex = -1;
+
+            // find the project entry for the map
+            for (int i = 0; i < project.Maps.Count; i++)
+            {
+                MapProjectEntry mpe = project.Maps[i];
+
+                if (mpe.MapId == map.MapId)
+                {
+                    mapEntry = mpe;
+                    entryIndex = i;
+                    break;
+                }
+            }
+
+            // create a bitmap with the same aspect ratio as the map
+            SKBitmap preview = CreateMapPreview(map);
+
+            if (mapEntry == null)
+            {
+                mapEntry ??= MapProjectHandler.CreateProjectEntry(map, preview.Copy());
+            }
+            else
+            {
+                mapEntry.Preview = preview.Copy();
+            }
+
+            string mapPreviewFileName = map.MapId + ".png";
+            MapMetadata mapMetadata = mapEntry.Metadata;
+
+            mapMetadata.PreviewFile = mapPreviewFileName;
+            mapMetadata.Modified = DateTime.Now;
+            project.Metadata.Modified = DateTime.Now;
+
+            mapEntry.Metadata = mapMetadata;
+
+            if (entryIndex > -1)
+            {
+                project.Maps[entryIndex] = mapEntry;
+            }
+            else
+            {
+                project.Maps.Add(mapEntry);
+            }
+
+            OpenMap(project, map);
+        }
+
+        public void ImportMapFromRecovery(RealmStudioProject project, RecoveryPackage recoveryPackage)
+        {
+            RealmStudioMap map = recoveryPackage.Map;
+            map.MapName = $"{map.MapName} (Recovered: {DateTime.Now})";
+            map.MapId = Guid.NewGuid().ToString();      // since the recovered map is being imported, give it a new Guid id
+
+            // create a bitmap with the same aspect ratio as the map
+            SKBitmap preview = CreateMapPreview(map);
+
+            MapProjectEntry mapEntry = MapProjectHandler.CreateProjectEntry(map, preview.Copy());
+
+            string mapPreviewFileName = map.MapId + ".png";
+            MapMetadata mapMetadata = mapEntry.Metadata;
+
+            mapMetadata.PreviewFile = mapPreviewFileName;
+            mapMetadata.Modified = DateTime.Now;
+            project.Metadata.Modified = DateTime.Now;
+
+            mapEntry.Metadata = mapMetadata;
+
+            project.Maps.Add(mapEntry);
+
+            ProjectManager.OpenProject(project);
+
+            ProjectViewModel.LoadProject(project);
+
+            OpenMap(project, map);
+        }
+
+        public static RealmStudioMap FindActiveMap(RealmStudioProject project)
         {
             RealmStudioMap? map = null;
             string activeMapId = project.ActiveMapId;

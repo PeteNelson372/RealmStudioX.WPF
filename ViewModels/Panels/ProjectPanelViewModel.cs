@@ -98,7 +98,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 }
             }
 
-            RealmStudioMap newActiveMap = _mainWindowViewModel.FindActiveMap(Project);
+            RealmStudioMap newActiveMap = MainWindowViewModel.FindActiveMap(Project);
 
             _mainWindowViewModel.OpenMap(Project, newActiveMap);
 
