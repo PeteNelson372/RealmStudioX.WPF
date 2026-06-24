@@ -47,7 +47,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 {
                     return lt.EditSession.Text;
                 }
-                else if (Editor.SelectedShape is MapLabel ml)
+                else if (Editor.SelectionService!.PrimarySelection is MapLabel ml)
                 {
                     return ml.Text;
                 }
@@ -65,7 +65,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     OnPropertyChanged(nameof(LabelText));
                     LabelValuesChanged();
                 }
-                else if (Editor.SelectedShape is MapLabel ml)
+                else if (Editor.SelectionService!.PrimarySelection is MapLabel ml)
                 {
                     ml.Text = value;
                     OnPropertyChanged(nameof(LabelText));
@@ -265,6 +265,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         public ICommand SelectCommand => new RelayCommand(() =>
         {
             _editor.SetDrawingMode(MapDrawingMode.ShapeSelect);
+            _editor.ActivateTool(EditorToolType.SelectionTool);
         });
 
         public ICommand PlaceLabelCommand => new RelayCommand(() =>

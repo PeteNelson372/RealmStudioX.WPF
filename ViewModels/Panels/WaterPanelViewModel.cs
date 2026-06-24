@@ -149,6 +149,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         public ICommand SelectCommand => new RelayCommand(() =>
         {
             _editor.SetDrawingMode(MapDrawingMode.ShapeSelect);
+            _editor.ActivateTool(EditorToolType.SelectionTool);
         });
 
         public ICommand WaterPaintCommand => new RelayCommand(() =>
@@ -177,7 +178,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public ICommand EditRiverCommand => new RelayCommand(() =>
         {
-            if (_editor != null && _editor.SelectedShape is River r)
+            if (_editor != null && _editor.SelectionService!.PrimarySelection is River r)
             {
                 r.Editor.IsEditing = EditRiverPoints;
 

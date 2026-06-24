@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 
 namespace RealmStudioX.WPF.Editor.Services
 {
-    public class AutosaveService : ViewModelBase
+    public class RecoveryService : ViewModelBase
     {
         private readonly DispatcherTimer _saveTimer = new();
 
@@ -23,7 +23,7 @@ namespace RealmStudioX.WPF.Editor.Services
 
         public event EventHandler? AutosaveCompleted;
 
-        public AutosaveService(string autosaveRootDirectory)
+        public RecoveryService(string autosaveRootDirectory)
         {
             autosaveRoot = autosaveRootDirectory;
             _saveTimer.Interval = new TimeSpan(0, _saveInterval, 0);
@@ -50,6 +50,23 @@ namespace RealmStudioX.WPF.Editor.Services
 
             try
             {
+                var files = Directory.EnumerateFiles(autosaveRoot, "*" + RealmStudioFileFormat.MapCrashFileExtension, SearchOption.TopDirectoryOnly).ToList();
+
+                foreach (var file in files)
+                {
+                    if (file.Contains(projectId))
+                    {
+                        File.Delete(file);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                RealmStudioXLogger.Exception("Error removing crash recovery files", ex);
+            }
+
+            try
+            {
                 var files = Directory.EnumerateFiles(autosaveRoot, "*" + RealmStudioFileFormat.MapRecoveryFileExtension, SearchOption.TopDirectoryOnly).ToList();
 
                 foreach (var file in files)
@@ -72,6 +89,27 @@ namespace RealmStudioX.WPF.Editor.Services
 
             string projectId = project.Metadata!.ProjectId;
 
+            // get crash packages first
+            try
+            {
+                var files = Directory.EnumerateFiles(autosaveRoot, "*" + RealmStudioFileFormat.MapCrashFileExtension, SearchOption.TopDirectoryOnly).ToList();
+
+                foreach (var file in files)
+                {
+                    if (file.Contains(projectId))
+                    {
+                        string xml = File.ReadAllText(file);
+                        RecoveryPackage package = MapFileMethods.DeserializeObject<RecoveryPackage>(xml);
+                        recoveryPackages.Add(package);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                RealmStudioXLogger.Exception("Error getting recovery files", ex);
+            }
+
+            // then get recovery packages
             try
             {
                 var files = Directory.EnumerateFiles(autosaveRoot, "*" + RealmStudioFileFormat.MapRecoveryFileExtension, SearchOption.TopDirectoryOnly).ToList();
@@ -102,20 +140,7 @@ namespace RealmStudioX.WPF.Editor.Services
                 {
                     if (_hasUnsavedChanges)
                     {
-                        if (!Path.Exists(autosaveRoot))
-                        {
-                            Directory.CreateDirectory(autosaveRoot);
-                        }
-
-                        RecoveryPackage package = BuildRecoveryPackage(_selectedProject, _selectedMap);
-                        string xml = MapFileMethods.SerializeObject(package);
-
-                        // atomic write of recovery package file
-                        string tempFile = autosavePath + ".tmp";
-
-                        File.WriteAllText(tempFile, xml);
-
-                        File.Move(tempFile, autosavePath, true);
+                        WriteRecoveryPackage(_selectedProject, _selectedMap);
 
                         AutosaveCompleted?.Invoke(this, EventArgs.Empty);
 
@@ -126,6 +151,56 @@ namespace RealmStudioX.WPF.Editor.Services
                 {
                     RealmStudioXLogger.Exception($"Realm Project {_selectedProject.Metadata!.ProjectId} Map {_selectedMap.MapId} autosave failed", ex);
                 }
+            }
+        }
+
+        public void WriteRecoveryPackage(RealmStudioProject project, RealmStudioMap map)
+        {
+            if (!Path.Exists(autosaveRoot))
+            {
+                Directory.CreateDirectory(autosaveRoot);
+            }
+
+            RecoveryPackage package = BuildRecoveryPackage(project, map);
+            string xml = MapFileMethods.SerializeObject(package);
+
+            // atomic write of recovery package file
+            string tempFile = autosavePath + ".tmp";
+
+            File.WriteAllText(tempFile, xml);
+
+            File.Move(tempFile, autosavePath, true);
+        }
+
+        public void WriteCrashPackage()
+        {
+            try
+            {
+                if (!Path.Exists(autosaveRoot))
+                {
+                    Directory.CreateDirectory(autosaveRoot);
+                }
+
+                if (_selectedProject != null && _selectedMap != null)
+                {
+                    RecoveryPackage package = BuildRecoveryPackage(_selectedProject, _selectedMap);
+                    string xml = MapFileMethods.SerializeObject(package);
+
+                    string crashPath = Path.Combine(autosaveRoot, _selectedProject.Metadata!.ProjectId + "_"
+                        + _selectedMap.MapId
+                        + RealmStudioFileFormat.MapCrashFileExtension);
+
+                    // atomic write of crash package file
+                    string tempFile = crashPath + ".tmp";
+
+                    File.WriteAllText(tempFile, xml);
+
+                    File.Move(tempFile, crashPath, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                RealmStudioXLogger.Exception("Crash package write failed", ex);
             }
         }
 

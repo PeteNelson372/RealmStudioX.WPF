@@ -50,8 +50,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             _editor.ClearOceanTexture();
         });
 
-
-
         // color
 
         public ICommand FillColorCommand => new RelayCommand(() =>

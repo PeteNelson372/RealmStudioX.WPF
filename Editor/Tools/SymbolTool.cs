@@ -364,6 +364,7 @@ namespace RealmStudioX
         {
             MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.SYMBOLLAYER);
 
+            /* TODO: refactor
             var symbols = _scene.HitTestAll(worldPos);
 
             foreach (var symbol in symbols)
@@ -388,6 +389,7 @@ namespace RealmStudioX
                     _commands.Execute(paintCommand!);
                 }
             }
+            */
         }
 
         private void PaintSymbolsInBrush(SKPoint worldPos, int areaBrushSize)

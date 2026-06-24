@@ -111,7 +111,7 @@ namespace RealmStudioX.WPF
 
                 ViewModel.RequestOpenNameGeneratorConfig += OpenNameGeneratorConfigDialog;
 
-                ViewModel.AutosaveService.AutosaveCompleted += AutosaveService_AutosaveCompleted;
+                ViewModel.RecoveryService.AutosaveCompleted += AutosaveService_AutosaveCompleted;
 
                 // force an update to the MainTabs selection to ensure the correct tool panel is displayed on startup
                 MainTabs.SelectTab("Background");
@@ -593,8 +593,7 @@ namespace RealmStudioX.WPF
                     canvas.Scale(_editor.Scene.Camera.Zoom);
 
                     if (_skiaControl.GRContext != null
-                        && _editor.Scene.Map != null
-                        && _editor.Scene.Map.MapLayers.Count == MapBuilder.MAP_LAYER_COUNT)
+                        && _editor.Scene.Map != null)
                     {
                         _renderContext.Zoom = _editor.Scene.Camera.Zoom;
                         _editor.Scene.Render(canvas);

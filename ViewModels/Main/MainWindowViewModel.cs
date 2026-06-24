@@ -18,6 +18,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 
@@ -78,7 +79,9 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public CommandService CommandService { get; }
 
-        public AutosaveService AutosaveService { get; }
+        public RecoveryService RecoveryService { get; }
+
+        public SelectionService SelectionService { get; }
 
         public event Action? RequestOpenNameGeneratorConfig;
 
@@ -94,11 +97,17 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
             CommandService = new(_projectManager.ProjectCommands, _editor.Commands);
 
-            AutosaveService = new AutosaveService(autosaveRoot);
+            RecoveryService = new RecoveryService(autosaveRoot);
+
+            ((App)Application.Current).RecoveryService = RecoveryService;
 
             Editor.SetCommandService(CommandService);
 
-            CommandService.HasSavedChangesUpdate += AutosaveService.HasSavedChangesUpdate;
+            CommandService.HasSavedChangesUpdate += RecoveryService.HasSavedChangesUpdate;
+
+            SelectionService = new();
+
+            Editor.SetSelectionService(SelectionService);
 
             // instantiate ViewModels for the panels; when adding a view model
             // remember to add a reference to it on the TabItem <panel:...> in MainTabs.xaml
@@ -176,8 +185,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public bool AutoSaveEnabled
         {
-            get => AutosaveService.AutoSaveEnabled;
-            set => AutosaveService.AutoSaveEnabled = value;
+            get => RecoveryService.AutoSaveEnabled;
+            set => RecoveryService.AutoSaveEnabled = value;
         }
 
         private string _mapName = string.Empty;
@@ -482,28 +491,31 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 shutdown = true;
             }
 
-            // Save / Don't Save / Cancel
-            MessageDialog dlg = MessageDialogFactory.SaveConfirmationDialog("Save Project", "There are unsaved changes. Save the project?");
-
-            dlg.ShowDialog();
-
-            switch (((MessageDialogViewModel)dlg.DataContext).Result)
+            if (!shutdown)
             {
-                case MessageDialogResult.Yes:
-                    SaveRealmProject();
-                    shutdown = true;
-                    break;
-                case MessageDialogResult.No:
-                    shutdown = true;
-                    break;
-                case MessageDialogResult.Cancel:
-                    shutdown = false;
-                    break;
+                // Save / Don't Save / Cancel
+                MessageDialog dlg = MessageDialogFactory.SaveConfirmationDialog("Save Project", "There are unsaved changes. Save the project?");
+
+                dlg.ShowDialog();
+
+                switch (((MessageDialogViewModel)dlg.DataContext).Result)
+                {
+                    case MessageDialogResult.Yes:
+                        SaveRealmProject();
+                        shutdown = true;
+                        break;
+                    case MessageDialogResult.No:
+                        shutdown = true;
+                        break;
+                    case MessageDialogResult.Cancel:
+                        shutdown = false;
+                        break;
+                }
             }
 
             if (shutdown && ProjectManager.CurrentProject != null)
             {
-                AutosaveService.RemoveRecoveryPackages(ProjectManager.CurrentProject);
+                RecoveryService.RemoveRecoveryPackages(ProjectManager.CurrentProject);
             }
 
             return shutdown;
@@ -616,11 +628,16 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
                     RealmStudioXLogger.Info(
                         $"Assigned ProjectId {project.Metadata.ProjectId} " +
-                        $"to legacy project '{project.Metadata.ProjectName}'.");
+                        $"to project '{project.Metadata.ProjectName}'.");
                 }
 
+                RealmStudioXLogger.Info($"Opening project: {project.Metadata.ProjectName}, Id: {project.Metadata.ProjectId}");
+                RealmStudioXLogger.Info($"Opening map: {map.MapName}, Id: {map.MapId}");
+
                 // check for recovery files
-                List<RecoveryPackage> recoveryPackages = AutosaveService.GetRecoveryPackages(project);
+                List<RecoveryPackage> recoveryPackages = RecoveryService.GetRecoveryPackages(project);
+
+                RealmStudioXLogger.Info($"Located {recoveryPackages.Count} recovery packages for the project.");
 
                 ProjectManager.OpenProject(project);
 
@@ -652,9 +669,11 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 {
                     case MessageDialogResult.Restore:
                         RestoreMap(project, recoveryPackage);
+                        CommandService.MarkProjectDataModified();
                         break;
                     case MessageDialogResult.Import:
                         ImportMapFromRecovery(project, recoveryPackage);
+                        CommandService.MarkProjectDataModified();
                         break;
                     case MessageDialogResult.Ignore:
                         break;
@@ -701,6 +720,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
             project.Metadata.Modified = DateTime.Now;
 
             mapEntry.Metadata = mapMetadata;
+            mapEntry.Map = map;
 
             if (entryIndex > -1)
             {
@@ -793,8 +813,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
             _editor.Commands.ClearAll();
 
-            AutosaveService.SelectedProject = project;
-            AutosaveService.SelectedMap = map;
+            RecoveryService.SelectedProject = project;
+            RecoveryService.SelectedMap = map;
         }
 
         public void FinalizeMapLoad(RealmStudioMap map)

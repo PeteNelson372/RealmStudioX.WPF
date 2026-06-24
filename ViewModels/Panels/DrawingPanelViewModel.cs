@@ -414,6 +414,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         public ICommand SelectCommand => new RelayCommand(() =>
         {
             _editor.SetDrawingMode(MapDrawingMode.ShapeSelect);
+            _editor.ActivateTool(EditorToolType.SelectionTool);
         });
 
         public ICommand SelectBrushPatternCommand =>

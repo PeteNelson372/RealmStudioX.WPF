@@ -26,6 +26,7 @@
             <Separator/>
 
             <MenuItem Header="E_xit" Command="{Binding ExitCommand}"/>
+
         </MenuItem>
 
         <MenuItem Header="_Edit" Margin="0,6,0,0">

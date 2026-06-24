@@ -187,7 +187,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             {
                 if (state.Button is EditorMouseButton.Left)
                 {
-                    if (_editor.SelectedShape is MapRegion mr)
+                    if (_editor.SelectionService!.PrimarySelection is MapRegion mr)
                     {
                         _selectedRegion = mr;
                     }

@@ -1,5 +1,7 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX.Infrastructure;
+using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.Models.Startup;
 using RealmStudioX.WPF.ViewModels.Dialogs;
@@ -136,11 +138,24 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 searchPath,
                 SearchOption.TopDirectoryOnly))
             {
-                FileInfo fi = new(file);
+                try
+                {
+                    RealmStudioProject project = MapFileMethods.OpenProject(file);
+                    projects.Add(project);
+                }
+                catch (Exception ex)
+                {
+                    string msg = $"An error occurred while reading the project '{Path.GetFileName(file)}'. Check the log file for details.";
+                    
+                    if (File.Exists(file + RealmStudioFileFormat.BackupFileExtension))
+                    {
+                        msg += " There is a backup file for the project. You may be able to recover the project from the backup file.";
+                    }
 
-                RealmStudioProject project = MapFileMethods.OpenProject(file);
-
-                projects.Add(project);
+                    RealmStudioXLogger.Exception("Error opening project.", ex);
+                    MessageDialog dlg = MessageDialogFactory.ErrorDialog("Error Opening Project", msg);
+                    dlg.ShowDialog();
+                }
             }
 
             foreach (var mapProject in projects

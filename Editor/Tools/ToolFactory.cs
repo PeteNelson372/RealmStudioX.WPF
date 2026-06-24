@@ -1,6 +1,7 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
+using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.ViewModels.Panels;
 
 namespace RealmStudioX.WPF.Editor.Tools
@@ -13,6 +14,7 @@ namespace RealmStudioX.WPF.Editor.Tools
         private readonly EditorState _editorState;
         private readonly EditorController _editor;
         private readonly FontManager _fontManager;
+        private readonly SelectionService _selectionService;
         private readonly RenderContext _renderContext;
 
         public ToolFactory(
@@ -22,6 +24,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             EditorState editorState,
             EditorController editor,
             FontManager fontManager,
+            SelectionService selectionService,
             RenderContext renderContext)
         {
             _commands = commands;
@@ -30,6 +33,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             _editorState = editorState;
             _editor = editor;
             _fontManager = fontManager;
+            _selectionService = selectionService;
             _renderContext = renderContext;
         }
 
@@ -239,6 +243,19 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                             tool = new DrawingTool(_commands, _assets, _editor, _editor.ActiveDrawingLayer!,
                                 _scene, _editorState, (IDrawingSettings)context);
+
+                            return tool;
+                        }
+                        else
+                        {
+                            return _editor.ActiveEditorTool;
+                        }
+                    }
+                case EditorToolType.SelectionTool:
+                    {
+                        if (_editor.ActiveEditorTool is not SelectionTool)
+                        {
+                            tool = new SelectionTool(_editor, _selectionService);
 
                             return tool;
                         }

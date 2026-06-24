@@ -3,6 +3,7 @@ using log4net.Config;
 using RealmStudioShapeRenderingLib;
 using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX.Infrastructure;
+using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.Views.Dialogs;
 using System.IO;
 using System.Reflection;
@@ -17,6 +18,8 @@ namespace RealmStudioX.WPF
     /// </summary>
     public partial class App : Application
     {
+        public RecoveryService? RecoveryService { get; set; } = null;
+
         protected override async void OnStartup(StartupEventArgs e)
         {
             // set up and configure the RealmStudioXLogger
@@ -70,7 +73,6 @@ namespace RealmStudioX.WPF
             {
                 splash.Close();
             }
-
 
             // Continue startup - open the CreateOpenMapDialog
             var dialog = new CreateOpenMapDialog();
@@ -126,22 +128,22 @@ namespace RealmStudioX.WPF
         private void SetupExceptionHandling()
         {
             AppDomain.CurrentDomain.UnhandledException += (s, e) =>
-                LogUnhandledException((Exception)e.ExceptionObject, "AppDomain.CurrentDomain.UnhandledException");
+                HandleUnhandledException((Exception)e.ExceptionObject, "AppDomain.CurrentDomain.UnhandledException");
 
             DispatcherUnhandledException += (s, e) =>
             {
-                LogUnhandledException(e.Exception, "Application.Current.DispatcherUnhandledException");
+                HandleUnhandledException(e.Exception, "Application.Current.DispatcherUnhandledException");
                 e.Handled = true;
             };
 
             TaskScheduler.UnobservedTaskException += (s, e) =>
             {
-                LogUnhandledException(e.Exception, "TaskScheduler.UnobservedTaskException");
+                HandleUnhandledException(e.Exception, "TaskScheduler.UnobservedTaskException");
                 e.SetObserved();
             };
         }
 
-        private static void LogUnhandledException(Exception exception, string source)
+        private static void HandleUnhandledException(Exception exception, string source)
         {
             string message = $"Unhandled exception ({source})";
             try
@@ -151,12 +153,37 @@ namespace RealmStudioX.WPF
             }
             catch (Exception ex)
             {
-                RealmStudioXLogger.Exception("Exception in LogUnhandledException", ex);
+                RealmStudioXLogger.Exception("Exception in HandleUnhandledException", ex);
             }
             finally
             {
                 RealmStudioXLogger.Exception(message, exception);
             }
+
+            try
+            {
+                ((App)Application.Current).RecoveryService?.WriteCrashPackage();
+            }
+            catch (Exception ex)
+            {
+                RealmStudioXLogger.Exception("Exception in HandleUnhandledException", ex);
+            }
+
+            try
+            {
+                System.Windows.MessageBox.Show(
+                    "RealmStudioX encountered an unexpected error.\n\n" +
+                    "A recovery package has been written.\n\n" +
+                    "The application will now close.",
+                    "Fatal Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            catch
+            {
+            }
+
+            Environment.Exit(-1);
         }
     }
 

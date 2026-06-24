@@ -305,6 +305,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         public ICommand SelectCommand => new RelayCommand(() =>
         {
             _editor.SetDrawingMode(MapDrawingMode.ShapeSelect);
+            _editor.ActivateTool(EditorToolType.SelectionTool);
         });
 
         public ICommand DrawPathCommand => new RelayCommand(() =>
@@ -315,7 +316,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public ICommand EditPathPointsCommand => new RelayCommand(() =>
         {
-            if (_editor != null && _editor.SelectedShape is MapPath mp)
+            if (_editor != null && _editor.SelectionService!.PrimarySelection is MapPath mp)
             {
                 mp.Editor.IsEditing = EditPathPoints;
 
