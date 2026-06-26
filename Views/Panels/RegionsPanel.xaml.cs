@@ -1,8 +1,10 @@
-﻿using RealmStudioX.WPF.ViewModels.Panels;
+﻿using RealmStudioX.WPF.Editor.UserInterface;
+using RealmStudioX.WPF.ViewModels.Panels;
 using RealmStudioX.WPF.Views.Dialogs;
 using System.Windows;
 using System.Windows.Input;
-using Point = System.Windows.Point;
+using Application = System.Windows.Application;
+using Button = System.Windows.Controls.Button;
 
 namespace RealmStudioX.WPF.Views.Panels
 {
@@ -21,18 +23,16 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not RegionPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog()
-            {
-                Owner = Window.GetWindow(this),
-                InitialColor = vm.RegionColor
-            };
+            ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.RegionColor, Window.GetWindow(this));
 
-            colorSelectionWindow.ColorSelected += color =>
+            WindowManager wm = ((App)Application.Current).WindowManager;
+
+            dialog.ColorSelected += color =>
             {
                 vm.RegionColor = color;
             };
 
-            colorSelectionWindow.Show();
+            wm.Show(dialog);
         }
 
         private void RegionColor_RightClick(object sender, MouseButtonEventArgs e)
@@ -40,20 +40,9 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not RegionPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick()
-            {
-                InitialColor = vm.RegionColor
-            };
+            ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.RegionColor, Window.GetWindow(this), (Button)sender);
 
-            // Position near button
-            var button = (FrameworkElement)sender;
-            var pos = button.PointToScreen(new Point(0, button.ActualHeight));
-
-            dialog.WindowStartupLocation = WindowStartupLocation.Manual;
-            dialog.Left = pos.X;
-            dialog.Top = pos.Y;
-
-            dialog.Owner = Window.GetWindow(this);
+            WindowManager wm = ((App)Application.Current).WindowManager;
 
             // listen for close result
             dialog.Closed += (_, __) =>
@@ -64,7 +53,7 @@ namespace RealmStudioX.WPF.Views.Panels
                 }
             };
 
-            dialog.Show();
+            wm.Show(dialog);
         }
     }
 }

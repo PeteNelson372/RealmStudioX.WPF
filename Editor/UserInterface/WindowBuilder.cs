@@ -26,5 +26,17 @@ namespace RealmStudioX.WPF.Editor.UserInterface
 
             return dialog;
         }
+
+        public static ColorSelectionDialog BuildColorSelectionDialog(Color initialColor, System.Windows.Window window)
+        {
+            WindowManager wm = ((App)Application.Current).WindowManager;
+
+            ColorSelectionDialog colorSelectionDialog = wm.GetOrCreate<ColorSelectionDialog>();
+
+            colorSelectionDialog.Owner = window;
+            colorSelectionDialog.InitialColor = initialColor;
+
+            return colorSelectionDialog;
+        }
     }
 }

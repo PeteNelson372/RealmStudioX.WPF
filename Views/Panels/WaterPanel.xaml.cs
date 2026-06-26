@@ -1,8 +1,10 @@
-﻿using RealmStudioX.WPF.ViewModels.Panels;
+﻿using RealmStudioX.WPF.Editor.UserInterface;
+using RealmStudioX.WPF.ViewModels.Panels;
 using RealmStudioX.WPF.Views.Dialogs;
 using System.Windows;
 using System.Windows.Input;
-using Point = System.Windows.Point;
+using Application = System.Windows.Application;
+using Button = System.Windows.Controls.Button;
 
 namespace RealmStudioX.WPF.Views.Panels
 {
@@ -11,9 +13,6 @@ namespace RealmStudioX.WPF.Views.Panels
     /// </summary>
     public partial class WaterPanel : System.Windows.Controls.UserControl
     {
-        private WaterPanelViewModel ViewModel =>
-            (WaterPanelViewModel)DataContext;
-
         public WaterPanel()
         {
             InitializeComponent();
@@ -24,18 +23,16 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not WaterPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog()
-            {
-                Owner = Window.GetWindow(this),
-                InitialColor = vm.ShallowWaterColor
-            };
+            ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.ShallowWaterColor, Window.GetWindow(this));
 
-            colorSelectionWindow.ColorSelected += color =>
+            WindowManager wm = ((App)Application.Current).WindowManager;
+
+            dialog.ColorSelected += color =>
             {
                 vm.ShallowWaterColor = color;
             };
 
-            colorSelectionWindow.Show();
+            wm.Show(dialog);
         }
 
         private void ShallowWaterColor_RightClick(object sender, MouseButtonEventArgs e)
@@ -43,20 +40,9 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not WaterPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick()
-            {
-                InitialColor = vm.ShallowWaterColor
-            };
+            ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.ShallowWaterColor, Window.GetWindow(this), (Button)sender);
 
-            // Position near button
-            var button = (FrameworkElement)sender;
-            var pos = button.PointToScreen(new Point(0, button.ActualHeight));
-
-            dialog.WindowStartupLocation = WindowStartupLocation.Manual;
-            dialog.Left = pos.X;
-            dialog.Top = pos.Y;
-
-            dialog.Owner = Window.GetWindow(this);
+            WindowManager wm = ((App)Application.Current).WindowManager;
 
             // listen for close result
             dialog.Closed += (_, __) =>
@@ -67,7 +53,7 @@ namespace RealmStudioX.WPF.Views.Panels
                 }
             };
 
-            dialog.Show();
+            wm.Show(dialog);
         }
 
         private void DeepWaterColor_LeftClick(object sender, MouseButtonEventArgs e)
@@ -75,18 +61,16 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not WaterPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog()
-            {
-                Owner = Window.GetWindow(this),
-                InitialColor = vm.DeepWaterColor
-            };
+            ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.DeepWaterColor, Window.GetWindow(this));
 
-            colorSelectionWindow.ColorSelected += color =>
+            WindowManager wm = ((App)Application.Current).WindowManager;
+
+            dialog.ColorSelected += color =>
             {
                 vm.DeepWaterColor = color;
             };
 
-            colorSelectionWindow.Show();
+            wm.Show(dialog);
         }
 
         private void DeepWaterColor_RightClick(object sender, MouseButtonEventArgs e)
@@ -94,20 +78,9 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not WaterPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick()
-            {
-                InitialColor = vm.DeepWaterColor
-            };
+            ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.DeepWaterColor, Window.GetWindow(this), (Button)sender);
 
-            // Position near button
-            var button = (FrameworkElement)sender;
-            var pos = button.PointToScreen(new Point(0, button.ActualHeight));
-
-            dialog.WindowStartupLocation = WindowStartupLocation.Manual;
-            dialog.Left = pos.X;
-            dialog.Top = pos.Y;
-
-            dialog.Owner = Window.GetWindow(this);
+            WindowManager wm = ((App)Application.Current).WindowManager;
 
             // listen for close result
             dialog.Closed += (_, __) =>
@@ -118,7 +91,7 @@ namespace RealmStudioX.WPF.Views.Panels
                 }
             };
 
-            dialog.Show();
+            wm.Show(dialog);
         }
 
         private void ShorelineColor_LeftClick(object sender, MouseButtonEventArgs e)
@@ -126,18 +99,16 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not WaterPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog()
-            {
-                Owner = Window.GetWindow(this),
-                InitialColor = vm.ShorelineColor
-            };
+            ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.ShorelineColor, Window.GetWindow(this));
 
-            colorSelectionWindow.ColorSelected += color =>
+            WindowManager wm = ((App)Application.Current).WindowManager;
+
+            dialog.ColorSelected += color =>
             {
                 vm.ShorelineColor = color;
             };
 
-            colorSelectionWindow.Show();
+            wm.Show(dialog);
         }
 
         private void ShorelineColor_RightClick(object sender, MouseButtonEventArgs e)
@@ -145,20 +116,9 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not WaterPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick()
-            {
-                InitialColor = vm.ShorelineColor
-            };
+            ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.ShorelineColor, Window.GetWindow(this), (Button)sender);
 
-            // Position near button
-            var button = (FrameworkElement)sender;
-            var pos = button.PointToScreen(new Point(0, button.ActualHeight));
-
-            dialog.WindowStartupLocation = WindowStartupLocation.Manual;
-            dialog.Left = pos.X;
-            dialog.Top = pos.Y;
-
-            dialog.Owner = Window.GetWindow(this);
+            WindowManager wm = ((App)Application.Current).WindowManager;
 
             // listen for close result
             dialog.Closed += (_, __) =>
@@ -169,7 +129,7 @@ namespace RealmStudioX.WPF.Views.Panels
                 }
             };
 
-            dialog.Show();
+            wm.Show(dialog);
         }
     }
 }

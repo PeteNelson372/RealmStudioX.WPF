@@ -1,21 +1,10 @@
-﻿using RealmStudioX.WPF.ViewModels.Controls;
-using RealmStudioX.WPF.ViewModels.Panels;
+﻿using RealmStudioX.WPF.Editor.UserInterface;
+using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.Views.Dialogs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Point = System.Windows.Point;
+using Application = System.Windows.Application;
+using Button = System.Windows.Controls.Button;
 
 namespace RealmStudioX.WPF.Views.Controls
 {
@@ -34,18 +23,16 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog()
-            {
-                Owner = Window.GetWindow(this),
-                InitialColor = vm.SegmentColor1
-            };
+            ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.SegmentColor1, Window.GetWindow(this));
 
-            colorSelectionWindow.ColorSelected += color =>
+            WindowManager wm = ((App)Application.Current).WindowManager;
+
+            dialog.ColorSelected += color =>
             {
                 vm.SegmentColor1 = color;
             };
 
-            colorSelectionWindow.Show();
+            wm.Show(dialog);
         }
 
         private void SegmentColor1_RightClick(object sender, MouseButtonEventArgs e)
@@ -53,20 +40,9 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick()
-            {
-                InitialColor = vm.SegmentColor1
-            };
+            ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.SegmentColor1, Window.GetWindow(this), (Button)sender);
 
-            // Position near button
-            var button = (FrameworkElement)sender;
-            var pos = button.PointToScreen(new Point(0, button.ActualHeight));
-
-            dialog.WindowStartupLocation = WindowStartupLocation.Manual;
-            dialog.Left = pos.X;
-            dialog.Top = pos.Y;
-
-            dialog.Owner = Window.GetWindow(this);
+            WindowManager wm = ((App)Application.Current).WindowManager;
 
             // listen for close result
             dialog.Closed += (_, __) =>
@@ -77,7 +53,7 @@ namespace RealmStudioX.WPF.Views.Controls
                 }
             };
 
-            dialog.Show();
+            wm.Show(dialog);
         }
 
         private void SegmentColor2_LeftClick(object sender, MouseButtonEventArgs e)
@@ -85,18 +61,16 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog()
-            {
-                Owner = Window.GetWindow(this),
-                InitialColor = vm.SegmentColor2
-            };
+            ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.SegmentColor2, Window.GetWindow(this));
 
-            colorSelectionWindow.ColorSelected += color =>
+            WindowManager wm = ((App)Application.Current).WindowManager;
+
+            dialog.ColorSelected += color =>
             {
                 vm.SegmentColor2 = color;
             };
 
-            colorSelectionWindow.Show();
+            wm.Show(dialog);
         }
 
         private void SegmentColor2_RightClick(object sender, MouseButtonEventArgs e)
@@ -104,20 +78,9 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick()
-            {
-                InitialColor = vm.SegmentColor2
-            };
+            ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.SegmentColor2, Window.GetWindow(this), (Button)sender);
 
-            // Position near button
-            var button = (FrameworkElement)sender;
-            var pos = button.PointToScreen(new Point(0, button.ActualHeight));
-
-            dialog.WindowStartupLocation = WindowStartupLocation.Manual;
-            dialog.Left = pos.X;
-            dialog.Top = pos.Y;
-
-            dialog.Owner = Window.GetWindow(this);
+            WindowManager wm = ((App)Application.Current).WindowManager;
 
             // listen for close result
             dialog.Closed += (_, __) =>
@@ -128,7 +91,7 @@ namespace RealmStudioX.WPF.Views.Controls
                 }
             };
 
-            dialog.Show();
+            wm.Show(dialog);
         }
 
 
@@ -137,18 +100,16 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog()
-            {
-                Owner = Window.GetWindow(this),
-                InitialColor = vm.SegmentColor3
-            };
+            ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.SegmentColor3, Window.GetWindow(this));
 
-            colorSelectionWindow.ColorSelected += color =>
+            WindowManager wm = ((App)Application.Current).WindowManager;
+
+            dialog.ColorSelected += color =>
             {
                 vm.SegmentColor3 = color;
             };
 
-            colorSelectionWindow.Show();
+            wm.Show(dialog);
         }
 
         private void SegmentColor3_RightClick(object sender, MouseButtonEventArgs e)
@@ -156,20 +117,9 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick()
-            {
-                InitialColor = vm.SegmentColor3
-            };
+            ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.SegmentColor3, Window.GetWindow(this), (Button)sender);
 
-            // Position near button
-            var button = (FrameworkElement)sender;
-            var pos = button.PointToScreen(new Point(0, button.ActualHeight));
-
-            dialog.WindowStartupLocation = WindowStartupLocation.Manual;
-            dialog.Left = pos.X;
-            dialog.Top = pos.Y;
-
-            dialog.Owner = Window.GetWindow(this);
+            WindowManager wm = ((App)Application.Current).WindowManager;
 
             // listen for close result
             dialog.Closed += (_, __) =>
@@ -180,7 +130,7 @@ namespace RealmStudioX.WPF.Views.Controls
                 }
             };
 
-            dialog.Show();
+            wm.Show(dialog);
         }
 
         private void FontColor_LeftClick(object sender, MouseButtonEventArgs e)
@@ -188,18 +138,16 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog()
-            {
-                Owner = Window.GetWindow(this),
-                InitialColor = vm.FontColor
-            };
+            ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.FontColor, Window.GetWindow(this));
 
-            colorSelectionWindow.ColorSelected += color =>
+            WindowManager wm = ((App)Application.Current).WindowManager;
+
+            dialog.ColorSelected += color =>
             {
                 vm.FontColor = color;
             };
 
-            colorSelectionWindow.Show();
+            wm.Show(dialog);
         }
 
         private void FontColor_RightClick(object sender, MouseButtonEventArgs e)
@@ -207,20 +155,9 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick()
-            {
-                InitialColor = vm.FontColor
-            };
+            ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.FontColor, Window.GetWindow(this), (Button)sender);
 
-            // Position near button
-            var button = (FrameworkElement)sender;
-            var pos = button.PointToScreen(new Point(0, button.ActualHeight));
-
-            dialog.WindowStartupLocation = WindowStartupLocation.Manual;
-            dialog.Left = pos.X;
-            dialog.Top = pos.Y;
-
-            dialog.Owner = Window.GetWindow(this);
+            WindowManager wm = ((App)Application.Current).WindowManager;
 
             // listen for close result
             dialog.Closed += (_, __) =>
@@ -231,7 +168,8 @@ namespace RealmStudioX.WPF.Views.Controls
                 }
             };
 
-            dialog.Show();
+            wm.Show(dialog);
+
         }
 
         private void NumbersOutlineColor_LeftClick(object sender, MouseButtonEventArgs e)
@@ -239,18 +177,16 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog()
-            {
-                Owner = Window.GetWindow(this),
-                InitialColor = vm.NumbersOutlineColor
-            };
+            ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.NumbersOutlineColor, Window.GetWindow(this));
 
-            colorSelectionWindow.ColorSelected += color =>
+            WindowManager wm = ((App)Application.Current).WindowManager;
+
+            dialog.ColorSelected += color =>
             {
                 vm.NumbersOutlineColor = color;
             };
 
-            colorSelectionWindow.Show();
+            wm.Show(dialog);
         }
 
         private void NumbersOutlineColor_RightClick(object sender, MouseButtonEventArgs e)
@@ -258,20 +194,9 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick()
-            {
-                InitialColor = vm.NumbersOutlineColor
-            };
+            ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.NumbersOutlineColor, Window.GetWindow(this), (Button)sender);
 
-            // Position near button
-            var button = (FrameworkElement)sender;
-            var pos = button.PointToScreen(new Point(0, button.ActualHeight));
-
-            dialog.WindowStartupLocation = WindowStartupLocation.Manual;
-            dialog.Left = pos.X;
-            dialog.Top = pos.Y;
-
-            dialog.Owner = Window.GetWindow(this);
+            WindowManager wm = ((App)Application.Current).WindowManager;
 
             // listen for close result
             dialog.Closed += (_, __) =>
@@ -282,7 +207,7 @@ namespace RealmStudioX.WPF.Views.Controls
                 }
             };
 
-            dialog.Show();
+            wm.Show(dialog);
         }
     }
 }

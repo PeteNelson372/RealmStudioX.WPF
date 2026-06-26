@@ -9,6 +9,8 @@ using System.Windows.Input;
 using Cursors = System.Windows.Input.Cursors;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 using Point = System.Windows.Point;
+using Application = System.Windows.Application;
+using Button = System.Windows.Controls.Button;
 
 namespace RealmStudioX.WPF.Views.Dialogs
 {
@@ -175,18 +177,16 @@ namespace RealmStudioX.WPF.Views.Dialogs
             if (DataContext is not PixelEditorViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog()
-            {
-                Owner = Window.GetWindow(this),
-                InitialColor = vm.PixelColor
-            };
+            ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.PixelColor, Window.GetWindow(this));
 
-            colorSelectionWindow.ColorSelected += color =>
+            WindowManager wm = ((App)Application.Current).WindowManager;
+
+            dialog.ColorSelected += color =>
             {
                 vm.PixelColor = color;
             };
 
-            colorSelectionWindow.Show();
+            wm.Show(dialog);
         }
 
         private void PixelColor_RightClick(object sender, System.Windows.RoutedEventArgs e)
@@ -194,20 +194,9 @@ namespace RealmStudioX.WPF.Views.Dialogs
             if (DataContext is not PixelEditorViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick()
-            {
-                InitialColor = vm.PixelColor
-            };
+            ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.PixelColor, Window.GetWindow(this), (Button)sender);
 
-            // Position near button
-            var button = (FrameworkElement)sender;
-            var pos = button.PointToScreen(new Point(0, button.ActualHeight));
-
-            dialog.WindowStartupLocation = WindowStartupLocation.Manual;
-            dialog.Left = pos.X;
-            dialog.Top = pos.Y;
-
-            dialog.Owner = Window.GetWindow(this);
+            WindowManager wm = ((App)Application.Current).WindowManager;
 
             // listen for close result
             dialog.Closed += (_, __) =>
@@ -218,7 +207,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 }
             };
 
-            dialog.Show();
+            wm.Show(dialog);
         }
     }
 }

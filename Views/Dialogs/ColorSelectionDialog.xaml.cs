@@ -100,13 +100,14 @@ namespace RealmStudioX.WPF.Views.Dialogs
         {
             ColorSelected?.Invoke(SelectedColor);
 
-            Close();
+            WindowManager wm = ((App)Application.Current).WindowManager;
+            wm.Close<ColorSelectionDialog>();
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
-
-            Close();
+            WindowManager wm = ((App)Application.Current).WindowManager;
+            wm.Close<ColorSelectionDialog>();
         }
 
         private void HexTextBox_GotFocus(object sender, RoutedEventArgs e)

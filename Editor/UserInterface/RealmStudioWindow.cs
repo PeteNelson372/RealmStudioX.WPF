@@ -152,7 +152,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                         WindowAnimationStyle.Scale,
 
                     Duration =
-                        TimeSpan.FromMilliseconds(2000),
+                        TimeSpan.FromMilliseconds(180),
 
                     ScaleFrom = .985,
 
