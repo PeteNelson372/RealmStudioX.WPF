@@ -21,9 +21,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not PathPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.PathColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.PathColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -39,7 +40,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not PathPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.PathColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.PathColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;
@@ -68,9 +72,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not PathPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.PathBorderColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.PathBorderColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -86,7 +91,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not PathPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.PathBorderColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.PathBorderColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;

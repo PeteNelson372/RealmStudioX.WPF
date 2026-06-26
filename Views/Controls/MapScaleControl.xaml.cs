@@ -34,9 +34,10 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.SegmentColor1)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.SegmentColor1
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -52,7 +53,10 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.SegmentColor1);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.SegmentColor1
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;
@@ -81,9 +85,10 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.SegmentColor2)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.SegmentColor2
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -99,7 +104,10 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.SegmentColor2);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.SegmentColor2
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;
@@ -129,9 +137,10 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.SegmentColor3)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.SegmentColor3
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -147,7 +156,10 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.SegmentColor3);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.SegmentColor3
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;
@@ -176,9 +188,10 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.FontColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.FontColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -194,7 +207,10 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.FontColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.FontColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;
@@ -223,9 +239,10 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.NumbersOutlineColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.NumbersOutlineColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -241,7 +258,10 @@ namespace RealmStudioX.WPF.Views.Controls
             if (DataContext is not MapScaleViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.NumbersOutlineColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.NumbersOutlineColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;

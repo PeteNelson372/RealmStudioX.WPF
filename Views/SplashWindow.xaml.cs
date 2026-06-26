@@ -1,4 +1,4 @@
-﻿using System.Windows;
+﻿using RealmStudioX.WPF.Editor.UserInterface;
 using System.Windows.Threading;
 
 namespace RealmStudioX.WPF
@@ -6,8 +6,10 @@ namespace RealmStudioX.WPF
     /// <summary>
     /// Interaction logic for SplashWindow.xaml
     /// </summary>
-    public partial class SplashWindow : Window
+    public partial class SplashWindow : ModelessDialog
     {
+        public override string WindowId { get; } = Guid.NewGuid().ToString();
+
         private readonly TaskCompletionSource _tcs = new();
 
         public Task WaitForCloseAsync() => _tcs.Task;
@@ -39,5 +41,8 @@ namespace RealmStudioX.WPF
             base.OnClosed(e);            
             _tcs.TrySetResult();
         }
+
+        //private string _version = ((App)DataContext).Version;
+
     }
 }

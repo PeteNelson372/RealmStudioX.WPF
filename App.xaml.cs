@@ -4,7 +4,10 @@ using RealmStudioShapeRenderingLib;
 using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor.Services;
+using RealmStudioX.WPF.Editor.UserInterface;
+using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Dialogs;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Windows;
@@ -19,6 +22,77 @@ namespace RealmStudioX.WPF
     public partial class App : Application
     {
         public RecoveryService? RecoveryService { get; set; } = null;
+        public WindowManager WindowManager { get; } = new();
+
+        private readonly Assembly _assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+
+        public string ApplicationName => _assembly.GetName().Name ?? "RealmStudioX";
+
+        public string CompanyName => GetAttribute<AssemblyCompanyAttribute>()?.Company ?? "Pete Nelson";
+
+        public string ProductName => GetAttribute<AssemblyProductAttribute>()?.Product ?? ApplicationName;
+
+        public string Copyright => GetAttribute<AssemblyCopyrightAttribute>()?.Copyright ?? "";
+
+        public string Description => GetAttribute<AssemblyDescriptionAttribute>()?.Description ?? "";
+
+        /// <summary>
+        /// Semantic version string (preferred for display).
+        /// </summary>
+        public static string Version
+        {
+            get
+            {
+                Assembly assembly = Assembly.GetEntryAssembly()!;
+
+                AssemblyInformationalVersionAttribute? info =
+                    assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+
+                if (info != null)
+                {
+                    return info.InformationalVersion;
+                }
+
+                Version? version = assembly.GetName().Version;
+
+                return version?.ToString() ?? string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Assembly version (e.g. 1.2.0.0).
+        /// </summary>
+        public string AssemblyVersion => _assembly.GetName().Version?.ToString() ?? "";
+
+        /// <summary>
+        /// File version.
+        /// </summary>
+        public string FileVersion =>
+            FileVersionInfo
+                .GetVersionInfo(_assembly.Location)
+                .FileVersion ?? "";
+
+        /// <summary>
+        /// Executable build date.
+        /// </summary>
+        public DateTime BuildDate =>
+            File.GetLastWriteTime(_assembly.Location);
+
+        public string BuildDateString =>
+            BuildDate.ToString("MMMM d, yyyy");
+
+        public string ExecutablePath =>
+            _assembly.Location;
+
+        public string ExecutableDirectory =>
+            Path.GetDirectoryName(_assembly.Location) ?? "";
+
+    private T? GetAttribute<T>()
+        where T : Attribute
+    {
+        return _assembly.GetCustomAttribute<T>();
+    }
+
 
         protected override async void OnStartup(StartupEventArgs e)
         {
@@ -52,7 +126,8 @@ namespace RealmStudioX.WPF
 
             Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-            var splash = new SplashWindow();
+            SplashWindow splash = WindowManager.GetOrCreate<SplashWindow>();
+            splash.DataContext = this;
             splash.Show();
 
             var assetManager = new AssetManager();
@@ -75,7 +150,8 @@ namespace RealmStudioX.WPF
             }
 
             // Continue startup - open the CreateOpenMapDialog
-            var dialog = new CreateOpenMapDialog();
+
+            CreateOpenMapDialog dialog = WindowManager.GetOrCreate<CreateOpenMapDialog>();
 
             var result = dialog.ShowDialog();
 

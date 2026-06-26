@@ -90,6 +90,8 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 BrushSpacing = value?.BrushDefinition?.BrushSpacing ?? 10;
                 UpdateDrawingParameters();
                 UpdatePreparedBrush();
+
+                MainViewModel.OnDrawingModeChanged(Editor.CurrentDrawingMode);
             }
         }
 

@@ -7,11 +7,63 @@
              xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="32" d:DesignWidth="276">
+    
     <!-- RIGHT ICON BAR -->
     <StackPanel Orientation="Horizontal"
-                DockPanel.Dock="Right">
+                DockPanel.Dock="Right"
+                Margin="0,0,20,0">
 
-        <Button Style="{StaticResource IconBarButtonStyle}">
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding AreaSelectCommand}"
+                ToolTip="Select Rectangle Area">
+            <materialDesign:PackIcon Kind="SelectDrag"
+                             Width="22"
+                             Height="22"
+                             Foreground="Green"/>
+
+        </Button>
+
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding LassoSelectCommand}"
+                ToolTip="Select Freeform Area">
+            <materialDesign:PackIcon Kind="Lasso"
+                             Width="18"
+                             Height="18"
+                             Foreground="DarkKhaki"/>
+
+        </Button>
+
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Click="FilterButton_Click"
+                ToolTip="Open Selection Filter">
+            <materialDesign:PackIcon Kind="FilterSettingsOutline"
+                             Width="18"
+                             Height="18"
+                             Foreground="CadetBlue"/>
+
+        </Button>
+
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding OpenColorSelectionCommand}"
+                ToolTip="Left-click to select color. Right-click for color quick select.">
+            <materialDesign:PackIcon Kind="Palette"
+                             Width="22"
+                             Height="22"
+                             Foreground="Tan"/>
+        </Button>
+
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding OpenColorPointCommand}"
+                ToolTip="Select color from anywhere on the screen">
+            <materialDesign:PackIcon Kind="Eyedropper"
+                             Width="22"
+                             Height="22"
+                             Foreground="Black"/>
+        </Button>
+
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding OpenWAIntegrationDialogCommand}"
+                ToolTip="Open World Anvil Map Integration dialog">
             <materialDesign:PackIcon Kind="MapMarkerRadius"
                              Width="22"
                              Height="22"
@@ -19,41 +71,24 @@
                              Foreground="#FF8C0A0A"/>
         </Button>
 
-        <Button Style="{StaticResource IconBarButtonStyle}">
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding OpenWAParametersDialogCommand}"
+                ToolTip="Open World Anvil Integration Parameters dialog">
             <TextBlock Text="WA"
-                                FontFamily="Elephant"
-                                FontSize="12"
-                                Foreground="#FF8C0A0A"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"/>
+                    FontFamily="Elephant"
+                    FontSize="12"
+                    Foreground="#FF8C0A0A"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/>
         </Button>
 
-        <Button Style="{StaticResource IconBarButtonStyle}">
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding Open3DViewerCommand}"
+                ToolTip="Open 3D Model Viewer">
             <materialDesign:PackIcon Kind="CubeOutline"
                              Width="22"
                              Height="22"
                              Foreground="DarkGoldenrod"/>
-        </Button>
-
-        <Button Style="{StaticResource IconBarButtonStyle}">
-            <materialDesign:PackIcon Kind="SelectDrag"
-                             Width="22"
-                             Height="22"
-                             Foreground="Green"/>
-        </Button>
-
-        <Button Style="{StaticResource IconBarButtonStyle}">
-            <materialDesign:PackIcon Kind="Palette"
-                             Width="22"
-                             Height="22"
-                             Foreground="SaddleBrown"/>
-        </Button>
-
-        <Button Style="{StaticResource IconBarButtonStyle}">
-            <materialDesign:PackIcon Kind="Eyedropper"
-                             Width="22"
-                             Height="22"
-                             Foreground="Black"/>
         </Button>
 
     </StackPanel>

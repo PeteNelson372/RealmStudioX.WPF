@@ -1,5 +1,6 @@
-﻿<Window x:Class="RealmStudioX.WPF.Views.Dialogs.CreateOpenMapDialog"
+﻿<ui:ModalDialog x:Class="RealmStudioX.WPF.Views.Dialogs.CreateOpenMapDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:ui="clr-namespace:RealmStudioX.WPF.Editor.UserInterface"        
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"        
@@ -20,9 +21,9 @@
         WindowStyle="None"
         ResizeMode="NoResize">
 
-    <Window.Resources>
+    <ui:ModalDialog.Resources>
         <ScaleTransform x:Key="RadioScaleTransform" ScaleX="1.0" ScaleY="1.0"/>
-    </Window.Resources>
+    </ui:ModalDialog.Resources>
     
     <!-- WindowChrome -->
     <shell:WindowChrome.WindowChrome>
@@ -810,4 +811,4 @@
         </Grid>
 
     </Grid>
-</Window>
+</ui:ModalDialog>

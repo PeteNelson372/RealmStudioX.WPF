@@ -18,7 +18,6 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 
@@ -26,6 +25,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 {
     public class MainWindowViewModel : ViewModelBase
     {
+        public static WindowManager WindowManager => ((App)Application.Current).WindowManager;
+
         private readonly EditorController _editor;
 
         public EditorController Editor
@@ -166,7 +167,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
             set => _renderContext = value;
         }
 
-        private int _selectedTabIndex = 0;
+        private int _selectedTabIndex = -1;
 
         public int SelectedTabIndex
         {
@@ -178,6 +179,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
             set
             {
                 _selectedTabIndex = value;
+                OnPropertyChanged();
                 CommandService.ProjectPanelSelected = _selectedTabIndex == 0;
             }
         }
@@ -470,6 +472,20 @@ namespace RealmStudioX.WPF.ViewModels.Main
         public ICommand RedoCommand => new RelayCommand(() =>
         {
             CommandService.ActiveCommands.Redo();
+        });
+
+        public ICommand AreaSelectCommand => new RelayCommand(() =>
+        {
+            SelectionService.ClearSelection();
+            Editor.SetDrawingMode(MapDrawingMode.RealmAreaSelect);
+            _editor.ActivateTool(EditorToolType.SelectionTool);
+        });
+
+        public ICommand LassoSelectCommand => new RelayCommand(() =>
+        {
+            SelectionService.ClearSelection();
+            Editor.SetDrawingMode(MapDrawingMode.RealmLassoSelect);
+            _editor.ActivateTool(EditorToolType.SelectionTool);
         });
 
 
@@ -803,18 +819,21 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 Size = 14,
             };
 
-            OnDrawingModeChanged(MapDrawingMode.None);
-
-            _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.DRAWINGLAYER));
-
             FinalizeMapLoad(map);
 
-            _editor.State.StatusMessage = $"Map {map.MapName} opened.";
+            _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.DRAWINGLAYER));
+            
+            OnDrawingModeChanged(MapDrawingMode.None);
 
             _editor.Commands.ClearAll();
 
             RecoveryService.SelectedProject = project;
             RecoveryService.SelectedMap = map;
+
+            SelectionService.ClearSelection();
+            SelectedTabIndex = 1;
+
+            _editor.State.StatusMessage = $"Map {map.MapName} opened.";
         }
 
         public void FinalizeMapLoad(RealmStudioMap map)
@@ -997,7 +1016,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 MapDrawingMode.DrawMapMeasure => "Draw Map Measure",
                 MapDrawingMode.RegionPaint => "Draw Region",
                 MapDrawingMode.RegionSelect => "Select Region",
-                MapDrawingMode.RealmAreaSelect => "Select Area",
+                MapDrawingMode.RealmAreaSelect => "Select in Rectangular Area",
+                MapDrawingMode.RealmLassoSelect => "Select in Drawn Area",
                 MapDrawingMode.HeightMapPaint => "Paint Height Map",
                 MapDrawingMode.MapHeightIncrease => "Increase Map Height",
                 MapDrawingMode.MapHeightDecrease => "Decrease Map Height",
@@ -1023,8 +1043,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 _ => "Undefined",
             };
 
-            // TODO: get the selected brush and add the brush name to the modeText
-            modeText += ". Selected Brush: ";
+            // get the selected brush and add the brush name to the modeText
+            modeText += ". Selected Brush: " + DrawingViewModel?.SelectedBrushPattern?.Name;
 
             return modeText;
         }

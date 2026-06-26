@@ -1,4 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Controls;
 using SkiaSharp;
@@ -14,12 +15,13 @@ namespace RealmStudioX.WPF.Views.Dialogs
     /// <summary>
     /// Interaction logic for PixelEditDialog.xaml
     /// </summary>
-    public partial class PixelEditDialog : Window
+    public partial class PixelEditDialog : ModalDialog
     {
-        public PixelEditDialog(PixelEditorViewModel vm)
+        public override string WindowId { get; } = Guid.NewGuid().ToString();
+
+        public PixelEditDialog()
         {
             InitializeComponent();
-            DataContext = vm;
         }
 
         bool _isSelectingColor = false;
@@ -173,9 +175,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
             if (DataContext is not PixelEditorViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.PixelColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.PixelColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -191,7 +194,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
             if (DataContext is not PixelEditorViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.PixelColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.PixelColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;

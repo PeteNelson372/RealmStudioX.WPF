@@ -1,7 +1,9 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
+using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.ViewModels.Controls;
+using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.ViewModels.Panels;
 using RealmStudioX.WPF.Views.Dialogs;
 using SkiaSharp;
@@ -378,8 +380,13 @@ namespace RealmStudioX.WPF.Editor.Tools
                         break;
                     case MapDrawingMode.DrawingPixelEdit:
                         {
+                            // TODO: rendering the map for export is a little slow,
+                            // which delays opening the PixelEditDialog;
+                            // is there a way to improve the performance?
+                            // like perhaps rendering and caching the map?
+
                             // snapshop the map and get the pixels at the cursor location
-                            using SKBitmap mapBitmap = new((int)_editor.Scene!.WorldBounds.Width, (int)_editor.Scene!.WorldBounds.Height);
+                            using SKBitmap mapBitmap = new((int)_editor.Scene!.Map.MapWidth, (int)_editor.Scene!.Map.MapHeight);
                             using SKCanvas canvas = new(mapBitmap);
 
                             _editor.Scene.RenderForExport(canvas);
@@ -389,15 +396,16 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                             PixelEditorViewModel vm = new(_editor);
 
-                            PixelEditDialog dlg = new(vm)
-                            {
-                                Owner = Application.Current.MainWindow
-                            };
+                            WindowManager wm = MainWindowViewModel.WindowManager;
+
+                            PixelEditDialog dialog = wm.GetOrCreate<PixelEditDialog>();
+                            dialog.Owner = Application.Current.MainWindow;
+                            dialog.DataContext = vm;
 
                             vm.WorkingBitmap = clonedBitmap;
                             vm.EditLocation = new SKPoint((int)state.WorldPoint.X - 16, (int)state.WorldPoint.Y - 16);
 
-                            bool? result = dlg.ShowDialog();
+                            bool? result = dialog.ShowDialog();
 
                             if (result != null && result == true)
                             {

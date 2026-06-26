@@ -1,24 +1,34 @@
 ﻿using RealmStudioX.WPF.Editor.UserInterface;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 
 namespace RealmStudioX.WPF.Views.Dialogs
 {
-    public partial class ColorQuickPick : Window, INotifyPropertyChanged
+    public partial class ColorQuickPick : FloatingToolbar, INotifyPropertyChanged
     {
+        public override string WindowId { get; } = Guid.NewGuid().ToString();
+
         public bool ColorWasSelected { get; private set; }
 
         public List<SolidColorBrush> ColorGrid { get; } = new();
         public List<SolidColorBrush> GrayScaleRow { get; } = new();
 
         public List<SolidColorBrush> QuickColors { get; } = new();
+
+        private Color _initialColor;
+        public Color InitialColor
+        {
+            get => _initialColor;
+            set
+            {
+                _initialColor = value;
+                OnPropertyChanged(nameof(InitialColor));
+            }
+        }
 
         private Color _selectedColor;
         public Color SelectedColor
@@ -38,7 +48,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public ColorQuickPick(Color initialColor)
+        public ColorQuickPick()
         {
             InitializeComponent();
 

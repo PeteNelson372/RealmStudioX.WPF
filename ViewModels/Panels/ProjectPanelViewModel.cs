@@ -122,7 +122,10 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public ICommand CreateMapCommand => new RelayCommand(() =>
         {
-            var dialog = new CreateMapDialog();
+            WindowManager wm = MainWindowViewModel.WindowManager;
+
+            CreateMapDialog dialog = wm.GetOrCreate<CreateMapDialog>();
+
             var result = dialog.ShowDialog();
 
             if (result != true || dialog.ViewModel.Result == null)

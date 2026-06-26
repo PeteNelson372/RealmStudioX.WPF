@@ -20,8 +20,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
     /// <summary>
     /// Interaction logic for CreateOpenMapDialog.xaml
     /// </summary>
-    public partial class CreateOpenMapDialog : Window, INotifyPropertyChanged
+    public partial class CreateOpenMapDialog : ModalDialog, INotifyPropertyChanged
     {
+        public override string WindowId { get; } = Guid.NewGuid().ToString();
+
         private readonly string _themesFolder =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX", "Assets", "Themes");
 

@@ -10,7 +10,9 @@ namespace RealmStudioX.WPF.Editor.Services
 
         public event EventHandler? SelectionChanged;
 
-        private SelectionFilterState _selectionFilter = new([]);
+        private SelectionFilter _selectionFilter = new();
+
+        public SelectionFilter SelectionFilter => _selectionFilter;
 
         private readonly List<ISelectable> _selectedObjects = [];
 
@@ -34,7 +36,7 @@ namespace RealmStudioX.WPF.Editor.Services
 
         public ISelectable? SelectAt(RealmStudioMap map, SKPoint worldPos, float tolerance, bool addToSelection = false)
         {
-            List<ISelectable> candidates = [.. GetSelectionCandidates(map, worldPos, tolerance)];
+            List<ISelectable> candidates = [.. GetSelectionCandidatesAtPoint(map, worldPos, tolerance)];
 
             if (candidates.Count == 0)
             {
@@ -174,7 +176,7 @@ namespace RealmStudioX.WPF.Editor.Services
             return true;
         }
 
-        public static IEnumerable<ISelectable> GetSelectionCandidates(RealmStudioMap map, SKPoint worldPos, float tolerance)
+        private List<ISelectable> GetSelectionCandidatesAtPoint(RealmStudioMap map, SKPoint worldPos, float tolerance)
         {
             var hits = new List<ISelectable>();
 
@@ -194,14 +196,14 @@ namespace RealmStudioX.WPF.Editor.Services
                     // aggregated into water systems
                     foreach (var waterSystem in map.WaterSystems)
                     {
-                        if (waterSystem.HitTest(worldPos))
+                        if (SelectionFilter.Allows(waterSystem) && waterSystem.HitTest(worldPos))
                         {
                             hits.Add(waterSystem);
                         }
 
                         foreach (var waterBody in waterSystem.WaterBodies)
                         {
-                            if (waterBody.HitTest(worldPos))
+                            if (SelectionFilter.Allows(waterBody) && waterBody.HitTest(worldPos))
                             {
                                 hits.Add(waterBody);
                             }
@@ -214,28 +216,28 @@ namespace RealmStudioX.WPF.Editor.Services
                     {
                         var shape = layer.Shapes[i];
 
-                        if (shape is MapSymbol ms)
+                        if (shape is MapSymbol ms && SelectionFilter.Allows(ms))
                         {
                             if (ms.HitTest(worldPos))
                             {
                                 hits.Add(ms);
                             }
                         }
-                        else if (shape is MapLabel ml)
+                        else if (shape is MapLabel ml && SelectionFilter.Allows(ml))
                         {
                             if (ml.HitTest(worldPos))
                             {
                                 hits.Add(ml);
                             }
                         }
-                        else if (shape is MapScale scale)
+                        else if (shape is MapScale scale && SelectionFilter.Allows(scale))
                         {
                             if (scale.HitTest(worldPos))
                             {
                                 hits.Add(scale);
                             }
                         }
-                        else if (shape.HitTest(worldPos))
+                        else if (shape.HitTest(worldPos) && SelectionFilter.Allows(shape))
                         {
                             hits.Add(shape);
                         }
@@ -247,16 +249,219 @@ namespace RealmStudioX.WPF.Editor.Services
             return hits;
         }
 
-        public static IEnumerable<ISelectable> GetSelectionCandidates(RealmStudioMap map, SKRect selectionRect)
+        internal void SelectObjectsInArea(RealmStudioMap map, SKRect selectedRealmArea)
         {
-            // TODO
-            return [];
+            List<ISelectable> candidates = [.. GetSelectionCandidatesInArea(map, selectedRealmArea)];
+
+            ClearSelection();
+
+            foreach (var selected in candidates)
+            {
+                SelectedObjects.Add(selected);
+                selected.IsSelected = true;
+            }
+
+            SelectionChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public static IEnumerable<ISelectable> GetSelectionCandidates(RealmStudioMap map, SKPath lassoPath)
+        public IEnumerable<ISelectable> GetSelectionCandidatesInArea(RealmStudioMap map, SKRect selectionRect)
         {
-            // TODO
-            return [];
+            var hits = new List<ISelectable>();
+
+            for (int layerIndex = map.MapLayers.Count - 1; layerIndex >= 0; layerIndex--)
+            {
+                MapLayer layer = map.MapLayers[layerIndex];
+
+                if (!layer.ShowLayer)
+                {
+                    continue;
+                }
+
+                if (layer.MapLayerOrder == MapBuilder.WATERLAYER)
+                {
+                    // water layer requires special handling because
+                    // lakes, rivers, and painted water bodies are
+                    // aggregated into water systems
+                    foreach (var waterSystem in map.WaterSystems)
+                    {
+                        if (SelectionFilter.Allows(waterSystem) && waterSystem.Bounds.IntersectsWith(selectionRect))
+                        {
+                            hits.Add(waterSystem);
+                        }
+
+                        foreach (var waterBody in waterSystem.WaterBodies)
+                        {
+                            if (SelectionFilter.Allows(waterBody) && waterBody.Bounds.IntersectsWith(selectionRect))
+                            {
+                                hits.Add(waterBody);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i = layer.Shapes.Count - 1; i >= 0; i--)
+                    {
+                        var shape = layer.Shapes[i];
+
+                        if (shape is MapSymbol ms && SelectionFilter.Allows(ms))
+                        {
+                            if (ms.Bounds.IntersectsWith(selectionRect))
+                            {
+                                hits.Add(ms);
+                            }
+                        }
+                        else if (shape is MapLabel ml && SelectionFilter.Allows(ml))
+                        {
+                            if (ml.Bounds.IntersectsWith(selectionRect))
+                            {
+                                hits.Add(ml);
+                            }
+                        }
+                        else if (shape is MapScale scale && SelectionFilter.Allows(scale))
+                        {
+                            if (scale.Bounds.IntersectsWith(selectionRect))
+                            {
+                                hits.Add(scale);
+                            }
+                        }
+                        else if (shape.Bounds.IntersectsWith(selectionRect) && SelectionFilter.Allows(shape))
+                        {
+                            hits.Add(shape);
+                        }
+                    }
+                }
+
+            }
+
+            return hits;
+        }
+
+        internal void SelectObjectsInPath(RealmStudioMap map, SKPath lassoPath)
+        {
+            List<ISelectable> candidates = [.. GetSelectionCandidatesInPath(map, lassoPath)];
+
+            ClearSelection();
+
+            foreach (var selected in candidates)
+            {
+                SelectedObjects.Add(selected);
+                selected.IsSelected = true;
+            }
+
+            SelectionChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        public IEnumerable<ISelectable> GetSelectionCandidatesInPath(RealmStudioMap map, SKPath lassoPath)
+        {
+            var hits = new List<ISelectable>();
+
+            for (int layerIndex = map.MapLayers.Count - 1; layerIndex >= 0; layerIndex--)
+            {
+                MapLayer layer = map.MapLayers[layerIndex];
+
+                if (!layer.ShowLayer)
+                {
+                    continue;
+                }
+
+                if (layer.MapLayerOrder == MapBuilder.WATERLAYER)
+                {
+                    // water layer requires special handling because
+                    // lakes, rivers, and painted water bodies are
+                    // aggregated into water systems
+                    foreach (var waterSystem in map.WaterSystems)
+                    {
+                        using var inter1 = waterSystem.MergedGeometry.Op(lassoPath, SKPathOp.Intersect);
+
+                        if (inter1 != null && inter1.IsEmpty && SelectionFilter.Allows(waterSystem))
+                        {
+                            hits.Add(waterSystem);
+                        }
+
+                        foreach (var waterBody in waterSystem.WaterBodies)
+                        {
+                            using var inter2 = waterBody.HitPath.Op(lassoPath, SKPathOp.Intersect);
+
+                            if (inter2 != null && inter2.IsEmpty && SelectionFilter.Allows(waterBody))
+                            {
+                                hits.Add(waterBody);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i = layer.Shapes.Count - 1; i >= 0; i--)
+                    {
+                        var shape = layer.Shapes[i];
+
+                        if (shape is MapSymbol ms && SelectionFilter.Allows(ms))
+                        {
+                            if (lassoPath.Contains(ms.Bounds.MidX, ms.Bounds.MidY))
+                            {
+                                hits.Add(ms);
+                            }
+                        }
+                        else if (shape is MapLabel ml && SelectionFilter.Allows(ml))
+                        {
+                            if (lassoPath.Contains(ml.Bounds.MidX, ml.Bounds.MidY))
+                            {
+                                hits.Add(ml);
+                            }
+                        }
+                        else if (shape is MapScale scale && SelectionFilter.Allows(scale))
+                        {
+                            if (lassoPath.Contains(scale.Bounds.MidX, scale.Bounds.MidY))
+                            {
+                                hits.Add(scale);
+                            }
+                        }
+                        else
+                        {
+                            if (lassoPath.Contains(shape.Bounds.MidX, shape.Bounds.MidY) && SelectionFilter.Allows(shape))
+                            {
+                                hits.Add(shape);
+                            }
+                        }
+                    }
+                }
+
+            }
+
+            return hits;
+        }
+    }
+
+    // -------------------------------------------------
+    // Selection Filter Class
+    // -------------------------------------------------
+
+    public sealed class SelectionFilter()
+    {
+        public HashSet<Type> AllowedTypes { get; } = [];
+
+        public bool CurrentLayerOnly { get; }
+        public bool VisibleLayersOnly { get; }
+
+        public void AddTypeToFilter(Type type)
+        {
+            AllowedTypes.Add(type);
+        }
+
+        public void RemoveTypeFromFilter(Type type)
+        {
+            AllowedTypes.Remove(type);
+        }
+
+        public void ClearFilter()
+        {
+            AllowedTypes.Clear();
+        }
+
+        public bool Allows(ISelectable shape)
+        {
+            return AllowedTypes.Count == 0 || AllowedTypes.Contains(shape.GetType());
         }
     }
 }

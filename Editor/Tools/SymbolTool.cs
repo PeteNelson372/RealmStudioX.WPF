@@ -9,6 +9,7 @@ using SkiaSharp.Views.WPF;
 namespace RealmStudioX
 {
     internal class SymbolTool(
+        EditorController editor,
         CommandManager commands,
         IAssetProvider assets,
         MapLayer targetLayer,
@@ -22,6 +23,7 @@ namespace RealmStudioX
         // Dependencies
         // -------------------------------------------------
 
+        private readonly EditorController _editor = editor;
         private readonly CommandManager _commands = commands;
         private readonly MapLayer _layer = targetLayer;
         private readonly IAssetProvider _assets = assets;
@@ -364,10 +366,10 @@ namespace RealmStudioX
         {
             MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.SYMBOLLAYER);
 
-            /* TODO: refactor
-            var symbols = _scene.HitTestAll(worldPos);
+            // TODO: refactor
+            _editor.SelectionService!.SelectAt(_scene.Map, worldPos, 4, false);
 
-            foreach (var symbol in symbols)
+            foreach (var symbol in _editor.SelectionService!.SelectedObjects)
             {
                 if (symbol != null && symbol is MapSymbol ms)
                 {
@@ -389,7 +391,6 @@ namespace RealmStudioX
                     _commands.Execute(paintCommand!);
                 }
             }
-            */
         }
 
         private void PaintSymbolsInBrush(SKPoint worldPos, int areaBrushSize)

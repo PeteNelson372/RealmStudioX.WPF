@@ -24,9 +24,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not WaterPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.ShallowWaterColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.ShallowWaterColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -42,7 +43,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not WaterPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.ShallowWaterColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.ShallowWaterColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;
@@ -71,9 +75,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not WaterPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.DeepWaterColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.DeepWaterColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -89,7 +94,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not WaterPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.DeepWaterColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.DeepWaterColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;
@@ -118,9 +126,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not WaterPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.ShorelineColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.ShorelineColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -136,7 +145,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not WaterPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.ShorelineColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.ShorelineColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;

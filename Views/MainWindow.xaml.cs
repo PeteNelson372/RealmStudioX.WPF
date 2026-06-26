@@ -19,7 +19,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
-using MessageBox = System.Windows.MessageBox;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 using SKPoint = SkiaSharp.SKPoint;
 using SKRect = SkiaSharp.SKRect;
@@ -31,8 +30,10 @@ namespace RealmStudioX.WPF
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : RealmStudioMainWindow
     {
+        public override string WindowId { get; } = Guid.NewGuid().ToString();
+
         private SKGLControl? _skiaControl;
         private readonly EditorController? _editor;
         private readonly FontManager _fontManager;
@@ -89,7 +90,7 @@ namespace RealmStudioX.WPF
 
             _inputRouter = new(_editor);
 
-            _renderContext = new RenderContext(_assetManager.SymbolImageCache);
+            _renderContext = new RenderContext(_assetManager.SymbolImageCache, _editor.State);
 
             ViewModel = new MainWindowViewModel(_editor, _assetManager, _fontManager);
             DataContext = ViewModel;
@@ -147,13 +148,14 @@ namespace RealmStudioX.WPF
         {
             var vm = new NameGenConfigViewModel(ViewModel);
 
-            var dlg = new NameGenConfig
-            {
-                Owner = this,
-                DataContext = vm
-            };
+            WindowManager wm = MainWindowViewModel.WindowManager;
 
-            dlg.ShowDialog();
+            NameGenConfig dialog = wm.GetOrCreate<NameGenConfig>();
+
+            dialog.Owner = this;
+            dialog.DataContext = vm;
+
+            var result = dialog.ShowDialog();
         }
 
         private void UpdateMapScene()

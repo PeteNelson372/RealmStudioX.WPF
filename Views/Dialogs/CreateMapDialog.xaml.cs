@@ -1,5 +1,6 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Infrastructure;
+using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.Models.Startup;
 using RealmStudioX.WPF.ViewModels.Dialogs;
@@ -15,8 +16,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
     /// <summary>
     /// Interaction logic for CreateMapDialog.xaml
     /// </summary>
-    public partial class CreateMapDialog : Window, INotifyPropertyChanged
+    public partial class CreateMapDialog : ModalDialog, INotifyPropertyChanged
     {
+        public override string WindowId { get; } = Guid.NewGuid().ToString();
+
         private readonly string _themesFolder =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX", "Assets", "Themes");
 

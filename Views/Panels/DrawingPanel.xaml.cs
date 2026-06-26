@@ -93,9 +93,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not DrawingPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.DrawingColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.DrawingColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -111,7 +112,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not DrawingPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.DrawingColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.DrawingColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;
@@ -140,9 +144,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not DrawingPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.FillColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.FillColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -158,7 +163,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not DrawingPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.FillColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.FillColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;

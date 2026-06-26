@@ -1,5 +1,6 @@
-﻿<Window x:Class="RealmStudioX.WPF.Views.Dialogs.ColorQuickPick"
+﻿<ui:FloatingToolbar  x:Class="RealmStudioX.WPF.Views.Dialogs.ColorQuickPick"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:ui="clr-namespace:RealmStudioX.WPF.Editor.UserInterface"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Dialogs"
         xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
@@ -8,10 +9,10 @@
         Background="Transparent"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
-        Topmost="True"
+        Topmost="False"
         SizeToContent="WidthAndHeight">
 
-    <Window.Resources>
+    <ui:FloatingToolbar.Resources>
         <conv:ColorToHexConverter x:Key="ColorToHexConverter"/>
         <conv:ColorToRgbConverter x:Key="ColorToRgbConverter"/>
 
@@ -26,7 +27,7 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-    </Window.Resources>
+    </ui:FloatingToolbar.Resources>
     
     <Border Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
             BorderBrush="#888"
@@ -192,4 +193,4 @@
 
         </StackPanel>
     </Border>
-</Window>
+</ui:FloatingToolbar>

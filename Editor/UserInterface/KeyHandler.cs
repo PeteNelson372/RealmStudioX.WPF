@@ -58,84 +58,139 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                     break;
                 case Key.Delete:
                     {
-                        if (editor.SelectionService!.PrimarySelection is WaterSystem ws)
+                        if (editor.SelectionService!.SelectionCount == 1)
                         {
-                            Cmd_ModifyWaterBodies cmd = new(editor.Scene!.Map);
-                            cmd.RegisterRemovedWaterSystem(ws);
-
-                            editor.Commands.Execute(cmd);
-
-                            return true;
-                        }
-
-                        if (editor.SelectionService!.PrimarySelection is WaterBody wb)
-                        {
-                            Cmd_ModifyWaterBodies cmd = new(editor.Scene!.Map);
-                            cmd.RegisterRemovedWaterBody(wb);
-
-                            editor.Commands.Execute(cmd);
-
-                            return true;
-                        }
-
-                        if (editor.SelectionService!.PrimarySelection is MapSymbol symbol)
-                        {
-                            MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.SYMBOLLAYER);
-
-                            // create the command and force execution
-                            Cmd_ModifySymbols cmd = new(symbolLayer, true);
-                            cmd.RegisterRemovedSymbol(symbol);
-
-                            editor.Commands.Execute(cmd);
-
-                            return true;
-                        }
-
-                        if (editor.SelectionService!.PrimarySelection is MapPath path)
-                        {
-                            MapLayer pathLowerLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.PATHLOWERLAYER);
-                            MapLayer pathUpperLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.PATHUPPERLAYER);
-
-                            MapLayer layer = pathLowerLayer;
-                            if (path.DrawOverSymbols)
+                            if (editor.SelectionService!.PrimarySelection is Landform lf)
                             {
-                                layer = pathUpperLayer;
+                                MapLayer landformLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.LANDFORMLAYER);
+
+                                Cmd_ModifyLandforms cmd = new(landformLayer);
+
+                                cmd.RegisterRemovedLandform(lf);
+
+                                editor.Commands.Execute(cmd);
+
+                                editor.SelectionService.ClearSelection();
+
+                                return true;
                             }
 
-                            // create the command and force execution
-                            Cmd_ModifyMapPaths cmd = new(editor.Scene.Map, layer);
-                            cmd.RegisterRemovedMapPath(path);
+                            if (editor.SelectionService!.PrimarySelection is WaterSystem ws)
+                            {
+                                Cmd_ModifyWaterBodies cmd = new(editor.Scene!.Map);
+                                cmd.RegisterRemovedWaterSystem(ws);
 
-                            editor.Commands.Execute(cmd);
+                                editor.Commands.Execute(cmd);
 
-                            return true;
+                                editor.SelectionService.ClearSelection();
+
+                                return true;
+                            }
+
+                            if (editor.SelectionService!.PrimarySelection is WaterBody wb)
+                            {
+                                Cmd_ModifyWaterBodies cmd = new(editor.Scene!.Map);
+                                cmd.RegisterRemovedWaterBody(wb);
+
+                                editor.Commands.Execute(cmd);
+
+                                editor.SelectionService.ClearSelection();
+
+                                return true;
+                            }
+
+                            if (editor.SelectionService!.PrimarySelection is MapSymbol symbol)
+                            {
+                                MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.SYMBOLLAYER);
+
+                                // create the command and force execution
+                                Cmd_ModifySymbols cmd = new(symbolLayer, true);
+                                cmd.RegisterRemovedSymbol(symbol);
+
+                                editor.Commands.Execute(cmd);
+
+                                editor.SelectionService.ClearSelection();
+
+                                return true;
+                            }
+
+                            if (editor.SelectionService!.PrimarySelection is MapPath path)
+                            {
+                                MapLayer pathLowerLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.PATHLOWERLAYER);
+                                MapLayer pathUpperLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.PATHUPPERLAYER);
+
+                                MapLayer layer = pathLowerLayer;
+                                if (path.DrawOverSymbols)
+                                {
+                                    layer = pathUpperLayer;
+                                }
+
+                                // create the command and force execution
+                                Cmd_ModifyMapPaths cmd = new(editor.Scene.Map, layer);
+                                cmd.RegisterRemovedMapPath(path);
+
+                                editor.Commands.Execute(cmd);
+
+                                editor.SelectionService.ClearSelection();
+
+                                return true;
+                            }
+
+                            if (editor.SelectionService!.PrimarySelection is MapLabel label)
+                            {
+                                MapLayer labelLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.LABELLAYER);
+
+                                // create the command and force execution
+                                Cmd_ModifyLabels cmd = new(labelLayer);
+                                cmd.RegisterRemovedLabel(label);
+
+                                editor.Commands.Execute(cmd);
+
+                                editor.SelectionService.ClearSelection();
+
+                                return true;
+                            }
+
+                            if (editor.SelectionService!.PrimarySelection is PlacedMapBox box)
+                            {
+                                MapLayer boxLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.BOXLAYER);
+
+                                // create the command and force execution
+                                Cmd_ModifyBoxes cmd = new(boxLayer);
+                                cmd.RegisterRemovedBox(box);
+
+                                editor.Commands.Execute(cmd);
+
+                                editor.SelectionService.ClearSelection();
+
+                                return true;
+                            }
+
+                            if (editor.SelectionService!.PrimarySelection is IDrawnMapComponent)
+                            {
+                                // a drawn map component can be on any layer, so use Cmd_RemoveMapShapes to remove it
+                                // as it doesn't require a specific layer to be specified
+                                Cmd_RemoveMapShapes cmd = new(editor.Scene!, editor.SelectionService.SelectedObjects);
+
+                                editor.Commands.Execute(cmd);
+
+                                editor.SelectionService.ClearSelection();
+
+                                return true;
+                            }
                         }
-
-                        if (editor.SelectionService!.PrimarySelection is MapLabel label)
+                        else if (editor.SelectionService!.SelectionCount > 1)
                         {
-                            MapLayer labelLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.LABELLAYER);
-
-                            // create the command and force execution
-                            Cmd_ModifyLabels cmd = new(labelLayer);
-                            cmd.RegisterRemovedLabel(label);
+                            // multiple objects selected
+                            Cmd_RemoveMapShapes cmd = new(editor.Scene!, editor.SelectionService.SelectedObjects);
 
                             editor.Commands.Execute(cmd);
+
+                            editor.SelectionService.ClearSelection();
 
                             return true;
                         }
 
-                        if (editor.SelectionService!.PrimarySelection is PlacedMapBox box)
-                        {
-                            MapLayer boxLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.BOXLAYER);
-
-                            // create the command and force execution
-                            Cmd_ModifyBoxes cmd = new(boxLayer);
-                            cmd.RegisterRemovedBox(box);
-
-                            editor.Commands.Execute(cmd);
-
-                            return true;
-                        }
                     }
                     break;
                 case Key.PageUp:
@@ -236,9 +291,9 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                     break;
                 case Key.Up:
                     {
-                        // TODO: movement of drawn shapes
                         if (editor.SelectionService!.PrimarySelection != null)
                         {
+                            // TODO: nudging of landforms; any other object types?
                             if (editor.SelectionService!.PrimarySelection is MapSymbol symbol)
                             {
                                 editor.NudgeSymbol(symbol, Keys.Up, 0, -1);
@@ -254,6 +309,12 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                             if (editor.SelectionService!.PrimarySelection is PlacedMapBox box)
                             {
                                 editor.NudgeBox(box, Keys.Up, 0, -1);
+                                return true;
+                            }
+
+                            if (editor.SelectionService!.PrimarySelection is IDrawnMapComponent dmc)
+                            {
+                                editor.NudgeDrawnMapComponent(dmc, Keys.Up, 0, -1);
                                 return true;
                             }
                         }
@@ -280,6 +341,12 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                                 editor.NudgeBox(box, Keys.Down, 0, +1);
                                 return true;
                             }
+
+                            if (editor.SelectionService!.PrimarySelection is IDrawnMapComponent dmc)
+                            {
+                                editor.NudgeDrawnMapComponent(dmc, Keys.Up, 0, +1);
+                                return true;
+                            }
                         }    
                     }
                     break;
@@ -304,6 +371,12 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                                 editor.NudgeBox(box, Keys.Left, -1, 0);
                                 return true;
                             }
+
+                            if (editor.SelectionService!.PrimarySelection is IDrawnMapComponent dmc)
+                            {
+                                editor.NudgeDrawnMapComponent(dmc, Keys.Up, -1, 0);
+                                return true;
+                            }
                         }
                     }
                     break;
@@ -326,6 +399,12 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                             if (editor.SelectionService!.PrimarySelection is PlacedMapBox box)
                             {
                                 editor.NudgeBox(box, Keys.Right, +1, 0);
+                                return true;
+                            }
+
+                            if (editor.SelectionService!.PrimarySelection is IDrawnMapComponent dmc)
+                            {
+                                editor.NudgeDrawnMapComponent(dmc, Keys.Up, +1, 0);
                                 return true;
                             }
                         }

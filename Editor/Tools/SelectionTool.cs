@@ -2,6 +2,7 @@
 using RealmStudioX.Core;
 using RealmStudioX.WPF.Editor.Services;
 using SkiaSharp;
+using static System.Windows.Forms.AxHost;
 
 namespace RealmStudioX.WPF.Editor.Tools
 {
@@ -9,6 +10,10 @@ namespace RealmStudioX.WPF.Editor.Tools
     {
         private EditorController _editor;
         private SelectionService _selectionService;
+
+        private SKPoint _initialMousePoint = SKPoint.Empty;
+        private SKRect _selectedRealmArea = SKRect.Empty;
+        private List<SKPoint> _lassoPoints = [];
 
         public SelectionTool(EditorController editor, SelectionService selectionService)
         {
@@ -32,18 +37,62 @@ namespace RealmStudioX.WPF.Editor.Tools
         {
             if (_editor.Scene != null)
             {
-                _selectionService.SelectAt(_editor.Scene.Map, state.WorldPoint, 4, state.Modifiers == InputModifiers.Shift);
-            }
+                Cursor.Current = Cursors.Cross;
+
+                if (_editor.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
+                {
+                    _selectionService.SelectAt(_editor.Scene.Map, state.WorldPoint, 4, state.Modifiers == InputModifiers.Shift);
+                }
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.RealmAreaSelect && state.Button == EditorMouseButton.Left)
+                {
+                    _initialMousePoint = state.WorldPoint;
+                }
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.RealmLassoSelect && state.Button == EditorMouseButton.Left)
+                {
+                    _lassoPoints.Add(state.WorldPoint);
+                }
+            }            
         }
 
         public void OnMouseMove(PointerState state)
         {
+            if (_editor.CurrentDrawingMode == MapDrawingMode.RealmAreaSelect && state.Button == EditorMouseButton.Left)
+            {
+                _selectedRealmArea = new(_initialMousePoint.X, _initialMousePoint.Y, state.WorldPoint.X, state.WorldPoint.Y);                
+            }
+            else if (_editor.CurrentDrawingMode == MapDrawingMode.RealmLassoSelect && state.Button == EditorMouseButton.Left)
+            {
+                _lassoPoints.Add(state.WorldPoint);
+            }
 
+            _editor.RequestRedraw();
         }
 
         public void OnMouseUp(PointerState state)
         {
+            if (_editor.CurrentDrawingMode == MapDrawingMode.RealmAreaSelect && state.Button == EditorMouseButton.Left)
+            {
+                _selectedRealmArea = new(_initialMousePoint.X, _initialMousePoint.Y, state.WorldPoint.X, state.WorldPoint.Y);
 
+                _selectionService.SelectObjectsInArea(_editor.Scene!.Map, _selectedRealmArea);
+
+                _selectedRealmArea = SKRect.Empty;
+
+                _initialMousePoint = SKPoint.Empty;
+
+                _editor.RequestRedraw();
+            }
+
+            if (_editor.CurrentDrawingMode == MapDrawingMode.RealmLassoSelect && state.Button == EditorMouseButton.Left)
+            {
+                using SKPath lassoPath = Utilities.BuildClosedPath(_lassoPoints);
+
+                _selectionService.SelectObjectsInPath(_editor.Scene!.Map, lassoPath);
+
+                _lassoPoints.Clear();
+
+                _editor.RequestRedraw();
+            }
         }
 
         public void OnMouseDoubleClick(PointerState state)
@@ -63,7 +112,18 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         public void RenderOverlay(SKCanvas canvas, SKPoint world)
         {
-            // no op
+            if (_editor.CurrentDrawingMode == MapDrawingMode.RealmAreaSelect && _selectedRealmArea != SKRect.Empty)
+            {
+                canvas.DrawRect(_selectedRealmArea, PaintObjects.LandformAreaSelectPaint);
+                return;
+            }
+
+            if (_editor.CurrentDrawingMode == MapDrawingMode.RealmLassoSelect && _lassoPoints.Count > 3)
+            {
+                using SKPath lassoPath = Utilities.BuildClosedPath(_lassoPoints);
+                canvas.DrawPath(lassoPath, PaintObjects.LandformAreaSelectPaint);
+                return;
+            }
         }
 
         protected virtual void Dispose(bool disposing)

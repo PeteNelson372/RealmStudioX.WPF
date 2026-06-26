@@ -1,14 +1,87 @@
 ﻿using RealmStudioX.WPF.Properties;
 using SkiaSharp;
 using System.IO;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
+using Point = System.Windows.Point;
+using Size = System.Windows.Size;
 
 namespace RealmStudioX.WPF.EditorUtilities
 {
     public static class UserInterfaceUtilities
     {
+        /// <summary>
+        /// Positions a window relative to an anchor point on a FrameworkElement.
+        /// </summary>
+        /// <param name="window">The window to position.</param>
+        /// <param name="control">The control to position relative to.</param>
+        /// <param name="anchor">
+        /// Anchor point within the control, in control coordinates.
+        /// (0,0) = upper-left.
+        /// </param>
+        /// <param name="offsetX">
+        /// Horizontal offset from the anchor point, in device-independent pixels.
+        /// </param>
+        /// <param name="offsetY">
+        /// Vertical offset from the anchor point, in device-independent pixels.
+        /// </param>
+        public static void PositionWindowRelativeToControl(
+            Window window,
+            FrameworkElement control,
+            Point anchor,
+            double offsetX = 0,
+            double offsetY = 0)
+        {
+            ArgumentNullException.ThrowIfNull(window);
+            ArgumentNullException.ThrowIfNull(control);
+
+            PresentationSource? source =
+                PresentationSource.FromVisual(control);
+
+            if (source == null)
+            {
+                return;
+            }
+
+            // Convert the control anchor point to screen coordinates.
+            Point screenPoint = control.PointToScreen(anchor);
+
+            // Convert device pixels to WPF device-independent units.
+            Matrix transform = source.CompositionTarget.TransformFromDevice;
+
+            Point screen = transform.Transform(screenPoint);
+
+            // Measure the window so SizeToContent windows have a valid size.
+            window.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+
+            Size desired = window.DesiredSize;
+
+            double width = desired.Width;
+            double height = desired.Height;
+
+            window.WindowStartupLocation = WindowStartupLocation.Manual;
+
+            window.Left = screen.X + offsetX;
+            window.Top = screen.Y + offsetY;
+
+            // Keep the entire window on-screen.
+            Rect workArea = SystemParameters.WorkArea;
+
+            if (window.Left < workArea.Left)
+                window.Left = workArea.Left;
+
+            if (window.Top < workArea.Top)
+                window.Top = workArea.Top;
+
+            if (window.Left + width > workArea.Right)
+                window.Left = workArea.Right - width;
+
+            if (window.Top + height > workArea.Bottom)
+                window.Top = workArea.Bottom - height;
+        }
+
         public static string SelectBitmapFile()
         {
             OpenFileDialog dialog = new()

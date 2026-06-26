@@ -21,9 +21,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not RegionPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.RegionColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.RegionColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -39,7 +40,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not RegionPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.RegionColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.RegionColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;

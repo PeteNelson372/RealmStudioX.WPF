@@ -21,9 +21,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not OceanPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.OceanColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.OceanColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -39,7 +40,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not OceanPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.OceanColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.OceanColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;
@@ -68,9 +72,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not OceanPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.WindroseColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.WindroseColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -86,7 +91,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not OceanPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.WindroseColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.WindroseColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;

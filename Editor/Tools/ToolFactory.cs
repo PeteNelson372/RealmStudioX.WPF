@@ -125,7 +125,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                             _editor.SymbolSelectionService.SetPrimarySelectedSymbol(null);
                             _editor.SymbolSelectionService.ClearSecondary();
 
-                            tool = new SymbolTool(_commands, _assets,
+                            tool = new SymbolTool(_editor, _commands, _assets,
                                 MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.SYMBOLLAYER),
                                 _scene, _editor.SymbolSelectionService, ((AssetManager)_assets).SymbolImageCache, _editorState, (ISymbolSettings)context)
                             {

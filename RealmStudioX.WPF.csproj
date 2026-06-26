@@ -10,6 +10,25 @@
     <ApplicationIcon>Assets\ico\realm_studio_icon.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <AssemblyTitle>RealmStudioX</AssemblyTitle>
+    <Company>Zero Sum Games</Company>
+    <Product>RealmStudioX</Product>
+    <Description>
+      RealmStudioX fantasy worldbuilding and mapping application.
+    </Description>
+
+    <Copyright>
+      © 2026 Pete Nelson d/b/a Zero Sum Games
+    </Copyright>
+
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>1.0.0 Alpha - Prerelease</InformationalVersion>
+
+  </PropertyGroup>
+  
   <ItemGroup>
     <None Remove="Assets\cur\eyedropper.cur" />
     <None Remove="Assets\fonts\Aladin-Regular.ttf" />

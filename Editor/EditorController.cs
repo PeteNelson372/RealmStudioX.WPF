@@ -43,9 +43,6 @@ namespace RealmStudioX.WPF.Editor
 
         private SKSize _viewportSize;
 
-        private SKPoint? _lastClickWorld;
-        private int _selectionCycleIndex;
-
         // -------------------------------------------------
         // PolylineEditor and TransformWidget handle dragging undo/redo support
         // -------------------------------------------------
@@ -57,7 +54,6 @@ namespace RealmStudioX.WPF.Editor
         private Cmd_ModifyBox? _activeModifyBoxCommand;
 
         private bool _isTransforming;
-        private SKRect _lastSymbolBounds;
 
         // -------------------------------------------------
         // MapSymbol arrow key nudging
@@ -83,17 +79,16 @@ namespace RealmStudioX.WPF.Editor
         private PlacedMapBox? _nudgeBox;
         private Keys _activeBoxNudgeKey;
 
-
-
         // -------------------------------------------------
         // Shape dragging
         // -------------------------------------------------
 
         private MapComponent2D? _dragShape;
         private SKPoint _dragStartWorld;
-        private SKPoint _previousWorld;
         private SKPath? _dragOriginalGeometry;
         private bool _isDragging;
+
+        private PointerState previousPointerState;
 
         public EditorController(AssetManager assetManager, FontManager fontManager)
         {
@@ -132,12 +127,6 @@ namespace RealmStudioX.WPF.Editor
             _dragShape = null;
             _dragStartWorld = SKPoint.Empty;
             _isTransforming = false;
-
-            _lastSymbolBounds = SKRect.Empty;
-
-            _lastClickWorld = SKPoint.Empty;
-
-            _selectionCycleIndex = 0;
 
             _activeSymbolNudgeCommand = null;
             _nudgeSymbol = null;
@@ -494,8 +483,47 @@ namespace RealmStudioX.WPF.Editor
                 return;
             }
 
+            previousPointerState = state;
+
             if (state.Button == EditorMouseButton.Left)
             {
+                if ((_editorState.CurrentDrawingMode == MapDrawingMode.RealmAreaSelect
+                    || _editorState.CurrentDrawingMode == MapDrawingMode.RealmLassoSelect)
+                    && ActiveEditorTool is SelectionTool st)
+                {
+                    st.OnMouseDown(state);
+                    return;
+                }
+
+                if (_selectionService!.PrimarySelection is MapSymbol ms
+                    && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
+                {
+                    SelectedMapSymbolMouseDown(ms, state.WorldPoint);
+                    return;
+                }
+
+                if (_selectionService!.PrimarySelection is MapLabel ml
+                    && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
+                {
+                    SelectedMapLabelMouseDown(ml, state.WorldPoint);
+                    return;
+                }
+
+                if (_selectionService!.PrimarySelection is PlacedMapBox pmb
+                    && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
+                {
+                    SelectedMapBoxMouseDown(pmb, state.WorldPoint);
+                    return;
+                }
+
+                if (_selectionService!.PrimarySelection is MapRegion region)
+                {
+                    ActivateTool(EditorToolType.RegionTool);
+                    ActiveEditorTool?.OnMouseDown(state);
+
+                    return;
+                }
+
                 if (_selectionService!.PrimarySelection is River river && river.Editor.IsEditing)
                 {
                     _activeModifyWaterBodyCommand = new(Scene!.Map);
@@ -504,7 +532,8 @@ namespace RealmStudioX.WPF.Editor
                     river.Editor.OnMouseDown(state.WorldPoint, 5);
                     return;
                 }
-                else if (_selectionService!.PrimarySelection is MapPath mp && mp.Editor.IsEditing)
+
+                if (_selectionService!.PrimarySelection is MapPath mp && mp.Editor.IsEditing)
                 {
                     MapLayer pathLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.PATHLOWERLAYER);
 
@@ -521,20 +550,9 @@ namespace RealmStudioX.WPF.Editor
 
                     return;
                 }
-                else if (_selectionService!.PrimarySelection is MapSymbol ms && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
-                {
-                    SelectedMapSymbolMouseDown(ms, state.WorldPoint);
-                }
-                else if (_selectionService!.PrimarySelection is MapLabel ml && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
-                {
-                    SelectedMapLabelMouseDown(ml, state.WorldPoint);
-                }
-                else if (_selectionService!.PrimarySelection is PlacedMapBox pmb && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
-                {
-                    SelectedMapBoxMouseDown(pmb, state.WorldPoint);
-                }
 
-                if (_editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect && !_isTransforming)
+
+                if (_editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
                 {
                     if (ActiveEditorTool is SelectionTool selectionTool)
                     {
@@ -553,6 +571,8 @@ namespace RealmStudioX.WPF.Editor
                                 _isDragging = true;
                                 lf.BeginInteractive();
                             }
+
+                            return;
                         }
 
                         if (_selectionService!.PrimarySelection is MapScale scale)
@@ -560,15 +580,18 @@ namespace RealmStudioX.WPF.Editor
                             _dragShape = scale;
                             _dragStartWorld = new SKPoint(scale.Location.X + scale.ScaleWidth / 2, scale.Location.Y + scale.ScaleHeight / 2);
                             _isDragging = true;
+
+                            return;
                         }
 
-
-                        if (_selectionService!.PrimarySelection is MapRegion region)
+                        if (_selectionService!.PrimarySelection is IDrawnMapComponent dmc)
                         {
-                            ActivateTool(EditorToolType.RegionTool);
-                            ActiveEditorTool?.OnMouseDown(state);
-                        }
+                            _dragShape = (MapComponent2D)dmc;
+                            _dragStartWorld = new SKPoint(_dragShape.Bounds.MidX, _dragShape.Bounds.MidY);
+                            _isDragging = true;
 
+                            return;
+                        }
                     }
                     else
                     {
@@ -590,7 +613,7 @@ namespace RealmStudioX.WPF.Editor
 
             if (state.Button == EditorMouseButton.Right)
             {
-
+                _selectionService?.ClearSelection();
             }
 
             ActiveEditorTool?.OnMouseDown(state);
@@ -645,6 +668,14 @@ namespace RealmStudioX.WPF.Editor
 
             if (state.Button == EditorMouseButton.Left)
             {
+                if ((_editorState.CurrentDrawingMode == MapDrawingMode.RealmAreaSelect
+                    || _editorState.CurrentDrawingMode == MapDrawingMode.RealmLassoSelect)
+                    && ActiveEditorTool is SelectionTool st)
+                {
+                    st.OnMouseMove(state);
+                    return;
+                }
+
                 if (_selectionService!.PrimarySelection is River river && river.Editor.IsEditing)
                 {
                     river.Editor.OnMouseMove(state.WorldPoint, 5);
@@ -717,7 +748,17 @@ namespace RealmStudioX.WPF.Editor
 
                         scale.Bounds = scaleBounds;
                     }
+
+                    if (_dragShape is IDrawnMapComponent dmc)
+                    {
+                        int deltaX = (int)(state.WorldPoint.X - previousPointerState.WorldPoint.X);
+                        int deltaY = (int)(state.WorldPoint.Y - previousPointerState.WorldPoint.Y);
+
+                        NudgeDrawnMapComponent(dmc, Keys.Up, deltaX, deltaY);
+                    }
                 }
+
+                previousPointerState = state;
             }
 
             if (state.Button == EditorMouseButton.Middle)
@@ -737,8 +778,6 @@ namespace RealmStudioX.WPF.Editor
 
         internal void OnMouseUp(PointerState state)
         {
-            _previousWorld = SKPoint.Empty;
-
             if (Scene == null)
             {
                 return;
@@ -797,6 +836,14 @@ namespace RealmStudioX.WPF.Editor
 
             if (state.Button == EditorMouseButton.Left)
             {
+                if ((_editorState.CurrentDrawingMode == MapDrawingMode.RealmAreaSelect
+                    || _editorState.CurrentDrawingMode == MapDrawingMode.RealmLassoSelect)
+                    && ActiveEditorTool is SelectionTool st)
+                {
+                    st.OnMouseUp(state);
+                    return;
+                }
+
                 if (_isDragging && _dragShape != null)
                 {
                     if (_dragShape is Landform lf)
@@ -870,174 +917,6 @@ namespace RealmStudioX.WPF.Editor
                 ActiveEditorTool.OnMouseWheel(state);
             }
         }
-
-        // ---------------------------------------------
-        // Selection
-        // ---------------------------------------------
-
-        /*
-        public void HandleSelection(SKPoint worldPoint)
-        {
-            const float tolerance = 3f;
-
-            bool sameLocation =
-                _lastClickWorld.HasValue &&
-                SKPoint.Distance((SKPoint)_lastClickWorld, worldPoint) < tolerance;
-
-            var hits = Scene!.HitTestAll(worldPoint);
-
-            bool overrideFilter = (Control.ModifierKeys & Keys.Control) == Keys.Control;
-
-            if (!overrideFilter)
-            {
-                hits = [.. hits.Where(shape => _selectionFilter.Allows(shape))];
-            }
-
-            if (SelectedShape != null && SelectedShape is MapRegion mr && mr.IsEditing)
-            {
-                // clicking on empty space while a MapRegion is selected keeps the MapRegion selected (to allow for easier dragging of region points)
-                return;
-            }
-
-            if (hits.Count == 0)
-            {
-                // clicking off of any landform or other ISelectable component deselects everything
-                DeselectAllMapComponents(Scene!, null);
-                _selectedShape = null;
-                _selectionCycleIndex = 0;
-
-                _editorState.StatusMessage = "";
-                return;
-            }
-
-            if (!sameLocation)
-            {
-                // New click location → reset cycle
-                _selectionCycleIndex = 0;
-            }
-            else
-            {
-                // Cycle deeper
-                _selectionCycleIndex++;
-            }
-
-            if (_selectionCycleIndex >= hits.Count)
-            {
-                _selectionCycleIndex = 0;
-            }
-
-            _selectedShape = hits[_selectionCycleIndex];
-
-            // only one ISelectable object (Shape2D or WaterSystem) can be selected at any time
-            if (_selectedShape is Shape2D shape2d && _selectedShape is not WaterBody)
-            {
-                DeselectAllMapComponents(Scene!, _selectedShape);
-
-                if (_selectedShape is Landform lf)
-                {
-                    lf.IsSelected = true;
-                    _editorState.StatusMessage = "Landform Selected " + (!string.IsNullOrEmpty(lf.LandformName) ? ": " + lf.LandformName : "");
-                }
-                else if (_selectedShape is MapPath mp)
-                {
-                    mp.IsSelected = true;
-                    _editorState.StatusMessage = "Path Selected " + (!string.IsNullOrEmpty(mp.MapPathName) ? ": " + mp.MapPathName : "");
-
-                    if (!mp.Editor.IsEditing)
-                    {
-                        mp.Editor.OnChanged!();
-                    }
-
-                }
-            }
-            else if (_selectedShape is MapSymbol symbol)
-            {
-                DeselectAllMapComponents(Scene!, symbol);
-                symbol.IsSelected = true;
-                _editorState.StatusMessage = "Symbol Selected " + (!string.IsNullOrEmpty(symbol.Name) ? ": " + symbol.Name : "");
-                _selectedShape = symbol;
-            }
-            else if (_selectedShape is MapLabel label)
-            {
-                DeselectAllMapComponents(Scene!, label);
-                label.IsSelected = true;
-                _editorState.StatusMessage = "Label Selected ";
-                _selectedShape = label;
-            }
-            else if (_selectedShape is PlacedMapBox box)
-            {
-                DeselectAllMapComponents(Scene!, box);
-                box.IsSelected = true;
-                _editorState.StatusMessage = "Box Selected ";
-                _selectedShape = box;
-            }
-            else if (_selectedShape is MapScale mapScale)
-            {
-                DeselectAllMapComponents(Scene!, mapScale);
-                mapScale.IsSelected = true;
-                _editorState.StatusMessage = "Map Scale Selected ";
-                _selectedShape = mapScale;
-            }
-            else if (_selectedShape is MapRegion mapRegion)
-            {
-                DeselectAllMapComponents(Scene!, mapRegion);
-                mapRegion.IsSelected = true;
-                _editorState.StatusMessage = "Map Region Selected " + (!string.IsNullOrEmpty(mapRegion.RegionName) ? ": " + mapRegion.RegionName : "");
-                _selectedShape = mapRegion;
-            }
-            else if (_selectedShape is WaterSystem waterSystem)
-            {
-                DeselectAllMapComponents(Scene!, waterSystem);
-                waterSystem.IsSelected = true;
-                _editorState.StatusMessage = "Water System Selected ";
-            }
-            else if (_selectedShape is WaterBody waterBody)
-            {
-                DeselectAllMapComponents(Scene!, waterBody);
-                waterBody.IsSelected = true;
-                _selectedShape = waterBody;
-
-                if (_selectedShape is PaintedWaterBody pwb)
-                {
-                    _editorState.StatusMessage = "Painted Water Body Selected " + (!string.IsNullOrEmpty(pwb.Name) ? ": " + pwb.Name : "");
-                }
-                else if (_selectedShape is Lake l)
-                {
-                    _editorState.StatusMessage = "Lake Selected " + (!string.IsNullOrEmpty(l.Name) ? ": " + l.Name : "");
-                }
-                else if (_selectedShape is River river)
-                {
-                    _editorState.StatusMessage = "River Selected " + (!string.IsNullOrEmpty(river.Name) ? ": " + river.Name : "");
-                }
-
-                if (ActiveEditorTool is WaterBodyTool wbt)
-                {
-                    if (_selectedShape is River r)
-                    {
-                        r.Editor.IsEditing = wbt.IsRiverEditing;
-
-                        if (r.Editor.IsEditing)
-                        {
-                            r.WaterSystem?.BeginInteractive();
-                            r.BeginInteractive();
-                        }
-                        else
-                        {
-                            r.WaterSystem?.EndInteractive();
-                            r.EndInteractive();
-
-                            r.Editor.OnChanged!();
-                        }
-                    }
-                }
-            }
-
-            _lastClickWorld = worldPoint;
-
-            RequestRedraw();
-        }
-        */
-
 
 
         // -------------------------------------------------
@@ -1309,8 +1188,6 @@ namespace RealmStudioX.WPF.Editor
         {
             CommitSymbolNudge();
 
-            _lastSymbolBounds = ms.Bounds;
-
             MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.SYMBOLLAYER);
 
             Scene.TransformWidget.Target = ms;
@@ -1378,8 +1255,6 @@ namespace RealmStudioX.WPF.Editor
             var newBounds = ms.Bounds;
 
             MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.SYMBOLLAYER);
-
-            _lastSymbolBounds = newBounds;
 
             symbolLayer.UpdateShapeTiles(ms, oldBounds, newBounds);
             symbolLayer.InvalidateSymbol(ms);
@@ -1801,7 +1676,7 @@ namespace RealmStudioX.WPF.Editor
             if (box == null)
                 return;
 
-            // If key changed → commit previous command
+            // If key changed commit previous command
             if (_activeBoxNudgeCommand != null &&
                 (_nudgeBox != box || _activeBoxNudgeKey != key))
             {
@@ -2101,27 +1976,125 @@ namespace RealmStudioX.WPF.Editor
             }
         }
 
+        // -------------------------------------------------
+        // Drawn Map Component
+        // -------------------------------------------------
+
+        internal void NudgeDrawnMapComponent(IDrawnMapComponent dmc, Keys up, int dx, int dy)
+        {
+            if (dmc == null)
+            {
+                return;
+            }
+
+            // Apply movement
+            switch (dmc)
+            {
+                case DrawnArrow da:
+                    {
+                        da.TopLeft = new SKPoint(da.TopLeft.X + dx, da.TopLeft.Y + dy);
+                        da.BottomRight = new SKPoint(da.BottomRight.X + dx, da.BottomRight.Y + dy);
+                    }
+                    break;
+                case DrawnDiamond dd:
+                    {
+                        dd.TopLeft = new SKPoint(dd.TopLeft.X + dx, dd.TopLeft.Y + dy);
+                        dd.BottomRight = new SKPoint(dd.BottomRight.X + dx, dd.BottomRight.Y + dy);
+                    }
+                    break;
+                case DrawnEllipse de:
+                    {
+                        de.TopLeft = new SKPoint(de.TopLeft.X + dx, de.TopLeft.Y + dy);
+                        de.BottomRight = new SKPoint(de.BottomRight.X + dx, de.BottomRight.Y + dy);
+                    }
+                    break;
+                case DrawnFivePointStar dfps:
+                    {
+                        dfps.Center = new SKPoint(dfps.Center.X + dx, dfps.Center.Y + dy);
+                    }
+                    break;
+                case DrawnLine dl:
+                    {
+                        for (int i = 0; i < dl.Points.Count; i++)
+                        {
+                            SKPoint np = dl.Points[i];
+                            SKPoint p = new(np.X + dx, np.Y + dy);
+                            dl.Points[i] = p;
+                        }
+                    }
+                    break;
+                case PaintedLine pl:
+                    {
+                        for (int i = 0; i < pl.Points.Count; i++)
+                        {
+                            SKPoint np = pl.Points[i];
+                            SKPoint p = new(np.X + dx, np.Y + dy);
+                            pl.Points[i] = p;
+                        }
+
+                        // this will cause the PaintedLine cached image to be rebuilt so that it moves on the screen
+                        pl.FinalizeShapeGeometry(Scene!.Map);
+                    }
+                    break;
+                case DrawnPolygon dp:
+                    {
+                        for (int i = 0; i < dp.Points.Count; i++)
+                        {
+                            SKPoint np = dp.Points[i];
+                            SKPoint p = new(np.X + dx, np.Y + dy);
+                            dp.Points[i] = p;
+                        }
+                    }
+                    break;
+                case DrawnRectangle dr:
+                    {
+                        dr.TopLeft = new SKPoint(dr.TopLeft.X + dx, dr.TopLeft.Y + dy);
+                        dr.BottomRight = new SKPoint(dr.BottomRight.X + dx, dr.BottomRight.Y + dy);
+                    }
+                    break;
+                case DrawnRegularPolygon drp:
+                    {
+                        drp.TopLeft = new SKPoint(drp.TopLeft.X + dx, drp.TopLeft.Y + dy);
+                        drp.BottomRight = new SKPoint(drp.BottomRight.X + dx, drp.BottomRight.Y + dy);
+                    }
+                    break;
+                case DrawnSixPointStar dsps:
+                    {
+                        dsps.Center = new SKPoint(dsps.Center.X + dx, dsps.Center.Y + dy);
+                    }
+                    break;
+                case DrawnTriangle dt:
+                    {
+                        dt.TopLeft = new SKPoint(dt.TopLeft.X + dx, dt.TopLeft.Y + dy);
+                        dt.BottomRight = new SKPoint(dt.BottomRight.X + dx, dt.BottomRight.Y + dy);
+                    }
+                    break;
+
+            }
+
+            // rather than rebuilding the entire map layer index
+            // here, removing the drawn map component and re-adding
+            // it is much faster; then only the tiles and spatial index
+            // containing that component are re-built
+            foreach (MapLayer layer in Scene!.Map.MapLayers)
+            {
+                if (layer.Shapes.Contains((MapComponent2D)dmc))
+                {
+                    layer.Remove((MapComponent2D)dmc);
+                    layer.Add((MapComponent2D)dmc);
+                    layer.ProcessPlacementQueue();
+                }
+            }
+
+            _commandService!.MarkMapModified();
+
+            RequestRedraw();
+        }
+
 
         // -------------------------------------------------
         // End Class
         // -------------------------------------------------
-    }
-
-    // -------------------------------------------------
-    // Selection Filter Class
-    // -------------------------------------------------
-
-    public sealed class SelectionFilterState(HashSet<Type> allowedTypes)
-    {
-        public HashSet<Type> AllowedTypes { get; } = [.. allowedTypes];
-
-        public bool CurrentLayerOnly { get; }
-        public bool VisibleLayersOnly { get; }
-
-        public bool Allows(ISelectable shape)
-        {
-            return AllowedTypes.Count == 0 || AllowedTypes.Contains(shape.GetType());
-        }
     }
 
     // -------------------------------------------------

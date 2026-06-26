@@ -35,9 +35,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not LandformPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.LandformOutlineColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.LandformOutlineColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -53,7 +54,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not LandformPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.LandformOutlineColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.LandformOutlineColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;
@@ -82,9 +86,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not LandformPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.LandformBackgroundColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.LandformBackgroundColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -100,7 +105,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not LandformPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.LandformBackgroundColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.LandformBackgroundColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;
@@ -129,9 +137,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not LandformPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.CoastlineColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.CoastlineColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -147,7 +156,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not LandformPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.CoastlineColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.CoastlineColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;

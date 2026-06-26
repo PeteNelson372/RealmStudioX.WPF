@@ -1,12 +1,15 @@
-﻿using System.Windows;
+﻿using RealmStudioX.WPF.Editor.UserInterface;
+using System.Windows;
 
 namespace RealmStudioX.WPF.Views.Dialogs
 {
     /// <summary>
     /// Interaction logic for NameGenConfig.xaml
     /// </summary>
-    public partial class NameGenConfig : Window
+    public partial class NameGenConfig : ModalDialog
     {
+        public override string WindowId { get; } = Guid.NewGuid().ToString();
+
         public NameGenConfig()
         {
             InitializeComponent();

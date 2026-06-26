@@ -1,5 +1,7 @@
-﻿using System.Windows;
+﻿using RealmStudioX.WPF.Editor.UserInterface;
+using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using Application = System.Windows.Application;
 using Color = System.Windows.Media.Color;
 using Cursor = System.Windows.Input.Cursor;
@@ -11,8 +13,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
     /// <summary>
     /// Interaction logic for ColorSelectionDialog.xaml
     /// </summary>
-    public partial class ColorSelectionDialog : Window
+    public partial class ColorSelectionDialog : ModalDialog
     {
+        public override string WindowId { get; } = Guid.NewGuid().ToString();
+
         public ColorSelectionViewModel ViewModel { get; }
 
         public Color SelectedColor => ViewModel.CurrentColor;
@@ -21,13 +25,21 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         private Cursor? _eyedropperCursor;
 
-        public ColorSelectionDialog(Color initialColor)
+        private Color _initialColor = Colors.White;
+
+        public Color InitialColor
+        {
+            get => _initialColor;
+            set => _initialColor = value;
+        }
+
+        public ColorSelectionDialog()
         {
             InitializeComponent();
 
             ViewModel = new ColorSelectionViewModel
             {
-                CurrentColor = initialColor
+                CurrentColor = _initialColor
             };
 
             DataContext = ViewModel;
@@ -87,11 +99,13 @@ namespace RealmStudioX.WPF.Views.Dialogs
         private void Ok_Click(object sender, RoutedEventArgs e)
         {
             ColorSelected?.Invoke(SelectedColor);
+
             Close();
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
+
             Close();
         }
 

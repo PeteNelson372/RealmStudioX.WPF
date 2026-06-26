@@ -22,6 +22,7 @@
                 <ResourceDictionary Source="Themes/ScrollBars.xaml"/>
                 <ResourceDictionary Source="Themes/Sliders.xaml"/>
                 <ResourceDictionary Source="Themes/ToolTips.xaml"/>
+                <ResourceDictionary Source="Themes/WindowAnimations.xaml"/>
                 
             </ResourceDictionary.MergedDictionaries>
            

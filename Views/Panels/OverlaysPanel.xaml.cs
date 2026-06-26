@@ -21,9 +21,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not OverlaysPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.FrameColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.FrameColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -39,7 +40,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not OverlaysPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.FrameColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.FrameColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;
@@ -68,9 +72,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not OverlaysPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.GridColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.GridColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -86,7 +91,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not OverlaysPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.GridColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.GridColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;
@@ -115,9 +123,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not OverlaysPanelViewModel vm)
                 return;
 
-            var colorSelectionWindow = new ColorSelectionDialog(vm.MeasureColor)
+            var colorSelectionWindow = new ColorSelectionDialog()
             {
-                Owner = Window.GetWindow(this)
+                Owner = Window.GetWindow(this),
+                InitialColor = vm.MeasureColor
             };
 
             colorSelectionWindow.ColorSelected += color =>
@@ -133,7 +142,10 @@ namespace RealmStudioX.WPF.Views.Panels
             if (DataContext is not OverlaysPanelViewModel vm)
                 return;
 
-            var dialog = new ColorQuickPick(vm.MeasureColor);
+            var dialog = new ColorQuickPick()
+            {
+                InitialColor = vm.MeasureColor
+            };
 
             // Position near button
             var button = (FrameworkElement)sender;

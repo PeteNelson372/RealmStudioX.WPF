@@ -1,5 +1,6 @@
-﻿<Window x:Class="RealmStudioX.WPF.MainWindow"
+﻿<ui:RealmStudioMainWindow x:Class="RealmStudioX.WPF.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:ui="clr-namespace:RealmStudioX.WPF.Editor.UserInterface"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:wfi="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
         xmlns:wf="clr-namespace:SkiaSharp;assembly=SkiaSharp"
@@ -20,10 +21,8 @@
         PreviewTextInput="OnTextInput"
         Icon="pack://application:,,,/Assets/ico/realm_studio_icon.ico">
 
-    <Window.Resources>
-    </Window.Resources>
 
-    <Window.InputBindings>
+    <ui:RealmStudioMainWindow.InputBindings>
 
         <KeyBinding
             Key="Z"
@@ -35,7 +34,7 @@
             Modifiers="Control"
             Command="{Binding RedoCommand}" />
 
-    </Window.InputBindings>
+    </ui:RealmStudioMainWindow.InputBindings>
 
     <!-- WindowChrome -->
     <shell:WindowChrome.WindowChrome>
@@ -388,4 +387,4 @@
         </Grid>
 
     </Grid>
-</Window>
+</ui:RealmStudioMainWindow>
