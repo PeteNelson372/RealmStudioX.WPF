@@ -30,7 +30,11 @@ namespace RealmStudioX.WPF.Views.Dialogs
         public Color InitialColor
         {
             get => _initialColor;
-            set => _initialColor = value;
+            set
+            {
+                _initialColor = value;
+                ViewModel.CurrentColor = _initialColor;
+            }
         }
 
         public ColorSelectionDialog()

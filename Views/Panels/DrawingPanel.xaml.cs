@@ -7,7 +7,6 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using Application = System.Windows.Application;
 using Button = System.Windows.Controls.Button;
-using Point = System.Windows.Point;
 
 namespace RealmStudioX.WPF.Views.Panels
 {
