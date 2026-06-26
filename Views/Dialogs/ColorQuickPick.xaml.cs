@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Application = System.Windows.Application;
 using Color = System.Windows.Media.Color;
 
 namespace RealmStudioX.WPF.Views.Dialogs
@@ -68,14 +69,16 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 SelectedColor = brush.Color;
                 ColorWasSelected = true;
 
-                Close(); // ✔ correct for non-modal
+                WindowManager wm = ((App)Application.Current).WindowManager;
+                wm.Close<ColorQuickPick>();
             }
         }
 
         private void Close_Click(object sender, RoutedEventArgs e)
         {
             ColorWasSelected = false;
-            Close();
+            WindowManager wm = ((App)Application.Current).WindowManager;
+            wm.Close<ColorQuickPick>();
         }
 
         private void TitleBar_Drag(object sender, MouseButtonEventArgs e)
@@ -94,7 +97,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
             base.OnDeactivated(e);
 
             if (IsVisible)
-                Close();
+            {
+                WindowManager wm = ((App)Application.Current).WindowManager;
+                wm.Close<ColorQuickPick>();
+            }
         }
     }
 }

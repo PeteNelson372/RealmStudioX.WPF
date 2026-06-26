@@ -132,7 +132,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                         WindowAnimationStyle.Fade,
 
                     Duration =
-                        TimeSpan.FromMilliseconds(70),
+                        TimeSpan.FromMilliseconds(90),
 
                     Easing =
                         new QuadraticEase()
