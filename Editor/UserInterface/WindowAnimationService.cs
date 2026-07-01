@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -12,9 +11,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
         public void AnimateShow(RealmStudioWindow window)
         {
             if (!window.IsAnimationEnabled)
-            {
                 return;
-            }
 
             WindowAnimationOptions options =
                 window.AnimationProfile.Show;
@@ -22,12 +19,14 @@ namespace RealmStudioX.WPF.Editor.UserInterface
             if (options.Style == WindowAnimationStyle.None)
                 return;
 
-            PrepareTransforms(window, options, true);
-
             Storyboard storyboard =
                 BuildStoryboard(window, options, true);
 
-            storyboard.Begin(window, HandoffBehavior.SnapshotAndReplace, true);
+            Debug.WriteLine(window.IsLoaded);
+
+            storyboard.Begin(window,
+                HandoffBehavior.SnapshotAndReplace,
+                true);
         }
 
         public void AnimateHide(RealmStudioWindow window, Action completed)
@@ -37,8 +36,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                 return;
             }
 
-            WindowAnimationOptions options =
-                window.AnimationProfile.Hide;
+            WindowAnimationOptions options = window.AnimationProfile.Hide;
 
             if (options.Style == WindowAnimationStyle.None)
             {
@@ -48,8 +46,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
 
             PrepareTransforms(window, options, false);
 
-            Storyboard storyboard =
-                BuildStoryboard(window, options, false);
+            Storyboard storyboard = BuildStoryboard(window, options, false);
 
             storyboard.Completed += (_, _) =>
             {
@@ -139,10 +136,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
             }
         }
 
-        private Storyboard BuildStoryboard(
-            Window window,
-            WindowAnimationOptions options,
-            bool showing)
+        private Storyboard BuildStoryboard(Window window, WindowAnimationOptions options, bool showing)
         {
             Storyboard storyboard = new();
 

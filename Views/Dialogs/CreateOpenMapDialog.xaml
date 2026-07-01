@@ -17,6 +17,7 @@
         MaxWidth="1200"
         MinHeight="700"
         MaxHeight="700"
+        AllowsTransparency="True"
         Background="#FF45443F"
         WindowStyle="None"
         ResizeMode="NoResize">

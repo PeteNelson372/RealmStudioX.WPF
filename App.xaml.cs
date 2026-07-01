@@ -5,7 +5,7 @@ using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.Editor.UserInterface;
-using RealmStudioX.WPF.ViewModels.Main;
+using RealmStudioX.WPF.Views;
 using RealmStudioX.WPF.Views.Dialogs;
 using System.Diagnostics;
 using System.IO;
@@ -87,12 +87,11 @@ namespace RealmStudioX.WPF
         public string ExecutableDirectory =>
             Path.GetDirectoryName(_assembly.Location) ?? "";
 
-    private T? GetAttribute<T>()
-        where T : Attribute
-    {
-        return _assembly.GetCustomAttribute<T>();
-    }
-
+        private T? GetAttribute<T>()
+            where T : Attribute
+        {
+            return _assembly.GetCustomAttribute<T>();
+        }
 
         protected override async void OnStartup(StartupEventArgs e)
         {
@@ -126,9 +125,12 @@ namespace RealmStudioX.WPF
 
             Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-            SplashWindow splash = WindowManager.GetOrCreate<SplashWindow>();
-            splash.DataContext = this;
-            splash.Show();
+            LoadingWindow loading = WindowManager.GetOrCreate<LoadingWindow>();
+            loading.LoadingStatus = $"Version {AssemblyVersion}";
+
+            await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Render);
+
+            WindowManager.Show(loading);
 
             var assetManager = new AssetManager();
             AssetManager.RootRealmStudioXDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX");
@@ -136,24 +138,18 @@ namespace RealmStudioX.WPF
             var fontManager = new FontManager();
 
             // Start tasks
-            var loadTask = assetManager.LoadAsync();
-            var splashTask = splash.WaitForCloseAsync();
+            var assetTask = assetManager.LoadAsync();
+            var loadingTask = loading.WaitForCompleteAsync();
             var fontTask = fontManager.InitializeAsync(Assembly.GetExecutingAssembly());
 
             // Wait for tasks to complete
-            await Task.WhenAll(loadTask, splashTask, fontTask);
-
-            // Ensure splash is closed (in case load finished last)
-            if (splash.IsVisible)
-            {
-                splash.Close();
-            }
+            await Task.WhenAll(assetTask, loadingTask, fontTask);
 
             // Continue startup - open the CreateOpenMapDialog
 
             CreateOpenMapDialog dialog = WindowManager.GetOrCreate<CreateOpenMapDialog>();
 
-            var result = dialog.ShowDialog();
+            var result = WindowManager.ShowDialog(dialog);
 
             if (result != true || dialog.ViewModel.Result == null)
             {
@@ -161,8 +157,9 @@ namespace RealmStudioX.WPF
                 return;
             }
 
-            // TODO: display a loading dialog that is hidden/closed
-            // when the main window is shown
+            loading.LoadingStatus = $"Loading Main Window...";
+            await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Render);
+            await Task.Delay(100); // Allow the loading window to render
 
             var mainWindow = new MainWindow(dialog.ViewModel.Result, assetManager, fontManager);
             
@@ -181,6 +178,8 @@ namespace RealmStudioX.WPF
             MainWindow = mainWindow;
 
             mainWindow.Show();
+
+            WindowManager.Close<LoadingWindow>();
 
             Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
         }

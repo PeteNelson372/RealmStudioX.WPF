@@ -1730,6 +1730,17 @@ namespace RealmStudioX.WPF.Editor
 
         public void SetVignette(VignetteShapeType vignetteType, float vignetteStrength, SKColor vignetteColor)
         {
+            MapLayer vignetteLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.VIGNETTELAYER);
+
+            foreach (var shape in vignetteLayer.Shapes)
+            {
+                if (shape is MapVignette)
+                {
+                    // only one vignette can be set
+                    return;
+                }
+            }
+
             MapVignette vignette = new()
             {
                 VignetteShape = vignetteType,
@@ -1737,7 +1748,6 @@ namespace RealmStudioX.WPF.Editor
                 VignetteColor = vignetteColor
             };
 
-            MapLayer vignetteLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.VIGNETTELAYER);
             vignetteLayer.Add(vignette);
         }
 

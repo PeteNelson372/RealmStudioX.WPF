@@ -59,6 +59,8 @@
     <None Remove="Assets\png\FootprintsPath.png" />
     <None Remove="Assets\png\LineDashPath.png" />
     <None Remove="Assets\png\RailroadTracksPath.png" />
+    <None Remove="Assets\png\Realm Studio Icon 1024x1024.png" />
+    <None Remove="Assets\png\Realm Studio X Icon.png" />
     <None Remove="Assets\png\ShadedLinePath.png" />
     <None Remove="Assets\png\shape_icons\arrow.png" />
     <None Remove="Assets\png\shape_icons\diamond.png" />
@@ -170,6 +172,12 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Assets\png\RailroadTracksPath.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\png\Realm Studio Icon 1024x1024.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\png\Realm Studio X Icon.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Assets\png\ShadedLinePath.png">

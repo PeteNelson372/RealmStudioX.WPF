@@ -109,6 +109,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
 
         public static MessageDialog DeleteConfirmationDialog(string title, string message)
         {
+
             MessageDialog dlg = new();
 
             MessageDialogViewModel vm = CreateDeleteConfirmationVM(dlg);

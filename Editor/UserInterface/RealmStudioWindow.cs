@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using RealmStudioX.WPF.ViewModels.Main;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media.Animation;
 
@@ -28,6 +29,8 @@ namespace RealmStudioX.WPF.Editor.UserInterface
         public virtual bool RememberSize => true;
 
         public bool IsAnimationEnabled { get; set; } = true;
+
+        protected bool IsClosingAnimated { get; private set; }
 
         public virtual WindowAnimationProfile AnimationProfile => WindowAnimationProfiles.None;
 
@@ -152,7 +155,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                         WindowAnimationStyle.Scale,
 
                     Duration =
-                        TimeSpan.FromMilliseconds(180),
+                        TimeSpan.FromMilliseconds(200),
 
                     ScaleFrom = .985,
 
@@ -169,7 +172,44 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                         WindowAnimationStyle.Fade,
 
                     Duration =
-                        TimeSpan.FromMilliseconds(120),
+                        TimeSpan.FromMilliseconds(200),
+
+                    Easing =
+                        new CubicEase()
+                        {
+                            EasingMode = EasingMode.EaseIn
+                        }
+                }
+            };
+
+        public static readonly WindowAnimationProfile ModelessDialog =
+            new()
+            {
+                Show = new()
+                {
+                    Style =
+                        WindowAnimationStyle.Fade |
+                        WindowAnimationStyle.Scale,
+
+                    Duration =
+                        TimeSpan.FromMilliseconds(200),
+
+                    ScaleFrom = .985,
+
+                    Easing =
+                        new CubicEase()
+                        {
+                            EasingMode = EasingMode.EaseOut
+                        }
+                },
+
+                Hide = new()
+                {
+                    Style =
+                        WindowAnimationStyle.Fade,
+
+                    Duration =
+                        TimeSpan.FromMilliseconds(160),
 
                     Easing =
                         new CubicEase()
@@ -212,6 +252,41 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                         new CubicEase()
                         {
                             EasingMode = EasingMode.EaseIn
+                        }
+                }
+            };
+
+        public static readonly WindowAnimationProfile SplashWindow =
+            new()
+            {
+                Show = new()
+                {
+                    
+                    Style =
+                        WindowAnimationStyle.Fade,
+
+                    Duration =
+                        TimeSpan.FromMilliseconds(1000),
+
+                    Easing =
+                        new QuarticEase
+                        {
+                            EasingMode = EasingMode.EaseIn
+                        }
+                },
+
+                Hide = new()
+                {
+                    Style =
+                        WindowAnimationStyle.Fade,
+
+                    Duration =
+                        TimeSpan.FromMilliseconds(250),
+
+                    Easing =
+                        new CubicEase()
+                        {
+                            EasingMode = EasingMode.EaseOut
                         }
                 }
             };

@@ -1,15 +1,11 @@
 ﻿using RealmStudioShapeRenderingLib;
-using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor.UserInterface;
-using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.Models.Startup;
 using RealmStudioX.WPF.ViewModels.Dialogs;
-using SkiaSharp;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Media;
 
 namespace RealmStudioX.WPF.Views.Dialogs
 {

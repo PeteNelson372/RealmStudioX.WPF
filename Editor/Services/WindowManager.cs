@@ -1,4 +1,5 @@
-﻿using System.Windows.Media;
+﻿using System.Windows;
+using System.Windows.Media;
 
 namespace RealmStudioX.WPF.Editor.UserInterface
 {
@@ -8,6 +9,8 @@ namespace RealmStudioX.WPF.Editor.UserInterface
     public sealed class WindowManager
     {
         private readonly WindowAnimationService _animationService = new();
+        public WindowAnimationService AnimationService => _animationService;
+
         private readonly Dictionary<Type, RealmStudioWindow> _windows = [];
 
         /// <summary>
@@ -82,9 +85,11 @@ namespace RealmStudioX.WPF.Editor.UserInterface
 
             window.Show();
 
-            //window.Activate();
+            window.Dispatcher.BeginInvoke(() =>
+            {
+                _animationService.AnimateShow(window);
 
-            _animationService.AnimateShow(window);
+            }, System.Windows.Threading.DispatcherPriority.Loaded);
         }
 
         /// <summary>
@@ -94,7 +99,18 @@ namespace RealmStudioX.WPF.Editor.UserInterface
         {
             Register(window);
 
+            _animationService.PrepareShow(window);
+
+            window.Loaded += Window_Loaded;
+
             return window.ShowDialog();
+
+            void Window_Loaded(object? sender, RoutedEventArgs e)
+            {
+                window.Loaded -= Window_Loaded;
+
+                _animationService.AnimateShow(window);
+            }
         }
 
         /// <summary>
