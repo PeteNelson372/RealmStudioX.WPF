@@ -12,7 +12,7 @@
         Background="#FFCDC9C1"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
-        Topmost="false"
+        Topmost="False"
         Title="SelectionFilterDialog"
         Height="540"
         Width="34">
@@ -25,121 +25,281 @@
 
         <StackPanel Orientation="Vertical" Margin="0,10,0,0"
                     HorizontalAlignment="Center">
-            <Button Style="{StaticResource IconBarButtonStyle}"
-                Command="{Binding AreaSelectCommand}"
-                ToolTip="Landform Selection">
-                <materialDesign:PackIcon Kind="LandPlots"
-                             Width="20"
-                             Height="20"
-                             Foreground="SaddleBrown"/>
-            </Button>
 
-            <Button Style="{StaticResource IconBarButtonStyle}"
-                Command="{Binding AreaSelectCommand}"
-                ToolTip="Water System Selection">
-                <materialDesign:PackIcon Kind="Watermill"
+            <Grid>
+            
+                <Button Style="{StaticResource IconBarButtonStyle}"
+                    Command="{Binding SetClearLandformFilterCommand}"
+                    ToolTip="Landform Selection">
+                    <materialDesign:PackIcon Kind="LandPlots"
+                                 Width="20"
+                                 Height="20"
+                                 Foreground="SaddleBrown"/>
+                </Button>
+
+                <materialDesign:PackIcon Kind="CheckBold"
+                             Width="18"
+                             Height="18"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Top"
+                             Foreground="LightGreen"
+                             Opacity="{Binding LandformSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"/>
+
+            </Grid>
+
+            <Grid>
+                <Button Style="{StaticResource IconBarButtonStyle}"
+                    Command="{Binding SetClearWaterSystemFilterCommand}"
+                    ToolTip="Water System Selection">
+                    <materialDesign:PackIcon Kind="Watermill"
                              Width="20"
                              Height="20"
                              Foreground="CadetBlue"/>
 
-            </Button>
+                </Button>
 
-            <Button Style="{StaticResource IconBarButtonStyle}"
-                Command="{Binding AreaSelectCommand}"
-                ToolTip="Lake Selection">
+                <materialDesign:PackIcon Kind="CheckBold"
+                             Width="18"
+                             Height="18"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Top"
+                             Foreground="LightGreen"
+                             Opacity="{Binding WaterSystemSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"/>
+
+            </Grid>
+
+            <Grid>
+                <Button Style="{StaticResource IconBarButtonStyle}"
+                    Command="{Binding SetClearLakeFilterCommand}"
+                    ToolTip="Lake Selection">
                 <materialDesign:PackIcon Kind="Lake"
                              Width="20"
                              Height="20"
                              Foreground="DarkSlateBlue"/>
 
-            </Button>
-            <Button Style="{StaticResource IconBarButtonStyle}"
-                Command="{Binding AreaSelectCommand}"
-                ToolTip="River Selection">
-                <materialDesign:PackIcon Kind="Waterfall"
-                             Width="20"
-                             Height="20"
-                             Foreground="CornflowerBlue"/>
+                </Button>
 
-            </Button>
-            <Button Style="{StaticResource IconBarButtonStyle}"
-                Command="{Binding AreaSelectCommand}"
-                ToolTip="Painted Water Feature Selection">
-                <materialDesign:PackIcon Kind="WaterCircle"
+                <materialDesign:PackIcon Kind="CheckBold"
+                             Width="18"
+                             Height="18"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Top"
+                             Foreground="LightGreen"
+                             Opacity="{Binding LakeSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"/>
+                
+            </Grid>
+
+            <Grid>
+                <Button Style="{StaticResource IconBarButtonStyle}"
+                        Command="{Binding SetClearRiverFilterCommand}"
+                        ToolTip="River Selection">
+                    <materialDesign:PackIcon Kind="Waterfall"
+                                 Width="20"
+                                 Height="20"
+                                 Foreground="CornflowerBlue"/>
+
+                </Button>
+
+                <materialDesign:PackIcon Kind="CheckBold"
+                             Width="18"
+                             Height="18"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Top"
+                             Foreground="LightGreen"
+                             Opacity="{Binding RiverSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"/>
+
+            </Grid>
+
+            <Grid>
+                <Button Style="{StaticResource IconBarButtonStyle}"
+                    Command="{Binding SetClearPaintedWaterBodyFilterCommand}"
+                    ToolTip="Painted Water Body Selection" HorizontalAlignment="Left" Width="32">
+                    <materialDesign:PackIcon Kind="WaterCircle"
                              Width="20"
                              Height="20"
                              Foreground="SlateBlue"/>
 
-            </Button>
-            <Button Style="{StaticResource IconBarButtonStyle}"
-                Command="{Binding AreaSelectCommand}"
+                </Button>
+
+                <materialDesign:PackIcon Kind="CheckBold"
+                             Width="18"
+                             Height="18"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Top"
+                             Foreground="LightGreen"
+                             Opacity="{Binding PaintedWaterBodySelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"/>
+                
+            </Grid>
+
+            <Grid>
+
+                <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding SetClearPathFilterCommand}"
                 ToolTip="Path Selection">
-                <materialDesign:PackIcon Kind="Road"
+                    <materialDesign:PackIcon Kind="Road"
                              Width="20"
                              Height="20"
                              Foreground="DarkSlateGray"/>
 
-            </Button>
+                </Button>
 
-            <Button Style="{StaticResource IconBarButtonStyle}"
-                Command="{Binding AreaSelectCommand}"
+                <materialDesign:PackIcon Kind="CheckBold"
+                             Width="18"
+                             Height="18"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Top"
+                             Foreground="LightGreen"
+                             Opacity="{Binding PathSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"/>
+                
+            </Grid>
+
+            <Grid>
+
+                <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding SetClearLabelFilterCommand}"
                 ToolTip="Label Selection">
-                <materialDesign:PackIcon Kind="AlphabetLatin"
+                    <materialDesign:PackIcon Kind="AlphabetLatin"
                              Width="20"
                              Height="20"
                              Foreground="Black"/>
 
-            </Button>
-            <Button Style="{StaticResource IconBarButtonStyle}"
-                Command="{Binding AreaSelectCommand}"
-                ToolTip="Region Selection">
-                <materialDesign:PackIcon Kind="SurfaceArea"
-                             Width="20"
-                             Height="20"
-                             Foreground="RoyalBlue"/>
+                </Button>
 
-            </Button>
-            <Button Style="{StaticResource IconBarButtonStyle}"
-                Command="{Binding AreaSelectCommand}"
-                ToolTip="Drawn Shape Selection">
-                <materialDesign:PackIcon Kind="StarBoxOutline"
-                             Width="20"
-                             Height="20"
-                             Foreground="IndianRed"/>
+                <materialDesign:PackIcon Kind="CheckBold"
+                             Width="18"
+                             Height="18"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Top"
+                             Foreground="LightGreen"
+                             Opacity="{Binding LabelSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"/>
 
-            </Button>
+            </Grid>
+
+            <Grid>
+                <Button Style="{StaticResource IconBarButtonStyle}"
+                    Command="{Binding SetClearRegionFilterCommand}"
+                    ToolTip="Region Selection">
+                    <materialDesign:PackIcon Kind="SurfaceArea"
+                                 Width="20"
+                                 Height="20"
+                                 Foreground="RoyalBlue"/>
+
+                </Button>
+
+                <materialDesign:PackIcon Kind="CheckBold"
+                             Width="18"
+                             Height="18"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Top"
+                             Foreground="LightGreen"
+                             Opacity="{Binding RegionSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"/>
+
+            </Grid>
+
+            <Grid>
+                <Button Style="{StaticResource IconBarButtonStyle}"
+                    Command="{Binding SetClearDrawnShapeFilterCommand}"
+                    ToolTip="Drawn Shape Selection">
+                    <materialDesign:PackIcon Kind="StarBoxOutline"
+                                 Width="20"
+                                 Height="20"
+                                 Foreground="IndianRed"/>
+
+                </Button>
+
+                <materialDesign:PackIcon Kind="CheckBold"
+                             Width="18"
+                             Height="18"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Top"
+                             Foreground="LightGreen"
+                             Opacity="{Binding DrawnShapeSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"/>                
+                
+            </Grid>
 
             <Separator/>
 
-            <Button Style="{StaticResource IconBarButtonStyle}"
-                Command="{Binding AreaSelectCommand}"
-                ToolTip="All Symbols Selection">
-                <materialDesign:PackIcon Kind="Image"
-                             Width="20"
-                             Height="20"
-                             Foreground="ForestGreen"/>
+            <Grid>
+            
+                <Button Style="{StaticResource IconBarButtonStyle}"
+                    Command="{Binding SetClearAllSymbolsFilterCommand}"
+                    ToolTip="All Symbols Selection">
+                    <materialDesign:PackIcon Kind="Image"
+                                 Width="20"
+                                 Height="20"
+                                 Foreground="ForestGreen"/>
 
-            </Button>
-            <Button Style="{StaticResource IconBarButtonStyle}"
-                Command="{Binding AreaSelectCommand}"
-                ToolTip="Structures Selection">
-                <materialDesign:PackIcon Kind="Castle"
+                </Button>
+
+                <materialDesign:PackIcon Kind="CheckBold"
+                             Width="18"
+                             Height="18"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Top"
+                             Foreground="LightGreen"
+                             Opacity="{Binding SymbolSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"/>
+
+            </Grid>
+
+            <Grid>
+            
+                <Button Style="{StaticResource IconBarButtonStyle}"
+                    Command="{Binding SetClearStructuresFilterCommand}"
+                    ToolTip="Structures Selection">
+                    <materialDesign:PackIcon Kind="Castle"
+                                 Width="14"
+                                 Height="14"
+                                 Foreground="DarkSlateBlue"/>
+
+                </Button>
+
+                <materialDesign:PackIcon Kind="CheckBold"
                              Width="14"
                              Height="14"
-                             Foreground="DarkSlateBlue"/>
+                             Margin="3,0,0,0"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Top"
+                             Foreground="LightGreen"
+                             Opacity="{Binding StructureSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"/>
 
-            </Button>
-            <Button Style="{StaticResource IconBarButtonStyle}"
-                Command="{Binding AreaSelectCommand}"
-                ToolTip="Vegetation Selection">
-                <materialDesign:PackIcon Kind="PineTreeVariant"
+            </Grid>
+
+            <Grid>
+                <Button Style="{StaticResource IconBarButtonStyle}"
+                    Command="{Binding SetClearVegetationFilterCommand}"
+                    ToolTip="Vegetation Selection">
+                    <materialDesign:PackIcon Kind="PineTreeVariant"
+                                 Width="14"
+                                 Height="14"
+                                 Foreground="DarkGreen"/>
+
+                </Button>
+
+                <materialDesign:PackIcon Kind="CheckBold"
                              Width="14"
                              Height="14"
-                             Foreground="DarkGreen"/>
+                             Margin="3,0,0,0"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Top"
+                             Foreground="LightGreen"
+                             Opacity="{Binding VegetationSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"/>
+            </Grid>
 
-            </Button>
+            <Grid>
             <Button Style="{StaticResource IconBarButtonStyle}"
-                Command="{Binding AreaSelectCommand}"
+                Command="{Binding SetClearTerrainFilterCommand}"
                 ToolTip="Terrain Symbol Selection">
                 <materialDesign:PackIcon Kind="Terrain"
                              Width="14"
@@ -147,15 +307,41 @@
                              Foreground="DarkSlateBlue"/>
 
             </Button>
-            <Button Style="{StaticResource IconBarButtonStyle}"
-                Command="{Binding AreaSelectCommand}"
-                ToolTip="Marker Selection">
-                <materialDesign:PackIcon Kind="AddressMarker"
+
+                <materialDesign:PackIcon Kind="CheckBold"
                              Width="14"
                              Height="14"
-                             Foreground="DarkMagenta"/>
+                             Margin="3,0,0,0"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Top"
+                             Foreground="LightGreen"
+                             Opacity="{Binding TerrainSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"/>
+                
+            </Grid>
 
-            </Button>
+            <Grid>
+                <Button Style="{StaticResource IconBarButtonStyle}"
+                    Command="{Binding SetClearMarkerFilterCommand}"
+                    ToolTip="Marker Selection">
+                    <materialDesign:PackIcon Kind="AddressMarker"
+                                 Width="14"
+                                 Height="14"
+                                 Foreground="DarkMagenta"/>
+
+                </Button>
+
+                <materialDesign:PackIcon Kind="CheckBold"
+                             Width="14"
+                             Height="14"
+                             Margin="3,0,0,0"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Top"
+                             Foreground="LightGreen"
+                             Opacity="{Binding MarkerSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"/>
+                
+            </Grid>
 
             <Separator/>
 

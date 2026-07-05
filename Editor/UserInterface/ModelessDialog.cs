@@ -8,7 +8,6 @@
 
         protected ModelessDialog()
         {
-            ShowInTaskbar = false;
             WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner;
         }
     }

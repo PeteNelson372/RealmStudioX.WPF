@@ -20,6 +20,7 @@ namespace RealmStudioX.WPF.Editor
 
         private CommandService? _commandService;
         private SelectionService? _selectionService;
+        private PaintService? _paintService;
 
         private CommandManager _commands { get; } = new();
         public CommandManager Commands => _commands;
@@ -113,6 +114,11 @@ namespace RealmStudioX.WPF.Editor
             _selectionService = selectionService;
         }
 
+        public void SetPaintService(PaintService paintService)
+        {
+            _paintService = paintService;
+        }
+
         public void Reset()
         {
             SetDrawingMode(MapDrawingMode.None);
@@ -181,7 +187,7 @@ namespace RealmStudioX.WPF.Editor
 
             _scene = scene;
 
-            _toolFactory = new(_commands, _assetManager, _scene, _editorState, this, _fontManager, _selectionService!, _scene.RenderContext);
+            _toolFactory = new(_commands, _assetManager, _scene, _editorState, this, _fontManager, _selectionService!, _paintService!, _scene.RenderContext);
 
             // Subscribe to new scene
             _scene.SceneChanged += OnSceneChanged;
@@ -2126,6 +2132,7 @@ namespace RealmStudioX.WPF.Editor
         MeasureTool,
         RegionTool,
         DrawingTool,
-        SelectionTool
+        SelectionTool,
+        PaintTool,
     }
 }

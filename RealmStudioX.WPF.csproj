@@ -7,7 +7,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>True</UseWindowsForms>
-    <ApplicationIcon>Assets\ico\realm_studio_icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -26,6 +25,9 @@
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
     <InformationalVersion>1.0.0 Alpha - Prerelease</InformationalVersion>
+    <ApplicationIcon>Assets\ico\realm_studio_icon.ico</ApplicationIcon>
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <Authors>Peter R. Nelson</Authors>
 
   </PropertyGroup>
   
@@ -46,6 +48,7 @@
     <None Remove="Assets\fonts\Merriweather-Regular.ttf" />
     <None Remove="Assets\fonts\Metamorphous-Regular.ttf" />
     <None Remove="Assets\fonts\UncialAntiqua-Regular.ttf" />
+    <None Remove="Assets\ico\eye_dropper.ico" />
     <None Remove="Assets\png\AnimalTracksPath.png" />
     <None Remove="Assets\png\BirdTracksPath.png" />
     <None Remove="Assets\png\BorderedLinePath.png" />
@@ -79,8 +82,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Assets\ico\realm_studio_icon.ico">
+    <Resource Include="Assets\ico\eye_dropper.ico">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\ico\realm_studio_icon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Content Include="Properties\Logging\log4net.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -207,6 +213,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Update="Properties\Settings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
@@ -238,6 +249,13 @@
   <ItemGroup>
     <Folder Include="Editor\Controls\" />
     <Folder Include="Models\Map\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>

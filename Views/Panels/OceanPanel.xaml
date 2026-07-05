@@ -58,7 +58,7 @@
                 x:Name="ClearTextureButton"
                 Width="50"
                 Height="50"
-                Margin="0,35,0,0"
+                Margin="0,25,0,0"
                 ToolTip="Clear Ocean Texture"
                 Style="{StaticResource FlatToolButton}"
                 Command="{Binding ClearTextureCommand}">
@@ -74,11 +74,54 @@
                                      Opacity="0.7"/>
                 </StackPanel>
             </Button>
-            
+
+            <Button
+                x:Name="PaintButton"
+                Height="50"
+                Margin="0,25,0,0"
+                ToolTip="Draw Path"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding PaintCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Paint"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="Paintbrush"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
+            <Button
+                x:Name="EraseDrawingButton"
+                Height="55"
+                Margin="0,25,0,0"
+                ToolTip="Erase Drawing"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding ErasePaintCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Erase"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="Eraser"
+                                     Width="24"
+                                     Height="24"
+                                     HorizontalAlignment="Center"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
+            <Separator Margin="0,10,0,10" Width="50" Height="1" Background="#FF45443F"/>
+
             <Button
                 x:Name="FillColorButton"
                 Height="50"
-                Margin="0,160,0,0"
+                Margin="0,10,0,0"
                 ToolTip="Fill Ocean Color"
                 Style="{StaticResource FlatToolButton}"
                 Command="{Binding FillColorCommand}">
@@ -98,7 +141,7 @@
             <Button
                 x:Name="ClearColorButton"
                 Height="50"
-                Margin="0,30,0,0"
+                Margin="0,25,0,0"
                 ToolTip="Clear Ocean Color"
                 Style="{StaticResource FlatToolButton}"
                 Command="{Binding ClearOceanColorCommand}">
@@ -115,10 +158,12 @@
                 </StackPanel>
             </Button>
 
+            <Separator Margin="0,10,0,10" Width="50" Height="1" Background="#FF45443F"/>
+
             <Button
                 x:Name="SetWindroseButton"
                 Height="55"
-                Margin="0,40,0,0"
+                Margin="0,10,0,0"
                 ToolTip="Place Wind Rose"
                 Style="{StaticResource FlatToolButton}"
                 Command="{Binding PlaceWindroseCommand}">
@@ -139,7 +184,7 @@
             <Button
                 x:Name="ClearWindroseButton"
                 Height="55"
-                Margin="0,30,0,0"
+                Margin="0,25,0,0"
                 ToolTip="Clear Wind Rose"
                 Style="{StaticResource FlatToolButton}"
                 Command="{Binding ClearWindroseCommand}">

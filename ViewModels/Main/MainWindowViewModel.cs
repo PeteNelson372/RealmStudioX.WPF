@@ -84,6 +84,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public SelectionService SelectionService { get; }
 
+        public PaintService PaintService { get; }
+
         public event Action? RequestOpenNameGeneratorConfig;
 
         private readonly string autosaveRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -109,6 +111,10 @@ namespace RealmStudioX.WPF.ViewModels.Main
             SelectionService = new();
 
             Editor.SetSelectionService(SelectionService);
+            
+            PaintService = new(_assetManager, _editor, CommandService);
+
+            Editor.SetPaintService(PaintService);
 
             // instantiate ViewModels for the panels; when adding a view model
             // remember to add a reference to it on the TabItem <panel:...> in MainTabs.xaml
@@ -121,7 +127,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
             BackgroundViewModel = new BackgroundPanelViewModel(_editor, assetManager);
 
             // Ocean Panel
-            OceanViewModel = new OceanPanelViewModel(_editor, assetManager);
+            OceanViewModel = new OceanPanelViewModel(this, _editor, assetManager);
 
             // Landform Panel
             LandformViewModel = new LandformPanelViewModel(_editor, assetManager);
@@ -820,6 +826,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
             };
 
             FinalizeMapLoad(map);
+
+            PaintService.SetMapDimensions(map.MapWidth, map.MapHeight);
 
             _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.DRAWINGLAYER));
             

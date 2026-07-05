@@ -5,6 +5,7 @@
         xmlns:wf="clr-namespace:SkiaSharp;assembly=SkiaSharp"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="Realm Studio X"
         WindowStyle="None"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
@@ -13,10 +14,12 @@
         Height="600"
         Background="Transparent"
         Topmost="False"
-        ShowInTaskbar="False">
+        ShowInTaskbar="True"
+        Icon="pack://application:,,,/Assets/ico/realm_studio_icon.ico">
 
     <Grid VerticalAlignment="Top">
         <Image Margin="0" Stretch="UniformToFill" Source="pack://application:,,,/Assets/png/Realm Studio X Icon.png" Visibility="Visible"/>
-        <TextBlock x:Name="LoadingStatusText" Margin="0, 320, 0, 0" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="16" Foreground="#99B0B0" Text="Starting Realm Studio X..." Visibility="Visible"/>
+        <TextBlock x:Name="VersionText" Margin="0, 315, 0, 0" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="12" Foreground="#99B0B0" Text="Version" Visibility="Visible"/>        
+        <TextBlock x:Name="LoadingStatusText" Margin="0, 332, 0, 0" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="16" Foreground="#99B0B0" Text="Starting Realm Studio X..." Visibility="Visible"/>
     </Grid>
 </ui:ModelessDialog>

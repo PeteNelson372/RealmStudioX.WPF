@@ -3,6 +3,7 @@ using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
+using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.Models.Startup;
 using RealmStudioX.WPF.ViewModels.Controls;
@@ -14,6 +15,7 @@ using RealmStudioX.WPF.Views.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -130,6 +132,13 @@ namespace RealmStudioX.WPF
             };
 
             InitializeSkiaControl();
+        }
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+
+            Debug.WriteLine($"Icon is null? {Icon == null}");
         }
 
         private void AutosaveService_AutosaveCompleted(object? sender, EventArgs e)
@@ -473,11 +482,7 @@ namespace RealmStudioX.WPF
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.OceanErase)
             {
-                //ViewModel.OceanViewModel.OceanPaintEraserSize += sizeDelta;
-            }
-            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.OceanPaint)
-            {
-                //ViewModel.OceanViewModel.OceanPaintBrushSize += sizeDelta;
+                ViewModel.DrawingViewModel.MouseWheelLineBrushSizeChanged(sizeDelta);
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.WaterPaint)
             {
@@ -509,27 +514,27 @@ namespace RealmStudioX.WPF
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.DrawingLine)
             {
-                ViewModel.DrawingViewModel.LineBrushSize += sizeDelta;
+                ViewModel.DrawingViewModel.MouseWheelLineBrushSizeChanged(sizeDelta);
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.DrawingPaint)
             {
-                ViewModel.DrawingViewModel.LineBrushSize += sizeDelta;
+                ViewModel.DrawingViewModel.MouseWheelLineBrushSizeChanged(sizeDelta);
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.DrawingPolygon)
             {
-                ViewModel.DrawingViewModel.LineBrushSize += sizeDelta;
+                ViewModel.DrawingViewModel.MouseWheelLineBrushSizeChanged(sizeDelta);
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.DrawingEllipse)
             {
-                ViewModel.DrawingViewModel.LineBrushSize += sizeDelta;
+                ViewModel.DrawingViewModel.MouseWheelLineBrushSizeChanged(sizeDelta);
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.DrawingRectangle)
             {
-                ViewModel.DrawingViewModel.LineBrushSize += sizeDelta;
+                ViewModel.DrawingViewModel.MouseWheelLineBrushSizeChanged(sizeDelta);
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.DrawingErase)
             {
-                ViewModel.DrawingViewModel.LineBrushSize += sizeDelta;
+                ViewModel.DrawingViewModel.MouseWheelLineBrushSizeChanged(sizeDelta);
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.DrawingStamp)
             {
@@ -790,6 +795,8 @@ namespace RealmStudioX.WPF
         private void MainTabControl_SelectionChanged(object? s, EventArgs e)
         {
             ShowToolPanel(((TabItem)MainTabs.MainTabControl.SelectedItem).Header.ToString());
+
+            ViewModel.PaintService?.Reset();
         }
 
         private void ShowToolPanel(string? tab)
@@ -803,6 +810,21 @@ namespace RealmStudioX.WPF
             if (_toolPanels[tab] is ProjectToolPanel prtp)
             {
                 prtp.DataContext = ViewModel.ProjectViewModel;
+            }
+
+            if (_toolPanels[tab] is OceanToolPanel oceantoolpanel)
+            {
+                oceantoolpanel.DataContext = ViewModel.OceanViewModel;
+            }
+
+            if (_toolPanels[tab] is LandToolPanel landtoolpanel)
+            {
+                landtoolpanel.DataContext = ViewModel.LandformViewModel;
+            }
+
+            if (_toolPanels[tab] is WaterToolPanel watertoolpanel)
+            {
+                watertoolpanel.DataContext = ViewModel.WaterViewModel;
             }
 
             if (_toolPanels[tab] is PathsToolPanel ptp)

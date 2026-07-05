@@ -1,6 +1,5 @@
 ﻿using RealmStudioX.WPF.Editor.UserInterface;
 using System.Windows.Threading;
-using Application = System.Windows.Application;
 
 namespace RealmStudioX.WPF.Views
 {
@@ -11,7 +10,7 @@ namespace RealmStudioX.WPF.Views
     {
         public override string WindowId { get; } = Guid.NewGuid().ToString();
 
-        public override WindowAnimationProfile AnimationProfile => WindowAnimationProfiles.SplashWindow;
+        public override WindowAnimationProfile AnimationProfile => WindowAnimationProfiles.None;
 
         private readonly TaskCompletionSource _tcs = new();
 
@@ -29,6 +28,24 @@ namespace RealmStudioX.WPF.Views
                 if (LoadingStatusText != null)
                 {
                     LoadingStatusText.Text = value;
+                }
+
+                UpdateLayout();
+            }
+        }
+
+        private string _applicationVersion = "";
+
+        public string ApplicationVersion
+        {
+            get => _applicationVersion;
+            set
+            {
+                _applicationVersion = value;
+
+                if (VersionText != null)
+                {
+                    VersionText.Text = value;
                 }
 
                 UpdateLayout();

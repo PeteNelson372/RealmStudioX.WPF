@@ -11,7 +11,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Windows;
-using System.Windows.Media.Imaging;
 using Application = System.Windows.Application;
 
 namespace RealmStudioX.WPF
@@ -113,6 +112,7 @@ namespace RealmStudioX.WPF
                 return;
             }
 
+            // set up log4net configuration
             XmlConfigurator.Configure(LogManager.GetRepository(assembly), new FileInfo(configPath));
 
             SetupExceptionHandling();
@@ -126,11 +126,12 @@ namespace RealmStudioX.WPF
             Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
             LoadingWindow loading = WindowManager.GetOrCreate<LoadingWindow>();
-            loading.LoadingStatus = $"Version {AssemblyVersion}";
-
-            await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Render);
+            loading.ApplicationVersion = $"Version {AssemblyVersion}";
+            loading.LoadingStatus = $"Loading Assets...";
 
             WindowManager.Show(loading);
+
+            await Task.Delay(100); // Allow the loading window to render
 
             var assetManager = new AssetManager();
             AssetManager.RootRealmStudioXDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX");
@@ -162,22 +163,12 @@ namespace RealmStudioX.WPF
             await Task.Delay(100); // Allow the loading window to render
 
             var mainWindow = new MainWindow(dialog.ViewModel.Result, assetManager, fontManager);
-            
-            BitmapFrame bmpf = BitmapFrame.Create(new Uri("pack://application:,,,/Assets/ico/realm_studio_icon.ico", UriKind.Absolute));
-
-            mainWindow.Icon = bmpf;
-
-            // Required to ensure the taskbar displays the
-            // application icon correctly after the startup dialog.
-            // Without yielding, Windows may associate the taskbar
-            // button before MainWindow initialization is complete.
-            // See https://github.com/dotnet/wpf/issues/11222
-            await Task.Yield();
 
             Current.MainWindow = mainWindow;
             MainWindow = mainWindow;
-
+            
             mainWindow.Show();
+            await mainWindow.RefreshTaskbarIconAsync();
 
             WindowManager.Close<LoadingWindow>();
 

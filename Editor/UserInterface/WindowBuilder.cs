@@ -1,15 +1,14 @@
-﻿using RealmStudioX.WPF.EditorUtilities;
-using RealmStudioX.WPF.Views.Dialogs;
+﻿using RealmStudioX.WPF.Views.Dialogs;
 using Application = System.Windows.Application;
-using Point = System.Windows.Point;
 using Button = System.Windows.Controls.Button;
 using Color = System.Windows.Media.Color;
+using Point = System.Windows.Point;
 
 namespace RealmStudioX.WPF.Editor.UserInterface
 {
     internal static class WindowBuilder
     {
-        public static ColorQuickPick BuildColorQuickPick(Color initialColor, System.Windows.Window window, Button sender)
+        public static ColorQuickPick BuildColorQuickPick(Color initialColor, System.Windows.Window window, Button button)
         {
             WindowManager wm = ((App)Application.Current).WindowManager;
 
@@ -17,10 +16,13 @@ namespace RealmStudioX.WPF.Editor.UserInterface
             dialog.Owner = window;
             dialog.InitialColor = initialColor;
 
-            UserInterfaceUtilities.PositionWindowRelativeToControl(
+            App app = (App)Application.Current;
+
+            wm.AttachToControl(
                 dialog,
-                sender,
-                new Point(0, (int)((Button)sender).ActualHeight),
+                app.MainWindow,
+                button,
+                new Point(0, button.ActualHeight),
                 0,
                 0);
 

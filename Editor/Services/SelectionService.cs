@@ -1,10 +1,11 @@
 ﻿using RealmStudioShapeRenderingLib;
-using RealmStudioX.Core;
+using RealmStudioX.WPF.ViewModels.Infrastructure;
 using SkiaSharp;
+using System.Windows.Input;
 
 namespace RealmStudioX.WPF.Editor.Services
 {
-    public class SelectionService
+    public class SelectionService : ViewModelBase
     {
         private const float SelectionCycleDistance = 8f;
 
@@ -33,6 +34,406 @@ namespace RealmStudioX.WPF.Editor.Services
         public bool HasMultipleSelection => _selectedObjects.Count > 1;
 
         public int SelectionCount => _selectedObjects.Count;
+
+        private bool _landformSelectionAllowed = true;
+
+        public SelectionService()
+        {
+            // Initialize the selection filter with all types allowed
+            _selectionFilter.SelectableTypes.Add(typeof(Landform));
+            _selectionFilter.SelectableTypes.Add(typeof(WaterSystem));
+            _selectionFilter.SelectableTypes.Add(typeof(Lake));
+            _selectionFilter.SelectableTypes.Add(typeof(River));
+            _selectionFilter.SelectableTypes.Add(typeof(PaintedWaterBody));
+            _selectionFilter.SelectableTypes.Add(typeof(MapPath));
+            _selectionFilter.SelectableTypes.Add(typeof(MapLabel));
+            _selectionFilter.SelectableTypes.Add(typeof(MapRegion));
+            _selectionFilter.SelectableTypes.Add(typeof(IDrawnMapComponent));
+            _selectionFilter.SelectableTypes.Add(typeof(MapSymbol));
+
+            _selectionFilter.AllowsStructures = true;
+            _selectionFilter.AllowsVegetation = true;
+            _selectionFilter.AllowsTerrain = true;
+            _selectionFilter.AllowsMarkers = true;
+        }
+
+        public bool LandformSelectionAllowed
+        {
+            get { return _landformSelectionAllowed; }
+            set
+            {
+                _landformSelectionAllowed = value;
+                OnPropertyChanged(nameof(LandformSelectionAllowed));
+
+                if (value)
+                {
+                    _selectionFilter.SelectableTypes.Add(typeof(Landform));
+                }
+                else
+                {
+                    _selectionFilter.SelectableTypes.Remove(typeof(Landform));
+                }
+            }
+        }
+
+        private bool _waterSystemSelectionAllowed = true;
+        public bool WaterSystemSelectionAllowed
+        {
+            get { return _waterSystemSelectionAllowed; }
+            set
+            {
+                _waterSystemSelectionAllowed = value;
+                OnPropertyChanged(nameof(WaterSystemSelectionAllowed));
+                if (value)
+                {
+                    _selectionFilter.SelectableTypes.Add(typeof(WaterSystem));
+                }
+                else
+                {
+                    _selectionFilter.SelectableTypes.Remove(typeof(WaterSystem));
+                }
+            }
+        }
+
+        private bool _lakeSelectionAllowed = true;
+
+        public bool LakeSelectionAllowed
+        {
+            get { return _lakeSelectionAllowed; }
+            set
+            {
+                _lakeSelectionAllowed = value;
+                OnPropertyChanged(nameof(LakeSelectionAllowed));
+                if (value)
+                {
+                    _selectionFilter.SelectableTypes.Add(typeof(Lake));
+                }
+                else
+                {
+                    _selectionFilter.SelectableTypes.Remove(typeof(Lake));
+                }
+            }
+        }
+
+        private bool _riverSelectionAllowed = true;
+
+        public bool RiverSelectionAllowed
+        {
+            get { return _riverSelectionAllowed; }
+            set
+            {
+                _riverSelectionAllowed = value;
+                OnPropertyChanged(nameof(RiverSelectionAllowed));
+                if (value)
+                {
+                    _selectionFilter.SelectableTypes.Add(typeof(River));
+                }
+                else
+                {
+                    _selectionFilter.SelectableTypes.Remove(typeof(River));
+                }
+            }
+        }
+
+        private bool _paintedWaterBodySelectionAllowed = true;
+
+        public bool PaintedWaterBodySelectionAllowed
+        {
+            get { return _paintedWaterBodySelectionAllowed; }
+            set
+            {
+                _paintedWaterBodySelectionAllowed = value;
+                OnPropertyChanged(nameof(PaintedWaterBodySelectionAllowed));
+                if (value)
+                {
+                    _selectionFilter.SelectableTypes.Add(typeof(PaintedWaterBody));
+                }
+                else
+                {
+                    _selectionFilter.SelectableTypes.Remove(typeof(PaintedWaterBody));
+                }
+            }
+        }
+
+        private bool _pathSelectionAllowed = true;
+
+        public bool PathSelectionAllowed
+        {
+            get { return _pathSelectionAllowed; }
+            set
+            {
+                _pathSelectionAllowed = value;
+                OnPropertyChanged(nameof(PathSelectionAllowed));
+                if (value)
+                {
+                    _selectionFilter.SelectableTypes.Add(typeof(MapPath));
+                }
+                else
+                {
+                    _selectionFilter.SelectableTypes.Remove(typeof(MapPath));
+                }
+            }
+        }
+
+        private bool _labelSelectionAllowed = true;
+
+        public bool LabelSelectionAllowed
+        {
+            get { return _labelSelectionAllowed; }
+            set
+            {
+                _labelSelectionAllowed = value;
+                OnPropertyChanged(nameof(LabelSelectionAllowed));
+                if (value)
+                {
+                    _selectionFilter.SelectableTypes.Add(typeof(MapLabel));
+                }
+                else
+                {
+                    _selectionFilter.SelectableTypes.Remove(typeof(MapLabel));
+                }
+            }
+        }
+
+        private bool _regionSelectionAllowed = true;
+
+        public bool RegionSelectionAllowed
+        {
+            get { return _regionSelectionAllowed; }
+            set
+            {
+                _regionSelectionAllowed = value;
+                OnPropertyChanged(nameof(RegionSelectionAllowed));
+                if (value)
+                {
+                    _selectionFilter.SelectableTypes.Add(typeof(MapRegion));
+                }
+                else
+                {
+                    _selectionFilter.SelectableTypes.Remove(typeof(MapRegion));
+                }
+            }
+        }
+
+        private bool _drawnShapeSelectionAllowed = true;
+
+        public bool DrawnShapeSelectionAllowed
+        {
+            get { return _drawnShapeSelectionAllowed; }
+            set
+            {
+                _drawnShapeSelectionAllowed = value;
+                OnPropertyChanged(nameof(DrawnShapeSelectionAllowed));
+                if (value)
+                {
+                    _selectionFilter.SelectableTypes.Add(typeof(IDrawnMapComponent));
+                }
+                else
+                {
+                    _selectionFilter.SelectableTypes.Remove(typeof(IDrawnMapComponent));
+                }
+            }
+        }
+
+        private bool _symbolSelectionAllowed = true;
+
+        public bool SymbolSelectionAllowed
+        {
+            get { return _symbolSelectionAllowed; }
+            set
+            {
+                _symbolSelectionAllowed = value;
+                OnPropertyChanged(nameof(SymbolSelectionAllowed));
+
+                if (value)
+                {
+                    _selectionFilter.SelectableTypes.Add(typeof(MapSymbol));
+                }
+                else
+                {
+                    _selectionFilter.SelectableTypes.Remove(typeof(MapSymbol));
+                }
+
+                StructureSelectionAllowed = value;
+                OnPropertyChanged(nameof(StructureSelectionAllowed));
+
+                VegetationSelectionAllowed = value;
+                OnPropertyChanged(nameof(VegetationSelectionAllowed));
+
+                TerrainSelectionAllowed = value;
+                OnPropertyChanged(nameof(TerrainSelectionAllowed));
+
+                MarkerSelectionAllowed = value;
+                OnPropertyChanged(nameof(MarkerSelectionAllowed));
+
+            }
+        }
+
+        private bool _structureSelectionAllowed = true;
+
+        public bool StructureSelectionAllowed
+        {
+            get { return _structureSelectionAllowed; }
+            set
+            {
+                _structureSelectionAllowed = value;
+                OnPropertyChanged(nameof(StructureSelectionAllowed));
+                if (value)
+                {
+                    _selectionFilter.AllowsStructures = true;
+                }
+                else
+                {
+                    _selectionFilter.AllowsStructures = false;
+                }
+            }
+        }
+
+        private bool _vegetationSelectionAllowed = true;
+
+        public bool VegetationSelectionAllowed
+        {
+            get { return _vegetationSelectionAllowed; }
+            set
+            {
+                _vegetationSelectionAllowed = value;
+                OnPropertyChanged(nameof(VegetationSelectionAllowed));
+                if (value)
+                {
+                    _selectionFilter.AllowsVegetation = true;
+                }
+                else
+                {
+                    _selectionFilter.AllowsVegetation = false;
+                }
+            }
+        }
+
+        private bool _terrainSelectionAllowed = true;
+
+        public bool TerrainSelectionAllowed
+        {
+            get { return _terrainSelectionAllowed; }
+            set
+            {
+                _terrainSelectionAllowed = value;
+                OnPropertyChanged(nameof(TerrainSelectionAllowed));
+                if (value)
+                {
+                    _selectionFilter.AllowsTerrain = true;
+                }
+                else
+                {
+                    _selectionFilter.AllowsTerrain = false;
+                }
+            }
+        }
+
+        private bool _markerSelectionAllowed = true;
+
+        public bool MarkerSelectionAllowed
+        {
+            get { return _markerSelectionAllowed; }
+            set
+            {
+                _markerSelectionAllowed = value;
+                OnPropertyChanged(nameof(MarkerSelectionAllowed));
+                if (value)
+                {
+                    _selectionFilter.AllowsMarkers = true;
+                }
+                else
+                {
+                    _selectionFilter.AllowsMarkers = false;
+                }
+            }
+        }
+
+        public ICommand ClearFilterCommand => new RelayCommand(() =>
+        {
+            // Clear the selection filter - this will allow all types of objects to be selected
+            LandformSelectionAllowed = true;
+            WaterSystemSelectionAllowed = true;
+            LakeSelectionAllowed = true;
+            RiverSelectionAllowed = true;
+            PaintedWaterBodySelectionAllowed = true;
+            PathSelectionAllowed = true;
+            LabelSelectionAllowed = true;
+            RegionSelectionAllowed = true;
+            DrawnShapeSelectionAllowed = true;
+            SymbolSelectionAllowed = true;
+        });
+
+        public ICommand SetClearLandformFilterCommand => new RelayCommand(() =>
+        {
+            LandformSelectionAllowed = !LandformSelectionAllowed;
+        });
+
+        public ICommand SetClearWaterSystemFilterCommand => new RelayCommand(() =>
+        {
+            WaterSystemSelectionAllowed = !WaterSystemSelectionAllowed;
+        });
+
+        public ICommand SetClearLakeFilterCommand => new RelayCommand(() =>
+        {
+            LakeSelectionAllowed = !LakeSelectionAllowed;
+        });
+
+        public ICommand SetClearRiverFilterCommand => new RelayCommand(() =>
+        {
+            RiverSelectionAllowed = !RiverSelectionAllowed;
+        });
+
+        public ICommand SetClearPaintedWaterBodyFilterCommand => new RelayCommand(() =>
+        {
+            PaintedWaterBodySelectionAllowed = !PaintedWaterBodySelectionAllowed;
+        });
+
+        public ICommand SetClearPathFilterCommand => new RelayCommand(() =>
+        {
+            PathSelectionAllowed = !PathSelectionAllowed;
+        });
+
+        public ICommand SetClearLabelFilterCommand => new RelayCommand(() =>
+        {
+            LabelSelectionAllowed = !LabelSelectionAllowed;
+        });
+
+        public ICommand SetClearRegionFilterCommand => new RelayCommand(() =>
+        {
+            RegionSelectionAllowed = !RegionSelectionAllowed;
+        });
+
+        public ICommand SetClearDrawnShapeFilterCommand => new RelayCommand(() =>
+        {
+            DrawnShapeSelectionAllowed = !DrawnShapeSelectionAllowed;
+        });
+
+        public ICommand SetClearAllSymbolsFilterCommand => new RelayCommand(() =>
+        {
+            SymbolSelectionAllowed = !SymbolSelectionAllowed;
+        });
+
+        public ICommand SetClearStructuresFilterCommand => new RelayCommand(() =>
+        {
+            StructureSelectionAllowed = !StructureSelectionAllowed;
+        });
+
+        public ICommand SetClearVegetationFilterCommand => new RelayCommand(() =>
+        {
+            VegetationSelectionAllowed = !VegetationSelectionAllowed;
+        });
+
+        public ICommand SetClearTerrainFilterCommand => new RelayCommand(() =>
+        {
+            TerrainSelectionAllowed = !TerrainSelectionAllowed;
+        });
+
+        public ICommand SetClearMarkerFilterCommand => new RelayCommand(() =>
+        {
+            MarkerSelectionAllowed = !MarkerSelectionAllowed;
+        });
+
 
         public ISelectable? SelectAt(RealmStudioMap map, SKPoint worldPos, float tolerance, bool addToSelection = false)
         {
@@ -439,29 +840,51 @@ namespace RealmStudioX.WPF.Editor.Services
 
     public sealed class SelectionFilter()
     {
-        public HashSet<Type> AllowedTypes { get; } = [];
+        public HashSet<Type> SelectableTypes { get; } = [];
 
-        public bool CurrentLayerOnly { get; }
-        public bool VisibleLayersOnly { get; }
+        public bool AllowsStructures { get; set; } = true;
+        public bool AllowsVegetation { get; set; } = true;
+        public bool AllowsTerrain { get; set; } = true;
+        public bool AllowsMarkers { get; set; } = true;
 
         public void AddTypeToFilter(Type type)
         {
-            AllowedTypes.Add(type);
+            SelectableTypes.Add(type);
         }
 
         public void RemoveTypeFromFilter(Type type)
         {
-            AllowedTypes.Remove(type);
+            SelectableTypes.Remove(type);
         }
 
         public void ClearFilter()
         {
-            AllowedTypes.Clear();
+            SelectableTypes.Clear();
         }
 
         public bool Allows(ISelectable shape)
         {
-            return AllowedTypes.Count == 0 || AllowedTypes.Contains(shape.GetType());
+            bool allowed = SelectableTypes.Any(type =>
+                type.IsAssignableFrom(shape.GetType()));
+
+            if (!allowed)
+            {
+                return false;
+            }
+
+            if (shape is not MapSymbol symbol)
+            {
+                return true;
+            }
+
+            return symbol.SymbolDefinition.SymbolType switch
+            {
+                MapSymbolType.Structure => AllowsStructures,
+                MapSymbolType.Vegetation => AllowsVegetation,
+                MapSymbolType.Terrain => AllowsTerrain,
+                MapSymbolType.Marker => AllowsMarkers,
+                _ => true
+            };
         }
     }
 }

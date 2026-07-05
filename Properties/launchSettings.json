@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "RealmStudioX.WPF": {
+      "commandName": "Project",
+      "debugEngines": "managed,native"
+    }
+  }
+}

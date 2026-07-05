@@ -15,6 +15,7 @@ namespace RealmStudioX.WPF.Editor.Tools
         private readonly EditorController _editor;
         private readonly FontManager _fontManager;
         private readonly SelectionService _selectionService;
+        private readonly PaintService _paintService;
         private readonly RenderContext _renderContext;
 
         public ToolFactory(
@@ -25,6 +26,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             EditorController editor,
             FontManager fontManager,
             SelectionService selectionService,
+            PaintService paintService,
             RenderContext renderContext)
         {
             _commands = commands;
@@ -34,6 +36,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             _editor = editor;
             _fontManager = fontManager;
             _selectionService = selectionService;
+            _paintService = paintService;
             _renderContext = renderContext;
         }
 
@@ -240,7 +243,6 @@ namespace RealmStudioX.WPF.Editor.Tools
                         {
                             if (context is null) return null;
 
-
                             tool = new DrawingTool(_commands, _assets, _editor, _editor.ActiveDrawingLayer!,
                                 _scene, _editorState, (IDrawingSettings)context);
 
@@ -256,6 +258,19 @@ namespace RealmStudioX.WPF.Editor.Tools
                         if (_editor.ActiveEditorTool is not SelectionTool)
                         {
                             tool = new SelectionTool(_editor, _selectionService);
+
+                            return tool;
+                        }
+                        else
+                        {
+                            return _editor.ActiveEditorTool;
+                        }
+                    }
+                case EditorToolType.PaintTool:
+                    {
+                        if (_editor.ActiveEditorTool is not PaintTool)
+                        {
+                            tool = new PaintTool(_editor, _paintService, _editor);
 
                             return tool;
                         }

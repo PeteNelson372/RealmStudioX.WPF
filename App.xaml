@@ -13,6 +13,16 @@
             <conv:EnumEqualsConverter x:Key="EnumEqualsConverter"/>
             <conv:SymbolHighlightConverter x:Key="SymbolHighlightConverter"/>
 
+            <conv:BooleanToOpacityConverter
+                x:Key="BooleanToOpacityConverter"
+                TrueOpacity="1.0"
+                FalseOpacity="0.50"/>
+
+            <conv:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
+            <conv:BooleanToVisibilityInverseConverter x:Key="BooleanToVisibilityInverseConverter"/>
+
+            <conv:SKColorToBrushConverter x:Key="SKColorToBrushConverter"/>
 
             <ResourceDictionary.MergedDictionaries>
 

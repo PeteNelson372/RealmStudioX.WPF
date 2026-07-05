@@ -1,5 +1,7 @@
-﻿using System.Windows;
+﻿using RealmStudioX.WPF.EditorUtilities;
+using System.Windows;
 using System.Windows.Media;
+using Point = System.Windows.Point;
 
 namespace RealmStudioX.WPF.Editor.UserInterface
 {
@@ -12,6 +14,9 @@ namespace RealmStudioX.WPF.Editor.UserInterface
         public WindowAnimationService AnimationService => _animationService;
 
         private readonly Dictionary<Type, RealmStudioWindow> _windows = [];
+
+        private readonly List<AttachedWindowInfo> _attachedWindows = [];
+        private readonly HashSet<Window> _attachedOwners = [];
 
         /// <summary>
         /// Gets all registered windows.
@@ -81,6 +86,14 @@ namespace RealmStudioX.WPF.Editor.UserInterface
         {
             Register(window);
 
+            AttachedWindowInfo? info =
+                _attachedWindows.FirstOrDefault(a => a.Window == window);
+
+            if (info != null)
+            {
+                PositionAttachedWindow(info);
+            }
+
             _animationService.PrepareShow(window);
 
             window.Show();
@@ -112,6 +125,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                 _animationService.AnimateShow(window);
             }
         }
+
 
         /// <summary>
         /// Hides a window.
@@ -190,10 +204,15 @@ namespace RealmStudioX.WPF.Editor.UserInterface
 
         private void Window_Closed(object? sender, EventArgs e)
         {
-            if (sender is RealmStudioWindow window)
+            if (sender is not RealmStudioWindow window)
             {
-                Unregister(window);
+                return;
             }
+
+            // Remove any attached window information.
+            _attachedWindows.RemoveAll(a => a.Window == window);
+
+            Unregister(window);
         }
 
         public T GetOrCreate<T>() where T : RealmStudioWindow, new()
@@ -234,6 +253,95 @@ namespace RealmStudioX.WPF.Editor.UserInterface
 
             return window != null && window.IsVisible;
         }
-    }
 
+        public void AttachToControl(
+            RealmStudioWindow window,
+            Window owner,
+            FrameworkElement anchorControl,
+            Point anchorOffset,
+            double horizontalOffset = 0,
+            double verticalOffset = 0)
+        {
+            // Already attached? Nothing to do.
+            if (_attachedWindows.Any(a => a.Window == window))
+            {
+                return;
+            }
+
+            window.Owner = owner;
+
+            AttachedWindowInfo info = new()
+            {
+                Window = window,
+                Owner = owner,
+                AnchorControl = anchorControl,
+                AnchorOffset = anchorOffset,
+                HorizontalOffset = horizontalOffset,
+                VerticalOffset = verticalOffset
+            };
+
+            _attachedWindows.Add(info);
+
+            if (_attachedOwners.Add(owner))
+            {
+                owner.LocationChanged += OwnerWindowChanged;
+                owner.SizeChanged += OwnerWindowChanged;
+                owner.StateChanged += OwnerWindowChanged;
+            }
+
+            anchorControl.LayoutUpdated += AnchorControlLayoutUpdated;
+
+            PositionAttachedWindow(info);
+        }
+
+        private void OwnerWindowChanged(object? sender, EventArgs e)
+        {
+            Window owner = (Window)sender!;
+
+            foreach (AttachedWindowInfo info in _attachedWindows)
+            {
+                if (info.Owner == owner && info.Window.IsVisible)
+                {
+                    PositionAttachedWindow(info);
+                }
+            }
+        }
+
+        private static void PositionAttachedWindow(AttachedWindowInfo info)
+        {
+            UserInterfaceUtilities.PositionWindowRelativeToControl(
+                info.Window,
+                info.AnchorControl,
+                info.AnchorOffset,
+                info.HorizontalOffset,
+                info.VerticalOffset);
+        }
+        private void AnchorControlLayoutUpdated(object? sender, EventArgs e)
+        {
+            foreach (AttachedWindowInfo info in _attachedWindows)
+            {
+                if (ReferenceEquals(info.AnchorControl, sender) &&
+                    info.Window.IsVisible)
+                {
+                    PositionAttachedWindow(info);
+                }
+            }
+        }
+
+
+        private sealed class AttachedWindowInfo
+        {
+            public RealmStudioWindow Window { get; init; } = null!;
+
+            public FrameworkElement AnchorControl { get; init; } = null!;
+
+            public Point AnchorOffset { get; init; }
+
+            public double HorizontalOffset { get; init; }
+
+            public double VerticalOffset { get; init; }
+
+            public Window Owner { get; init; } = null!;
+        }
+    }
 }

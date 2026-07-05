@@ -1,9 +1,11 @@
 ﻿using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
+using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Dialogs;
+using System.Windows;
+using Application = System.Windows.Application;
 using Button = System.Windows.Controls.Button;
 using Point = System.Windows.Point;
-using Application = System.Windows.Application;
 
 namespace RealmStudioX.WPF.Views.Controls
 {
@@ -17,21 +19,31 @@ namespace RealmStudioX.WPF.Views.Controls
             InitializeComponent();
         }
 
-        private void FilterButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        private void FilterButton_Click(object sender, RoutedEventArgs e)
         {
-            WindowManager wm = ((App)Application.Current).WindowManager;
+            App app = (App)Application.Current;
 
-            SelectionFilterDialog dlg = wm.Toggle<SelectionFilterDialog>();
+            WindowManager wm = app.WindowManager;
 
-            if (wm.IsVisible<SelectionFilterDialog>())
+            Button button = (Button)sender;
+
+            SelectionFilterDialog dlg = wm.GetOrCreate<SelectionFilterDialog>();
+
+            if (dlg.DataContext == null)
             {
-                UserInterfaceUtilities.PositionWindowRelativeToControl(
+                dlg.DataContext =
+                    ((MainWindowViewModel)app.MainWindow.DataContext).SelectionService;
+
+                wm.AttachToControl(
                     dlg,
-                    (Button)sender,
-                    new Point(0, (int)((Button)sender).ActualHeight),
+                    app.MainWindow,
+                    button,
+                    new Point(0, button.ActualHeight),
                     8,
                     22);
             }
+
+            wm.Toggle<SelectionFilterDialog>();
         }
     }
 }

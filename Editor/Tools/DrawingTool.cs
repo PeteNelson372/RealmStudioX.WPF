@@ -1,6 +1,7 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
+using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Main;
@@ -30,11 +31,9 @@ namespace RealmStudioX.WPF.Editor.Tools
         private  IDrawingSettings _drawingSettings = drawingSettings;
 
         private SKPoint _lastMouseWorld;
-        private long _lastPaintTimestamp;
 
         private DrawnLine? _currentDrawnline = null;
-        private PaintedLine? _currentPaintedLine = null;
-        private PreparedBrush? _currentPreparedBrush = null;
+
         private DrawnRectangle? _currentDrawnRectangle = null;
         private DrawnEllipse? _currentDrawnEllipse = null;
         private DrawnPolygon? _currentDrawnPolygon = null;
@@ -45,12 +44,6 @@ namespace RealmStudioX.WPF.Editor.Tools
         private DrawnFivePointStar? _currentDrawnFivePointStar = null;
         private DrawnSixPointStar? _currentDrawnSixPointStar = null;
         private DrawingErase? _currentDrawingErase = null;
-
-        public PreparedBrush? CurrentPreparedBrush
-        {
-            get { return _currentPreparedBrush; } 
-            set { _currentPreparedBrush = value; }
-        }
 
         private bool disposedValue;
 
@@ -96,45 +89,6 @@ namespace RealmStudioX.WPF.Editor.Tools
                             };
 
                             _currentDrawnline.Points.Add(state.WorldPoint);
-                        }
-                        break;
-                    case MapDrawingMode.DrawingPaint:
-                        {
-                            if (_drawingSettings.SelectedBrushPattern != null
-                                && _drawingSettings.SelectedBrushPattern.BrushDefinition != null)
-                            {
-                                if (_currentPreparedBrush == null)
-                                {
-                                    // this will only happen if the user starts painting
-                                    // without changing brush type, size, or color
-                                    _currentPreparedBrush = new PreparedBrush()
-                                    {
-                                        SourceBrush = _drawingSettings.SelectedBrushPattern.BrushDefinition,
-                                        Color = _drawingSettings.DrawingColor.ToSKColor(),
-                                        BrushSize = (int)_drawingSettings.LineBrushSize,
-                                        BrushSpacing = _drawingSettings.BrushSpacing,
-                                    };
-
-                                    AssetInitializer.GetPreparedBrushBitmaps(_currentPreparedBrush);
-                                    CurrentPreparedBrush = _currentPreparedBrush;
-                                }
-
-                                _currentPaintedLine = new PaintedLine
-                                {
-                                    Brush = _currentPreparedBrush,
-                                    DefaultSpacing = _drawingSettings.SelectedBrushPattern.BrushDefinition.BrushSpacing,
-                                    BrushSpacing = _drawingSettings.BrushSpacing,
-                                    RandomRotation = _drawingSettings.SelectedBrushPattern.BrushDefinition.RandomRotation,
-                                };
-
-                                _currentPaintedLine.Initialize(_editor.Scene!.Map.MapWidth, _editor.Scene!.Map.MapHeight);
-
-                                long now = Environment.TickCount64;
-
-                                _lastPaintTimestamp = now;
-
-                                _currentPaintedLine.AddPoint(state.WorldPoint);
-                            }
                         }
                         break;
                     case MapDrawingMode.DrawingRectangle:
@@ -453,20 +407,6 @@ namespace RealmStudioX.WPF.Editor.Tools
                             _currentDrawnline?.Points.Add(state.WorldPoint);
                         }
                         break;
-                    case MapDrawingMode.DrawingPaint:
-                        {
-                            if (_currentPaintedLine != null)
-                            {
-                                long now = Environment.TickCount64;
-
-                                float deltaTime = (now - _lastPaintTimestamp) / 1000f;
-
-                                _lastPaintTimestamp = now;
-
-                                _currentPaintedLine.AddPoint(state.WorldPoint);
-                            }
-                        }
-                        break;
                     case MapDrawingMode.DrawingRectangle:
                         {
                             if (_currentDrawnRectangle != null)
@@ -638,27 +578,6 @@ namespace RealmStudioX.WPF.Editor.Tools
                                 }
 
                                 _currentDrawnline = null;
-                            }
-                        }
-                        break;
-                    case MapDrawingMode.DrawingPaint:
-                        {
-                            if (_currentPaintedLine != null)
-                            {
-                                if (state.WorldPoint != _currentPaintedLine.Points[^1])
-                                {
-                                    _currentPaintedLine.AddPoint(state.WorldPoint);
-                                }
-
-                                _currentPaintedLine.FinalizeStroke();
-
-                                if (_editor.ActiveDrawingLayer != null)
-                                {
-                                    Cmd_AddDrawnShape cmd = new(_editor.ActiveDrawingLayer, _currentPaintedLine);
-                                    _commands.Execute(cmd);
-                                }
-
-                                _currentPaintedLine = null;
                             }
                         }
                         break;
@@ -943,10 +862,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         public void RenderOverlay(SKCanvas canvas, SKPoint world)
         {
-
             _currentDrawnline?.Render(canvas);
-
-            _currentPaintedLine?.Render(canvas);
 
             _currentDrawnRectangle?.Render(canvas);
 
@@ -969,8 +885,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             _currentDrawnSixPointStar?.Render(canvas);
 
             // draw the cursor
-            if (_editorState.CurrentDrawingMode == MapDrawingMode.DrawingPaint
-                || _editorState.CurrentDrawingMode == MapDrawingMode.DrawingLine
+            if (_editorState.CurrentDrawingMode == MapDrawingMode.DrawingLine
                 || _editorState.CurrentDrawingMode == MapDrawingMode.DrawingErase)
             {
                 var brushRadius = _drawingSettings.LineBrushSize / 2;

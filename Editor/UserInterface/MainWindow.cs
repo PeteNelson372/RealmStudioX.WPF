@@ -8,8 +8,6 @@ namespace RealmStudioX.WPF.Editor.UserInterface
 
         protected RealmStudioMainWindow()
         {
-            ShowInTaskbar = true;
-            ResizeMode = ResizeMode.CanResize;
         }
     }
 }

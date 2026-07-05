@@ -1,7 +1,8 @@
-﻿using RealmStudioX.WPF.ViewModels.Main;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace RealmStudioX.WPF.Editor.UserInterface
 {
@@ -50,6 +51,19 @@ namespace RealmStudioX.WPF.Editor.UserInterface
             object? sender,
             CancelEventArgs e)
         {
+        }
+
+        public async Task RefreshTaskbarIconAsync()
+        {
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            if (Icon == null)
+                return;
+
+            Icon = BitmapFrame.Create(
+                new Uri(
+                    "pack://application:,,,/Assets/ico/realm_studio_icon.ico",
+                    UriKind.Absolute));
         }
     }
 
@@ -266,7 +280,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                         WindowAnimationStyle.Fade,
 
                     Duration =
-                        TimeSpan.FromMilliseconds(1000),
+                        TimeSpan.FromMilliseconds(500),
 
                     Easing =
                         new QuarticEase
@@ -281,7 +295,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                         WindowAnimationStyle.Fade,
 
                     Duration =
-                        TimeSpan.FromMilliseconds(250),
+                        TimeSpan.FromMilliseconds(10),
 
                     Easing =
                         new CubicEase()

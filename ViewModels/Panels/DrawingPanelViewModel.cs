@@ -6,6 +6,7 @@ using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
+using RealmStudioX.WPF.ViewModels.Painting;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
 using System.Collections.ObjectModel;
@@ -28,8 +29,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         private readonly AssetManager _assetManager;
 
         public AssetBrowserViewModel TextureBrowser { get; }
-
-        public AssetBrowser BrushBrowser { get; }
 
         public DrawingPanelViewModel(MainWindowViewModel mainViewModel, EditorController editor, AssetManager assetManager)
         {
@@ -55,14 +54,27 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
             TextureBrowser.TextureSelectionChanged += SelectedTextureChanged;
 
-            BrushBrowser = new(_assetManager, AssetType.Brush);
-
-            BuildBrushPatterns();
-
             SelectedTextureChanged();
 
             UpdateDrawingParameters();
-            UpdatePreparedBrush();
+            UpdateBrushSize();
+        }
+
+        public ObservableCollection<BrushPatternItem> BrushPatterns => _mainWindowViewModel.PaintService.BrushPatterns;
+
+        public BrushPatternItem? SelectedBrushPattern
+        {
+            get => _mainWindowViewModel.PaintService.Settings.SelectedBrushPattern;
+            set
+            {
+                _mainWindowViewModel.PaintService.Settings.SelectedBrushPattern = value;
+
+                OnPropertyChanged(nameof(SelectedBrushPattern));
+
+                UpdateDrawingParameters();
+
+                MainViewModel.OnDrawingModeChanged(Editor.CurrentDrawingMode);
+            }
         }
 
         private void SelectedTextureChanged()
@@ -75,24 +87,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         {
             SelectedDrawableMapLayer =
                 DrawableMapLayers.FirstOrDefault(x => x.Index == layer.MapLayerOrder);
-        }
-
-        public ObservableCollection<BrushPatternItem> BrushPatterns { get; } = [];
-
-        private BrushPatternItem? _selectedBrushPattern;
-
-        public BrushPatternItem? SelectedBrushPattern
-        {
-            get => _selectedBrushPattern;
-            set
-            {
-                SetProperty(ref _selectedBrushPattern, value);
-                BrushSpacing = value?.BrushDefinition?.BrushSpacing ?? 10;
-                UpdateDrawingParameters();
-                UpdatePreparedBrush();
-
-                MainViewModel.OnDrawingModeChanged(Editor.CurrentDrawingMode);
-            }
         }
 
         public ObservableCollection<DrawableMapLayerItem> DrawableMapLayers { get; } = [];
@@ -131,7 +125,8 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 {
                     _drawingColorBrush.Color = value;
                     UpdateDrawingParameters();
-                    UpdatePreparedBrush();
+
+                    _mainWindowViewModel.PaintService.Settings.SelectedColor = value.ToSKColor();
                 }
             }
         }
@@ -181,6 +176,14 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     // see LineBrushSizeSlider_Loaded in DrawingPanel.xaml.cs for details
                 }
             }
+        }
+
+        public void MouseWheelLineBrushSizeChanged(int delta)
+        {
+            int newSize = LineBrushSize + delta;
+            LineBrushSize = newSize;
+
+            _mainWindowViewModel.PaintService.Settings.BrushSize = LineBrushSize;
         }
 
         // fill texture
@@ -268,24 +271,12 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
 
         // brush spacing
-
-        public int MinBrushSpacing { get; } = 1;
-        public int MaxBrushSpacing { get; } = 5000;
-
-        private int _brushSpacing = 10;
         public int BrushSpacing
         {
-            get => _brushSpacing;
+            get => _mainWindowViewModel.PaintService.Settings.BrushSpacing;
             set
             {
-                var clamped = Math.Clamp(value, MinBrushSpacing, MaxBrushSpacing);
-
-                if (_brushSpacing != clamped)
-                {
-                    _brushSpacing = clamped;
-                    OnPropertyChanged();
-                    UpdateDrawingParameters();
-                }
+                _mainWindowViewModel.PaintService.Settings.BrushSpacing = value;
             }
         }
 
@@ -428,7 +419,9 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                         return;
                     }
 
-                    SelectedBrushPattern = pattern;
+                    MainViewModel.PaintService.Settings.SelectedBrushPattern = pattern;
+
+                    OnPropertyChanged(nameof(SelectedBrushPattern));
 
                     IsBrushPopupOpen = false;
                 },
@@ -442,8 +435,11 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public ICommand PaintCommand => new RelayCommand(() =>
         {
+            _mainWindowViewModel.PaintService.Settings.BrushSize = LineBrushSize;
+            _mainWindowViewModel.PaintService.Settings.SelectedColor = DrawingColor.ToSKColor();
+
             _editor.SetDrawingMode(MapDrawingMode.DrawingPaint);
-            _editor.ActivateTool(EditorToolType.DrawingTool, (IDrawingSettings)this);
+            _editor.ActivateTool(EditorToolType.PaintTool);
         });
 
         public ICommand PlaceRectangleCommand => new RelayCommand(() =>
@@ -550,76 +546,27 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         // private methods
 
-        private void BuildBrushPatterns()
-        {
-            List<MapBrush> brushes = _assetManager.MapBrushes;
-
-            foreach (MapBrush brush in brushes)
-            {
-                var bpi = CreateBrushPattern(brush);
-
-                if (bpi != null)
-                {
-                    BrushPatterns.Add(bpi);
-                }
-            }
-
-            SelectedBrushPattern = BrushPatterns.FirstOrDefault(b => string.Equals(
-                b.Name,
-                "Soft Round",
-                StringComparison.OrdinalIgnoreCase));
-        }
-
-        private BrushPatternItem? CreateBrushPattern(MapBrush brush)
-        {
-            if (brush.BrushBitmaps != null && brush.BrushBitmaps.Count > 0)
-            {
-                return new BrushPatternItem
-                {
-                    Name = brush.BrushName,
-
-                    BrushDefinition = brush,
-
-                    PreviewImage = brush.BrushBitmaps[0]?.Copy().ToImageSource()
-                };
-            }
-
-            return null;
-        }
-
         public void UpdateDrawingParameters()
         {
-            DrawingTool? dt = (DrawingTool?)_editor.ActivateTool(EditorToolType.DrawingTool, this);
-
-            if (dt != null)
+            if (_editor.ActiveEditorTool is not PaintTool)
             {
-                dt.UpdateDrawingParameters((IDrawingSettings)this);
+                DrawingTool? dt = (DrawingTool?)_editor.ActivateTool(EditorToolType.DrawingTool, this);
+
+                if (dt != null)
+                {
+                    dt.UpdateDrawingParameters((IDrawingSettings)this);
+                }
             }
         }
 
-        public void UpdatePreparedBrush()
+        public void UpdateBrushSize()
         {
-            DrawingTool? dt = (DrawingTool?)_editor.ActivateTool(EditorToolType.DrawingTool, this);
-
-            if (dt != null)
-            {
-                PreparedBrush newPreparedBrush = new()
-                {
-                    SourceBrush = SelectedBrushPattern?.BrushDefinition,
-                    Color = DrawingColor.ToSKColor(),
-                    BrushSize = LineBrushSize,
-                    BrushSpacing = BrushSpacing,
-                };
-
-                AssetInitializer.GetPreparedBrushBitmaps(newPreparedBrush);
-                dt.CurrentPreparedBrush = newPreparedBrush;
-            }
+            _mainWindowViewModel.PaintService.Settings.BrushSize = LineBrushSize;
         }
     }
 
     public interface IDrawingSettings
     {
-        BrushPatternItem? SelectedBrushPattern { get; }
         DrawableMapLayerItem? SelectedDrawableMapLayer { get; }
         Color DrawingColor { get; }
         Color FillColor { get; }
@@ -636,15 +583,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         int ShapeRotation { get; }
         string? SelectedStampPath { get; }
         BitmapImage? StampImage { get; }
-    }
-
-    public class BrushPatternItem
-    {
-        public string Name { get; set; } = "";
-
-        public ImageSource? PreviewImage { get; set; }
-
-        public MapBrush? BrushDefinition { get; set; }
     }
 
     public class DrawableMapLayerItem
