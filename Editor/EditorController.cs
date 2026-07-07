@@ -532,7 +532,7 @@ namespace RealmStudioX.WPF.Editor
 
                 if (_selectionService!.PrimarySelection is River river && river.Editor.IsEditing)
                 {
-                    _activeModifyWaterBodyCommand = new(Scene!.Map);
+                    _activeModifyWaterBodyCommand = new(Scene);
                     _activeModifyWaterBodyCommand.CaptureBefore(river);
 
                     river.Editor.OnMouseDown(state.WorldPoint, 5);
@@ -884,6 +884,7 @@ namespace RealmStudioX.WPF.Editor
             }
 
             ActiveEditorTool?.OnMouseUp(state);
+
             RequestRedraw();
         }
 

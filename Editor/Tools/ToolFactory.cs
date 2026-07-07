@@ -56,9 +56,9 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                             _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LANDFORMLAYER));
 
-                            tool = new LandformTool(_commands, _assets,
+                            tool = new LandformTool(_commands, _assets, _paintService,
                                 MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LANDFORMLAYER),
-                                _scene, _editorState, (ILandformSettings)context);
+                                _scene, _editor, (ILandformSettings)context);
 
                             return tool;
                         }
@@ -75,9 +75,9 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                             _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.WATERLAYER));
 
-                            tool = new WaterBodyTool(_commands, _assets,
+                            tool = new WaterBodyTool(_commands, _assets, _paintService,
                                 MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.WATERLAYER),
-                                _scene, _editorState, (IWaterBodySettings)context);
+                                _scene, _editor, (IWaterBodySettings)context);
 
                             return tool;
                         }

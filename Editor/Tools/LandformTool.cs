@@ -3,6 +3,7 @@
 using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
+using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
@@ -12,9 +13,10 @@ namespace RealmStudioX.WPF.Editor.Tools
     public sealed class LandformTool(
         CommandManager commands,
         IAssetProvider assets,
+        PaintService paintService,
         MapLayer targetLayer,
         MapScene scene,
-        EditorState editorState,
+        EditorController editor,
         ILandformSettings landformSettings) : IToolEditor, IDisposable
     {
         // -------------------------------------------------
@@ -23,8 +25,9 @@ namespace RealmStudioX.WPF.Editor.Tools
         private readonly CommandManager _commands = commands;
         private readonly MapLayer _layer = targetLayer;
         private readonly IAssetProvider _assets = assets;
+        private readonly PaintService _paintService = paintService;
         private readonly MapScene _scene = scene;
-        private readonly EditorState _editorState = editorState;
+        private readonly EditorController _editor = editor;
         private readonly ILandformSettings _landformSettings = landformSettings;
 
         private readonly HashSet<Landform> _modifiedLandforms = [];
@@ -66,12 +69,12 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             if (state.Button == EditorMouseButton.Left)
             {
-                if (_editorState.CurrentDrawingMode == MapDrawingMode.LandErase)
+                if (_editor.CurrentDrawingMode == MapDrawingMode.LandErase)
                 {
                     _activeModifyCommand = new(_layer);
                     ApplyErase(state.WorldPoint);
                 }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.LandPaint)
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.LandPaint)
                 {
                     _activeModifyCommand = new(_layer);
                     BeginPaint(state.WorldPoint);
@@ -85,11 +88,11 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             if (state.Button == EditorMouseButton.Left)
             {
-                if (_editorState.CurrentDrawingMode == MapDrawingMode.LandPaint && _activeLandform != null)
+                if (_editor.CurrentDrawingMode == MapDrawingMode.LandPaint && _activeLandform != null)
                 {
                     ContinuePaint(state.WorldPoint);
                 }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.LandErase)
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.LandErase)
                 {
                     ApplyErase(state.WorldPoint);
                 }
@@ -100,7 +103,7 @@ namespace RealmStudioX.WPF.Editor.Tools
         {
             if (state.Button == EditorMouseButton.Left)
             {
-                if (_editorState.CurrentDrawingMode == MapDrawingMode.LandPaint && _activeModifyCommand != null)
+                if (_editor.CurrentDrawingMode == MapDrawingMode.LandPaint && _activeModifyCommand != null)
                 {
                     EndPaint();
 
@@ -113,13 +116,9 @@ namespace RealmStudioX.WPF.Editor.Tools
                     }
 
                     _commands.Execute(_activeModifyCommand);
-
-                    _scene.MarkLandClipPathModified();
-
-
                 }
 
-                if (_editorState.CurrentDrawingMode == MapDrawingMode.LandErase && _activeModifyCommand != null)
+                if (_editor.CurrentDrawingMode == MapDrawingMode.LandErase && _activeModifyCommand != null)
                 {
                     foreach (var lf in _modifiedLandforms.ToList())
                     {
@@ -130,8 +129,6 @@ namespace RealmStudioX.WPF.Editor.Tools
                     }
 
                     _commands.Execute(_activeModifyCommand);
-
-                    _scene.MarkLandClipPathModified();
                 }
 
                 _painting = false;
@@ -236,7 +233,13 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             _activeLandform.EndInteractive();
 
-            _activeLandform.InvalidateRenderCache();
+            MapLayer landLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.LANDFORMLAYER);
+            landLayer.InvalidateAllTiles();
+
+            MapLayer landDrawingLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.LANDDRAWINGLAYER);
+            landDrawingLayer.InvalidateAllTiles();
+
+            _editor.Scene!.MarkLandClipPathModified();
         }
 
         // -------------------------------------------------
@@ -302,7 +305,10 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             var active = _activeLandform;
 
-            SKPath unionPath = new(active.HitPath);
+            SKPath unionPath = new(active.HitPath)
+            {
+                FillType = SKPathFillType.EvenOdd
+            };
 
             var toMerge = new List<Landform>();
 
@@ -335,11 +341,15 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                 unionPath.Dispose();
                 unionPath = newUnion;
+                unionPath.FillType = SKPathFillType.EvenOdd;
 
             }
 
             active.RestoreGeometry(unionPath);
+
             unionPath.Dispose();
+
+            active.InvalidateRenderCache();
         }
 
         private void ProcessPotentialSplit(Landform lf)
@@ -460,9 +470,9 @@ namespace RealmStudioX.WPF.Editor.Tools
         {
             _activeLandform?.Render(canvas, null);
 
-            if (_editorState.CurrentDrawingMode == MapDrawingMode.LandErase || _editorState.CurrentDrawingMode == MapDrawingMode.LandPaint)
+            if (_editor.CurrentDrawingMode == MapDrawingMode.LandErase || _editor.CurrentDrawingMode == MapDrawingMode.LandPaint)
             {
-                var brushRadius = _editorState.CurrentDrawingMode
+                var brushRadius = _editor.CurrentDrawingMode
                     == MapDrawingMode.LandErase ? _landformSettings.LandformEraserSize / 2 : _landformSettings.LandformBrushSize / 2;
 
                 canvas.DrawCircle(

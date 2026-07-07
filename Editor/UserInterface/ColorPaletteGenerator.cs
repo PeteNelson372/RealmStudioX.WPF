@@ -3,6 +3,7 @@ using Color = System.Windows.Media.Color;
 
 namespace RealmStudioX.WPF.Editor.UserInterface
 {
+    // this is used to generate a compact color palette for the quick color picker dialog
     public static class ColorPaletteGenerator
     {
         public static List<SolidColorBrush> GenerateCompactPalette()

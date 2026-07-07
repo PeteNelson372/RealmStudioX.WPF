@@ -130,10 +130,10 @@ namespace RealmStudioX.WPF.ViewModels.Main
             OceanViewModel = new OceanPanelViewModel(this, _editor, assetManager);
 
             // Landform Panel
-            LandformViewModel = new LandformPanelViewModel(_editor, assetManager);
+            LandformViewModel = new LandformPanelViewModel(this,_editor, assetManager);
 
             // Water Body Panel
-            WaterViewModel = new WaterPanelViewModel(_editor, assetManager);
+            WaterViewModel = new WaterPanelViewModel(this, _editor, assetManager);
 
             // Path Panel
             PathViewModel = new PathPanelViewModel(_editor, assetManager);
@@ -827,11 +827,14 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
             FinalizeMapLoad(map);
 
+            _editor.Scene!.MarkLandClipPathModified();
+            _editor.Scene!.MarkWaterSystemClipPathModified();
+
             PaintService.SetMapDimensions(map.MapWidth, map.MapHeight);
 
             _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.DRAWINGLAYER));
             
-            OnDrawingModeChanged(MapDrawingMode.None);
+            _editor.SetDrawingMode(MapDrawingMode.None);
 
             _editor.Commands.ClearAll();
 
@@ -842,6 +845,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
             SelectedTabIndex = 1;
 
             _editor.State.StatusMessage = $"Map {map.MapName} opened.";
+
+            _editor.RequestRedraw();
         }
 
         public void FinalizeMapLoad(RealmStudioMap map)
@@ -927,11 +932,35 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 OverlaysViewModel.ShowGridSize = grid.ShowGridSize;
             }
 
+            MapLayer landDrawingLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.LANDDRAWINGLAYER);
 
-            // ensure tiles and spatial grid are updated
+            foreach (MapComponent2D shape in landDrawingLayer.Shapes)
+            {
+                if (shape is PaintedLine pl)
+                {
+                    pl.RequiresLandformClipping = true;
+                }
+            }
+
+            MapLayer waterDrawingLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.WATERDRAWINGLAYER);
+
+            foreach (MapComponent2D shape in waterDrawingLayer.Shapes)
+            {
+                if (shape is PaintedLine pl)
+                {
+                    pl.RequiresWaterSystemClipping = true;
+                }
+            }
+
+
             foreach (MapLayer layer in map.MapLayers)
             {
                 layer.InvalidateAllTiles();
+            }
+
+            foreach (WaterSystem waterSystem in _editor.Scene!.Map.WaterSystems)
+            {
+                waterSystem.InvalidateRenderCache();
             }
         }
 

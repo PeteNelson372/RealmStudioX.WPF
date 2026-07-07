@@ -3,10 +3,8 @@ using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Painting;
-using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using System.Collections.ObjectModel;
-using static System.Windows.Forms.AxHost;
 
 namespace RealmStudioX.WPF.Editor.Services
 {
@@ -56,6 +54,19 @@ namespace RealmStudioX.WPF.Editor.Services
 
             _currentPaintedLine.Initialize(_mapWidth, _mapHeight);
 
+            if (_editor.ActiveDrawingLayer != null && _editor.ActiveDrawingLayer.MapLayerOrder == MapBuilder.LANDDRAWINGLAYER)
+            {
+                // build the clip path for the painted line to ensure it doesn't go outside the land area
+                _currentPaintedLine.RequiresLandformClipping = true;
+            }
+
+            if (_editor.ActiveDrawingLayer != null && _editor.ActiveDrawingLayer.MapLayerOrder == MapBuilder.WATERDRAWINGLAYER)
+            {
+                // build the clip path for the painted line to ensure it doesn't go outside the water systems
+                _currentPaintedLine.RequiresWaterSystemClipping = true;
+            }
+
+
             long now = Environment.TickCount64;
 
             _lastPaintTimestamp = now;
@@ -95,7 +106,10 @@ namespace RealmStudioX.WPF.Editor.Services
                     _commands.ActiveCommands.Execute(cmd);
                 }
 
+                _editor.ActiveDrawingLayer?.InvalidateAllTiles();
                 _currentPaintedLine = null;
+
+                _editor.RequestRedraw();
             }
         }
 
@@ -111,11 +125,24 @@ namespace RealmStudioX.WPF.Editor.Services
             _mapHeight = height;
         }
 
+
         public void RenderCurrentLine(SKCanvas canvas)
         {
             if (_currentPaintedLine != null)
             {
-                _currentPaintedLine.Render(canvas);
+                SKPath? clipPath = null;
+
+                if (_currentPaintedLine.RequiresLandformClipping)
+                {
+                    clipPath = _editor.Scene!.GetLandClipPath();
+                }
+
+                if ( _currentPaintedLine.RequiresWaterSystemClipping)
+                {
+                    clipPath = _editor.Scene!.GetWaterSystemClipPath();
+                }
+
+                _currentPaintedLine.Render(canvas, null, clipPath);
             }
         }
 

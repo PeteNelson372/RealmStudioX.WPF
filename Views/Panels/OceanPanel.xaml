@@ -74,7 +74,7 @@
                                      Opacity="0.7"/>
                 </StackPanel>
             </Button>
-
+            <Separator Margin="0,10,0,0" Width="50" Height="1" Background="#FF45443F"/>
             <Button
                 x:Name="PaintButton"
                 Height="50"
@@ -83,12 +83,12 @@
                 Style="{StaticResource FlatToolButton}"
                 Command="{Binding PaintCommand}">
                 <StackPanel Orientation="Vertical">
-                    <TextBlock Text="Paint"
+                    <TextBlock Text="Brush"
                                FontSize="12"
                                Foreground="#FF45443F"
                                HorizontalAlignment="Center"
                                Margin="0,0,0,3"/>
-                    <materialDesign:PackIcon Kind="Paintbrush"
+                    <materialDesign:PackIcon Kind="BrushVariant"
                                      Width="24"
                                      Height="24"
                                      Opacity="0.7"/>
@@ -108,7 +108,7 @@
                                Foreground="#FF45443F"
                                HorizontalAlignment="Center"
                                Margin="0,0,0,3"/>
-                    <materialDesign:PackIcon Kind="Eraser"
+                    <materialDesign:PackIcon Kind="EraserVariant"
                                      Width="24"
                                      Height="24"
                                      HorizontalAlignment="Center"

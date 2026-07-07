@@ -24,6 +24,8 @@
 
             <conv:SKColorToBrushConverter x:Key="SKColorToBrushConverter"/>
 
+            <conv:ContrastingBrushConverter x:Key="ContrastingBrushConverter"/>
+
             <ResourceDictionary.MergedDictionaries>
 
                 <ResourceDictionary Source="Themes/Colors.xaml"/>

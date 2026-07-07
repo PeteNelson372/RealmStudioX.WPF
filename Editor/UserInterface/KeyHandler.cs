@@ -77,7 +77,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
 
                             if (editor.SelectionService!.PrimarySelection is WaterSystem ws)
                             {
-                                Cmd_ModifyWaterBodies cmd = new(editor.Scene!.Map);
+                                Cmd_ModifyWaterBodies cmd = new(editor.Scene!);
                                 cmd.RegisterRemovedWaterSystem(ws);
 
                                 editor.Commands.Execute(cmd);
@@ -89,7 +89,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
 
                             if (editor.SelectionService!.PrimarySelection is WaterBody wb)
                             {
-                                Cmd_ModifyWaterBodies cmd = new(editor.Scene!.Map);
+                                Cmd_ModifyWaterBodies cmd = new(editor.Scene!);
                                 cmd.RegisterRemovedWaterBody(wb);
 
                                 editor.Commands.Execute(cmd);

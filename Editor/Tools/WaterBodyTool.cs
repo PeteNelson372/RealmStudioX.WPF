@@ -1,5 +1,6 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
+using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
@@ -9,9 +10,10 @@ namespace RealmStudioX.WPF.Editor.Tools
     public sealed class WaterBodyTool(
         CommandManager commands,
         IAssetProvider assets,
+        PaintService paintService,
         MapLayer targetLayer,
         MapScene scene,
-        EditorState editorState,
+        EditorController editor,
         IWaterBodySettings waterBodySettings) : IToolEditor, IDisposable
     {
         // -------------------------------------------------
@@ -21,8 +23,9 @@ namespace RealmStudioX.WPF.Editor.Tools
         private readonly CommandManager _commands = commands;
         private readonly MapLayer _layer = targetLayer;
         private readonly IAssetProvider _assets = assets;
+        private readonly PaintService _paintService = paintService;
         private readonly MapScene _scene = scene;
-        private readonly EditorState _editorState = editorState;
+        private readonly EditorController _editor = editor;
         private readonly IWaterBodySettings _waterBodySettings = waterBodySettings;
 
         private readonly HashSet<WaterBody> _modifiedWaterBodies = [];
@@ -62,18 +65,12 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             if (button == MouseButtons.Left)
             {
-                if (_editorState.CurrentDrawingMode == MapDrawingMode.LakePaint)
+                if (_editor.CurrentDrawingMode == MapDrawingMode.LakePaint)
                 {
-                    _activeModifyCommand = new Cmd_ModifyWaterBodies(_scene.Map);
-
                     CreateLake(worldPos);
-
-                    _commands.Execute(_activeModifyCommand!);
-
-                    _activeModifyCommand = null;
                     _modifiedWaterBodies.Clear();
                 }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.RiverPaint)
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.RiverPaint)
                 {
                     WaterRenderSettings rs = new()
                     {
@@ -92,13 +89,13 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                     _activeRiver.BeginInteractive();
                 }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.WaterPaint)
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.WaterPaint)
                 {
                     BeginPaint(worldPos);
                 }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.WaterErase)
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.WaterErase)
                 {
-                    _activeModifyCommand = new Cmd_ModifyWaterBodies(_scene.Map);
+                    _activeModifyCommand = new Cmd_ModifyWaterBodies(_scene);
                 }
             }
 
@@ -112,20 +109,20 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             if (button == MouseButtons.Left)
             {
-                if (_editorState.CurrentDrawingMode == MapDrawingMode.RiverPaint)
+                if (_editor.CurrentDrawingMode == MapDrawingMode.RiverPaint)
                 {
                     _activeRiver?.Editor.ContinueDraw(worldPos, ctrl, shift);
                 }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.WaterPaint)
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.WaterPaint)
                 {
                     if (_activePaintedWaterBody != null) 
                     {
                         ContinuePaint(worldPos);
                     }
                 }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.WaterErase)
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.WaterErase)
                 {
-                    _activeModifyCommand ??= new Cmd_ModifyWaterBodies(_scene.Map);
+                    _activeModifyCommand ??= new Cmd_ModifyWaterBodies(_scene);
 
                     ApplyWaterErase(worldPos);
                 }
@@ -138,7 +135,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             if (button == MouseButtons.Left)
             {
-                if (_editorState.CurrentDrawingMode == MapDrawingMode.RiverPaint)
+                if (_editor.CurrentDrawingMode == MapDrawingMode.RiverPaint)
                 {
                     if (_activeRiver != null)
                     {
@@ -148,7 +145,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                         _activeRiver = null;
                     }
                 }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.WaterPaint)
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.WaterPaint)
                 {
                     if (_activePaintedWaterBody != null)
                     {
@@ -161,7 +158,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                         _activePaintedWaterBody = null;
                     }
                 }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.WaterErase)
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.WaterErase)
                 {
                     if (_activeModifyCommand != null)
                     {
@@ -188,18 +185,16 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             if (state.Button == EditorMouseButton.Left)
             {
-                if (_editorState.CurrentDrawingMode == MapDrawingMode.LakePaint)
+                if (_editor.CurrentDrawingMode == MapDrawingMode.LakePaint)
                 {
-                    _activeModifyCommand = new Cmd_ModifyWaterBodies(_scene.Map);
+                    _activeModifyCommand = new Cmd_ModifyWaterBodies(_scene);
 
                     CreateLake(state.WorldPoint);
-
-                    _commands.Execute(_activeModifyCommand!);
 
                     _activeModifyCommand = null;
                     _modifiedWaterBodies.Clear();
                 }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.RiverPaint)
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.RiverPaint)
                 {
                     _activeRiver = new River
                     {
@@ -210,13 +205,13 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                     _activeRiver.BeginInteractive();
                 }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.WaterPaint)
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.WaterPaint)
                 {
                     BeginPaint(state.WorldPoint);
                 }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.WaterErase)
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.WaterErase)
                 {
-                    _activeModifyCommand = new Cmd_ModifyWaterBodies(_scene.Map);
+                    _activeModifyCommand = new Cmd_ModifyWaterBodies(_scene);
                 }
             }
         }
@@ -230,20 +225,20 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             if (state.Button == EditorMouseButton.Left)
             {
-                if (_editorState.CurrentDrawingMode == MapDrawingMode.RiverPaint)
+                if (_editor.CurrentDrawingMode == MapDrawingMode.RiverPaint)
                 {
                     _activeRiver?.Editor.ContinueDraw(state.WorldPoint, ctrl, shift);
                 }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.WaterPaint)
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.WaterPaint)
                 {
                     if (_activePaintedWaterBody != null)
                     {
                         ContinuePaint(state.WorldPoint);
                     }
                 }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.WaterErase)
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.WaterErase)
                 {
-                    _activeModifyCommand ??= new Cmd_ModifyWaterBodies(_scene.Map);
+                    _activeModifyCommand ??= new Cmd_ModifyWaterBodies(_scene);
 
                     ApplyWaterErase(state.WorldPoint);
                 }
@@ -256,7 +251,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             if (state.Button == EditorMouseButton.Left)
             {
-                if (_editorState.CurrentDrawingMode == MapDrawingMode.RiverPaint)
+                if (_editor.CurrentDrawingMode == MapDrawingMode.RiverPaint)
                 {
                     if (_activeRiver != null)
                     {
@@ -266,7 +261,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                         _activeRiver = null;
                     }
                 }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.WaterPaint)
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.WaterPaint)
                 {
                     if (_activePaintedWaterBody != null)
                     {
@@ -279,7 +274,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                         _activePaintedWaterBody = null;
                     }
                 }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.WaterErase)
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.WaterErase)
                 {
                     if (_activeModifyCommand != null)
                     {
@@ -297,7 +292,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                     _activeModifyCommand = null;
                     _modifiedWaterBodies.Clear();
                 }
-            }
+            }            
         }
 
         private WaterRenderSettings CreateRenderSettings()
@@ -371,7 +366,8 @@ namespace RealmStudioX.WPF.Editor.Tools
                 return;
             }
 
-            // TODO: does clipping have to happen here, or is the clipping done during rendering sufficient?
+            var cmd = new Cmd_ModifyWaterBodies(_scene);
+
             // Find landform under cursor
 
             // landforms are on the landform layer
@@ -412,8 +408,8 @@ namespace RealmStudioX.WPF.Editor.Tools
                 // Capture BEFORE merge destroys geometry
                 foreach (var l in intersectingLakes)
                 {
-                    _activeModifyCommand?.CaptureBefore(l);
-                    _activeModifyCommand?.RegisterRemovedWaterBody(l);
+                    cmd.CaptureBefore(l);
+                    cmd.RegisterRemovedWaterBody(l);
                 }
 
                 var all = intersectingLakes.Append(newLake);
@@ -433,7 +429,8 @@ namespace RealmStudioX.WPF.Editor.Tools
                 {
                     RenderSettings = CreateRenderSettings()
                 };
-                _activeModifyCommand?.RegisterAddedWaterSystem(system);
+
+                cmd.RegisterAddedWaterSystem(system);
             }
             else if (intersectingSystems.Count == 1)
             {
@@ -441,12 +438,15 @@ namespace RealmStudioX.WPF.Editor.Tools
             }
             else
             {
-                system = MergeWaterSystems(intersectingSystems, _activeModifyCommand!);
+                system = MergeWaterSystems(intersectingSystems, cmd);
             }
 
             system.Add(newLake);
-            _activeModifyCommand?.RegisterAddedWaterBody(newLake);
-            _activeModifyCommand?.CaptureAfter(newLake);
+
+            cmd.RegisterAddedWaterBody(newLake);
+            cmd.CaptureAfter(newLake);
+
+            _commands.Execute(cmd);
         }
 
         private void CommitRiver(SKPoint worldPos)
@@ -472,7 +472,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             river.Editor.EndDraw();
 
-            var cmd = new Cmd_ModifyWaterBodies(_scene.Map);
+            var cmd = new Cmd_ModifyWaterBodies(_scene);
 
             var intersectingSystems = FindIntersectingSystems(river.HitPath);
 
@@ -523,7 +523,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                 return;
             }
 
-            _activeModifyCommand = new Cmd_ModifyWaterBodies(_scene.Map);
+            _activeModifyCommand = new Cmd_ModifyWaterBodies(_scene);
 
             var intersectingSystems = FindIntersectingSystems(paintedWaterBody.HitPath);
 
@@ -644,7 +644,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                 }
 
                 cmd.RegisterRemovedWaterSystem(other);
-            }
+            }            
 
             return main;
         }
@@ -775,15 +775,15 @@ namespace RealmStudioX.WPF.Editor.Tools
                 }
             }
 
-            if (_editorState.CurrentDrawingMode == MapDrawingMode.LakePaint
-                || _editorState.CurrentDrawingMode == MapDrawingMode.WaterPaint)
+            if (_editor.CurrentDrawingMode == MapDrawingMode.LakePaint
+                || _editor.CurrentDrawingMode == MapDrawingMode.WaterPaint)
             {
                 canvas.DrawCircle(
                     world,
                     _waterBodySettings.WaterBrushSize / 2,
                     PaintObjects.CursorCirclePaint);
             }
-            else if (_editorState.CurrentDrawingMode == MapDrawingMode.WaterErase)
+            else if (_editor.CurrentDrawingMode == MapDrawingMode.WaterErase)
             {
                 canvas.DrawCircle(
                     world,

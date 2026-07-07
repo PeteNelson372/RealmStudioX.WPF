@@ -6,7 +6,7 @@ using SkiaSharp;
 namespace RealmStudioX.WPF.Editor.Tools
 {
     internal class PaintTool(EditorController editor, PaintService paintService, IRedrawRequester redraw) : IToolEditor, IDisposable
-        {
+    {
 
         private bool disposedValue;
 
@@ -40,7 +40,9 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         public void OnMouseDown(PointerState state)
         {
-            if (_editor.CurrentDrawingMode == MapDrawingMode.OceanErase)
+            if (_editor.CurrentDrawingMode == MapDrawingMode.OceanErase
+                || _editor.CurrentDrawingMode == MapDrawingMode.LandErase
+                || _editor.CurrentDrawingMode == MapDrawingMode.WaterColorErase)
             {
                 _paintService.BeginErase(state.WorldPoint);
             }
@@ -52,7 +54,9 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         public void OnMouseMove(PointerState state)
         {
-            if (_editor.CurrentDrawingMode == MapDrawingMode.OceanErase)
+            if (_editor.CurrentDrawingMode == MapDrawingMode.OceanErase
+                || _editor.CurrentDrawingMode == MapDrawingMode.LandErase
+                || _editor.CurrentDrawingMode == MapDrawingMode.WaterColorErase)
             {
                 _paintService.ContinueErase(state.WorldPoint);
             }
@@ -65,7 +69,9 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         public void OnMouseUp(PointerState state)
         {
-            if (_editor.CurrentDrawingMode == MapDrawingMode.OceanErase)
+            if (_editor.CurrentDrawingMode == MapDrawingMode.OceanErase
+                || _editor.CurrentDrawingMode == MapDrawingMode.LandErase
+                || _editor.CurrentDrawingMode == MapDrawingMode.WaterColorErase)
             {
                 _paintService.EndErase(state.WorldPoint);
             }

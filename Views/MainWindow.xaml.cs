@@ -37,6 +37,8 @@ namespace RealmStudioX.WPF
         public override string WindowId { get; } = Guid.NewGuid().ToString();
 
         private SKGLControl? _skiaControl;
+        public SKGLControl? SkiaControl => _skiaControl;
+
         private readonly EditorController? _editor;
         private readonly FontManager _fontManager;
         
@@ -132,13 +134,6 @@ namespace RealmStudioX.WPF
             };
 
             InitializeSkiaControl();
-        }
-
-        protected override void OnSourceInitialized(EventArgs e)
-        {
-            base.OnSourceInitialized(e);
-
-            Debug.WriteLine($"Icon is null? {Icon == null}");
         }
 
         private void AutosaveService_AutosaveCompleted(object? sender, EventArgs e)

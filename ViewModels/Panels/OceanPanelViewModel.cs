@@ -2,6 +2,7 @@
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
+using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
@@ -10,7 +11,6 @@ using SkiaSharp;
 using SkiaSharp.Views.WPF;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Reflection.Metadata;
 using System.Windows.Input;
 using System.Windows.Media;
 using Brush = System.Windows.Media.Brush;
@@ -18,7 +18,7 @@ using Color = System.Windows.Media.Color;
 
 namespace RealmStudioX.WPF.ViewModels.Panels
 {
-    public class OceanPanelViewModel : ViewModelBase, IWindroseSettings
+    public class OceanPanelViewModel : ViewModelBase, IPaintToolViewModel, IWindroseSettings
     {
         private readonly MainWindowViewModel _mainWindowViewModel;
         public MainWindowViewModel MainViewModel => _mainWindowViewModel;
@@ -31,7 +31,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public AssetBrowserViewModel TextureBrowser { get; }
 
-        public ColorPalette? OceanPalette { get; }
+        public ColorPalette? PaintPalette { get; }
 
         public OceanPanelViewModel(MainWindowViewModel mainViewModel, EditorController editor, AssetManager assetManager)
         {
@@ -54,7 +54,13 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     ColorPalette palette = MapFileMethods.DeserializeObject<ColorPalette>(xml);
                     if (palette != null && palette.PaletteType == ColorPaletteType.OceanColors)
                     {
-                        OceanPalette = palette;
+                        PaintPalette = palette;
+
+                        foreach (var colorEntry in PaintPalette.ColorEntries)
+                        {
+                            colorEntry.DisplayName = ColorPalette.GetColorName(colorEntry.Color);
+                        }
+
                         break;
                     }
                 }
@@ -116,11 +122,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     _mainWindowViewModel.PaintService.Settings.SelectedColor = value;
                 }
             }
-        }
-
-        private void SelectPaletteColor(SKColor color)
-        {
-            PaintingColor = color;
         }
 
         private SolidColorBrush _paintingColorBrush = new(Colors.Black);
@@ -309,6 +310,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         private SolidColorBrush _oceanColorBrush = new(Colors.White);
 
         public Brush OceanColorBrush => _oceanColorBrush;
+
 
 
         // WINDROSE

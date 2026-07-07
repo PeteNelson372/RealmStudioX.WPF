@@ -1,0 +1,374 @@
+﻿<UserControl x:Class="RealmStudioX.WPF.Views.Controls.PaintPalette"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Panels"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+             xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
+             xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
+             xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"              
+             mc:Ignorable="d"
+             d:DesignHeight="922" d:DesignWidth="152">
+
+    <Border Background="#FFDFDBD2" Padding="10">
+
+        <StackPanel Orientation="Vertical">
+
+            <TextBlock Text="Color Brush"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Left"
+                               Margin="0,0,0,3"/>
+
+            <Grid x:Name="Root">
+
+                <!-- COLLAPSED BUTTON -->
+                <ToggleButton x:Name="BrushPickerButton"
+                      Style="{StaticResource FlatToolToggleButton}"
+                      Width="120"
+                      Height="40">
+
+                    <StackPanel Orientation="Horizontal">
+
+                        <Image Source="{Binding SelectedBrushPattern.PreviewImage}"
+                           Width="32"
+                           Height="32"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Center"
+                           Margin="0,0,0,0"/>
+
+                        <TextBlock Text="{Binding SelectedBrushPattern.Name}"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Right"
+                           Margin="6,0,0,0"/>
+
+                    </StackPanel>
+
+                </ToggleButton>
+
+                <!-- POPUP -->
+                <Popup Placement="Left"
+                   HorizontalOffset="-10"
+                   PlacementTarget="{Binding ElementName=BrushPickerButton}"
+                   IsOpen="{Binding IsChecked,
+                                    ElementName=BrushPickerButton}"
+                   StaysOpen="False">
+
+                    <Border Background="#FFDFDBD2"
+                        BorderBrush="Gray"
+                        BorderThickness="1"
+                        Padding="2">
+
+                        <ScrollViewer MaxHeight="510"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+
+                            <ItemsControl ItemsSource="{Binding BrushPatterns}">
+
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+
+                                        <UniformGrid Columns="2"/>
+
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+
+                                        <Button Width="80"
+                                            Height="80"
+                                            Margin="2"
+                                            Background="DarkGray"
+                                            Command="{Binding DataContext.SelectBrushPatternCommand,
+                                                              RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}">
+
+                                            <StackPanel>
+
+                                                <Image Source="{Binding PreviewImage}"
+                                                   Width="48"
+                                                   Height="48"
+                                                   HorizontalAlignment="Center"
+                                                   Margin="2"/>
+
+                                                <TextBlock Text="{Binding Name}"
+                                                   FontSize="10"
+                                                   HorizontalAlignment="Center"/>
+
+                                            </StackPanel>
+
+                                        </Button>
+
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+
+                            </ItemsControl>
+
+                        </ScrollViewer>
+
+                    </Border>
+
+                </Popup>
+
+            </Grid>
+
+            <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="124"
+                        Height="Auto"
+                        Margin="3,10,3,15">
+
+                <TextBlock Text="Brush Size"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                <Slider x:Name="BrushSizeSlider"
+                            Style="{StaticResource ModernSlider}"
+                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                            AutoToolTipPlacement="TopLeft"
+                            AutoToolTipPrecision="0"
+                            Width="120"
+                            Minimum="{Binding MinBrushSize}"
+                            Maximum="{Binding MaxBrushSize}"
+                            Value="{Binding BrushSize}"/>
+
+            </StackPanel>
+
+            <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="124"
+                        Height="Auto"
+                        Margin="3,0,3,15">
+
+                <TextBlock Text="Brush Spacing"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        Margin="3,3,3,3"/>
+
+                <Slider x:Name="BrushSpacingSlider"
+                            Style="{StaticResource ModernSlider}"
+                            behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
+                            Width="120"
+                            Minimum="{Binding MinBrushSpacing}"
+                            Maximum="{Binding MaxBrushSpacing}"
+                            Value="{Binding BrushSpacing}"/>
+
+            </StackPanel>
+
+            <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                <TextBlock Text="Paint Color"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,3,3,3"/>
+                <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Width="120"
+                        Height="50"
+                        Margin="3,3,3,3"
+                        Background="{Binding PaintingColorBrush}"
+                        ToolTip="Select Painting Color"
+                        PreviewMouseLeftButtonUp="PaintColor_LeftClick"
+                        PreviewMouseRightButtonUp="PaintColor_RightClick">
+
+                    <materialDesign:PackIcon Kind="PaletteOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Foreground="Tan"
+                                    Opacity="0.7"/>
+                </Button>
+
+            </StackPanel>
+
+            <DockPanel Margin="0,20,0,0">
+
+                <!-- Add Color Button -->
+
+                <StackPanel DockPanel.Dock="Top"
+                    Orientation="Vertical"
+                    HorizontalAlignment="Center"
+                    Margin="0,10,0,0">
+
+                    <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Width="120"
+                        Height="50"
+                        Margin="3,3,3,3"
+                        Background="#FFCDC9C1"
+                        ToolTip="Add Palette Color"
+                        PreviewMouseLeftButtonUp="AddColor_LeftClick"
+                        PreviewMouseRightButtonUp="AddColor_RightClick">
+
+                        <Grid>
+                            <materialDesign:PackIcon
+                            Kind="PaletteOutline"
+                            Width="36"
+                            Height="36"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Foreground="Tan"
+                            Opacity="0.7"/>
+
+                            <TextBlock Text="Add Color"
+                                FontSize="12"
+                                Foreground="#FF45443F"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Margin="0,0,0,0"/>
+
+                        </Grid>
+                    </Button>
+
+
+                </StackPanel>
+
+                <!-- Color Palette -->
+                <ListBox ItemsSource="{Binding PaintPalette.ColorEntries}"
+                        BorderThickness="0"
+                        Background="Transparent"
+                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                        ScrollViewer.VerticalScrollBarVisibility="Visible"
+                        HorizontalContentAlignment="Center" MaxHeight="400">
+
+                    <!-- Wrap the color swatches -->
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="2"/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+
+                    <!-- Remove the default blue selection -->
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+
+                            <Setter Property="Margin" Value="2,2,2,2"/>
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+
+                                        <Border x:Name="SelectionBorder"
+                                            CornerRadius="2"
+                                            BorderThickness="1"
+                                            BorderBrush="Transparent">
+
+                                            <ContentPresenter/>
+
+                                        </Border>
+
+                                        <ControlTemplate.Triggers>
+
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="SelectionBorder"
+                                                    Property="BorderBrush"
+                                                    Value="#808080"/>
+                                            </Trigger>
+
+                                        </ControlTemplate.Triggers>
+
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+
+                    <!-- Individual Color -->
+                    <ListBox.ItemTemplate>
+
+                        <DataTemplate>
+
+                            <Button Command="{Binding DataContext.SelectPaletteColorCommand,
+                                RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                CommandParameter="{Binding Color}"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Padding="0"
+                                Margin="0">
+
+                                <Border Width="48"
+                                    Height="48"
+                                    CornerRadius="2"
+                                    ToolTip="{Binding DisplayName}">
+
+                                    <Border.ContextMenu>
+
+                                        <ContextMenu Visibility="{Binding IsLocked,
+                                            Converter={StaticResource BooleanToVisibilityInverseConverter}}">
+
+                                            <MenuItem Header="Delete Color" PreviewMouseLeftButtonUp="DeleteColor_LeftClick"
+                                                Visibility="{Binding IsLocked,
+                                                                    Converter={StaticResource BooleanToVisibilityInverseConverter}}" />
+
+                                        </ContextMenu>
+
+                                    </Border.ContextMenu>
+
+                                    <Grid>
+
+                                        <Grid>
+                                            <!-- Color swatch -->
+                                            <Rectangle Margin="0" RadiusX="2" RadiusY="2"
+                                            Fill="{Binding Color, Converter={StaticResource SKColorToBrushConverter}}" />
+
+                                            <TextBlock Text="{Binding DisplayName}"
+                                                FontSize="8"
+                                                Margin="2"
+                                                Foreground="{Binding Color,
+                                                    Converter={StaticResource ContrastingBrushConverter}}"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center" />
+                                        </Grid>
+
+                                        <Grid HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                                            <!-- Lock indicator -->
+                                            <TextBlock Text="🔒"
+                                                FontSize="8"
+                                                Margin="2"
+                                                Foreground="{Binding Color,
+                                                    Converter={StaticResource ContrastingBrushConverter}}"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Visibility="{Binding IsLocked,
+                                                                    Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                                        </Grid>
+                                    </Grid>
+
+                                </Border>
+
+                            </Button>
+
+                        </DataTemplate>
+
+                    </ListBox.ItemTemplate>
+
+                </ListBox>
+
+            </DockPanel>
+
+        </StackPanel>
+
+    </Border>
+
+</UserControl>
+
