@@ -125,7 +125,7 @@ namespace RealmStudioX.WPF
 
             Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-            LoadingWindow loading = WindowManager.GetOrCreate<LoadingWindow>();
+            LoadingWindow loading = WindowManager.Create<LoadingWindow>();
             loading.ApplicationVersion = $"Version {AssemblyVersion}";
             loading.LoadingStatus = $"Loading Assets...";
 
@@ -148,11 +148,11 @@ namespace RealmStudioX.WPF
 
             // Continue startup - open the CreateOpenMapDialog
 
-            CreateOpenMapDialog dialog = WindowManager.GetOrCreate<CreateOpenMapDialog>();
+            CreateOpenMapDialog createOpenDialog = WindowManager.Create<CreateOpenMapDialog>();
 
-            var result = WindowManager.ShowDialog(dialog);
+            var result = WindowManager.ShowDialog(createOpenDialog);
 
-            if (result != true || dialog.ViewModel.Result == null)
+            if (result != true || createOpenDialog.ViewModel.Result == null)
             {
                 Shutdown();
                 return;
@@ -162,7 +162,7 @@ namespace RealmStudioX.WPF
             await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Render);
             await Task.Delay(100); // Allow the loading window to render
 
-            var mainWindow = new MainWindow(dialog.ViewModel.Result, assetManager, fontManager);
+            var mainWindow = new MainWindow(createOpenDialog.ViewModel.Result, assetManager, fontManager);
 
             Current.MainWindow = mainWindow;
             MainWindow = mainWindow;
@@ -170,7 +170,7 @@ namespace RealmStudioX.WPF
             mainWindow.Show();
             await mainWindow.RefreshTaskbarIconAsync();
 
-            WindowManager.Close<LoadingWindow>();
+            WindowManager.Close(createOpenDialog);
 
             Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
         }

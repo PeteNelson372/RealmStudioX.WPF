@@ -1,4 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.Core;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using SkiaSharp;
 using System.Windows.Input;
@@ -47,6 +48,7 @@ namespace RealmStudioX.WPF.Editor.Services
             _selectionFilter.SelectableTypes.Add(typeof(PaintedWaterBody));
             _selectionFilter.SelectableTypes.Add(typeof(MapPath));
             _selectionFilter.SelectableTypes.Add(typeof(MapLabel));
+            _selectionFilter.SelectableTypes.Add(typeof(PlacedMapBox));
             _selectionFilter.SelectableTypes.Add(typeof(MapRegion));
             _selectionFilter.SelectableTypes.Add(typeof(IDrawnMapComponent));
             _selectionFilter.SelectableTypes.Add(typeof(MapSymbol));
@@ -191,6 +193,26 @@ namespace RealmStudioX.WPF.Editor.Services
                 else
                 {
                     _selectionFilter.SelectableTypes.Remove(typeof(MapLabel));
+                }
+            }
+        }
+
+        private bool _boxSelectionAllowed = true;
+
+        public bool BoxSelectionAllowed
+        {
+            get { return _boxSelectionAllowed; }
+            set
+            {
+                _boxSelectionAllowed = value;
+                OnPropertyChanged(nameof(BoxSelectionAllowed));
+                if (value)
+                {
+                    _selectionFilter.SelectableTypes.Add(typeof(PlacedMapBox));
+                }
+                else
+                {
+                    _selectionFilter.SelectableTypes.Remove(typeof(PlacedMapBox));
                 }
             }
         }
@@ -359,9 +381,35 @@ namespace RealmStudioX.WPF.Editor.Services
             PaintedWaterBodySelectionAllowed = true;
             PathSelectionAllowed = true;
             LabelSelectionAllowed = true;
+            BoxSelectionAllowed = true;
             RegionSelectionAllowed = true;
             DrawnShapeSelectionAllowed = true;
             SymbolSelectionAllowed = true;
+            VegetationSelectionAllowed = true;
+            TerrainSelectionAllowed = true;
+            StructureSelectionAllowed = true;
+            MarkerSelectionAllowed = true;
+        });
+
+        public ICommand FilterAllCommand => new RelayCommand(() =>
+        {
+            // Set all selection filters - this will allow no types of objects to be selected
+            // individual filters can then be cleared
+            LandformSelectionAllowed = false;
+            WaterSystemSelectionAllowed = false;
+            LakeSelectionAllowed = false;
+            RiverSelectionAllowed = false;
+            PaintedWaterBodySelectionAllowed = false;
+            PathSelectionAllowed = false;
+            LabelSelectionAllowed = false;
+            BoxSelectionAllowed = false;
+            RegionSelectionAllowed = false;
+            DrawnShapeSelectionAllowed = false;
+            SymbolSelectionAllowed = false;
+            VegetationSelectionAllowed = false;
+            TerrainSelectionAllowed = false;
+            StructureSelectionAllowed = false;
+            MarkerSelectionAllowed = false;
         });
 
         public ICommand SetClearLandformFilterCommand => new RelayCommand(() =>
@@ -397,6 +445,11 @@ namespace RealmStudioX.WPF.Editor.Services
         public ICommand SetClearLabelFilterCommand => new RelayCommand(() =>
         {
             LabelSelectionAllowed = !LabelSelectionAllowed;
+        });
+
+        public ICommand SetClearBoxFilterCommand => new RelayCommand(() =>
+        {
+            BoxSelectionAllowed = !BoxSelectionAllowed;
         });
 
         public ICommand SetClearRegionFilterCommand => new RelayCommand(() =>
@@ -539,18 +592,31 @@ namespace RealmStudioX.WPF.Editor.Services
             SelectionChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        private void ClearSelectionState()
+        private void ClearSelectionState(MapScene? scene = null)
         {
-            foreach (ISelectable selected in SelectedObjects)
+            for (int i = 0; i < SelectedObjects.Count; i++)
             {
-                selected.IsSelected = false;
+                if (SelectedObjects[i] is MapComponent2D selected)
+                {
+                    selected.IsSelected = false;
+                }
+                else if (SelectedObjects[i] is WaterSystem ws)
+                {
+                    ws.IsSelected = false;
+                }                
+            }
+
+            SelectedObjects.Clear();
+
+            if (scene != null)
+            {
+                scene.TransformWidget.Target = null;
             }
         }
 
-        public void ClearSelection()
+        public void ClearSelection(MapScene? scene = null)
         {
-            ClearSelectionState();
-            SelectedObjects.Clear();
+            ClearSelectionState(scene);
             ResetSelectionCycle();
         }
 
@@ -631,11 +697,25 @@ namespace RealmStudioX.WPF.Editor.Services
                                 hits.Add(ml);
                             }
                         }
+                        else if (shape is PlacedMapBox pmb && SelectionFilter.Allows(pmb))
+                        {
+                            if (pmb.HitTest(worldPos))
+                            {
+                                hits.Add(pmb);
+                            }
+                        }
                         else if (shape is MapScale scale && SelectionFilter.Allows(scale))
                         {
                             if (scale.HitTest(worldPos))
                             {
                                 hits.Add(scale);
+                            }
+                        }
+                        else if (shape is MapPath path && SelectionFilter.Allows(path))
+                        {
+                            if (path.HitTest(worldPos))
+                            {
+                                hits.Add(path);
                             }
                         }
                         else if (shape.HitTest(worldPos) && SelectionFilter.Allows(shape))

@@ -150,14 +150,12 @@ namespace RealmStudioX.WPF
 
         private void OpenNameGeneratorConfigDialog()
         {
-            var vm = new NameGenConfigViewModel(ViewModel);
-
             WindowManager wm = MainWindowViewModel.WindowManager;
 
-            NameGenConfig dialog = wm.GetOrCreate<NameGenConfig>();
+            NameGenConfig dialog = wm.Create<NameGenConfig>();
 
             dialog.Owner = this;
-            dialog.DataContext = vm;
+            dialog.DataContext = ViewModel.NameGenConfigViewModel;
 
             var result = dialog.ShowDialog();
         }

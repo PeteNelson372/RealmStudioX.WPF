@@ -4,8 +4,10 @@ using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.Editor.Services;
+using RealmStudioX.WPF.Editor.Tools;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.Models.Startup;
+using RealmStudioX.WPF.Models.UserInterface;
 using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Dialogs;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
@@ -78,6 +80,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public DrawingPanelViewModel DrawingViewModel { get; }
 
+        public NameGenConfigViewModel NameGenConfigViewModel { get; }
+
         public CommandService CommandService { get; }
 
         public RecoveryService RecoveryService { get; }
@@ -85,6 +89,12 @@ namespace RealmStudioX.WPF.ViewModels.Main
         public SelectionService SelectionService { get; }
 
         public PaintService PaintService { get; }
+
+        public AlignmentService AlignmentService { get; }
+
+        public LayoutPathTool LayoutTool { get; }
+
+        public LayoutOptions Layout { get; }
 
         public event Action? RequestOpenNameGeneratorConfig;
 
@@ -115,6 +125,11 @@ namespace RealmStudioX.WPF.ViewModels.Main
             PaintService = new(_assetManager, _editor, CommandService);
 
             Editor.SetPaintService(PaintService);
+
+            AlignmentService = new(Editor, SelectionService, CommandService);
+
+            LayoutTool = new(Editor);
+            Editor.SetLayoutTool(LayoutTool);
 
             // instantiate ViewModels for the panels; when adding a view model
             // remember to add a reference to it on the TabItem <panel:...> in MainTabs.xaml
@@ -158,6 +173,10 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
             // Drawing Panel
             DrawingViewModel = new DrawingPanelViewModel(this, _editor, assetManager);
+
+            NameGenConfigViewModel = new NameGenConfigViewModel(this);
+
+            Layout = new LayoutOptions();
 
             MapName = "Default";
         }
@@ -494,6 +513,60 @@ namespace RealmStudioX.WPF.ViewModels.Main
             _editor.ActivateTool(EditorToolType.SelectionTool);
         });
 
+        // -------------------------
+        // Layout Methods
+        // -------------------------
+        public ICommand AlignLeftCommand => new RelayCommand(() =>
+        {
+            AlignmentService.AlignLeft();
+        });
+
+        public ICommand AlignCenterCommand => new RelayCommand(() =>
+        {
+            AlignmentService.AlignCenter();
+        });
+
+        public ICommand AlignRightCommand => new RelayCommand(() =>
+        {
+            AlignmentService.AlignRight();
+        });
+
+        public ICommand AlignTopCommand => new RelayCommand(() =>
+        {
+            AlignmentService.AlignTop();
+        });
+
+        public ICommand AlignMiddleCommand => new RelayCommand(() =>
+        {
+            AlignmentService.AlignMiddle();
+        });
+
+        public ICommand AlignBottomCommand => new RelayCommand(() =>
+        {
+            AlignmentService.AlignBottom();
+        });
+
+        public ICommand AlignToPathCommand => new RelayCommand(() =>
+        {
+            AlignmentService.AlignToPath();
+        });
+
+        public ICommand DistributeObjectsCommand => new RelayCommand(() =>
+        {
+            AlignmentService.DistributeAlongPath();
+        });
+
+        public ICommand DrawPathCommand => new RelayCommand(() =>
+        {
+            _editor.SetDrawingMode(MapDrawingMode.DrawFreeformLayoutPath);
+            _editor.ActivateTool(EditorToolType.LayoutPathTool);
+        });
+
+        public ICommand DrawArcCommand => new RelayCommand(() =>
+        {
+            _editor.SetDrawingMode(MapDrawingMode.DrawArcLayoutPath);
+            _editor.ActivateTool(EditorToolType.LayoutPathTool);
+        });
 
         // -------------------------
         // Other Methods
@@ -1043,8 +1116,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 MapDrawingMode.SymbolPlace => "Place Symbol",
                 MapDrawingMode.SymbolSelect => "Select Symbol",
                 MapDrawingMode.SymbolColor => "Color Symbol",
-                MapDrawingMode.DrawBezierLabelPath => "Draw Curve Label Path",
-                MapDrawingMode.DrawArcLabelPath => "Draw Arc Label Path",
+                MapDrawingMode.DrawFreeformLayoutPath => "Draw Freeform Layout Path",
+                MapDrawingMode.DrawArcLayoutPath => "Draw Arc Layout Path",
                 MapDrawingMode.DrawLabel => "Place Label",
                 MapDrawingMode.LabelSelect => "Select Label",
                 MapDrawingMode.DrawBox => "Draw Box",

@@ -1,0 +1,158 @@
+﻿<ui:FloatingToolbar x:Class="RealmStudioX.WPF.Views.Dialogs.LayoutOptionsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:ui="clr-namespace:RealmStudioX.WPF.Editor.UserInterface"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"        
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"        
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Dialogs"
+        xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"        
+        mc:Ignorable="d"
+        WindowStyle="None"
+        WindowStartupLocation="Manual"
+        AllowsTransparency="true"
+        Background="#FFCDC9C1"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="False"
+        SizeToContent="Manual"
+        Title="Layout Options" Height="100" Width="700">
+
+    <Border Background="#FFCDC9C1"
+            BorderBrush="#888"
+            BorderThickness="1"
+            Height="100"
+            Width="700">
+
+        <StackPanel>
+            <Grid Height="21" Background="#FF45443F" VerticalAlignment="Top">
+                <TextBlock Text="Layout Options"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Left"
+                           Margin="10,0,0,0"
+                           Foreground="WhiteSmoke"/>
+                <Button Style="{StaticResource CloseButtonStyle}"
+                        Width="16"
+                        Height="16"
+                        HorizontalAlignment="Right"
+                        Margin="0,0,4,0"
+                        Click="Close_Click">
+                    <TextBlock Text="&#xE8BB;" FontFamily="Segoe MDL2 Assets" Foreground="WhiteSmoke"/>
+            </Button>
+        </Grid>
+
+        <Grid Margin="0,10,0,0">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="60"/>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="60"/>
+                <ColumnDefinition Width="100"/>
+                </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+
+            </Grid.RowDefinitions>
+
+                <TextBlock Grid.Column="0" Text="Offset"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Left"
+                    Margin="10,0,0,0"/>
+
+                <Grid Grid.Column="1">
+                    <controls:NumericUpDown x:Name="OffetBox"
+                                         Value="{Binding Offset, Mode=TwoWay}"
+                                         Minimum="0"
+                                         Maximum="100"
+                                         Margin="0,0,0,0"
+                                         Width="100"/>
+                </Grid>
+
+
+                <TextBlock Text="Spacing"
+                    Grid.Row="1"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Left"
+                    Margin="10,0,0,0"/>
+
+                <Grid Grid.Row="1" Grid.Column="1">
+                    <controls:NumericUpDown x:Name="SpacingBox"                                      
+                                         Grid.Column="1"
+                                         Value="{Binding Spacing, Mode=TwoWay}"
+                                         Minimum="0"
+                                         Maximum="100"
+                                         Margin="0,0,0,0"
+                                         Width="100"/>
+                </Grid>
+                <TextBlock Text="Distribution" Grid.Column="2"
+                                   VerticalAlignment="Center"
+                                   Margin="10,0,0,0"/>
+
+                <ComboBox x:Name="DistributionCombo"
+                                  Grid.Column="3"
+                                  Width="100"
+                                  Height="22"
+                                  Margin="0,0,0,0"
+                                  Background="#FFDFDBD2"
+                                  SelectedValuePath="Content"
+                                  SelectedValue="{Binding Distribution, Mode=TwoWay}">
+
+                    <ComboBoxItem Content="Even"/>
+                    <ComboBoxItem Content="Fixed"/>
+                    <ComboBoxItem Content="Random"/>
+                    <ComboBoxItem Content="Vertices"/>
+                    <ComboBoxItem Content="Custom"/>
+                </ComboBox>
+
+                <TextBlock Grid.Column="4" Text="Start Offset"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Left"
+                    Margin="10,0,0,0"/>
+
+                <Grid Grid.Column="5">
+                    <controls:NumericUpDown x:Name="StartOffsetBox"
+                                         Value="{Binding StartOffset, Mode=TwoWay}"
+                                         Minimum="0"
+                                         Maximum="100"
+                                         VerticalAlignment="Center"
+                                         Margin="0,0,0,0"
+                                         Width="100"/>
+                </Grid>
+
+                <TextBlock Grid.Column="4" Grid.Row="1" Text="End Offset"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Left"
+                    Margin="10,0,0,0"/>
+
+                <Grid Grid.Column="5" Grid.Row="1">
+                    
+                    <controls:NumericUpDown x:Name="EndOffsetBox"
+                                         Value="{Binding EndOffset, Mode=TwoWay}"
+                                         Minimum="0"
+                                         Maximum="100"
+                                         VerticalAlignment="Center"
+                                         Margin="0,0,0,0"
+                                         Width="100"/>
+                </Grid>
+
+                <CheckBox Grid.Column="6" Grid.ColumnSpan="2" Content="Follow Path Rotation"
+                              Margin="10,0,0,0"
+                              VerticalAlignment="Center"
+                              IsChecked="{Binding FollowPathRotation, Mode=TwoWay}"/>
+
+                <CheckBox Grid.Column="6" Grid.Row="1" Grid.ColumnSpan="2" Content="Keep Upright"
+                              Margin="10,0,0,0"
+                              VerticalAlignment="Center"
+                              IsChecked="{Binding KeepUpright, Mode=TwoWay}"/>
+            </Grid>
+        </StackPanel>
+    </Border>
+
+</ui:FloatingToolbar>

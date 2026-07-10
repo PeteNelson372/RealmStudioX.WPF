@@ -352,7 +352,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                             WindowManager wm = MainWindowViewModel.WindowManager;
 
-                            PixelEditDialog dialog = wm.GetOrCreate<PixelEditDialog>();
+                            PixelEditDialog dialog = wm.Create<PixelEditDialog>();
                             dialog.Owner = Application.Current.MainWindow;
                             dialog.DataContext = vm;
 

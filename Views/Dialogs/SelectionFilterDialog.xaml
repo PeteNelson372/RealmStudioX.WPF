@@ -14,13 +14,13 @@
         ShowInTaskbar="False"
         Topmost="False"
         Title="SelectionFilterDialog"
-        Height="540"
+        Height="590"
         Width="34">
 
     <Border Background="#FFCDC9C1"
             BorderBrush="#888"
             BorderThickness="1"
-            Height="540"
+            Height="590"
             Width="34">
 
         <StackPanel Orientation="Vertical" Margin="0,10,0,0"
@@ -34,7 +34,9 @@
                     <materialDesign:PackIcon Kind="LandPlots"
                                  Width="20"
                                  Height="20"
-                                 Foreground="SaddleBrown"/>
+                                 Foreground="SaddleBrown"
+                                 Opacity="{Binding LandformSelectionAllowed,
+                                    Converter={StaticResource BooleanToOpacityConverter}}"/>
                 </Button>
 
                 <materialDesign:PackIcon Kind="CheckBold"
@@ -55,6 +57,8 @@
                     <materialDesign:PackIcon Kind="Watermill"
                              Width="20"
                              Height="20"
+                             Opacity="{Binding WaterSystemSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"
                              Foreground="CadetBlue"/>
 
                 </Button>
@@ -77,6 +81,8 @@
                 <materialDesign:PackIcon Kind="Lake"
                              Width="20"
                              Height="20"
+                             Opacity="{Binding LakeSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"
                              Foreground="DarkSlateBlue"/>
 
                 </Button>
@@ -99,6 +105,8 @@
                     <materialDesign:PackIcon Kind="Waterfall"
                                  Width="20"
                                  Height="20"
+                                 Opacity="{Binding RiverSelectionAllowed,
+                                    Converter={StaticResource BooleanToOpacityConverter}}"                                             
                                  Foreground="CornflowerBlue"/>
 
                 </Button>
@@ -121,6 +129,8 @@
                     <materialDesign:PackIcon Kind="WaterCircle"
                              Width="20"
                              Height="20"
+                             Opacity="{Binding PaintedWaterBodySelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"
                              Foreground="SlateBlue"/>
 
                 </Button>
@@ -144,6 +154,8 @@
                     <materialDesign:PackIcon Kind="Road"
                              Width="20"
                              Height="20"
+                             Opacity="{Binding PathSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"
                              Foreground="DarkSlateGray"/>
 
                 </Button>
@@ -167,6 +179,8 @@
                     <materialDesign:PackIcon Kind="AlphabetLatin"
                              Width="20"
                              Height="20"
+                             Opacity="{Binding LabelSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"
                              Foreground="Black"/>
 
                 </Button>
@@ -184,11 +198,37 @@
 
             <Grid>
                 <Button Style="{StaticResource IconBarButtonStyle}"
+                    Command="{Binding SetClearBoxFilterCommand}"
+                    ToolTip="Placed Box Selection">
+                    <materialDesign:PackIcon Kind="SquareOutline"
+                                 Width="20"
+                                 Height="20"
+                                 Opacity="{Binding BoxSelectionAllowed,
+                                    Converter={StaticResource BooleanToOpacityConverter}}"
+                                 Foreground="DarkOrchid"/>
+
+                </Button>
+
+                <materialDesign:PackIcon Kind="CheckBold"
+                             Width="18"
+                             Height="18"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Top"
+                             Foreground="LightGreen"
+                             Opacity="{Binding BoxSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"/>
+
+            </Grid>
+
+            <Grid>
+                <Button Style="{StaticResource IconBarButtonStyle}"
                     Command="{Binding SetClearRegionFilterCommand}"
                     ToolTip="Region Selection">
                     <materialDesign:PackIcon Kind="SurfaceArea"
                                  Width="20"
                                  Height="20"
+                                 Opacity="{Binding RegionSelectionAllowed,
+                                    Converter={StaticResource BooleanToOpacityConverter}}"
                                  Foreground="RoyalBlue"/>
 
                 </Button>
@@ -211,6 +251,8 @@
                     <materialDesign:PackIcon Kind="StarBoxOutline"
                                  Width="20"
                                  Height="20"
+                                 Opacity="{Binding DrawnShapeSelectionAllowed,
+                                    Converter={StaticResource BooleanToOpacityConverter}}"
                                  Foreground="IndianRed"/>
 
                 </Button>
@@ -236,6 +278,8 @@
                     <materialDesign:PackIcon Kind="Image"
                                  Width="20"
                                  Height="20"
+                                 Opacity="{Binding SymbolSelectionAllowed,
+                                    Converter={StaticResource BooleanToOpacityConverter}}"
                                  Foreground="ForestGreen"/>
 
                 </Button>
@@ -259,6 +303,8 @@
                     <materialDesign:PackIcon Kind="Castle"
                                  Width="14"
                                  Height="14"
+                                 Opacity="{Binding StructureSelectionAllowed,
+                                    Converter={StaticResource BooleanToOpacityConverter}}"
                                  Foreground="DarkSlateBlue"/>
 
                 </Button>
@@ -282,6 +328,8 @@
                     <materialDesign:PackIcon Kind="PineTreeVariant"
                                  Width="14"
                                  Height="14"
+                                 Opacity="{Binding VegetationSelectionAllowed,
+                                    Converter={StaticResource BooleanToOpacityConverter}}"
                                  Foreground="DarkGreen"/>
 
                 </Button>
@@ -304,6 +352,8 @@
                 <materialDesign:PackIcon Kind="Terrain"
                              Width="14"
                              Height="14"
+                             Opacity="{Binding TerrainSelectionAllowed,
+                                Converter={StaticResource BooleanToOpacityConverter}}"
                              Foreground="DarkSlateBlue"/>
 
             </Button>
@@ -327,6 +377,8 @@
                     <materialDesign:PackIcon Kind="AddressMarker"
                                  Width="14"
                                  Height="14"
+                                 Opacity="{Binding MarkerSelectionAllowed,
+                                    Converter={StaticResource BooleanToOpacityConverter}}"
                                  Foreground="DarkMagenta"/>
 
                 </Button>
@@ -347,13 +399,22 @@
 
             <Button Style="{StaticResource IconBarButtonStyle}"
                 Command="{Binding ClearFilterCommand}"
-                ToolTip="Clear Filter"
-                Margin="0,10,0,20">
+                ToolTip="Clear All Filters"
+                Margin="0,10,0,0">
                 <materialDesign:PackIcon Kind="FilterOffOutline"
                              Width="22"
                              Height="22"
-                             Foreground="Black"/>
+                             Foreground="DarkGreen"/>
+            </Button>
 
+            <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding FilterAllCommand}"
+                ToolTip="Set All Filters"
+                Margin="0,10,0,0">
+                <materialDesign:PackIcon Kind="FilterPlusOutline"
+                             Width="22"
+                             Height="22"
+                             Foreground="DarkBlue"/>
             </Button>
         </StackPanel>
     </Border>

@@ -77,21 +77,39 @@
         <!-- MENU -->
         <!-- ========================= -->
 
-        <DockPanel Grid.Row="1" Grid.ColumnSpan="3"
-           Background="#FFDFDBD2">
+        <Grid Grid.Row="1" Grid.ColumnSpan="3" Background="#FFDFDBD2">
 
-            <controls:MenuIconBar DockPanel.Dock="Right"
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="350"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="280"/>
+            </Grid.ColumnDefinitions>
+
+            <controls:MainMenu x:Name="MainMenu"
+                Grid.Column="0"
+                Background="#FFDFDBD2"
+                Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+                Height="32"/>
+
+            <controls:AlignmentIconBar
+                Grid.Column="1"
+                HorizontalAlignment="Center"
+                Background="#FFDFDBD2"
+                Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+                VerticalAlignment="Top"
+                Height="32"/>
+            
+            <controls:MenuIconBar
+                Grid.Column="2"
                 Background="#FFDFDBD2"
                 Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
                 VerticalAlignment="Top"
                 Height="32"/>
 
-            <controls:MainMenu x:Name="MainMenu"
-                DockPanel.Dock="Left"
-                Background="#FFDFDBD2"
-                Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
-                Height="32"/>
-        </DockPanel>
+
+
+
+        </Grid>
 
 
         <Grid Grid.Row="2">

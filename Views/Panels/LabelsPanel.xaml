@@ -482,7 +482,7 @@
                             Width="130"
                             Height="32"
                             Margin="3,3,3,3">
-                        
+
                         <Slider x:Name="LabelRotationSlider"
                                 Style="{StaticResource ModernSlider}"
                                 behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
@@ -507,83 +507,7 @@
                 </StackPanel>
 
             </GroupBox>
-
-            <GroupBox Header="Path"
-                        Grid.Row="1"
-                        Grid.Column="0"
-                        VerticalAlignment="Top"
-                        HorizontalAlignment="Left"
-                        Width="154"
-                        Height="Auto"
-                        Margin="3,3,3,3">
-
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <Button
-                            x:Name="CircleTextPathButton"
-                            Grid.Column="0"
-                            HorizontalAlignment="Left"
-                            Width="60"
-                            Height="60"
-                            Margin="3,3,3,3"
-                            ToolTip="Draw Label Arc Path"
-                            Style="{StaticResource FlatToolButton}"
-                            Command="{Binding DrawLabelArcCommand}">
-
-                        <StackPanel Orientation="Vertical">
-                            <TextBlock Text="Arc"
-                                Foreground="#FF45443F"
-                                VerticalAlignment="Center"
-                                HorizontalAlignment="Center"
-                                Margin="3,3,3,3"/>
-                            
-                            <materialDesign:PackIcon Kind="CircleOutline"
-                                     Width="24"
-                                     Height="24"
-                                     VerticalAlignment="Center"
-                                     HorizontalAlignment="Center"
-                                     Opacity="0.7"/>
-                            
-                        </StackPanel>
-                    </Button>
-                        
-
-                    <Button
-                            x:Name="BezierTextPathButton"
-                            Grid.Column="1"
-                            Width="60"
-                            Height="60"
-                            Margin="3,3,3,3"
-                            HorizontalAlignment="Right"
-                            ToolTip="Draw Label Curve Path"
-                            Style="{StaticResource FlatToolButton}"
-                            Command="{Binding DrawLabelCurveCommand}">
-
-                        <StackPanel Orientation="Vertical">
-                            
-                            <TextBlock Text="Curve"
-                                Foreground="#FF45443F"
-                                VerticalAlignment="Center"
-                                HorizontalAlignment="Center"
-                                Margin="3,3,3,3"/>
-                            
-                            <materialDesign:PackIcon Kind="VectorBezier"
-                                         Width="32"
-                                         Height="32"
-                                         VerticalAlignment="Center"
-                                         HorizontalAlignment="Center"                                                     
-                                         Opacity="0.7"/>
-                        </StackPanel>
-
-                    </Button>
-
-                </Grid>
-
-            </GroupBox>
+            
         </StackPanel>
 
     </Grid>

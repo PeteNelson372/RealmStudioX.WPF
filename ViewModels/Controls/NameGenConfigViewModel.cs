@@ -7,7 +7,7 @@ using System.Windows.Input;
 
 namespace RealmStudioX.WPF.ViewModels.Controls
 {
-    internal class NameGenConfigViewModel : ViewModelBase
+    public class NameGenConfigViewModel : ViewModelBase
     {
         const int NumberOfNamesToGenerate = 10;
         const int NumberOfNamesToKeep = 30;

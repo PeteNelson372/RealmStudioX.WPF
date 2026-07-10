@@ -22,8 +22,6 @@ namespace RealmStudioX.WPF.Editor.UserInterface
             Storyboard storyboard =
                 BuildStoryboard(window, options, true);
 
-            Debug.WriteLine(window.IsLoaded);
-
             storyboard.Begin(window,
                 HandoffBehavior.SnapshotAndReplace,
                 true);

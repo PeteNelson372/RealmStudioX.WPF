@@ -9,17 +9,17 @@ namespace RealmStudioX.WPF.Editor.UserInterface
 
         protected FloatingToolbar()
         {
-            ShowInTaskbar = false;
+            //ShowInTaskbar = false;
 
-            ResizeMode = ResizeMode.NoResize;
+            //ResizeMode = ResizeMode.NoResize;
 
-            SizeToContent = SizeToContent.WidthAndHeight;
+            //SizeToContent = SizeToContent.WidthAndHeight;
 
-            WindowStartupLocation = WindowStartupLocation.Manual;
+            //WindowStartupLocation = WindowStartupLocation.Manual;
 
-            Focusable = false;
+            //Focusable = false;
 
-            ShowActivated = false;
+            //ShowActivated = false;
         }
     }
 }

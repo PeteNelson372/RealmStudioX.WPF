@@ -70,7 +70,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 ColorWasSelected = true;
 
                 WindowManager wm = ((App)Application.Current).WindowManager;
-                wm.Close<ColorQuickPick>();
+                wm.Close(this);
             }
         }
 
@@ -78,7 +78,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
         {
             ColorWasSelected = false;
             WindowManager wm = ((App)Application.Current).WindowManager;
-            wm.Close<ColorQuickPick>();
+            wm.Close(this);
         }
 
         private void TitleBar_Drag(object sender, MouseButtonEventArgs e)
@@ -99,7 +99,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             if (IsVisible)
             {
                 WindowManager wm = ((App)Application.Current).WindowManager;
-                wm.Close<ColorQuickPick>();
+                wm.Close(this);
             }
         }
     }

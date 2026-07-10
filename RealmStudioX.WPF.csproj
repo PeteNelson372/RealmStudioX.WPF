@@ -226,6 +226,9 @@
     <Compile Update="Views\Controls\CreateMapDialogTitleBar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Controls\AlignmentIconBar.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Controls\PixelEditTitleBar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -236,6 +239,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Dialogs\CreateMapDialog.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Dialogs\LayoutOptionsDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Panels\ProjectToolPanel.xaml.cs">

@@ -2,6 +2,7 @@
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor.Services;
+using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.ViewModels.Panels;
 
 namespace RealmStudioX.WPF.Editor.Tools
@@ -152,7 +153,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                             tool = new LabelTool(_commands, _assets,
                                 MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LABELLAYER),
-                                _scene, _editorState, _fontManager, _editor, (ILabelSettings)context);
+                                _scene, _editor, _fontManager, _editor, (ILabelSettings)context);
 
                             return tool;
                         }
@@ -278,6 +279,10 @@ namespace RealmStudioX.WPF.Editor.Tools
                         {
                             return _editor.ActiveEditorTool;
                         }
+                    }
+                case EditorToolType.LayoutPathTool:
+                    {
+                        return _editor.LayoutTool;
                     }
             }
 

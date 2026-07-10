@@ -29,6 +29,13 @@ namespace RealmStudioX.WPF.Views.Controls
 
             this.PreviewMouseUp += OnMouseUp;
             this.MouseLeave += (s, e) => OnMouseLeave(s, e);
+
+            Loaded += NumericUpDown_Loaded;
+        }
+
+        private void NumericUpDown_Loaded(object? sender, RoutedEventArgs e)
+        {
+            UpdateText();
         }
 
         public double CoarseFactor { get; set; } = 0.01; // 1%

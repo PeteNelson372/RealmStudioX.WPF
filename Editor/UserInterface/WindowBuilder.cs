@@ -12,7 +12,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
         {
             WindowManager wm = ((App)Application.Current).WindowManager;
 
-            ColorQuickPick dialog = wm.GetOrCreate<ColorQuickPick>();
+            ColorQuickPick dialog = wm.Create<ColorQuickPick>();
             dialog.Owner = window;
             dialog.InitialColor = initialColor;
 
@@ -33,7 +33,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
         {
             WindowManager wm = ((App)Application.Current).WindowManager;
 
-            ColorSelectionDialog colorSelectionDialog = wm.GetOrCreate<ColorSelectionDialog>();
+            ColorSelectionDialog colorSelectionDialog = wm.Create<ColorSelectionDialog>();
 
             colorSelectionDialog.Owner = window;
             colorSelectionDialog.InitialColor = initialColor;

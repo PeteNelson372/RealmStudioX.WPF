@@ -1,0 +1,124 @@
+﻿<UserControl x:Class="RealmStudioX.WPF.Views.Controls.AlignmentIconBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="32" d:DesignWidth="410">
+
+    <!-- RIGHT ICON BAR -->
+    <StackPanel Orientation="Horizontal"
+                DockPanel.Dock="Right"
+                Margin="0,0,20,0">
+
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding AlignLeftCommand}"
+                ToolTip="Align left side of selected objects">
+            <materialDesign:PackIcon Kind="FormatHorizontalAlignLeft"
+                             Width="22"
+                             Height="22"
+                             Foreground="#FF45443F"/>
+
+        </Button>
+
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding AlignCenterCommand}"
+                ToolTip="Align centers of selected objects">
+            <materialDesign:PackIcon Kind="AlignHorizontalCenter"
+                             Width="18"
+                             Height="18"
+                             Foreground="#FF45443F"/>
+
+        </Button>
+
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding AlignRightCommand}"
+                ToolTip="Align right sides of selected objects">
+            <materialDesign:PackIcon Kind="FormatHorizontalAlignRight"
+                             Width="18"
+                             Height="18"
+                             Foreground="#FF45443F"/>
+
+        </Button>
+
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding AlignTopCommand}"
+                ToolTip="Align top of selected objects.">
+            <materialDesign:PackIcon Kind="FormatVerticalAlignTop"
+                             Width="22"
+                             Height="22"
+                             Foreground="#FF45443F"/>
+        </Button>
+
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding AlignMiddleCommand}"
+                ToolTip="Align middle of selected objects">
+            <materialDesign:PackIcon Kind="AlignVerticalCenter"
+                             Width="22"
+                             Height="22"
+                             Foreground="#FF45443F"/>
+        </Button>
+
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding AlignBottomCommand}"
+                ToolTip="Align bottom of selected objects">
+            <materialDesign:PackIcon Kind="FormatVerticalAlignBottom"
+                             Width="22"
+                             Height="22"
+                             VerticalAlignment="Center"
+                             Foreground="#FF45443F"/>
+        </Button>
+
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding AlignToPathCommand}"
+                ToolTip="Align selected objects along path">
+            <materialDesign:PackIcon Kind="VectorBezier"
+                             Width="22"
+                             Height="22"
+                             VerticalAlignment="Center"
+                             Foreground="#FF45443F"/>
+        </Button>
+
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding DistributeObjectsCommand}"
+                ToolTip="Distribute selected objects along path">
+            <materialDesign:PackIcon Kind="DistributeVerticalCenter"
+                             Width="22"
+                             Height="22"
+                             VerticalAlignment="Center"
+                             Foreground="#FF45443F"/>
+        </Button>
+
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding DrawArcCommand}"
+                ToolTip="Draw arc for alignment and distribution">
+            <materialDesign:PackIcon Kind="Autorenew"
+                             Width="22"
+                             Height="22"
+                             VerticalAlignment="Center"
+                             Foreground="#FF45443F"/>
+        </Button>
+
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding DrawPathCommand}"
+                ToolTip="Draw arc for alignment and distribution">
+            <materialDesign:PackIcon Kind="Gesture"
+                             Width="22"
+                             Height="22"
+                             VerticalAlignment="Center"
+                             Foreground="#FF45443F"/>
+        </Button>
+
+        <Button x:Name="OpenLayoutOptionsButton" Style="{StaticResource IconBarButtonStyle}"
+                PreviewMouseLeftButtonUp="OpenLayoutOptionsButton_LeftClick"
+                ToolTip="Open alignment and distribution options">
+            <materialDesign:PackIcon Kind="DockWindow"
+                             Width="22"
+                             Height="22"
+                             Foreground="#FF45443F" HorizontalAlignment="Center"/>
+        </Button>
+
+    </StackPanel>
+</UserControl>

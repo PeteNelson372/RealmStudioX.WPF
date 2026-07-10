@@ -11,7 +11,7 @@
         mc:Ignorable="d"
         Background="#FF45443F"
         WindowStyle="None"        
-        Title="NameGenConfig" Height="660" Width="700">
+        Title="Pixel Edit" Height="660" Width="700">
 
     <!-- WindowChrome -->
     <shell:WindowChrome.WindowChrome>

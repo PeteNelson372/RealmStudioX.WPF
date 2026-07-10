@@ -1,6 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
-using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
@@ -9,14 +8,14 @@ using SkiaSharp.Views.WPF;
 using System.Windows.Input;
 using CommandManager = RealmStudioX.Core.CommandManager;
 
-namespace RealmStudioX
+namespace RealmStudioX.WPF.Editor.Tools
 {
     internal class LabelTool(
         CommandManager commands,
         IAssetProvider assets,
         MapLayer targetLayer,
         MapScene scene,
-        EditorState editorState,
+        EditorController editor,
         FontManager fontManager,
         IRedrawRequester redraw,
         ILabelSettings labelSettings) : IToolEditor, IKeyHandler, IDisposable
@@ -29,7 +28,7 @@ namespace RealmStudioX
         private readonly MapLayer _layer = targetLayer;
         private readonly IAssetProvider _assets = assets;
         private readonly MapScene _scene = scene;
-        private readonly EditorState _editorState = editorState;
+        private readonly EditorController _editor = editor;
         private readonly FontManager _fontManager = fontManager;
         private readonly ILabelSettings _labelSettings = labelSettings;
         private readonly IRedrawRequester _redraw = redraw;
@@ -55,10 +54,6 @@ namespace RealmStudioX
         private DateTime _lastTick;
         private double _caretTime;
         private bool _caretVisible = true;
-
-        private SKPath? _labelPath;
-        private readonly List<SKPoint> _labelPathPoints = [];
-        private SKPoint _firstWorldPoint;
 
         public void Activate()
         {
@@ -113,7 +108,7 @@ namespace RealmStudioX
 
             if (state.Button == EditorMouseButton.Left)
             {
-                if (_editorState.CurrentDrawingMode == MapDrawingMode.DrawLabel)
+                if (_editor.CurrentDrawingMode == MapDrawingMode.DrawLabel)
                 {
                     _editSession = new LabelEditSession
                     {
@@ -135,69 +130,15 @@ namespace RealmStudioX
 
                     Redraw();
                 }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.DrawArcLabelPath)
-                {
-                    _labelPathPoints.Clear();
-
-                    _firstWorldPoint = state.WorldPoint;
-                    _labelPath = new();
-
-                }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.DrawBezierLabelPath)
-                {
-                    _labelPathPoints.Clear();
-                    _labelPathPoints.Add(state.WorldPoint);
-
-                    _labelPath = new();
-                }
             }
         }
 
         public void OnMouseMove(PointerState state)
         {
-            if (state.Button == EditorMouseButton.Left)
-            {
-                if (_editorState.CurrentDrawingMode == MapDrawingMode.DrawArcLabelPath)
-                {
-                    _labelPath?.Reset();
-                    _labelPath = CreateNewArcPath(state.WorldPoint, _firstWorldPoint);
-
-                    _redraw.RequestRedraw();
-                }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.DrawBezierLabelPath)
-                {
-
-                    _labelPathPoints.Add(state.WorldPoint);
-
-                    _labelPath?.Reset();
-                    _labelPath = Utilities.BuildPath2(_labelPathPoints);
-
-                    _redraw.RequestRedraw();
-                }
-            }
         }
 
         public void OnMouseUp(PointerState state)
         {
-            if (state.Button == EditorMouseButton.Left)
-            {
-                if (_editorState.CurrentDrawingMode == MapDrawingMode.DrawArcLabelPath)
-                {
-                    _labelPath?.Reset();
-                    _labelPath = CreateNewArcPath(state.WorldPoint, _firstWorldPoint);
-
-                    _redraw.RequestRedraw();
-                }
-                else if (_editorState.CurrentDrawingMode == MapDrawingMode.DrawBezierLabelPath)
-                {
-                    _labelPathPoints.Add(state.WorldPoint);
-
-                    _labelPath?.Reset();
-                    _labelPath = Utilities.BuildPath2(_labelPathPoints);
-
-                    _redraw.RequestRedraw();
-                }
-            }
         }
 
         public void OnMouseDoubleClick(PointerState state)
@@ -394,26 +335,6 @@ namespace RealmStudioX
             return index;
         }
 
-        internal static SKPath CreateNewArcPath(SKPoint currentWorldPoint, SKPoint previousWorldPoint)
-        {
-            SKPath newArcPath = new();
-
-            if (currentWorldPoint.Y > previousWorldPoint.Y)
-            {
-                // start on the left and drag right and down to draw an arc downward (open part of the arc facing down)
-                SKRect r = new(previousWorldPoint.X, previousWorldPoint.Y, currentWorldPoint.X, currentWorldPoint.Y);
-                newArcPath.AddArc(r, 180, 180);
-            }
-            else
-            {
-                // start on the right and drag left and up to draw an arc upward (open part of the arc facing up)
-                SKRect r = new(currentWorldPoint.X, currentWorldPoint.Y, previousWorldPoint.X, previousWorldPoint.Y);
-                newArcPath.AddArc(r, 180, -180);
-            }
-
-            return newArcPath;
-        }
-
         public void BeginEdit(MapLabel label, SKPoint clickPoint)
         {
             var typeface = _fontManager.GetTypeface(label.FontStyle);
@@ -485,8 +406,8 @@ namespace RealmStudioX
                     label.GlowStrength = _editSession.GlowStrength;
                     label.GlowColor = _editSession.GlowColor;
 
-                    label.CurvePath = (_labelPath != null && _labelPath.PointCount > 3)
-                        ? new SKPath(_labelPath)
+                    label.CurvePath = (_editor.LayoutTool?.LayoutPath != null && _editor.LayoutTool?.LayoutPath.PointCount > 3)
+                        ? new SKPath(_editor.LayoutTool?.LayoutPath)
                         : _editSession.CurvePath;
 
                     if (label.CurvePath != null && label.CurvePath.PointCount > 3)
@@ -527,8 +448,8 @@ namespace RealmStudioX
                         GlowStrength = _editSession.GlowStrength,
                         GlowColor = _editSession.GlowColor,
 
-                        CurvePath = (_labelPath != null && _labelPath.PointCount > 3)
-                            ? new SKPath(_labelPath)
+                        CurvePath = (_editor.LayoutTool?.LayoutPath != null && _editor.LayoutTool?.LayoutPath.PointCount > 3)
+                            ? new SKPath(_editor.LayoutTool?.LayoutPath)
                             : _editSession.CurvePath,
 
                         BoundsModified = true
@@ -558,8 +479,8 @@ namespace RealmStudioX
 
             _editSession = null;
             _editingOriginal = null;
-            _labelPath?.Dispose();
-            _labelPath = null;
+
+            _editor.LayoutTool?.ClearLayoutPath();
 
             _redraw.RequestRedraw();
         }
@@ -607,11 +528,6 @@ namespace RealmStudioX
 
         public void RenderOverlay(SKCanvas canvas, SKPoint world)
         {
-            if (_labelPath != null)
-            {
-                canvas.DrawPath(_labelPath, PaintObjects.LabelPathPaint);
-            }
-
             if (_editSession != null)
             {
                 DrawEditingLabel(canvas, _editSession);

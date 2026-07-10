@@ -34,6 +34,9 @@ namespace RealmStudioX.WPF.Editor
 
         public EditorState State => _editorState;
 
+        private LayoutPathTool? _layoutTool;
+        public LayoutPathTool? LayoutTool => _layoutTool;
+
         private MapScene? _scene;
 
         private ToolFactory? _toolFactory;
@@ -117,6 +120,11 @@ namespace RealmStudioX.WPF.Editor
         public void SetPaintService(PaintService paintService)
         {
             _paintService = paintService;
+        }
+
+        internal void SetLayoutTool(LayoutPathTool layoutTool)
+        {
+            _layoutTool = layoutTool;
         }
 
         public void Reset()
@@ -356,6 +364,11 @@ namespace RealmStudioX.WPF.Editor
 
             var world = Scene.Camera.CurrentCursorPoint;
             ActiveEditorTool?.RenderOverlay(canvas, world);
+
+            if (LayoutTool?.LayoutPath != null)
+            {
+                canvas.DrawPath(LayoutTool?.LayoutPath, PaintObjects.LayoutPathPaint);
+            }
         }
 
         // ---------------------------------------------
@@ -502,21 +515,24 @@ namespace RealmStudioX.WPF.Editor
                 }
 
                 if (_selectionService!.PrimarySelection is MapSymbol ms
-                    && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
+                    && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect
+                    && state.Modifiers != InputModifiers.Shift)
                 {
                     SelectedMapSymbolMouseDown(ms, state.WorldPoint);
                     return;
                 }
 
                 if (_selectionService!.PrimarySelection is MapLabel ml
-                    && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
+                    && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect
+                    && state.Modifiers != InputModifiers.Shift)
                 {
                     SelectedMapLabelMouseDown(ml, state.WorldPoint);
                     return;
                 }
 
                 if (_selectionService!.PrimarySelection is PlacedMapBox pmb
-                    && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
+                    && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect
+                    && state.Modifiers != InputModifiers.Shift)
                 {
                     SelectedMapBoxMouseDown(pmb, state.WorldPoint);
                     return;
@@ -2109,6 +2125,8 @@ namespace RealmStudioX.WPF.Editor
         }
 
 
+
+
         // -------------------------------------------------
         // End Class
         // -------------------------------------------------
@@ -2135,5 +2153,6 @@ namespace RealmStudioX.WPF.Editor
         DrawingTool,
         SelectionTool,
         PaintTool,
+        LayoutPathTool
     }
 }

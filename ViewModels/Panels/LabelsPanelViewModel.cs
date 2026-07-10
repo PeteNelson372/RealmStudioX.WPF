@@ -274,18 +274,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             _editor.ActivateTool(EditorToolType.LabelTool, (ILabelSettings)this);
         });
 
-        public ICommand DrawLabelCurveCommand => new RelayCommand(() =>
-        {
-            _editor.SetDrawingMode(MapDrawingMode.DrawBezierLabelPath);
-            _editor.ActivateTool(EditorToolType.LabelTool, (ILabelSettings)this);
-        });
-
-        public ICommand DrawLabelArcCommand => new RelayCommand(() =>
-        {
-            _editor.SetDrawingMode(MapDrawingMode.DrawArcLabelPath);
-            _editor.ActivateTool(EditorToolType.LabelTool, (ILabelSettings)this);
-        });
-
         public ICommand GenerateNameCommand => new RelayCommand(() =>
         {
             List<INameGenerator> generators = AssetManager.GetAllNameGenerators();

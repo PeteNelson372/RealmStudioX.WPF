@@ -124,7 +124,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         {
             WindowManager wm = MainWindowViewModel.WindowManager;
 
-            CreateMapDialog dialog = wm.GetOrCreate<CreateMapDialog>();
+            CreateMapDialog dialog = wm.Create<CreateMapDialog>();
 
             var result = dialog.ShowDialog();
 
