@@ -15,8 +15,6 @@ namespace RealmStudioX.WPF.Views.Panels
     /// </summary>
     public partial class SymbolsPanel : System.Windows.Controls.UserControl
     {
-        public event Action? CollectionOrTagChanged;
-
         public SymbolsPanel()
         {
             InitializeComponent();

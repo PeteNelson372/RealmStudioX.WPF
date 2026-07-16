@@ -170,6 +170,8 @@ namespace RealmStudioX.WPF
             mainWindow.Show();
             await mainWindow.RefreshTaskbarIconAsync();
 
+            WindowManager.Close(loading);
+
             WindowManager.Close(createOpenDialog);
 
             Current.ShutdownMode = ShutdownMode.OnMainWindowClose;

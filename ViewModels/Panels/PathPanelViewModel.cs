@@ -117,7 +117,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 {
                     MapLayer layer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.PATHLOWERLAYER);
                     _editor.SetActiveDrawingLayer(layer);
-                }
+                }                
             }
         }
 
@@ -127,7 +127,10 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         public bool EditPathPoints
         {
             get => _editPathPoints;
-            set => SetProperty(ref _editPathPoints, value);
+            set
+            {
+                SetProperty(ref _editPathPoints, value);
+            }
         }
 
         // texture opacity
@@ -324,6 +327,12 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 {
                     mp.Editor.OnChanged!();
                 }
+                else
+                {
+                    mp.Editor.RebuildEditablePoints();
+                }
+
+                _editor.RequestRedraw();
             }
         });
     }

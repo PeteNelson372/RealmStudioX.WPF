@@ -251,8 +251,13 @@ namespace RealmStudioX.WPF.Editor.Tools
             float r = _landformSettings.LandformEraserSize / 2;
 
             // Precompute eraser circle path once
-            using var erasePath = new SKPath();
-            erasePath.AddCircle(worldPos.X, worldPos.Y, r);
+            SKPathBuilder erasePathBuilder = new();
+            erasePathBuilder.AddCircle(worldPos.X, worldPos.Y, r);
+
+            var erasePath = erasePathBuilder.Snapshot();
+
+            erasePathBuilder.Detach();
+            erasePathBuilder.Dispose();
 
             foreach (var shape in _layer.Shapes)
             {
@@ -285,7 +290,6 @@ namespace RealmStudioX.WPF.Editor.Tools
                 }
    
                 lf.EraseCircle(worldPos, r);
-
             }
         }
 

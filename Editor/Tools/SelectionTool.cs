@@ -41,6 +41,12 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                 if (_editor.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
                 {
+                    if (state.Modifiers == InputModifiers.Control)
+                    {
+                        _selectionService.SelectForLayout(_editor, state.WorldPoint, 4);
+                        return;
+                    }
+
                     _selectionService.SelectAt(_editor.Scene.Map, state.WorldPoint, 4, state.Modifiers == InputModifiers.Shift);
                 }
                 else if (_editor.CurrentDrawingMode == MapDrawingMode.RealmAreaSelect && state.Button == EditorMouseButton.Left)

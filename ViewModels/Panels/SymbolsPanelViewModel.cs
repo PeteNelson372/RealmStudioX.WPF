@@ -479,8 +479,13 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
                     if (pbm != null)
                     {
-                        SymbolGridItem gridItem = new(symbol, pbm.ToImageSource(), _editor.SymbolSelectionService);
-                        SymbolGridItems.Add(gridItem);
+                        ImageSource? pbmImg = pbm.ToImageSource();
+
+                        if (pbmImg != null)
+                        {
+                            SymbolGridItem gridItem = new(symbol, pbmImg, _editor.SymbolSelectionService);
+                            SymbolGridItems.Add(gridItem);
+                        }
                     }
                 }
             }

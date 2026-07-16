@@ -5,6 +5,7 @@ using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
 using Svg.Skia;
+using System.Diagnostics;
 
 namespace RealmStudioX.WPF.Editor.Tools
 {
@@ -49,6 +50,8 @@ namespace RealmStudioX.WPF.Editor.Tools
         {
             if (_editorState.CurrentDrawingMode == MapDrawingMode.PathPaint)
             {
+                _drawOverSymbols = _pathSettings.DrawOverSymbols;
+
                 PathRenderStyle renderStyle = new()
                 {
                     Width = _pathSettings.PathWidth,

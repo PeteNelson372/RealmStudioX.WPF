@@ -136,17 +136,21 @@ namespace RealmStudioX.WPF.Editor.Tools
             {
                 if (_currentMeasure.MeasureArea && _currentMeasure.MeasurePoints.Count > 1)
                 {
-                    SKPath path = new();
+                    SKPathBuilder builder = new();
 
-                    path.MoveTo(_currentMeasure.MeasurePoints.First());
+                    builder.MoveTo(_currentMeasure.MeasurePoints.First());
+
                     for (int i = 1; i < _currentMeasure.MeasurePoints.Count; i++)
                     {
-                        path.LineTo(_currentMeasure.MeasurePoints[i]);
+                        builder.LineTo(_currentMeasure.MeasurePoints[i]);
                     }
 
-                    path.LineTo(world);
+                    builder.LineTo(world);
+                    builder.Close();
 
-                    path.Close();
+                    var path = builder.Snapshot();
+                    builder.Detach();
+                    builder.Dispose();
 
                     canvas.DrawPath(path, _currentMeasure.MeasureAreaPaint);
                 }

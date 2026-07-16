@@ -5,6 +5,7 @@ using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.Editor.Tools;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
+using RealmStudioX.WPF.Models.UserInterface;
 using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
@@ -21,6 +22,10 @@ namespace RealmStudioX.WPF.Editor
         private CommandService? _commandService;
         private SelectionService? _selectionService;
         private PaintService? _paintService;
+        private LayoutService? _layoutService;
+        private LayoutOptions? _layoutOptions;
+
+        public LayoutOptions? LayoutOptions => _layoutOptions;
 
         private CommandManager _commands { get; } = new();
         public CommandManager Commands => _commands;
@@ -44,6 +49,8 @@ namespace RealmStudioX.WPF.Editor
 
         private readonly SymbolSelectionService _symbolSelectionService = new();
         public SymbolSelectionService SymbolSelectionService => _symbolSelectionService;
+
+        private LabelsPanelViewModel? _labelsPanelViewModel;
 
         private SKSize _viewportSize;
 
@@ -122,9 +129,20 @@ namespace RealmStudioX.WPF.Editor
             _paintService = paintService;
         }
 
-        internal void SetLayoutTool(LayoutPathTool layoutTool)
+        public void SetLayoutTool(LayoutPathTool layoutTool)
         {
             _layoutTool = layoutTool;
+        }
+
+        public void SetLayoutService(LayoutService layoutService)
+        {
+            _layoutService = layoutService;
+            _layoutOptions = _layoutService?.Layout;
+        }
+
+        internal void SetLabelsViewModel(LabelsPanelViewModel labelsViewModel)
+        {
+            _labelsPanelViewModel = labelsViewModel;
         }
 
         public void Reset()
@@ -195,7 +213,9 @@ namespace RealmStudioX.WPF.Editor
 
             _scene = scene;
 
-            _toolFactory = new(_commands, _assetManager, _scene, _editorState, this, _fontManager, _selectionService!, _paintService!, _scene.RenderContext);
+            _activeTool = null;
+
+            _toolFactory = new(_commands, _assetManager, _scene, _editorState, this, _fontManager, _selectionService!, _paintService!, _layoutService!, _scene.RenderContext);
 
             // Subscribe to new scene
             _scene.SceneChanged += OnSceneChanged;
@@ -365,9 +385,14 @@ namespace RealmStudioX.WPF.Editor
             var world = Scene.Camera.CurrentCursorPoint;
             ActiveEditorTool?.RenderOverlay(canvas, world);
 
-            if (LayoutTool?.LayoutPath != null)
+            if (LayoutTool?.LayoutPath?.Handle != 0 && LayoutTool?.LayoutPath != null)
             {
                 canvas.DrawPath(LayoutTool?.LayoutPath, PaintObjects.LayoutPathPaint);
+            }
+
+            if (_selectionService != null && _selectionService.PrimarySelection != null)
+            {
+                canvas.DrawRect(_selectionService.PrimarySelection.Bounds, PaintObjects.Shape2DSelectPaint);
             }
         }
 
@@ -711,6 +736,15 @@ namespace RealmStudioX.WPF.Editor
                 {
                     mp.Editor.OnMouseMove(state.WorldPoint, 5);
 
+                    MapLayer pathLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.PATHLOWERLAYER);
+
+                    if (mp.DrawOverSymbols)
+                    {
+                        pathLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.PATHUPPERLAYER);
+                    }
+
+                    pathLayer.InvalidateAllTiles();
+
                     RequestRedraw();
 
                     return;
@@ -833,6 +867,17 @@ namespace RealmStudioX.WPF.Editor
                     _commands.Execute(_activeModifyMapPathCommand);
 
                     _activeModifyMapPathCommand = null;
+
+                    MapLayer pathLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.PATHLOWERLAYER);
+
+                    if (mp.DrawOverSymbols)
+                    {
+                        pathLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.PATHUPPERLAYER);
+                    }
+
+                    pathLayer.InvalidateAllTiles();
+
+                    RequestRedraw();
                 }
 
                 return;
@@ -908,15 +953,20 @@ namespace RealmStudioX.WPF.Editor
         {
             if (_selectionService!.PrimarySelection is MapLabel ml && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
             {
-                if (ActiveEditorTool is LabelTool labelTool)
+                if (_labelsPanelViewModel != null)
                 {
-                    _isTransforming = false;
+                    SetDrawingMode(MapDrawingMode.DrawLabel);
+                    ActivateTool(EditorToolType.LabelTool, (ILabelSettings)_labelsPanelViewModel);
 
-                    labelTool.BeginEdit(ml, state.WorldPoint);
-                    RequestRedraw();
-                    return;
+                    if (ActiveEditorTool is LabelTool labelTool)
+                    {
+                        _isTransforming = false;
+
+                        labelTool.BeginEdit(ml, state.WorldPoint);
+                        RequestRedraw();
+                        return;
+                    }
                 }
-
             }
 
             ActiveEditorTool?.OnMouseDoubleClick(state);
@@ -2123,7 +2173,6 @@ namespace RealmStudioX.WPF.Editor
 
             RequestRedraw();
         }
-
 
 
 

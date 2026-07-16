@@ -90,7 +90,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public PaintService PaintService { get; }
 
-        public AlignmentService AlignmentService { get; }
+        public LayoutService LayoutService { get; }
 
         public LayoutPathTool LayoutTool { get; }
 
@@ -126,10 +126,12 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
             Editor.SetPaintService(PaintService);
 
-            AlignmentService = new(Editor, SelectionService, CommandService);
+            LayoutService = new(this, Editor, SelectionService, CommandService);
 
             LayoutTool = new(Editor);
             Editor.SetLayoutTool(LayoutTool);
+
+            Editor.SetLayoutService(LayoutService);
 
             // instantiate ViewModels for the panels; when adding a view model
             // remember to add a reference to it on the TabItem <panel:...> in MainTabs.xaml
@@ -177,6 +179,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
             NameGenConfigViewModel = new NameGenConfigViewModel(this);
 
             Layout = new LayoutOptions();
+
+            _editor.SetLabelsViewModel(LabelsViewModel);
 
             MapName = "Default";
         }
@@ -518,42 +522,37 @@ namespace RealmStudioX.WPF.ViewModels.Main
         // -------------------------
         public ICommand AlignLeftCommand => new RelayCommand(() =>
         {
-            AlignmentService.AlignLeft();
+            LayoutService.AlignLeft();
         });
 
         public ICommand AlignCenterCommand => new RelayCommand(() =>
         {
-            AlignmentService.AlignCenter();
+            LayoutService.AlignCenter();
         });
 
         public ICommand AlignRightCommand => new RelayCommand(() =>
         {
-            AlignmentService.AlignRight();
+            LayoutService.AlignRight();
         });
 
         public ICommand AlignTopCommand => new RelayCommand(() =>
         {
-            AlignmentService.AlignTop();
+            LayoutService.AlignTop();
         });
 
         public ICommand AlignMiddleCommand => new RelayCommand(() =>
         {
-            AlignmentService.AlignMiddle();
+            LayoutService.AlignMiddle();
         });
 
         public ICommand AlignBottomCommand => new RelayCommand(() =>
         {
-            AlignmentService.AlignBottom();
+            LayoutService.AlignBottom();
         });
 
-        public ICommand AlignToPathCommand => new RelayCommand(() =>
+        public ICommand LayoutOnPathCommand => new RelayCommand(() =>
         {
-            AlignmentService.AlignToPath();
-        });
-
-        public ICommand DistributeObjectsCommand => new RelayCommand(() =>
-        {
-            AlignmentService.DistributeAlongPath();
+            LayoutService.LayoutOnPath();
         });
 
         public ICommand DrawPathCommand => new RelayCommand(() =>

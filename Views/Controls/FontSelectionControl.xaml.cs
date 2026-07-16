@@ -96,7 +96,7 @@ namespace RealmStudioX.WPF.Views.Controls
             canvas.Save();
 
             // Draw text
-            canvas.DrawText(text, 5, y, font, paint);
+            canvas.DrawText(text, 10, y, SKTextAlign.Left, font, paint);
 
             // Underline (manual)
             if (fm.Decorations.HasFlag(FontDecorations.Underline))

@@ -1,23 +1,28 @@
-﻿using OpenTK;
-using RealmStudioShapeRenderingLib;
+﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
+using RealmStudioX.WPF.Models.UserInterface;
+using RealmStudioX.WPF.ViewModels.Main;
 using SkiaSharp;
 
 
 namespace RealmStudioX.WPF.Editor.Services
 {
-    public class AlignmentService
+    public class LayoutService
     {
+        private readonly MainWindowViewModel _mainWindowViewModel;
         private readonly EditorController _editor;
         private readonly SelectionService _selectionService;
         private readonly CommandService _commands;
 
-        public AlignmentService(EditorController editor, SelectionService selection, CommandService commands)
+        public LayoutService(MainWindowViewModel mainWindowViewModel, EditorController editor, SelectionService selection, CommandService commands)
         {
+            _mainWindowViewModel = mainWindowViewModel;
             _editor = editor;
             _selectionService = selection;
             _commands = commands;
         }
+
+        public LayoutOptions Layout => _mainWindowViewModel.Layout;
 
         private SKPath? _alignmentPath = null;
 
@@ -225,21 +230,359 @@ namespace RealmStudioX.WPF.Editor.Services
             catch { }
         }
 
-        public void AlignToPath()
+        public void LayoutOnPath()
         {
-            MessageBox.Show("align to path");
-
-
-        }
-
-        public void DistributeAlongPath()
-        {
-            MessageBox.Show("distribute along path");
-
-            if (_selectionService.SelectionCount < 2)
+            if (_selectionService.SelectionCount < 2 || _mainWindowViewModel.LayoutTool?.LayoutPath == null)
             {
                 return;
             }
+
+            if (_mainWindowViewModel.LayoutTool.LayoutPath.Handle == 0
+                || _mainWindowViewModel.LayoutTool.LayoutPath == null
+                || _mainWindowViewModel.LayoutTool.LayoutPath.IsEmpty)
+            {
+                return;
+            }
+
+            SKPath layoutPath = _mainWindowViewModel.LayoutTool.LayoutPath;
+            LayoutOptions layout = _mainWindowViewModel.Layout;
+
+            List<IAlignable>? layoutObjects = BuildLayoutObjectsList();
+
+            if (layoutObjects != null && layoutObjects.Count != 0)
+            {
+                Cmd_ModifyObjects cmd = BeginModification();
+
+                float usableLength = MeasurePath(layoutPath, layout);
+
+                if (usableLength <= 0)
+                {
+                    return;
+                }
+
+                List<float> distances = CalculateDistances(usableLength, layoutObjects.Count, layout);
+
+                List<PathSample> pathSamples = SamplePath(layoutPath, distances);
+
+                for (int i = 0; i < pathSamples.Count; i++)
+                {
+                    PathSample sample = pathSamples[i];
+                    SKPoint position = ApplyOffset(sample.Position, sample.Tangent, layout.Offset);
+
+                    MapComponent2D alignable = (MapComponent2D)layoutObjects[i];
+
+                    UpdatePosition(alignable, position, layout, sample.RotationDegrees);
+                }
+
+                EndModification(cmd);
+
+                _selectionService.ClearSelection(_editor.Scene);
+
+                _editor.SetDrawingMode(MapDrawingMode.None);
+
+                _mainWindowViewModel.LayoutTool.ClearLayoutPath();
+
+            }
+        }
+
+        private void UpdatePosition(MapComponent2D component, SKPoint location, LayoutOptions layout, float rotation = 0)
+        {
+            switch (component)
+            {
+                case MapSymbol symbol:
+                    UpdateMapSymbol(symbol, location, rotation, layout);
+                    break;
+
+                case MapLabel label:
+                    UpdateMapLabel(label, location, rotation, layout);
+                    break;
+
+                case IRectangularShape rect:
+                    UpdateTopLeftBottomRight(rect, location, rotation, layout);
+                    break;
+
+                case ICenterRadiusShape centerRadius:
+                    UpdateCenterRadius(centerRadius, location, rotation, layout);
+                    break;
+
+                case IPointListShape pointList:
+                    UpdatePointList(pointList, location, rotation, layout);
+                    break;
+
+                case IPositionImageShape image:
+                    UpdatePositionImage(image, location, rotation, layout);
+                    break;
+            }
+        }
+
+        private static float GetLayoutRotation(float angle, LayoutOptions layout)
+        {
+            if (!layout.FollowPathRotation)
+                return float.NaN; // or some sentinel
+
+            if (layout.KeepUpright)
+            {
+                if (angle > 90f)
+                    angle -= 180f;
+                else if (angle < -90f)
+                    angle += 180f;
+            }
+
+            return angle;
+        }
+
+        private static void UpdateMapSymbol(MapSymbol symbol, SKPoint position, float? rotation, LayoutOptions layout)
+        {
+            symbol.Location = position;
+
+            if (rotation.HasValue && symbol is IRotatable rotatable)
+            {
+                float angle = GetLayoutRotation(rotation.Value, layout);
+
+                if (!float.IsNaN(angle))
+                    rotatable.Rotation = angle;
+            }
+
+            float newLeft = symbol.Location.X - symbol.Bounds.Width / 2;
+            float newTop = symbol.Location.Y - symbol.Bounds.Height / 2;
+
+            SKRect newBounds = new(newLeft, newTop, newLeft + symbol.Bounds.Width, newTop + symbol.Bounds.Height);
+            symbol.Bounds = newBounds;
+        }
+
+        private static void UpdateMapLabel(MapLabel label, SKPoint position, float? rotation, LayoutOptions layout)
+        {
+            label.MoveTo(position);
+
+            if (rotation.HasValue && label is IRotatable rotatable)
+            {
+                float angle = GetLayoutRotation(rotation.Value, layout);
+
+                if (!float.IsNaN(angle))
+                    rotatable.Rotation = angle;
+            }
+
+            label.BoundsModified = true;
+        }
+
+        private static void UpdatePositionImage(IPositionImageShape shape, SKPoint position, float? rotation, LayoutOptions layout)
+        {
+            float width =
+                shape.StampImage.Width * shape.Scale;
+
+            float height =
+                shape.StampImage.Height * shape.Scale;
+
+            shape.TopLeft = new(
+                position.X - width / 2f,
+                position.Y - height / 2f);
+
+            if (rotation.HasValue && shape is IRotatable rotatable)
+            {
+                float angle = GetLayoutRotation(rotation.Value, layout);
+
+                if (!float.IsNaN(angle))
+                    rotatable.Rotation = angle;
+            }
+        }
+
+        private static void UpdatePointList(IPointListShape shape, SKPoint position, float? rotation, LayoutOptions layout)
+        {
+            SKPoint center = GetCentroid(shape.Points);
+
+            Translate(
+                shape,
+                position.X - center.X,
+                position.Y - center.Y);
+
+            if (rotation.HasValue && shape is IRotatable rotatable)
+            {
+                float angle = GetLayoutRotation(rotation.Value, layout);
+
+                if (!float.IsNaN(angle))
+                    rotatable.Rotation = angle;
+            }
+        }
+
+        private static SKPoint GetCentroid(List<SKPoint> points)
+        {
+            if (points == null || points.Count == 0)
+                return SKPoint.Empty;
+
+            float sumX = 0;
+            float sumY = 0;
+
+            foreach (SKPoint point in points)
+            {
+                sumX += point.X;
+                sumY += point.Y;
+            }
+
+            return new SKPoint(
+                sumX / points.Count,
+                sumY / points.Count);
+        }
+
+        private static void UpdateTopLeftBottomRight(IRectangularShape shape, SKPoint position, float? rotation, LayoutOptions layout)
+        {
+            float centerX =
+                (shape.TopLeft.X + shape.BottomRight.X) / 2f;
+
+            float centerY =
+                (shape.TopLeft.Y + shape.BottomRight.Y) / 2f;
+
+            Translate(
+                shape,
+                position.X - centerX,
+                position.Y - centerY);
+
+            if (rotation.HasValue && shape is IRotatable rotatable)
+            {
+                float angle = GetLayoutRotation(rotation.Value, layout);
+
+                if (!float.IsNaN(angle))
+                    rotatable.Rotation = angle;
+            }
+        }
+
+        private static void UpdateCenterRadius(ICenterRadiusShape shape, SKPoint position, float? rotation, LayoutOptions layout)
+        {
+            shape.Center = position;
+
+            if (rotation.HasValue && shape is IRotatable rotatable)
+            {
+                float angle = GetLayoutRotation(rotation.Value, layout);
+
+                if (!float.IsNaN(angle))
+                    rotatable.Rotation = angle;
+            }
+        }
+
+        private static SKPoint ApplyOffset(SKPoint position, SKPoint tangent, double offset)
+        {
+            SKPoint normal = new(-tangent.Y, tangent.X);
+
+            float length =
+                MathF.Sqrt(normal.X * normal.X + normal.Y * normal.Y);
+
+            if (length > 0)
+            {
+                normal.X /= length;
+                normal.Y /= length;
+            }
+
+            return new SKPoint(
+                position.X + normal.X * (float)offset,
+                position.Y + normal.Y * (float)offset);
+        }
+
+        private static List<PathSample> SamplePath(SKPath path, IReadOnlyList<float> distances)
+        {
+            List<PathSample> samples = [];
+
+            using SKPathMeasure measure = new(path, false);
+
+            foreach (float distance in distances)
+            {
+                measure.GetPositionAndTangent(
+                    distance,
+                    out SKPoint position,
+                    out SKPoint tangent);
+
+                samples.Add(new PathSample
+                {
+                    Distance = distance,
+                    Position = position,
+                    Tangent = tangent
+                });
+            }
+
+            return samples;
+        }
+
+        private float MeasurePath(SKPath layoutPath, LayoutOptions layout)
+        {
+            using SKPathMeasure measure = new(layoutPath, false);
+
+            float pathLength = measure.Length;
+
+            float start = (float)layout.StartOffset;
+            float end = pathLength - (float)layout.EndOffset;
+
+            if (end <= start)
+            {
+                return 0;
+            }
+
+            float usableLength = end - start;
+
+            return usableLength;
+        }
+
+        private static List<float> CalculateDistances(float pathLength, int objectCount, LayoutOptions options)
+        {
+            List<float> distances = new();
+
+            if (objectCount == 0)
+                return distances;
+
+            float start = (float)options.StartOffset;
+            float end = pathLength - (float)options.EndOffset;
+
+            if (end <= start)
+                return distances;
+
+            float usable = end - start;
+
+            switch (options.Distribution)
+            {
+                case PlacementStrategy.Even:
+                    {
+                        if (objectCount == 1)
+                        {
+                            distances.Add(start + usable / 2f);
+                        }
+                        else
+                        {
+                            float step = usable / (objectCount - 1);
+
+                            for (int i = 0; i < objectCount; i++)
+                            {
+                                distances.Add(start + i * step);
+                            }
+                        }
+                    }
+                    break;
+
+                case PlacementStrategy.Random:
+                    {
+
+                    }
+                    break;
+            }
+
+            return distances;
+        }
+
+        private List<IAlignable>? BuildLayoutObjectsList()
+        {
+            List<IAlignable> objects = [];
+
+            foreach (object obj in _selectionService.SelectedObjects)
+            {
+                if (obj is IAlignable positionable &&
+                    obj != _mainWindowViewModel.LayoutTool.LayoutPath)
+                {
+                    objects.Add(positionable);
+                }
+            }
+
+            if (objects.Count == 0)
+            {
+                return null;
+            }
+
+            return objects;
         }
 
         private void UpdatePosition(MapComponent2D component, float position, AlignmentType alignment)
@@ -568,15 +911,13 @@ namespace RealmStudioX.WPF.Editor.Services
             }
         }
 
-        private void UpdateLabelLocation(MapLabel label, float position, AlignmentType alignment)
+        private static void UpdateLabelLocation(MapLabel label, float position, AlignmentType alignment)
         {
             switch (alignment)
             {
                 case AlignmentType.Left:
                     {
-                        MoveLabel(
-                            label,
-                            new SKPoint(
+                        label.MoveTo(new SKPoint(
                                 position + label.Bounds.Width / 2f,
                                 label.Location.Y));
                     }
@@ -584,9 +925,7 @@ namespace RealmStudioX.WPF.Editor.Services
 
                 case AlignmentType.Center:
                     {
-                        MoveLabel(
-                            label,
-                            new SKPoint(
+                        label.MoveTo(new SKPoint(
                                 position,
                                 label.Location.Y));
                     }
@@ -594,9 +933,7 @@ namespace RealmStudioX.WPF.Editor.Services
 
                 case AlignmentType.Right:
                     {
-                        MoveLabel(
-                            label,
-                            new SKPoint(
+                        label.MoveTo(new SKPoint(
                                 position - label.Bounds.Width / 2f,
                                 label.Location.Y));
                     }
@@ -604,9 +941,7 @@ namespace RealmStudioX.WPF.Editor.Services
 
                 case AlignmentType.Top:
                     {
-                        MoveLabel(
-                            label,
-                            new SKPoint(
+                        label.MoveTo(new SKPoint(
                                 label.Location.X,
                                 position + label.Bounds.Height / 2f));
                     }
@@ -614,9 +949,7 @@ namespace RealmStudioX.WPF.Editor.Services
 
                 case AlignmentType.Middle:
                     {
-                        MoveLabel(
-                            label,
-                            new SKPoint(
+                        label.MoveTo(new SKPoint(
                                 label.Location.X,
                                 position));
                     }
@@ -624,9 +957,7 @@ namespace RealmStudioX.WPF.Editor.Services
 
                 case AlignmentType.Bottom:
                     {
-                        MoveLabel(
-                            label,
-                            new SKPoint(
+                        label.MoveTo(new SKPoint(
                                 label.Location.X,
                                 position - label.Bounds.Height / 2f));
                     }
@@ -634,21 +965,6 @@ namespace RealmStudioX.WPF.Editor.Services
             }
 
             label.BoundsModified = true;
-        }
-
-        private static void MoveLabel(MapLabel label, SKPoint newLocation)
-        {
-            SKPoint oldLocation = label.Location;
-
-            float deltaX = newLocation.X - oldLocation.X;
-            float deltaY = newLocation.Y - oldLocation.Y;
-
-            label.Location = newLocation;
-
-            if (label.CurvePath != null)
-            {
-                label.CurvePath.Offset(deltaX, deltaY);
-            }
         }
 
         private void UpdateSymbolLocation(MapSymbol symbol, float position, AlignmentType alignment)
@@ -757,8 +1073,33 @@ namespace RealmStudioX.WPF.Editor.Services
         }
     }
 
-    public class AlignmentOptions
+    public sealed class PathSample
     {
+        public float Distance { get; init; }
 
+        public SKPoint Position { get; init; }
+
+        public SKPoint Tangent { get; init; }
+
+        public float RotationDegrees =>
+            MathF.Atan2(Tangent.Y, Tangent.X) * 180f / MathF.PI;
+
+        public SKPoint Normal
+        {
+            get
+            {
+                SKPoint n = new(-Tangent.Y, Tangent.X);
+
+                float len = MathF.Sqrt(n.X * n.X + n.Y * n.Y);
+
+                if (len > 0)
+                {
+                    n.X /= len;
+                    n.Y /= len;
+                }
+
+                return n;
+            }
+        }
     }
 }

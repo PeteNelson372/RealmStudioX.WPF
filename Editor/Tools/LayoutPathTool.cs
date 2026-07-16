@@ -12,7 +12,11 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         private SKPath? _layoutPath;
 
-        public SKPath? LayoutPath { get { return _layoutPath; } }
+        public SKPath? LayoutPath
+        {
+            get { return _layoutPath; }
+            set { _layoutPath = value; }
+        }
 
         private bool disposedValue;
 
@@ -117,20 +121,24 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         internal static SKPath CreateNewArcPath(SKPoint currentWorldPoint, SKPoint previousWorldPoint)
         {
-            SKPath newArcPath = new();
+            SKPathBuilder arcPathBuilder = new();
 
             if (currentWorldPoint.Y > previousWorldPoint.Y)
             {
                 // start on the left and drag right and down to draw an arc downward (open part of the arc facing down)
                 SKRect r = new(previousWorldPoint.X, previousWorldPoint.Y, currentWorldPoint.X, currentWorldPoint.Y);
-                newArcPath.AddArc(r, 180, 180);
+                arcPathBuilder.AddArc(r, 180, 180);
             }
             else
             {
                 // start on the right and drag left and up to draw an arc upward (open part of the arc facing up)
                 SKRect r = new(currentWorldPoint.X, currentWorldPoint.Y, previousWorldPoint.X, previousWorldPoint.Y);
-                newArcPath.AddArc(r, 180, -180);
+                arcPathBuilder.AddArc(r, 180, 180);
             }
+
+            var newArcPath = arcPathBuilder.Snapshot();
+            arcPathBuilder.Detach();
+            arcPathBuilder.Dispose();
 
             return newArcPath;
         }

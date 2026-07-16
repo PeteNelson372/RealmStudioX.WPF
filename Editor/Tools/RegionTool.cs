@@ -52,7 +52,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         private SKPoint _prevMouseWorldPoint;
 
-        private int _previousRegionPointIndex = -1;
+        //private int _previousRegionPointIndex = -1;
         private int _nextRegionPointIndex = -1;
 
         private SKPoint _snappedStartPoint = SKPoint.Empty;
@@ -61,8 +61,6 @@ namespace RealmStudioX.WPF.Editor.Tools
         private SKPoint _newRegionPoint = SKPoint.Empty;
 
         private Landform? _snappedLandform = null;
-
-        private bool _editingRegion = false;
 
         private Cmd_ModifyRegions? _activeModifyCommand;
 
@@ -90,9 +88,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             _selectedRegionPoint = null;
             _newRegionPoint = SKPoint.Empty;
             _snappedLandform = null;
-            _editingRegion = false;
 
-            _previousRegionPointIndex = -1;
             _nextRegionPointIndex = -1;
 
             _editorState.CurrentDrawingMode = MapDrawingMode.None;
@@ -219,7 +215,6 @@ namespace RealmStudioX.WPF.Editor.Tools
                             // reset
                             _newRegionPoint = SKPoint.Empty;
                             _nextRegionPointIndex = -1;
-                            _previousRegionPointIndex = -1;
                         }
                     }
                 }
@@ -428,9 +423,6 @@ namespace RealmStudioX.WPF.Editor.Tools
                 if (RealmStudioShapeRenderingLib.Utilities.LineContainsPoint(worldPoint,
                     region.MapRegionPoints[i].RegionPoint, region.MapRegionPoints[i + 1].RegionPoint))
                 {
-                    _editingRegion = true;
-
-                    _previousRegionPointIndex = i;
                     _nextRegionPointIndex = i + 1;
 
                     segmentPoint = worldPoint;
@@ -443,9 +435,6 @@ namespace RealmStudioX.WPF.Editor.Tools
             if (RealmStudioShapeRenderingLib.Utilities.LineContainsPoint(worldPoint, region.MapRegionPoints[0].RegionPoint,
                 region.MapRegionPoints[^1].RegionPoint))
             {
-                _editingRegion = true;
-
-                _previousRegionPointIndex = 0;
                 _nextRegionPointIndex = region.MapRegionPoints.Count;
 
                 segmentPoint = worldPoint;
@@ -460,8 +449,13 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             foreach (MapRegionPoint p in mapRegion.MapRegionPoints)
             {
-                using SKPath path = new();
-                path.AddCircle(p.RegionPoint.X, p.RegionPoint.Y, 5);
+                using SKPathBuilder pathBuilder = new();
+
+                pathBuilder.AddCircle(p.RegionPoint.X, p.RegionPoint.Y, 5);
+
+                var path = pathBuilder.Snapshot();
+
+                pathBuilder.Detach();
 
                 if (path.Contains(worldPoint.X, worldPoint.Y))
                 {

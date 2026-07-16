@@ -72,13 +72,6 @@ namespace RealmStudioX.WPF.Editor.Tools
                 }
                 else if (_editor.CurrentDrawingMode == MapDrawingMode.RiverPaint)
                 {
-                    WaterRenderSettings rs = new()
-                    {
-                        ShallowWaterColor = _waterBodySettings.ShallowWaterColor.ToSKColor(),
-                        DeepWaterColor = _waterBodySettings.DeepWaterColor.ToSKColor(),
-                        ShorelineColor = _waterBodySettings.ShorelineColor.ToSKColor(),
-                    };
-
                     _activeRiver = new River
                     {
                         RenderSettings = CreateRenderSettings(),
@@ -657,8 +650,11 @@ namespace RealmStudioX.WPF.Editor.Tools
         {
             float r = _waterBodySettings.WaterBrushSize / 2;
 
-            using var erasePath = new SKPath();
-            erasePath.AddCircle(worldPos.X, worldPos.Y, r);
+            using var erasePathBuilder = new SKPathBuilder();
+            erasePathBuilder.AddCircle(worldPos.X, worldPos.Y, r);
+
+            var erasePath = erasePathBuilder.Snapshot();
+            erasePathBuilder.Detach();
 
             foreach (var system in _scene.Map.WaterSystems)
             {

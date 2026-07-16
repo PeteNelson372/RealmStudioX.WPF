@@ -69,7 +69,7 @@
                 <Grid Grid.Column="1">
                     <controls:NumericUpDown x:Name="OffetBox"
                                          Value="{Binding Offset, Mode=TwoWay}"
-                                         Minimum="0"
+                                         Minimum="-100"
                                          Maximum="100"
                                          Margin="0,0,0,0"
                                          Width="100"/>
@@ -104,11 +104,10 @@
                                   SelectedValuePath="Content"
                                   SelectedValue="{Binding Distribution, Mode=TwoWay}">
 
+                    <ComboBoxItem Content="None"/>
                     <ComboBoxItem Content="Even"/>
                     <ComboBoxItem Content="Fixed"/>
                     <ComboBoxItem Content="Random"/>
-                    <ComboBoxItem Content="Vertices"/>
-                    <ComboBoxItem Content="Custom"/>
                 </ComboBox>
 
                 <TextBlock Grid.Column="4" Text="Start Offset"

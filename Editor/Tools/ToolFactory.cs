@@ -2,7 +2,7 @@
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor.Services;
-using RealmStudioX.WPF.ViewModels.Main;
+using RealmStudioX.WPF.Models.UserInterface;
 using RealmStudioX.WPF.ViewModels.Panels;
 
 namespace RealmStudioX.WPF.Editor.Tools
@@ -17,6 +17,7 @@ namespace RealmStudioX.WPF.Editor.Tools
         private readonly FontManager _fontManager;
         private readonly SelectionService _selectionService;
         private readonly PaintService _paintService;
+        private readonly LayoutService _layoutService;
         private readonly RenderContext _renderContext;
 
         public ToolFactory(
@@ -28,6 +29,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             FontManager fontManager,
             SelectionService selectionService,
             PaintService paintService,
+            LayoutService layoutService,
             RenderContext renderContext)
         {
             _commands = commands;
@@ -38,6 +40,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             _fontManager = fontManager;
             _selectionService = selectionService;
             _paintService = paintService;
+            _layoutService = layoutService;
             _renderContext = renderContext;
         }
 
@@ -153,7 +156,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                             tool = new LabelTool(_commands, _assets,
                                 MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LABELLAYER),
-                                _scene, _editor, _fontManager, _editor, (ILabelSettings)context);
+                                _scene, _editor, _fontManager, _editor, _layoutService, (ILabelSettings)context);
 
                             return tool;
                         }

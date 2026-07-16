@@ -1,5 +1,6 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
+using RealmStudioX.WPF.Editor.Tools;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using SkiaSharp;
 using System.Windows.Input;
@@ -12,7 +13,7 @@ namespace RealmStudioX.WPF.Editor.Services
 
         public event EventHandler? SelectionChanged;
 
-        private SelectionFilter _selectionFilter = new();
+        private readonly SelectionFilter _selectionFilter = new();
 
         public SelectionFilter SelectionFilter => _selectionFilter;
 
@@ -730,6 +731,39 @@ namespace RealmStudioX.WPF.Editor.Services
             return hits;
         }
 
+        internal void SelectForLayout(EditorController editor, SKPoint worldPoint, int tolerance)
+        {
+            if (editor == null || editor.LayoutTool == null)
+            {
+                return;
+            }
+
+            List<ISelectable> hits = GetSelectionCandidatesAtPoint(editor.Scene!.Map, worldPoint, tolerance);
+
+            for (int i = 0; i < hits.Count; i++)
+            {
+                ISelectable hit = hits[i];
+
+                if (hit != null)
+                {
+                    if (hit is MapPath mp)
+                    {
+                        SelectSingle(mp);
+                        editor.LayoutTool.LayoutPath = mp.HitPath;
+                        break;
+                    }
+
+                    if (hit is River river)
+                    {
+                        SelectSingle(river);
+                        editor.LayoutTool.LayoutPath = Utilities.BuildPath(river.ControlPoints);
+                        break;
+                    }
+
+                }
+            }
+        }
+
         internal void SelectObjectsInArea(RealmStudioMap map, SKRect selectedRealmArea)
         {
             List<ISelectable> candidates = [.. GetSelectionCandidatesInArea(map, selectedRealmArea)];
@@ -912,6 +946,7 @@ namespace RealmStudioX.WPF.Editor.Services
 
             return hits;
         }
+
     }
 
     // -------------------------------------------------

@@ -71,25 +71,6 @@
                              Foreground="#FF45443F"/>
         </Button>
 
-        <Button Style="{StaticResource IconBarButtonStyle}"
-                Command="{Binding AlignToPathCommand}"
-                ToolTip="Align selected objects along path">
-            <materialDesign:PackIcon Kind="VectorBezier"
-                             Width="22"
-                             Height="22"
-                             VerticalAlignment="Center"
-                             Foreground="#FF45443F"/>
-        </Button>
-
-        <Button Style="{StaticResource IconBarButtonStyle}"
-                Command="{Binding DistributeObjectsCommand}"
-                ToolTip="Distribute selected objects along path">
-            <materialDesign:PackIcon Kind="DistributeVerticalCenter"
-                             Width="22"
-                             Height="22"
-                             VerticalAlignment="Center"
-                             Foreground="#FF45443F"/>
-        </Button>
 
         <Button Style="{StaticResource IconBarButtonStyle}"
                 Command="{Binding DrawArcCommand}"
@@ -98,7 +79,7 @@
                              Width="22"
                              Height="22"
                              VerticalAlignment="Center"
-                             Foreground="#FF45443F"/>
+                             Foreground="#FF616A64"/>
         </Button>
 
         <Button Style="{StaticResource IconBarButtonStyle}"
@@ -108,7 +89,17 @@
                              Width="22"
                              Height="22"
                              VerticalAlignment="Center"
-                             Foreground="#FF45443F"/>
+                             Foreground="#FF616A64"/>
+        </Button>
+
+        <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding LayoutOnPathCommand}"
+                ToolTip="Align selected objects along path">
+            <materialDesign:PackIcon Kind="VectorBezier"
+                             Width="22"
+                             Height="22"
+                             VerticalAlignment="Center"
+                             Foreground="#FF616A64"/>
         </Button>
 
         <Button x:Name="OpenLayoutOptionsButton" Style="{StaticResource IconBarButtonStyle}"
@@ -117,7 +108,7 @@
             <materialDesign:PackIcon Kind="DockWindow"
                              Width="22"
                              Height="22"
-                             Foreground="#FF45443F" HorizontalAlignment="Center"/>
+                             Foreground="#FF616A64" HorizontalAlignment="Center"/>
         </Button>
 
     </StackPanel>

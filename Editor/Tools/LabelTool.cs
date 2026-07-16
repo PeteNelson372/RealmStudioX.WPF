@@ -1,6 +1,8 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
+using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.Editor.UserInterface;
+using RealmStudioX.WPF.Models.UserInterface;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
@@ -18,6 +20,7 @@ namespace RealmStudioX.WPF.Editor.Tools
         EditorController editor,
         FontManager fontManager,
         IRedrawRequester redraw,
+        LayoutService layoutService,
         ILabelSettings labelSettings) : IToolEditor, IKeyHandler, IDisposable
     {
         // -------------------------------------------------
@@ -31,6 +34,7 @@ namespace RealmStudioX.WPF.Editor.Tools
         private readonly EditorController _editor = editor;
         private readonly FontManager _fontManager = fontManager;
         private readonly ILabelSettings _labelSettings = labelSettings;
+        private readonly LayoutService _layoutService = layoutService;
         private readonly IRedrawRequester _redraw = redraw;
 
         private LabelEditSession? _editSession;
@@ -38,14 +42,6 @@ namespace RealmStudioX.WPF.Editor.Tools
         public bool IsEditing => _editSession != null;
 
         private bool disposedValue;
-
-        private SKColor _fontColor = Color.FromArgb(61, 53, 30).ToSKColor();
-        private FontStyleModel _fontStyleModel = new();
-        private float _glowStrength;
-        private SKColor _glowColor = SKColors.White;
-        private SKColor _outlineColor = Color.FromArgb(161, 214, 202, 171).ToSKColor();
-        private float _outlineWidth;
-        private float _rotation;
 
         private MapLabel? _editingOriginal;
 
@@ -382,6 +378,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             if (!string.IsNullOrWhiteSpace(_editSession.Text))
             {
+                LayoutOptions layoutOptions = _layoutService.Layout;
                 var anchor = _editSession.Location; // already center-based
 
                 if (_editingOriginal != null)
@@ -415,11 +412,21 @@ namespace RealmStudioX.WPF.Editor.Tools
                         var typeface = _fontManager.GetTypeface(label.FontStyle);
                         using var font = new SKFont(typeface, label.FontStyle.Size);
 
-                        var center = ComputeCurveTextCenter(label.Text, font, label.CurvePath);
+                        var center = ComputeCurveTextCenter2(label.CurvePath, _layoutService.Layout);
 
                         if (!float.IsNaN(center.X) && !float.IsNaN(center.Y))
                         {
                             label.Location = center;
+                        }
+
+                        label.CurvePathOffset = (float)_layoutService.Layout.Offset;
+
+                        float angle = MathF.Atan2(label.Location.Y, label.Location.X) * 180f / MathF.PI;
+
+                        if ((angle > 90 || angle < 90) && layoutOptions.KeepUpright)
+                        {
+                            // reverse the path
+                            label.ReverseText = true;
                         }
                     }
 
@@ -452,6 +459,8 @@ namespace RealmStudioX.WPF.Editor.Tools
                             ? new SKPath(_editor.LayoutTool?.LayoutPath)
                             : _editSession.CurvePath,
 
+                        CurvePathOffset = (float) _layoutService.Layout.Offset,
+
                         BoundsModified = true
                     };
 
@@ -460,11 +469,19 @@ namespace RealmStudioX.WPF.Editor.Tools
                         var typeface = _fontManager.GetTypeface(label.FontStyle);
                         using var font = new SKFont(typeface, label.FontStyle.Size);
 
-                        var center = ComputeCurveTextCenter(label.Text, font, label.CurvePath);
+                        var center = ComputeCurveTextCenter2(label.CurvePath, _layoutService.Layout);
 
                         if (!float.IsNaN(center.X) && !float.IsNaN(center.Y))
                         {
                             label.Location = center;
+                        }
+
+                        float angle = MathF.Atan2(label.Location.Y, label.Location.X) * 180f / MathF.PI;
+
+                        if ((angle > 90 || angle < 90) && layoutOptions.KeepUpright)
+                        {
+                            // reverse the path and offset
+                            label.ReverseText = true;
                         }
                     }
 
@@ -485,7 +502,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             _redraw.RequestRedraw();
         }
 
-        private SKPoint ComputeCurveTextCenter(string text, SKFont font, SKPath path)
+        private SKPoint ComputeCurveTextCenter(string text, SKFont font, LayoutOptions layout, SKPath path)
         {
             using var blob = SKTextBlob.CreatePathPositioned(
                 text,
@@ -504,6 +521,40 @@ namespace RealmStudioX.WPF.Editor.Tools
                 b.MidX,
                 b.MidY
             );
+        }
+
+        private SKPoint ComputeCurveTextCenter2(SKPath path, LayoutOptions layout)
+        {
+            using SKPathMeasure measure = new(path, false);
+
+            float distance = measure.Length / 2f;
+
+            if (!measure.GetPositionAndTangent(
+                    distance,
+                    out SKPoint center,
+                    out SKPoint tangent))
+            {
+                return SKPoint.Empty;
+            }
+
+            // Compute the unit normal.
+            SKPoint normal = new(-tangent.Y, tangent.X);
+
+            float length = MathF.Sqrt(
+                normal.X * normal.X +
+                normal.Y * normal.Y);
+
+            if (length > 0)
+            {
+                normal.X /= length;
+                normal.Y /= length;
+            }
+
+            float offset = (float)layout.Offset;
+
+            return new SKPoint(
+                center.X + normal.X * offset,
+                center.Y + normal.Y * offset);
         }
 
         public void ApplyGeneratedName(string generatedName)
@@ -593,7 +644,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             // -------------------------------------------------
             // Draw text
             // -------------------------------------------------
-            canvas.DrawText(edit.Text, x, y, font, paint);
+            canvas.DrawText(edit.Text, x, y, SKTextAlign.Left, font, paint);
 
             // -------------------------------------------------
             // Caret

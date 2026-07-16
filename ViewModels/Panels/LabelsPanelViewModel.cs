@@ -384,8 +384,14 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                                             StringComparison.OrdinalIgnoreCase)))
                                 {
                                     mapBox.BoxBitmap = boxBitmap.Copy();
-                                    BoxGridItem gridItem = new(mapBox, boxBitmap.ToImageSource());
-                                    BoxItems.Add(gridItem);
+
+                                    ImageSource? ims = boxBitmap.ToImageSource();
+
+                                    if (ims != null)
+                                    {
+                                        BoxGridItem gridItem = new(mapBox, ims);
+                                        BoxItems.Add(gridItem);
+                                    }
                                 }
                             }
                         }
