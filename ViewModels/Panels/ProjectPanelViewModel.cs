@@ -87,6 +87,23 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 return;
             }
 
+            RefreshMapTiles();
+
+            RealmStudioMap newActiveMap = MainWindowViewModel.FindActiveMap(Project);
+
+            _mainWindowViewModel.OpenMap(Project, newActiveMap);
+
+            OnPropertyChanged(nameof(MapCount));
+            OnPropertyChanged(nameof(Metadata));
+        }
+
+        public void RefreshMapTiles()
+        {
+            if (Project == null)
+            {
+                return;
+            }
+
             MapTiles.Clear();
 
             foreach (MapProjectEntry entry in Project.Maps)
@@ -97,13 +114,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                         new ProjectMapTileViewModel(entry));
                 }
             }
-
-            RealmStudioMap newActiveMap = MainWindowViewModel.FindActiveMap(Project);
-
-            _mainWindowViewModel.OpenMap(Project, newActiveMap);
-
-            OnPropertyChanged(nameof(MapCount));
-            OnPropertyChanged(nameof(Metadata));
         }
 
         public ICommand SaveProjectCommand => new RelayCommand(() =>
@@ -327,6 +337,46 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     RealmStudioXLogger.Exception("ExportMapCommand", ex);
                     MessageDialog dlg = MessageDialogFactory.ErrorDialog("Error Exporting Map", "An error occured exporting the map. Check the log file for details.");
                     dlg.ShowDialog();
+                }
+            }
+        });
+
+        private string _selectedMapName = string.Empty;
+        public string SelectedMapName
+        {
+            get { return _selectedMapName; }
+            set
+            {
+                _selectedMapName = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ICommand RenameMapCommand => new RelayCommand(() =>
+        {
+            if (SelectedMapTile != null && Project != null)
+            {
+                RealmStudioMap selectedMap = SelectedMapTile.MapProjectEntry.Map;
+                string mapName = selectedMap.MapName;
+
+                SelectedMapName = mapName;
+
+                RenameDialog renameDialog = new RenameDialog();
+                renameDialog.DataContext = this;
+
+                bool? result = renameDialog.ShowDialog();
+
+                if (result == true)
+                {
+                    if (SelectedMapName != mapName && !string.IsNullOrEmpty(SelectedMapName))
+                    {
+                        if (UserInterfaceUtilities.IsValidFileName(SelectedMapName))
+                        {
+                            SelectedMapTile.MapProjectEntry.Map.MapName = SelectedMapName;
+                            _mainWindowViewModel.CommandService.MarkProjectDataModified();
+                            RefreshMapTiles();
+                        }
+                    }
                 }
             }
         });

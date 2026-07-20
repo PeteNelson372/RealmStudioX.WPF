@@ -3,6 +3,8 @@ using RealmStudioX.WPF.ViewModels.Dialogs;
 using RealmStudioX.WPF.Views.Dialogs;
 using System.Windows;
 using RealmStudioShapeRenderingLib;
+using Brushes = System.Windows.Media.Brushes;
+
 namespace RealmStudioX.WPF.Editor.UserInterface
 {
     public static class MessageDialogFactory

@@ -271,12 +271,12 @@
                     </Grid>
 
                     <StackPanel
-                    Orientation="Vertical"
-                    VerticalAlignment="Top"
-                    HorizontalAlignment="Left"
-                    Width="130"
-                    Height="Auto"
-                    Margin="3,3,3,3">
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
 
                         <TextBlock Text="Numbers Display"
                         Foreground="#FF45443F"

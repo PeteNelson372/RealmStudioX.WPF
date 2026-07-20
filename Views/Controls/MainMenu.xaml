@@ -21,10 +21,6 @@
             
             <Separator/>
 
-            <MenuItem Header="_Print..." Command="{Binding PrintCommand}"/>
-
-            <Separator/>
-
             <MenuItem Header="E_xit" Command="{Binding ExitCommand}"/>
 
         </MenuItem>

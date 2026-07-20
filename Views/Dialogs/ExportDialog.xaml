@@ -1,4 +1,4 @@
-﻿<ui:ModalDialog x:Class="RealmStudioX.WPF.Views.Dialogs.MessageDialog"
+﻿<ui:ModalDialog  x:Class="RealmStudioX.WPF.Views.Dialogs.ExportDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:ui="clr-namespace:RealmStudioX.WPF.Editor.UserInterface"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -11,14 +11,11 @@
         xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
         xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
         xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"
-        xmlns:vm="clr-namespace:RealmStudioX.WPF.ViewModels.Dialogs"        
         mc:Ignorable="d"
-        Width="450"
-        Height="200"        
         WindowStyle="None"
         ResizeMode="NoResize"
-        ShowInTaskbar="False"
-        WindowStartupLocation="CenterScreen">
+        ShowInTaskbar="False"                 
+        Title="Export Dialog" Height="280" Width="500">
     
     <Border Background="#FFDFDBD2"
             BorderBrush="#FF45443F"
@@ -36,7 +33,7 @@
             <!-- Title -->
 
             <TextBlock Grid.Row="0"
-                       Text="{Binding DialogTitle}"
+                       Text="Export Realm"
                        FontSize="16"
                        FontWeight="SemiBold"
                        Background="#FF45443F"
@@ -51,31 +48,101 @@
             <Grid Grid.Row="1">
 
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="48"/>
+                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Icon -->
+                <GroupBox Grid.Column="0" Header="Export Realm As..." Margin="10,10,10,10">
+                    <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Height="Auto"
+                        Margin="3,3,3,3">
 
-                <materialDesign:PackIcon Grid.Column="0"
-                                         Kind="{Binding DialogIcon}"
-                                         Width="32"
-                                         Height="32"
-                                         VerticalAlignment="Top"
-                                         Margin="10,25,0,0"
-                                         Foreground="{Binding IconBrush}"/>
+                        <RadioButton Content="Image" GroupName="ExportType"
+                            Margin="10,3,3,3"
+                            IsChecked="{Binding RealmExportType,
+                            Mode=TwoWay,
+                            Converter={StaticResource EnumToBooleanConverter},
+                            ConverterParameter={x:Static rendering:RealmExportType.BitmapImage}}"/>
 
-                <!-- Message -->
+                        <RadioButton Content="Upscaled Image (2X)" GroupName="ExportType"
+                            Margin="10,3,3,3"
+                            IsChecked="{Binding RealmExportType,
+                            Mode=TwoWay,
+                            Converter={StaticResource EnumToBooleanConverter},
+                            ConverterParameter={x:Static rendering:RealmExportType.UpscaledImage}}"/>
 
-                <TextBlock Grid.Column="1"
-                           Text="{Binding Message}"
-                           TextWrapping="Wrap"
-                           FontSize="13"
-                           Margin="0,30,0,0"
-                           HorizontalAlignment="Center"
-                           Width="350"
-                           Foreground="#FF45443F"
-                           VerticalAlignment="Top"/>
+                        <RadioButton Content="Map Layers" GroupName="ExportType"
+                            Margin="10,3,3,3"
+                            IsChecked="{Binding RealmExportType,
+                            Mode=TwoWay,
+                            Converter={StaticResource EnumToBooleanConverter},
+                            ConverterParameter={x:Static rendering:RealmExportType.MapLayers}}"/>
+
+                        <RadioButton Content="Grayscale Height Map" GroupName="ExportType"
+                            Margin="10,3,3,3"
+                            IsChecked="{Binding RealmExportType,
+                            Mode=TwoWay,
+                            Converter={StaticResource EnumToBooleanConverter},
+                            ConverterParameter={x:Static rendering:RealmExportType.Heightmap}}"/>
+
+                        <RadioButton Content="Height Map 3D Model" GroupName="ExportType"
+                            Margin="10,3,3,3"
+                            IsChecked="{Binding RealmExportType,
+                            Mode=TwoWay,
+                            Converter={StaticResource EnumToBooleanConverter},
+                            ConverterParameter={x:Static rendering:RealmExportType.HeightMap3DModel}}"/>
+
+                        <RadioButton Content="Realm Studio Map XML (.rsmx)" GroupName="ExportType"
+                            Margin="10,3,3,3"
+                            IsChecked="{Binding RealmExportType,
+                            Mode=TwoWay,
+                            Converter={StaticResource EnumToBooleanConverter},
+                            ConverterParameter={x:Static rendering:RealmExportType.RealmStudioMapXml}}"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Grid.Column="1" Header="Export Format" Margin="10,10,10,10">
+                    <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                        <RadioButton Content="PNG File (.png)" GroupName="ExportFormat"
+                            Margin="10,3,3,3"
+                            IsChecked="{Binding RealmExportFormat,
+                            Mode=TwoWay,
+                            Converter={StaticResource EnumToBooleanConverter},
+                            ConverterParameter={x:Static rendering:RealmMapExportFormat.PNG}}"/>
+
+                        <RadioButton Content="JPEG File (.jpg)" GroupName="ExportFormat"
+                            Margin="10,3,3,3"
+                            IsChecked="{Binding RealmExportFormat,
+                            Mode=TwoWay,
+                            Converter={StaticResource EnumToBooleanConverter},
+                            ConverterParameter={x:Static rendering:RealmMapExportFormat.JPG}}"/>
+
+                        <RadioButton Content="BMP File (.bmp)" GroupName="ExportFormat"
+                            Margin="10,3,3,3"
+                            IsChecked="{Binding RealmExportFormat,
+                            Mode=TwoWay,
+                            Converter={StaticResource EnumToBooleanConverter},
+                            ConverterParameter={x:Static rendering:RealmMapExportFormat.BMP}}"/>
+
+                        <RadioButton Content="GIF File (.gif)" GroupName="ExportFormat"
+                            Margin="10,3,3,3"
+                            IsChecked="{Binding RealmExportFormat,
+                            Mode=TwoWay,
+                            Converter={StaticResource EnumToBooleanConverter},
+                            ConverterParameter={x:Static rendering:RealmMapExportFormat.GIF}}"/>
+
+
+                    </StackPanel>
+                </GroupBox>
 
             </Grid>
 
@@ -89,12 +156,12 @@
                 <Button Width="95"
                         Height="30"
                         Margin="0,0,12,0"
-                        Content="{Binding PrimaryButtonText}"
+                        Content="Export"
                         IsDefault="True"
-                        Command="{Binding PrimaryCommand}">
+                        Command="{Binding ExportRealmCommand}">
 
                     <Button.Style>
-                        
+
                         <Style TargetType="Button">
 
                             <Setter Property="Template">
@@ -166,57 +233,8 @@
                 <Button Width="95"
                         Height="30"
                         Margin="0,0,12,0"
-                        Content="{Binding SecondaryButtonText}"
-                        Visibility="{Binding SecondaryButtonVisibility}"
-                        IsCancel="True"
-                        Command="{Binding SecondaryCommand}">
-
-                    <Button.Style>
-
-
-                        <Style TargetType="Button">
-
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border x:Name="Border"
-                                            Background="{TemplateBinding Background}"
-                                            BorderBrush="{TemplateBinding BorderBrush}"
-                                            BorderThickness="{TemplateBinding BorderThickness}"
-                                            CornerRadius="6"
-                                            Padding="0">
-
-                                            <ContentPresenter
-                                                HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"/>
-
-                                        </Border>
-
-                                        <ControlTemplate.Triggers>
-
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="Border"
-                                                    Property="Background"
-                                                    Value="#FFDFDBD2"/>
-                                            </Trigger>
-
-                                        </ControlTemplate.Triggers>
-
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-
-                        </Style>
-
-                    </Button.Style>
-                </Button>
-
-                <Button Width="95"
-                        Height="30"
-                        Content="{Binding TertiaryButtonText}"
-                        Visibility="{Binding TertiaryButtonVisibility}"
-                        IsCancel="True"
-                        Command="{Binding TertiaryCommand}">
+                        Content="Cancel"
+                        IsCancel="True">
 
                     <Button.Style>
 

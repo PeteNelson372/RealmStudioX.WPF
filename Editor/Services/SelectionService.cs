@@ -1,6 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
-using RealmStudioX.WPF.Editor.Tools;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using SkiaSharp;
 using System.Windows.Input;

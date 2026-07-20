@@ -244,6 +244,9 @@
     <Compile Update="Views\Dialogs\LayoutOptionsDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Dialogs\RenameDialog.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Panels\ProjectToolPanel.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

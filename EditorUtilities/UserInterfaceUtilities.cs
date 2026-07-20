@@ -12,6 +12,29 @@ namespace RealmStudioX.WPF.EditorUtilities
 {
     public static class UserInterfaceUtilities
     {
+        public static bool IsValidFileName(string? fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+                return false;
+
+            fileName = fileName.Trim();
+
+            if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+                return false;
+
+            if (fileName.EndsWith(' ') || fileName.EndsWith('.'))
+                return false;
+
+            string[] reservedNames =
+            [
+                "CON", "PRN", "AUX", "NUL",
+                "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+                "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+            ];
+
+            return !reservedNames.Contains(fileName, StringComparer.OrdinalIgnoreCase);
+        }
+
         /// <summary>
         /// Positions a window relative to an anchor point on a FrameworkElement.
         /// </summary>
@@ -320,6 +343,18 @@ namespace RealmStudioX.WPF.EditorUtilities
                 "|Portable Network Graphics (*.png)|*.png" +
                 "|Bitmap Image File (*.bmp;*.dib;*.rle)|*.bmp;*.dib;*.rle" +
                 "|Graphics Interchange Format (*.gif)|*.gif" +
+                "|All Files (*.*)|*.*";
+        }
+
+        internal static string GetZipFileFilter()
+        {
+            return "Zip File (*.zip)|*.zip" +
+                "|All Files (*.*)|*.*";
+        }
+
+        internal static string GetRealmStudioMapXmlFileFilter()
+        {
+            return "Reals Studio Map (*.rsmx)|*.rsmx" +
                 "|All Files (*.*)|*.*";
         }
     }

@@ -5,6 +5,8 @@
     using RealmStudioX.WPF.ViewModels.Infrastructure;
     using System.Windows;
     using System.Windows.Input;
+    using Brush = System.Windows.Media.Brush;
+    using Brushes = System.Windows.Media.Brushes;
 
     public sealed class MessageDialogViewModel : ViewModelBase
     {

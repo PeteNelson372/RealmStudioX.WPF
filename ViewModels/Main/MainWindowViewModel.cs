@@ -96,6 +96,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public LayoutOptions Layout { get; }
 
+        public ExportService ExportService { get; }
+
         public event Action? RequestOpenNameGeneratorConfig;
 
         private readonly string autosaveRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -130,8 +132,9 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
             LayoutTool = new(Editor);
             Editor.SetLayoutTool(LayoutTool);
-
             Editor.SetLayoutService(LayoutService);
+
+            ExportService = new(Editor);
 
             // instantiate ViewModels for the panels; when adding a view model
             // remember to add a reference to it on the TabItem <panel:...> in MainTabs.xaml
@@ -464,7 +467,19 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public ICommand ExportCommand => new RelayCommand(() =>
         {
-            MessageBox.Show("Export Map", "Export", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            ExportDialog exportDlg = new();
+
+            RealmExportViewModel realmExportVM = new(ExportService);
+
+            exportDlg.DataContext = realmExportVM;
+
+            var result = exportDlg.ShowDialog();
+
+            if (result != null)
+            {
+                exportDlg.Close();
+            }
         });
 
         public ICommand PrintCommand => new RelayCommand(() =>

@@ -171,6 +171,29 @@
                 </StackPanel>
             </Button>
 
+            <Button
+                x:Name="RenameMapButton"
+                Width="50"
+                Height="50"
+                Margin="0,35,0,0"
+                ToolTip="Rename the selected map"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding RenameMapCommand}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Rename"
+                               FontSize="12"
+                               FontWeight="Regular"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                    <materialDesign:PackIcon Kind="Rename"
+                                     HorizontalAlignment="Center"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+                </StackPanel>
+            </Button>
+
         </StackPanel>
 
         <StackPanel Grid.Row="0" Grid.Column="0">
@@ -184,10 +207,11 @@
                        FontSize="11"
                        FontWeight="Regular"/>
 
-                    <TextBox Margin="0,2,0,8"
+                    <TextBox x:Name="ProjectNameTextBox" Margin="0,2,0,8"
                         FontSize="12"
                         Text="{Binding Metadata.ProjectName,
-                                UpdateSourceTrigger=LostFocus}"/>
+                                UpdateSourceTrigger=LostFocus}"
+                         LostFocus="ProjectNameTextBox_LostFocus"/>
 
                     <!-- Description -->
 
@@ -195,14 +219,15 @@
                        FontSize="11"
                        FontWeight="Regular"/>
 
-                    <TextBox Margin="0,2,0,8"
+                    <TextBox x:Name="ProjectDescriptionTextBox" Margin="0,2,0,8"
                          Height="60"
                          FontSize="11"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"
                          VerticalScrollBarVisibility="Auto"
                          Text="{Binding Metadata.Description,
-                            UpdateSourceTrigger=LostFocus}"/>
+                            UpdateSourceTrigger=LostFocus}"
+                          LostFocus="ProjectDescriptionTextBox_LostFocus"/>
 
                     <!-- Type -->
 
