@@ -173,14 +173,71 @@
                      Width="135"
                      Height="80"
                      Margin="3,6,3,3"
-                     ItemsSource="{Binding LabelPresets}">
+                     ItemsSource="{Binding LabelPresets}"
+                     SelectedValue="{Binding SelectedLabelPreset, Mode=TwoWay}">
 
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <CheckBox Content="{Binding Name}"
-                                IsChecked="{Binding IsChecked, Mode=TwoWay}"/>
+                                <TextBlock Text="{Binding LabelPresetName}"/>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
+
+
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Padding" Value="4"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border x:Name="Border"
+                                                        Background="Transparent"
+                                                        Padding="{TemplateBinding Padding}">
+
+                                                <ContentPresenter
+                                                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                            </Border>
+
+                                            <ControlTemplate.Triggers>
+
+                                                <!-- Selected -->
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="Border"
+                                                                Property="Background"
+                                                                Value="#FF99B0A4"/>
+                                                    <Setter Property="Foreground"
+                                                                Value="White"/>
+                                                </Trigger>
+
+                                                <!-- Hover (unselected) -->
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Border"
+                                                                Property="Background"
+                                                                Value="#DDDDDD"/>
+                                                </Trigger>
+
+                                                <!-- Optional: hovered + selected -->
+                                                <MultiTrigger>
+                                                    <MultiTrigger.Conditions>
+                                                        <Condition Property="IsSelected" Value="True"/>
+                                                        <Condition Property="IsMouseOver" Value="True"/>
+                                                    </MultiTrigger.Conditions>
+                                                    <Setter TargetName="Border"
+                                                                Property="Background"
+                                                                Value="#88a99c"/>
+                                                </MultiTrigger>
+
+                                                <!-- Disabled -->
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter Property="Opacity" Value="0.5"/>
+                                                </Trigger>
+
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
 
                     </ListBox>
 

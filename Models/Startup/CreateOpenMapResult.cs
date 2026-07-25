@@ -1,5 +1,4 @@
 ﻿using RealmStudioShapeRenderingLib;
-using RealmStudioX.Infrastructure;
 
 namespace RealmStudioX.WPF.Models.Startup
 {

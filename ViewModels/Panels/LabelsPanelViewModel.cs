@@ -1,13 +1,20 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioShapeRenderingLib.Logging;
+using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.Editor.Tools;
+using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
+using RealmStudioX.WPF.ViewModels.Dialogs;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
+using RealmStudioX.WPF.Views.Dialogs;
 using SkiaSharp;
+using SkiaSharp.Views.WPF;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -26,6 +33,8 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         private readonly AssetManager _assetManager;
 
+        public ObservableCollection<LabelPreset> LabelPresets { get; } = [];
+
         public ObservableCollection<BoxGridItem> BoxItems { get; } = [];
 
         public LabelsPanelViewModel(MainWindowViewModel mainViewModel, EditorController editor, AssetManager assetManager)
@@ -35,6 +44,60 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             _assetManager = assetManager;
 
             AddBoxItems();
+        }
+
+        public void AddLabelPresets()
+        {
+            var presets = _assetManager.GetByType(AssetType.LabelPreset);
+
+            foreach (var preset in presets)
+            {
+                if (File.Exists(preset.FilePath))
+                {
+                    try
+                    {
+                        LabelPreset? ps = MapFileMethods.ReadLabelPreset(preset.FilePath);
+                        if (ps != null)
+                        {
+                            MainViewModel.ThemeManager.ResolveLabelPresetFont(ps);
+                            LabelPresets.Add(ps);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        RealmStudioXLogger.Exception($"An error occurred reading a label preset at {preset.FilePath}", ex);
+                    }
+                }
+            }
+        }
+
+        // selected label preset
+        private LabelPreset? _selectedLabelPreset;
+
+        public LabelPreset? SelectedLabelPreset
+        {
+            get => _selectedLabelPreset;
+            set
+            {
+                _selectedLabelPreset = value;
+
+                OnPropertyChanged();
+
+                if (_selectedLabelPreset != null)
+                {
+                    FontStyle = _selectedLabelPreset.LabelFont;
+                    MainViewModel.FontPanelViewModel.SelectedFontFamily = _selectedLabelPreset.LabelFontFamily;
+                    MainViewModel.FontPanelViewModel.SelectedFontSize = (int)_selectedLabelPreset.LabelFontSize;
+                    MainViewModel.FontPanelViewModel.IsBold = _selectedLabelPreset.LabelFontBold;
+                    MainViewModel.FontPanelViewModel.IsItalic = _selectedLabelPreset.LabelFontItalic;
+
+                    LabelColor = _selectedLabelPreset.LabelColor.ToColor();
+                    OutlineColor = _selectedLabelPreset.LabelOutlineColor.ToColor();
+                    OutlineWidth = _selectedLabelPreset.LabelOutlineWidth;
+                    GlowColor = _selectedLabelPreset.LabelGlowColor.ToColor();
+                    GlowStrength = _selectedLabelPreset.LabelGlowStrength;
+                }
+            }
         }
 
         // label text
@@ -274,6 +337,104 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             _editor.ActivateTool(EditorToolType.LabelTool, (ILabelSettings)this);
         });
 
+        private string _newLabelPresetName = string.Empty;
+        public string NewLabelPresetName
+        {
+            get { return _newLabelPresetName; }
+            set
+            {
+                _newLabelPresetName = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ICommand AddPresetCommand => new RelayCommand(() =>
+        {
+            NewLabelPresetDialog presetDialog = new()
+            {
+                DataContext = this
+            };
+
+            bool? result = presetDialog.ShowDialog();
+
+            if (result == true)
+            {
+                if (!string.IsNullOrEmpty(NewLabelPresetName))
+                {
+                    if (UserInterfaceUtilities.IsValidFileName(NewLabelPresetName))
+                    {
+                        LabelPreset newPreset = new()
+                        {
+                            LabelPresetName = NewLabelPresetName,
+                            LabelColor = LabelColor.ToSKColor(),
+                            LabelOutlineColor = OutlineColor.ToSKColor(),
+                            LabelOutlineWidth = OutlineWidth,
+                            LabelGlowColor = GlowColor.ToSKColor(),
+                            LabelGlowStrength = (int)GlowStrength,
+                            LabelFontFamily = FontStyle.Family,
+                            LabelFontSize = FontStyle.Size,
+                            LabelFontBold = FontStyle.Bold,
+                            LabelFontItalic = FontStyle.Italic,
+                        };
+
+                        string presetPath = Path.Combine(AssetManager.RootAssetDirectory, "LabelPresets", NewLabelPresetName) + RealmStudioFileFormat.RealmStudioLabelPresetExtension;
+
+                        try
+                        {
+                            MapFileMethods.SerializeLabelPreset(newPreset, presetPath);
+                            LabelPresets.Add(newPreset);
+
+                            MessageDialog dlg = MessageDialogFactory.InformationDialog("Label Preset Saved", $"Label Preset {NewLabelPresetName} was saved.");
+                            dlg.ShowDialog();
+                        }
+                        catch (Exception ex)
+                        {
+                            RealmStudioXLogger.Exception($"An error occurred while serializing label preset to {presetPath}", ex);
+
+                            MessageDialog dlg = MessageDialogFactory.ErrorDialog("Error Saving Label Preset",
+                                "An error occurred while serializing label preset: " + ex.Message);
+                            dlg.ShowDialog();
+                        }
+
+                    }
+                }
+            }
+        });
+
+        public ICommand RemovePresetCommand => new RelayCommand(() =>
+        {
+            if (SelectedLabelPreset != null && !SelectedLabelPreset.IsSystem)
+            {
+                MessageDialog deleteConfirmationDlg = MessageDialogFactory.DeleteConfirmationDialog("Confirm Deletion", $"Delete Label Preset {SelectedLabelPreset.LabelPresetName}? This operation cannot be undone.");
+                deleteConfirmationDlg.ShowDialog();
+
+                if (((MessageDialogViewModel)deleteConfirmationDlg.DataContext).Result == MessageDialogResult.Delete)
+                {
+                    string presetPath = Path.Combine(AssetManager.RootAssetDirectory, "LabelPresets", SelectedLabelPreset.LabelPresetName) + RealmStudioFileFormat.RealmStudioLabelPresetExtension;
+
+                    try
+                    {
+                        if (File.Exists(presetPath))
+                        {                            
+                            File.Delete(presetPath);
+                            LabelPresets.Remove(SelectedLabelPreset);
+
+                            MessageDialog dlg = MessageDialogFactory.InformationDialog("Label Preset Removed", $"The Label Preset was removed.");
+                            dlg.ShowDialog();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        RealmStudioXLogger.Exception($"An error occurred while removing the label preset", ex);
+
+                        MessageDialog dlg = MessageDialogFactory.ErrorDialog("Error Removing Label Preset",
+                            $"An error occurred while the removing label preset: " + ex.Message);
+                        dlg.ShowDialog();
+                    }
+                }
+            }
+        });
+
         public ICommand GenerateNameCommand => new RelayCommand(() =>
         {
             List<INameGenerator> generators = AssetManager.GetAllNameGenerators();
@@ -366,6 +527,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
             if (boxes != null)
             {
+                // TODO: get box assets from AssetManager
                 foreach (var box in boxes)
                 {
                     if (box.FilePath.EndsWith(".xml", StringComparison.InvariantCultureIgnoreCase))

@@ -41,6 +41,7 @@ namespace RealmStudioX.WPF
 
         private readonly EditorController? _editor;
         private readonly FontManager _fontManager;
+        private readonly ThemeManager _themeManager;
         
         private readonly AssetManager _assetManager;
         private readonly RenderContext _renderContext;
@@ -74,13 +75,15 @@ namespace RealmStudioX.WPF
             ["Planet"] = new PlanetToolPanel()
         };
 
-        public MainWindow(CreateOpenPackageResult startup, AssetManager assetManager, FontManager fontManager)
+        public MainWindow(CreateOpenPackageResult startup, AssetManager assetManager, FontManager fontManager, ThemeManager themeManager)
         {
             InitializeComponent();
 
             _assetManager = assetManager ?? throw new ArgumentNullException(nameof(assetManager));
 
             _fontManager = fontManager ?? throw new ArgumentNullException(nameof(fontManager));
+
+            _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
 
             _editor = new EditorController(_assetManager, _fontManager);
 
@@ -96,7 +99,7 @@ namespace RealmStudioX.WPF
 
             _renderContext = new RenderContext(_assetManager.SymbolImageCache, _editor.State);
 
-            ViewModel = new MainWindowViewModel(_editor, _assetManager, _fontManager);
+            ViewModel = new MainWindowViewModel(_editor, _assetManager, _fontManager, _themeManager);
             DataContext = ViewModel;
 
             ViewModel.RenderContext = _renderContext;
@@ -124,7 +127,7 @@ namespace RealmStudioX.WPF
                 MainTabs.SelectTab("Background");
 
                 // if the user chooses to create a new project,
-                // OpenMapProject will forward the startup result
+                // OpenRealmProject will forward the startup result
                 // to CreateMapProject
                 ViewModel.OpenRealmProject(startup);
 

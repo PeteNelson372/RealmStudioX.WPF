@@ -10,6 +10,7 @@ namespace RealmStudioX.WPF.ViewModels.Controls
     public class AssetBrowserViewModel : ViewModelBase
     {
         private readonly AssetBrowser _browser;
+
         public event Action? TextureSelectionChanged;
 
         public AssetBrowserViewModel(AssetBrowser browser)
@@ -22,35 +23,24 @@ namespace RealmStudioX.WPF.ViewModels.Controls
             UpdateCurrent();
         }
 
+        // -------------------------------------------------
+        // Commands
+        // -------------------------------------------------
+
+        public ICommand NextCommand { get; }
+
+        public ICommand PreviousCommand { get; }
+
+        // -------------------------------------------------
+        // Bindable Properties
+        // -------------------------------------------------
+
         private BitmapSource? _imageSource;
         public BitmapSource? ImageSource
         {
             get => _imageSource;
             private set => SetProperty(ref _imageSource, value);
         }
-
-        public string? SelectedAssetId => _browser.GetCurrentAsset()?.Id;
-
-        private void UpdateCurrent()
-        {
-            var img = _browser.GetCurrentImage();
-
-            ImageSource = (BitmapSource?)SKBitmap.FromImage(img).ToImageSource();
-            CurrentImage = img;
-            CurrentName = _browser.GetCurrentAsset()?.Name;
-            TextureSelectionChanged?.Invoke();
-        }
-
-        // -------------------------
-        // Commands
-        // -------------------------
-
-        public ICommand NextCommand { get; }
-        public ICommand PreviousCommand { get; }
-
-        // -------------------------
-        // Bindable properties
-        // -------------------------
 
         private SKImage? _currentImage;
         public SKImage? CurrentImage
@@ -66,9 +56,31 @@ namespace RealmStudioX.WPF.ViewModels.Controls
             private set => SetProperty(ref _currentName, value);
         }
 
-        // -------------------------
+        public string? SelectedAssetId =>
+            _browser.Current?.Id;
+
+        // -------------------------------------------------
+        // Private Helpers
+        // -------------------------------------------------
+
+        private void UpdateCurrent()
+        {
+            CurrentImage = _browser.CurrentImage;
+
+            ImageSource = CurrentImage == null
+                ? null
+                : (BitmapSource?)SKBitmap
+                    .FromImage(CurrentImage)
+                    .ToImageSource();
+
+            CurrentName = _browser.Current?.Name;
+
+            TextureSelectionChanged?.Invoke();
+        }
+
+        // -------------------------------------------------
         // Actions
-        // -------------------------
+        // -------------------------------------------------
 
         private void Next()
         {
@@ -80,6 +92,22 @@ namespace RealmStudioX.WPF.ViewModels.Controls
         {
             _browser.Previous();
             UpdateCurrent();
+        }
+
+        public void SetById(string? assetId)
+        {
+            if (_browser.SelectById(assetId))
+            {
+                UpdateCurrent();
+            }
+        }
+
+        public void SetByIndex(int index)
+        {
+            if (_browser.SelectByIndex(index))
+            {
+                UpdateCurrent();
+            }
         }
     }
 }

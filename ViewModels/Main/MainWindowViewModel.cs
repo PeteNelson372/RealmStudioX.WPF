@@ -6,6 +6,7 @@ using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.Editor.Tools;
 using RealmStudioX.WPF.Editor.UserInterface;
+using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.Models.Startup;
 using RealmStudioX.WPF.Models.UserInterface;
 using RealmStudioX.WPF.ViewModels.Controls;
@@ -16,12 +17,10 @@ using RealmStudioX.WPF.Views.Dialogs;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
 using System.IO;
-using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Application = System.Windows.Application;
-using MessageBox = System.Windows.MessageBox;
 
 namespace RealmStudioX.WPF.ViewModels.Main
 {
@@ -48,6 +47,9 @@ namespace RealmStudioX.WPF.ViewModels.Main
         public AssetManager AssetManager => _assetManager;
 
         private readonly FontManager _fontManager;
+
+        public readonly ThemeManager _themeManager;
+        public ThemeManager ThemeManager => _themeManager;
 
         private SKRect _viewPortSize = SKRect.Empty;
 
@@ -103,7 +105,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
         private readonly string autosaveRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "RealmStudioX", "Autosave");
 
-        public MainWindowViewModel(EditorController editor, AssetManager assetManager, FontManager fontManager)
+        public MainWindowViewModel(EditorController editor, AssetManager assetManager, FontManager fontManager, ThemeManager themeManager)
         {
             _editor = editor;
             _assetManager = assetManager;
@@ -135,6 +137,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
             Editor.SetLayoutService(LayoutService);
 
             ExportService = new(Editor);
+
+            _themeManager = themeManager;
 
             // instantiate ViewModels for the panels; when adding a view model
             // remember to add a reference to it on the TabItem <panel:...> in MainTabs.xaml
@@ -467,7 +471,6 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public ICommand ExportCommand => new RelayCommand(() =>
         {
-
             ExportDialog exportDlg = new();
 
             RealmExportViewModel realmExportVM = new(ExportService);
@@ -480,11 +483,6 @@ namespace RealmStudioX.WPF.ViewModels.Main
             {
                 exportDlg.Close();
             }
-        });
-
-        public ICommand PrintCommand => new RelayCommand(() =>
-        {
-            MessageBox.Show("Print Map", "Print", MessageBoxButton.OK, MessageBoxImage.Information);
         });
 
         public ICommand ResetZoomCommand => new RelayCommand(() =>
@@ -582,9 +580,245 @@ namespace RealmStudioX.WPF.ViewModels.Main
             _editor.ActivateTool(EditorToolType.LayoutPathTool);
         });
 
+        private bool _applyToBackground = true;
+        public bool ApplyToBackground
+        {
+            get => _applyToBackground;
+            set
+            {
+                _applyToBackground = value;
+                ThemeManager.ApplyToBackground = value;
+            }
+        }
+
+        public bool ApplyToOcean
+        {
+            get => ThemeManager.ApplyToOcean;
+            set
+            {
+                ThemeManager.ApplyToOcean = value;
+            }
+        }
+
+         public bool ApplyToLandforms
+        {
+            get => ThemeManager.ApplyToLandforms;
+            set
+            {
+                ThemeManager.ApplyToLandforms = value;
+            }
+        }
+
+        public bool ApplyToFreshwater
+        {
+            get => ThemeManager.ApplyToFreshwater;
+            set
+            {
+                ThemeManager.ApplyToFreshwater = value;
+            }
+        }
+
+        public bool ApplyToPaths
+        {
+            get => ThemeManager.ApplyToPaths;
+            set
+            {
+                ThemeManager.ApplyToPaths = value;
+            }
+        }
+
+        public bool ApplyToSymbolColors
+        {
+            get => ThemeManager.ApplyToSymbolColors;
+            set
+            {
+                ThemeManager.ApplyToSymbolColors = value;
+            }
+        }
+
+        public bool ApplyToLabels
+        {
+            get => ThemeManager.ApplyToLabels;
+            set
+            {
+                ThemeManager.ApplyToLabels = value;
+            }
+        }
+
+        public bool ApplyToLabelPresets
+        {
+            get => ThemeManager.ApplyToLabelPresets;
+            set
+            {
+                ThemeManager.ApplyToLabelPresets = value;
+            }
+        }
+
+        private string? _selectedTheme;
+        public string? SelectedTheme
+        {
+            get => _selectedTheme;
+            set => SetProperty(ref _selectedTheme, value);
+        }
+
+        SaveApplyThemeDialog? saveApplyThemeDlg = null;
+
+        public ICommand OpenThemeDialogCommand => new RelayCommand(() =>
+        {
+            saveApplyThemeDlg = new()
+            {
+                DataContext = this
+            };
+
+            saveApplyThemeDlg.ShowDialog();
+        });
+
+        public ICommand CancelThemeDialogCommand => new RelayCommand(() =>
+        {
+            saveApplyThemeDlg?.Close();
+            saveApplyThemeDlg = null;
+        });
+
+        public ICommand ApplyThemeCommand => new RelayCommand(() =>
+        {
+            FindAndApplyTheme(SelectedTheme);
+
+            saveApplyThemeDlg?.Close();
+            saveApplyThemeDlg = null;
+        });
+
+        public ICommand CreateThemeCommand => new RelayCommand(() =>
+        {
+            ThemeNameDialog themeNameDialog = new()
+            {
+                DataContext = this
+            };
+
+            bool? result = themeNameDialog.ShowDialog();
+
+            if (result == true)
+            {
+                if (!string.IsNullOrEmpty(SelectedTheme) && !ThemeManager.ThemeNames.Contains(SelectedTheme))
+                {
+                    if (UserInterfaceUtilities.IsValidFileName(SelectedTheme))
+                    {
+                        // create and save a new theme based on the current settings in the UI
+                        MapTheme newTheme = new()
+                        {
+                            ThemeName = SelectedTheme,
+                            IsDefaultTheme = false,
+                            IsSystemTheme = false,
+                            BackgroundTextureId = BackgroundViewModel.TextureBrowser.SelectedAssetId,
+                            BackgroundTextureScale = BackgroundViewModel.TextureScale,
+                            MirrorBackgroundTexture = BackgroundViewModel.MirrorTexture,
+                            OceanTextureId = OceanViewModel.TextureBrowser.SelectedAssetId,
+                            OceanTextureScale = OceanViewModel.TextureScale,
+                            OceanTextureOpacity = OceanViewModel.TextureOpacity,
+                            MirrorOceanTexture = OceanViewModel.MirrorTexture,
+                            OceanColorOverlayEnabled = OceanViewModel.OceanColor.ToSKColor() != SKColors.Transparent,
+                            OceanOverlayColor = OceanViewModel.OceanColor.ToSKColor(),
+                            UseLandformTextureBackground = LandformViewModel.TextureFill,
+                            LandformBackgroundColor = LandformViewModel.LandformBackgroundColor.ToSKColor(),
+                            LandformOutlineColor = LandformViewModel.LandformOutlineColor.ToSKColor(),
+                            LandformTextureId = LandformViewModel.TextureBrowser.SelectedAssetId,
+                            LandformOutlineWidth = LandformViewModel.LandformOutlineWidth,
+                            LandformShadingDepth = LandformViewModel.LandformShadingDepth,
+                            CoastlineStyle = LandformViewModel.SelectedCoastlineStyle,
+                            CoastlineEffectDistance = LandformViewModel.CoastlineEffectDistance,
+                            EnableCoastlineBlur = true,
+                            CoastlineColor = LandformViewModel.CoastlineColor.ToSKColor(),
+                            ShorelineColor = WaterViewModel.ShorelineColor.ToSKColor(),
+                            DeepWaterColor = WaterViewModel.DeepWaterColor.ToSKColor(),
+                            ShallowWaterColor = WaterViewModel.ShallowWaterColor.ToSKColor(),
+                            PathColor = PathViewModel.PathColor.ToSKColor(),
+                            LabelFontFamily = LabelsViewModel.FontStyle.Family,
+                            LabelFontSize = LabelsViewModel.FontStyle.Size,
+                            LabelFontBold = LabelsViewModel.FontStyle.Bold,
+                            LabelFontItalic = LabelsViewModel.FontStyle.Italic,
+                            LabelColor = LabelsViewModel.LabelColor.ToSKColor(),
+                            LabelOutlineColor = LabelsViewModel.OutlineColor.ToSKColor(),
+                            LabelOutlineWidth = LabelsViewModel.OutlineWidth,
+                            LabelGlowColor = LabelsViewModel.GlowColor.ToSKColor(),
+                            LabelGlowStrength = (int)LabelsViewModel.GlowStrength,
+                            VignetteColor = BackgroundViewModel.VignetteColor.ToSKColor(),
+                            VignetteShape = BackgroundViewModel.VignetteType,
+                            VignetteStrength = (int)BackgroundViewModel.VignetteStrength,
+                            CustomSymbolColors = [SymbolsViewModel.SymbolColor1.ToSKColor(), SymbolsViewModel.SymbolColor2.ToSKColor(), SymbolsViewModel.SymbolColor3.ToSKColor()],
+                        };
+
+                        string themePath = Path.Combine(_themeManager.ThemesFolder, newTheme.ThemeName) + RealmStudioFileFormat.RealmStudioThemeExtension;
+
+                        try
+                        {
+                            MapFileMethods.SerializeTheme(newTheme, themePath);
+                            _themeManager.ThemeNames.Add(newTheme.ThemeName);
+                            _themeManager.Themes.Add(newTheme);
+
+                            MessageDialog dlg = MessageDialogFactory.InformationDialog("Theme Saved", $"Theme {newTheme.ThemeName} saved.");
+                            dlg.ShowDialog();
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageDialog dlg = MessageDialogFactory.ErrorDialog("Error Saving Theme", "An error occured saving the theme: " + ex.Message);
+                            dlg.ShowDialog();
+                        }
+                    }
+                }
+            }
+
+
+        });
+
         // -------------------------
         // Other Methods
         // -------------------------
+
+        public void FindAndApplyTheme(string? themeName)
+        {
+            if (string.IsNullOrEmpty(themeName))
+            {
+                return;
+            }
+
+            LabelsViewModel.LabelPresets.Clear();
+
+            foreach (var tn in ThemeManager.ThemeNames)
+            {
+                if (string.Equals(tn, themeName, StringComparison.OrdinalIgnoreCase))
+                {
+                    MapTheme? theme = ThemeManager.LoadThemeByName(themeName);
+
+                    if (theme != null)
+                    {
+                        ThemeManager.ResolveThemeAssets(theme, this);
+                        ThemeManager.ApplyTheme(theme, this);
+                    }
+                }
+            }
+
+            LabelsViewModel.AddLabelPresets();
+        }
+
+        public void FindAndApplyDefaultTheme()
+        {
+            LabelsViewModel.LabelPresets.Clear();
+
+            foreach (var th in ThemeManager.Themes)
+            {
+                if (th.IsDefaultTheme)
+                {
+                    MapTheme? theme = ThemeManager.LoadThemeByName(th.ThemeName);
+
+                    if (theme != null)
+                    {
+                        ThemeManager.ResolveThemeAssets(theme, this);
+                        ThemeManager.ApplyTheme(theme, this);
+                    }
+                }
+            }
+
+            LabelsViewModel.AddLabelPresets();
+        }
 
         public bool TryShutdown()
         {
@@ -677,9 +911,32 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
                 mapProject.Maps.Add(entry);
 
+                RealmStudioXLogger.Info($"Creating and Opening project: {mapProject.Metadata.ProjectName}, Id: {mapProject.Metadata.ProjectId}");
+                RealmStudioXLogger.Info($"Creating and Opening map: {map.MapName}, Id: {map.MapId}");
+
                 ProjectManager.OpenProject(mapProject);
 
+                ProjectViewModel.LoadProject(mapProject);
+
                 InitializeScene(map);
+
+                MapName = mapProject.Metadata.ProjectName + ": " + map.MapName;
+                MapSizeLabel = $"Map Size: {map.MapWidth} x {map.MapHeight}, Map Area: {map.MapAreaWidth} x {map.MapAreaHeight} {map.MapAreaUnits}";
+
+                _editor.UpdateMapScene();
+
+                SetDrawingLayerLabel();
+
+                string? themeName = result.Theme;
+
+                if (!string.IsNullOrEmpty(themeName))
+                {
+                    FindAndApplyTheme(themeName);
+                }
+                else
+                {
+                    FindAndApplyDefaultTheme();
+                }
 
                 _editor.State.StatusMessage = $"Project {mapProject.Metadata.ProjectName} created and opened.";
             }
@@ -758,6 +1015,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 {
                     project.Metadata.ProjectFilePath = result.FilePath;
                 }
+
+                FindAndApplyDefaultTheme();
 
                 _editor.State.StatusMessage = $"Project {project.Metadata.ProjectName} opened.";
 

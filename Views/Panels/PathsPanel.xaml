@@ -266,7 +266,7 @@
                     Height="Auto"
                     Margin="3,10,3,3">
 
-                    <controls:AssetBrowserControl x:Name="BackgroundTextureBrowser"
+                    <controls:AssetBrowserControl x:Name="PathTextureBrowser"
                                            DataContext="{Binding PathTextureBrowser}" 
                                            Width="136"
                                            Height="160"

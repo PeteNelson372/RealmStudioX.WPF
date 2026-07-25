@@ -1,19 +1,17 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.Core;
 using RealmStudioX.WPF.Models.Startup;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.Views.Dialogs;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Windows.Input;
 
 namespace RealmStudioX.WPF.ViewModels.Dialogs
 {
     public class CreateOpenMapViewModel : ViewModelBase
     {
-        private readonly string _mapsFolder;
-        private readonly string _themesFolder;
-
-        public ObservableCollection<string> Themes { get; } = [];
+        public ObservableCollection<MapTheme> Themes { get; } = [];
+        public ObservableCollection<string> ThemeNames { get; } = [];
         public ObservableCollection<ProjectListEntry> ProjectListEntries { get; } = [];
 
 
@@ -111,29 +109,11 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
         public event Action<bool?>? RequestClose;
 
-        public CreateOpenMapViewModel(string mapsFolder, string themesFolder)
+        public CreateOpenMapViewModel()
         {
-            _mapsFolder = mapsFolder;
-            _themesFolder = themesFolder;
-
             CreateProjectCommand = new RelayCommand(Create);
             OpenCommand = new RelayCommand(Open, CanOpen);
             CancelCommand = new RelayCommand(Cancel);
-
-            LoadThemes();
-        }
-
-        private void LoadThemes()
-        {
-            if (!Directory.Exists(_themesFolder))
-                return;
-
-            var files = Directory.GetFiles(_themesFolder, "*.rstheme");
-
-            foreach (var file in files)
-            {
-                Themes.Add(Path.GetFileNameWithoutExtension(file));
-            }
         }
 
         private void Create()

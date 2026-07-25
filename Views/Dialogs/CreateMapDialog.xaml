@@ -256,7 +256,7 @@
                             </Grid.RowDefinitions>
                         </Grid>
                         <GroupBox Grid.Row="0" Header="Realm Map Theme">
-                            <ListBox x:Name="ThemeList" Height="154" ItemsSource="{Binding Themes}" >
+                            <ListBox x:Name="ThemeList" Height="154" ItemsSource="{Binding ThemeNames}" SelectedValue="{Binding SelectedTheme}" >
                                 <ListBox.ItemContainerStyle>
                                     <Style TargetType="ListBoxItem">
                                         <Setter Property="Padding" Value="4"/>

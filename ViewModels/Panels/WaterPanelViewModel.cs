@@ -34,7 +34,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
             var paletteBrowser = new AssetBrowser(_assetManager, AssetType.ColorPalette);
 
-            IReadOnlyList<AssetDescriptor> paletteDescriptors = paletteBrowser.GetAssets();
+            IReadOnlyList<AssetDescriptor> paletteDescriptors = paletteBrowser.Assets;
 
             for (int i = 0; i < paletteDescriptors.Count; i++)
             {

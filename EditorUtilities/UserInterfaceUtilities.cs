@@ -354,7 +354,7 @@ namespace RealmStudioX.WPF.EditorUtilities
 
         internal static string GetRealmStudioMapXmlFileFilter()
         {
-            return "Reals Studio Map (*.rsmx)|*.rsmx" +
+            return "Realm Studio Map (*.rsmx)|*.rsmx" +
                 "|All Files (*.*)|*.*";
         }
     }

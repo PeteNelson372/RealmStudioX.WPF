@@ -40,7 +40,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
             var paletteBrowser = new AssetBrowser(_assetManager, AssetType.ColorPalette);
 
-            IReadOnlyList<AssetDescriptor> paletteDescriptors = paletteBrowser.GetAssets();
+            IReadOnlyList<AssetDescriptor> paletteDescriptors = paletteBrowser.Assets;
 
             for (int i = 0; i < paletteDescriptors.Count; i++)
             {
@@ -261,8 +261,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     OnPropertyChanged(nameof(SelectedBrushPattern));
 
                     IsBrushPopupOpen = false;
-                },
-        usesParameter: true);
+                }, usesParameter: true);
 
         private bool _isBrushPopupOpen;
 

@@ -137,6 +137,7 @@ namespace RealmStudioX.WPF
             AssetManager.RootRealmStudioXDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX");
 
             var fontManager = new FontManager();
+            var themeManager = new ThemeManager(assetManager);
 
             // Start tasks
             var assetTask = assetManager.LoadAsync();
@@ -149,6 +150,7 @@ namespace RealmStudioX.WPF
             // Continue startup - open the CreateOpenMapDialog
 
             CreateOpenMapDialog createOpenDialog = WindowManager.Create<CreateOpenMapDialog>();
+            createOpenDialog.SetThemeManager(themeManager);
 
             var result = WindowManager.ShowDialog(createOpenDialog);
 
@@ -162,7 +164,7 @@ namespace RealmStudioX.WPF
             await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Render);
             await Task.Delay(100); // Allow the loading window to render
 
-            var mainWindow = new MainWindow(createOpenDialog.ViewModel.Result, assetManager, fontManager);
+            var mainWindow = new MainWindow(createOpenDialog.ViewModel.Result, assetManager, fontManager, themeManager);
 
             Current.MainWindow = mainWindow;
             MainWindow = mainWindow;

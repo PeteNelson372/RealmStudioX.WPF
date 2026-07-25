@@ -1,6 +1,9 @@
-﻿using RealmStudioShapeRenderingLib;
+﻿using MaterialDesignThemes.Wpf;
+using RealmStudioShapeRenderingLib;
 using RealmStudioShapeRenderingLib.Logging;
+using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
+using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.Models.Startup;
@@ -31,6 +34,9 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         public CreateOpenPackageResult? Result { get; private set; }
 
+        private ThemeManager? _themeManager;
+        public ThemeManager? ThemeMananger => _themeManager;
+
         private double _aspectRatio = 1920.0 / 1080.0;
         private bool _lockAspect = true;
 
@@ -40,7 +46,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
         {
             InitializeComponent();
 
-            ViewModel = new CreateOpenMapViewModel(_mapsFolder, _themesFolder);
+            ViewModel = new CreateOpenMapViewModel();
             ViewModel.RequestClose += OnRequestClose;
 
             DataContext = ViewModel;
@@ -117,6 +123,17 @@ namespace RealmStudioX.WPF.Views.Dialogs
             };
 
             LoadExistingMapProjects();
+        }
+
+        public void SetThemeManager(ThemeManager themeManager)
+        {
+            _themeManager = themeManager;
+
+            foreach (string themeName in _themeManager.ThemeNames)
+            {
+                ViewModel.ThemeNames.Add(themeName);
+                OnPropertyChanged(nameof(ViewModel.ThemeNames));
+            }
         }
 
         private void LoadExistingMapProjects()

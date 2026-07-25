@@ -135,6 +135,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             WindowManager wm = MainWindowViewModel.WindowManager;
 
             CreateMapDialog dialog = wm.Create<CreateMapDialog>();
+            dialog.SetThemeManager(MainViewModel.ThemeManager);
 
             var result = dialog.ShowDialog();
 
@@ -166,6 +167,24 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
                             _mainWindowViewModel.CommandService.MarkProjectDataModified();
                             _projectManager.NotifyProjectChanged();
+
+                            _mainWindowViewModel.MapName = Project.Metadata.ProjectName + ": " + newMap.MapName;
+                            _mainWindowViewModel.MapSizeLabel = $"Map Size: {newMap.MapWidth} x {newMap.MapHeight}, Map Area: {newMap.MapAreaWidth} x {newMap.MapAreaHeight} {newMap.MapAreaUnits}";
+
+                            _editor.UpdateMapScene();
+
+                            _mainWindowViewModel.SetDrawingLayerLabel();
+
+                            string? themeName = dlgResult.Theme;
+
+                            if (!string.IsNullOrEmpty(themeName))
+                            {
+                                _mainWindowViewModel.FindAndApplyTheme(themeName);
+                            }
+                            else
+                            {
+                                _mainWindowViewModel.FindAndApplyDefaultTheme();
+                            }
 
                             _editor.State.StatusMessage = $"Map {newMap.MapName} created.";
                         }

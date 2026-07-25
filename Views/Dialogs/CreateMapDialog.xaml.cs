@@ -1,9 +1,9 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.Models.Startup;
 using RealmStudioX.WPF.ViewModels.Dialogs;
 using System.ComponentModel;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 
@@ -16,12 +16,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
     {
         public override string WindowId { get; } = Guid.NewGuid().ToString();
 
-        private readonly string _themesFolder =
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX", "Assets", "Themes");
-
-        private readonly string _mapsFolder =
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX", "Realms");
-
         public CreateOpenPackageResult? Result { get; private set; }
 
         private double _aspectRatio = 1920.0 / 1080.0;
@@ -29,11 +23,14 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         public CreateMapViewModel ViewModel { get; }
 
+        private ThemeManager? _themeManager;
+        public ThemeManager? ThemeMananger => _themeManager;
+
         public CreateMapDialog()
         {
             InitializeComponent();
 
-            ViewModel = new CreateMapViewModel(_mapsFolder, _themesFolder);
+            ViewModel = new CreateMapViewModel();
             ViewModel.RequestClose += OnRequestClose;
 
             DataContext = ViewModel;
@@ -100,7 +97,17 @@ namespace RealmStudioX.WPF.Views.Dialogs
             };
 
         }
-    
+
+        public void SetThemeManager(ThemeManager themeManager)
+        {
+            _themeManager = themeManager;
+
+            foreach (string themeName in _themeManager.ThemeNames)
+            {
+                ViewModel.ThemeNames.Add(themeName);
+                OnPropertyChanged(nameof(ViewModel.ThemeNames));
+            }
+        }
 
         private void OnRequestClose(bool? dialogResult)
         {

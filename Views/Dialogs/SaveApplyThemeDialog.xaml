@@ -1,0 +1,179 @@
+﻿<ui:ModalDialog x:Class="RealmStudioX.WPF.Views.Dialogs.SaveApplyThemeDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:ui="clr-namespace:RealmStudioX.WPF.Editor.UserInterface"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"        
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:views="clr-namespace:RealmStudioX.WPF.Views"
+        xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+        xmlns:vm="clr-namespace:RealmStudioX.WPF.ViewModels.Dialogs"
+        mc:Ignorable="d"
+        Title="Save or Apply Theme"
+        Width="300"
+        Height="530"
+        MinWidth="300"
+        MaxWidth="300"
+        MinHeight="530"
+        MaxHeight="530"
+        Background="#FF45443F"
+        WindowStyle="None"
+        ResizeMode="NoResize">
+
+    <Window.Resources>
+        <ScaleTransform x:Key="RadioScaleTransform" ScaleX="1.0" ScaleY="1.0"/>
+    </Window.Resources>
+    
+    <Grid Margin="10" Background="#FFDFDBD2">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Custom Title Bar -->
+            <RowDefinition Height="400"/>
+            <!-- Main -->
+            <RowDefinition Height="80"/>
+            <!-- Buttons -->
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Row="0"
+                       Text="Save or Apply Theme"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Background="#FF45443F"
+                       Foreground="#E5E5E5"
+                       VerticalAlignment="Center"
+                       Height="26"
+                       Padding="20,0,0,0"
+                       Margin="0,0,0,0"/>
+        <!-- LEFT: Create New -->
+        <Border Grid.Row="1" Grid.Column="0" Padding="10" BorderBrush="#CCC" BorderThickness="1">
+            <StackPanel>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Column="0" Width="240" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.ColumnSpan="2">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                        </Grid>
+                        <GroupBox Grid.Row="0" Header="Realm Map Theme">
+                            <ListBox x:Name="ThemeList" Height="154" ItemsSource="{Binding ThemeManager.ThemeNames}" SelectedValue="{Binding SelectedTheme}" >
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="ListBoxItem">
+                                        <Setter Property="Padding" Value="4"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="ListBoxItem">
+                                                    <Border x:Name="Border"
+                                                        Background="Transparent"
+                                                        Padding="{TemplateBinding Padding}">
+
+                                                        <ContentPresenter
+                                                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                                    </Border>
+
+                                                    <ControlTemplate.Triggers>
+
+                                                        <!-- Selected -->
+                                                        <Trigger Property="IsSelected" Value="True">
+                                                            <Setter TargetName="Border"
+                                                                Property="Background"
+                                                                Value="#FF99B0A4"/>
+                                                            <Setter Property="Foreground"
+                                                                Value="White"/>
+                                                        </Trigger>
+
+                                                        <!-- Hover (unselected) -->
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="Border"
+                                                                Property="Background"
+                                                                Value="#DDDDDD"/>
+                                                        </Trigger>
+
+                                                        <!-- Optional: hovered + selected -->
+                                                        <MultiTrigger>
+                                                            <MultiTrigger.Conditions>
+                                                                <Condition Property="IsSelected" Value="True"/>
+                                                                <Condition Property="IsMouseOver" Value="True"/>
+                                                            </MultiTrigger.Conditions>
+                                                            <Setter TargetName="Border"
+                                                                Property="Background"
+                                                                Value="#88a99c"/>
+                                                        </MultiTrigger>
+
+                                                        <!-- Disabled -->
+                                                        <Trigger Property="IsEnabled" Value="False">
+                                                            <Setter Property="Opacity" Value="0.5"/>
+                                                        </Trigger>
+
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
+                            </ListBox>
+                        </GroupBox>
+                        <GroupBox Header="Apply Theme To"
+                            Padding="10"
+                            Margin="0">
+                            <StackPanel>
+                                <CheckBox Content="Background" IsChecked="{Binding ApplyToBackground, Mode=TwoWay}" Margin="0,5,0,0"/>
+                                <CheckBox Content="Ocean" IsChecked="{Binding ApplyToOcean, Mode=TwoWay}" Margin="0,3,0,0"/>
+                                <CheckBox Content="Landforms" IsChecked="{Binding ApplyToLandforms, Mode=TwoWay}" Margin="0,3,0,0"/>
+                                <CheckBox Content="Freshwater, Lakes, Rivers" IsChecked="{Binding ApplyToFreshwater, Mode=TwoWay}" Margin="0,3,0,0"/>
+                                <CheckBox Content="Paths, Roads, Trails" IsChecked="{Binding ApplyToPaths, Mode=TwoWay}" Margin="0,3,0,0"/>
+                                <CheckBox Content="Symbol Colors" IsChecked="{Binding ApplyToSymbolColors, Mode=TwoWay}" Margin="0,3,0,0"/>
+                                <CheckBox Content="Labels" IsChecked="{Binding ApplyToLabels, Mode=TwoWay}" Margin="0,3,0,0"/>
+                                <CheckBox Content="Label Presets" IsChecked="{Binding ApplyToLabelPresets, Mode=TwoWay}" Margin="0,3,0,0"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                    </StackPanel>
+
+
+                </Grid>
+            </StackPanel>
+
+        </Border>
+        <StackPanel Grid.Row="2" Grid.Column="0"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom"
+                    Margin="20,0,12,10">
+
+            <Button Content="Apply"
+                    Command="{Binding ApplyThemeCommand}"
+                    Style="{StaticResource FlatToolButton}"
+                    Margin="0,0,20,0"
+                    Width="60"
+                    Height="60"/>
+
+            <Button Content="Save As"
+                    Command="{Binding CreateThemeCommand}"
+                    Style="{StaticResource FlatToolButton}"
+                    Margin="0,0,20,0"
+                    Width="60"
+                    Height="60"/>
+
+            <Button Content="Cancel"
+                    Command="{Binding CancelThemeDialogCommand}"
+                    Style="{StaticResource FlatToolButton}"
+                    Width="60"
+                    Height="60"/>
+        </StackPanel>
+
+    </Grid>
+</ui:ModalDialog>
