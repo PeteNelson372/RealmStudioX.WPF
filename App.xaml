@@ -8,6 +8,7 @@
     <Application.Resources>
         <ResourceDictionary>
 
+            <conv:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
             <conv:IntToBooleanConverter x:Key="IntToBooleanConverter"/>
             <conv:EnumToBooleanConverter x:Key="EnumToBooleanConverter"/>
             <conv:EnumEqualsConverter x:Key="EnumEqualsConverter"/>

@@ -16,11 +16,14 @@ using RealmStudioX.WPF.ViewModels.Panels;
 using RealmStudioX.WPF.Views.Dialogs;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Application = System.Windows.Application;
+using Cursor = System.Windows.Input.Cursor;
+using Cursors = System.Windows.Input.Cursors;
 
 namespace RealmStudioX.WPF.ViewModels.Main
 {
@@ -100,6 +103,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public ExportService ExportService { get; }
 
+        public MapObjectDescriptionService MapObjectDescriptionService { get; }
+
         public event Action? RequestOpenNameGeneratorConfig;
 
         private readonly string autosaveRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -140,12 +145,14 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
             _themeManager = themeManager;
 
+            MapObjectDescriptionService = new();
+
             // instantiate ViewModels for the panels; when adding a view model
             // remember to add a reference to it on the TabItem <panel:...> in MainTabs.xaml
             // and in MainWindow.xaml.cs ShowToolPanel() method
 
             // Project Panel
-            ProjectViewModel = new ProjectPanelViewModel(this, _editor, _projectManager);
+            ProjectViewModel = new ProjectPanelViewModel(this, _editor, _projectManager, MapObjectDescriptionService);
 
             // Background Panel
             BackgroundViewModel = new BackgroundPanelViewModel(_editor, assetManager);
@@ -356,118 +363,6 @@ namespace RealmStudioX.WPF.ViewModels.Main
             SaveRealmProject();
         });
 
-        public void SaveRealmProject()
-        {
-            try
-            {
-                // save the map project as a zip package
-                RealmStudioProject? currentProject = ProjectManager.CurrentProject;
-
-                if (currentProject == null)
-                {
-                    return;
-                }
-
-                RealmStudioMap map = _editor.Scene!.Map;
-
-                currentProject.ActiveMapId = map.MapId;
-
-                string mapFileName = map.MapId + RealmStudioFileFormat.RawMapExtension;
-
-                if (string.IsNullOrEmpty(map.MapPath))
-                {
-                    string mapPath = Path.Join(AssetManager.RootRealmsDirectory, mapFileName);
-                    map.MapPath = mapPath;
-                }
-
-                string mapPreviewFileName = map.MapId + ".png";
-
-                MapProjectMetadata projectMeta = currentProject.Metadata!;
-
-                if (string.IsNullOrWhiteSpace(projectMeta.ProjectId))
-                {
-                    projectMeta.ProjectId = Guid.NewGuid().ToString();
-
-                    RealmStudioXLogger.Info(
-                        $"Assigned ProjectId {projectMeta.ProjectId} " +
-                        $"to legacy project '{projectMeta.ProjectName}'.");
-                }
-
-                MapProjectEntry? mapEntry = null;
-                int entryIndex = -1;
-
-                // find the project entry for the map
-                for (int i = 0; i < currentProject.Maps.Count; i++)
-                {
-                    MapProjectEntry mpe = currentProject.Maps[i];
-
-                    if (mpe.MapId == map.MapId)
-                    {
-                        mapEntry = mpe;
-                        entryIndex = i;
-                        break;
-                    }
-                }
-
-                // create a bitmap with the same aspect ratio as the map
-                SKBitmap preview = CreateMapPreview(map);
-
-                if (mapEntry == null)
-                {
-                    mapEntry ??= MapProjectHandler.CreateProjectEntry(map, preview.Copy());
-                }
-                else
-                {
-                    mapEntry.Preview = preview.Copy();
-                }
-
-                MapMetadata mapMetadata = mapEntry.Metadata!;
-
-                mapMetadata.PreviewFile = mapPreviewFileName;
-                mapMetadata.Modified = DateTime.Now;
-                projectMeta.Modified = DateTime.Now;
-
-                mapEntry.Metadata = mapMetadata;
-
-                if (entryIndex > -1)
-                {
-                    currentProject.Maps[entryIndex] = mapEntry;
-                }
-                else
-                {
-                    currentProject.Maps.Add(mapEntry);
-                }
-
-                string projectFileName = currentProject.Metadata!.ProjectName;
-                string mapProjectPath = Path.Join(AssetManager.RootRealmsDirectory, projectFileName + RealmStudioFileFormat.PackageExtension);
-
-                MapFileMethods.SaveProject(mapProjectPath, currentProject);
-
-                ProjectViewModel.LoadProject(currentProject);
-
-                CommandService.MarkSaved();
-
-                _editor.State.StatusMessage = $"Project {currentProject.Metadata.ProjectName} saved.";
-
-            }
-            catch (Exception ex)
-            {
-                MessageDialogFactory.ErrorDialog("Error Saving Realm Project", "An error occurred while saving the project. Check the log file for details.");
-                RealmStudioXLogger.Exception("SaveRealmProject", ex);
-            }
-        }
-
-        private SKBitmap CreateMapPreview(RealmStudioMap map)
-        {
-            using SKBitmap previewFull = new(map.MapWidth, map.MapHeight);
-            using SKCanvas canvas = new(previewFull);
-
-            _editor.Scene!.RenderForExport(canvas);
-
-            SKBitmap preview = Utilities.ResizeBitmap(previewFull, 200, 200 * map.MapHeight / map.MapWidth);
-
-            return preview;
-        }
 
         public ICommand ExportCommand => new RelayCommand(() =>
         {
@@ -515,6 +410,20 @@ namespace RealmStudioX.WPF.ViewModels.Main
         {
             CommandService.ActiveCommands.Redo();
         });
+
+        // -------------------------
+        // Realm Properties
+        // -------------------------
+
+        public ICommand OpenPropertiesCommand => new RelayCommand(() =>
+        {
+            ProjectViewModel.OpenProjectPropertiesDialog();
+        });
+
+
+        // -------------------------
+        // Selection Commands
+        // -------------------------
 
         public ICommand AreaSelectCommand => new RelayCommand(() =>
         {
@@ -772,6 +681,119 @@ namespace RealmStudioX.WPF.ViewModels.Main
         // -------------------------
         // Other Methods
         // -------------------------
+
+        public void SaveRealmProject()
+        {
+            try
+            {
+                // save the map project as a zip package
+                RealmStudioProject? currentProject = ProjectManager.CurrentProject;
+
+                if (currentProject == null)
+                {
+                    return;
+                }
+
+                RealmStudioMap map = _editor.Scene!.Map;
+
+                currentProject.ActiveMapId = map.MapId;
+
+                string mapFileName = map.MapId + RealmStudioFileFormat.RawMapExtension;
+
+                if (string.IsNullOrEmpty(map.MapPath))
+                {
+                    string mapPath = Path.Join(AssetManager.RootRealmsDirectory, mapFileName);
+                    map.MapPath = mapPath;
+                }
+
+                string mapPreviewFileName = map.MapId + ".png";
+
+                MapProjectMetadata projectMeta = currentProject.Metadata!;
+
+                if (string.IsNullOrWhiteSpace(projectMeta.ProjectId))
+                {
+                    projectMeta.ProjectId = Guid.NewGuid().ToString();
+
+                    RealmStudioXLogger.Info(
+                        $"Assigned ProjectId {projectMeta.ProjectId} " +
+                        $"to legacy project '{projectMeta.ProjectName}'.");
+                }
+
+                MapProjectEntry? mapEntry = null;
+                int entryIndex = -1;
+
+                // find the project entry for the map
+                for (int i = 0; i < currentProject.Maps.Count; i++)
+                {
+                    MapProjectEntry mpe = currentProject.Maps[i];
+
+                    if (mpe.MapId == map.MapId)
+                    {
+                        mapEntry = mpe;
+                        entryIndex = i;
+                        break;
+                    }
+                }
+
+                // create a bitmap with the same aspect ratio as the map
+                SKBitmap preview = CreateMapPreview(map);
+
+                if (mapEntry == null)
+                {
+                    mapEntry ??= MapProjectHandler.CreateProjectEntry(map, preview.Copy());
+                }
+                else
+                {
+                    mapEntry.Preview = preview.Copy();
+                }
+
+                MapMetadata mapMetadata = mapEntry.Metadata!;
+
+                mapMetadata.PreviewFile = mapPreviewFileName;
+                mapMetadata.Modified = DateTime.Now;
+                projectMeta.Modified = DateTime.Now;
+
+                mapEntry.Metadata = mapMetadata;
+
+                if (entryIndex > -1)
+                {
+                    currentProject.Maps[entryIndex] = mapEntry;
+                }
+                else
+                {
+                    currentProject.Maps.Add(mapEntry);
+                }
+
+                string projectFileName = currentProject.Metadata!.ProjectName;
+                string mapProjectPath = Path.Join(AssetManager.RootRealmsDirectory, projectFileName + RealmStudioFileFormat.PackageExtension);
+
+                MapFileMethods.SaveProject(mapProjectPath, currentProject);
+
+                ProjectViewModel.LoadProject(currentProject);
+
+                CommandService.MarkSaved();
+
+                _editor.State.StatusMessage = $"Project {currentProject.Metadata.ProjectName} saved.";
+
+            }
+            catch (Exception ex)
+            {
+                MessageDialogFactory.ErrorDialog("Error Saving Realm Project", "An error occurred while saving the project. Check the log file for details.");
+                RealmStudioXLogger.Exception("SaveRealmProject", ex);
+            }
+        }
+
+        private SKBitmap CreateMapPreview(RealmStudioMap map)
+        {
+            using SKBitmap previewFull = new(map.MapWidth, map.MapHeight);
+            using SKCanvas canvas = new(previewFull);
+
+            _editor.Scene!.RenderForExport(canvas);
+
+            SKBitmap preview = Utilities.ResizeBitmap(previewFull, 200, 200 * map.MapHeight / map.MapWidth);
+
+            return preview;
+        }
 
         public void FindAndApplyTheme(string? themeName)
         {

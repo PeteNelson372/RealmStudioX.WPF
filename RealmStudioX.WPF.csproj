@@ -61,6 +61,7 @@
     <None Remove="Assets\png\eyedropper.png" />
     <None Remove="Assets\png\FootprintsPath.png" />
     <None Remove="Assets\png\LineDashPath.png" />
+    <None Remove="Assets\png\OAI_OpenAI-Blossom_Black.png" />
     <None Remove="Assets\png\RailroadTracksPath.png" />
     <None Remove="Assets\png\Realm Studio Icon 1024x1024.png" />
     <None Remove="Assets\png\Realm Studio X Icon.png" />
@@ -78,6 +79,7 @@
     <None Remove="Assets\png\SmallDashesPath.png" />
     <None Remove="Assets\png\SolidPath.png" />
     <None Remove="Assets\png\ThickLinePath.png" />
+    <None Remove="Assets\svg\OAI_OpenAI-Blossom_Black.svg" />
     <None Remove="Properties\Logging\log4net.config" />
   </ItemGroup>
 
@@ -116,6 +118,7 @@
     <PackageReference Include="log4net" Version="3.3.2" />
     <PackageReference Include="MaterialDesignColors" Version="5.3.2" />
     <PackageReference Include="MaterialDesignThemes" Version="5.3.2" />
+    <PackageReference Include="SharpVectors.Wpf" Version="1.8.5" />
     <PackageReference Include="SimplexNoise" Version="2.0.0" />
     <PackageReference Include="SkiaSharp" Version="4.150.1" />
     <PackageReference Include="SkiaSharp.Views" Version="4.150.1" />
@@ -177,6 +180,7 @@
     <Resource Include="Assets\png\LineDashPath.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Assets\png\OAI_OpenAI-Blossom_Black.png" />
     <Resource Include="Assets\png\RailroadTracksPath.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
@@ -210,6 +214,7 @@
     <Resource Include="Assets\png\ThickLinePath.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Assets\svg\OAI_OpenAI-Blossom_Black.svg" />
   </ItemGroup>
 
   <ItemGroup>
@@ -236,6 +241,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Controls\CreateOpenDialogTitleBar.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Dialogs\ObjectCharacteristics.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Dialogs\RealmProperties.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Dialogs\ThemeNameDialog.xaml.cs">

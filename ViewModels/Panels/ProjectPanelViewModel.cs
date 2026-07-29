@@ -3,6 +3,7 @@ using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
+using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.Models.Startup;
@@ -14,6 +15,7 @@ using SkiaSharp;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using System.Windows.Media;
+using Cursors = System.Windows.Input.Cursors;
 
 namespace RealmStudioX.WPF.ViewModels.Panels
 {
@@ -26,11 +28,15 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         private readonly ProjectManager _projectManager;
 
-        public ProjectPanelViewModel(MainWindowViewModel mainViewModel, EditorController editor, ProjectManager projectManager)
+        private readonly MapObjectDescriptionService _descriptionService;
+
+        public ProjectPanelViewModel(MainWindowViewModel mainViewModel, EditorController editor,
+            ProjectManager projectManager, MapObjectDescriptionService descriptionService)
         {
             _mainWindowViewModel = mainViewModel;
             _editor = editor;
             _projectManager = projectManager;
+            _descriptionService = descriptionService;
 
             _projectManager.ProjectChanged += OnProjectChanged;
         }
@@ -49,6 +55,21 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             }
         }
 
+        public string ProjectName
+        {
+            get => Project != null ? Project.Metadata.ProjectName : string.Empty;
+            set
+            {
+                if (Project != null)
+                {
+                    Project.Metadata.ProjectName = value;
+                    OnPropertyChanged();
+                    RefreshProjectMetadata();
+                    MainViewModel.CommandService.MarkProjectDataModified();
+                }
+            }
+        }
+
         private void OnProjectChanged(object? sender, EventArgs e)
         {
             RefreshProject();
@@ -56,7 +77,10 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public ObservableCollection<ProjectMapTileViewModel> MapTiles { get; } = [];
 
-        public MapProjectMetadata? Metadata => Project?.Metadata;
+        public MapProjectMetadata? Metadata
+        {
+            get { return Project?.Metadata; }
+        }
 
         public int MapCount => MapTiles?.Count ?? 0;
 
@@ -97,6 +121,19 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             OnPropertyChanged(nameof(Metadata));
         }
 
+        public void RefreshProjectMetadata()
+        {
+            OnPropertyChanged(nameof(Project));
+            OnPropertyChanged(nameof(Metadata));
+        }
+
+        public void RefreshMaps()
+        {
+            OnPropertyChanged(nameof(Project));
+            OnPropertyChanged(nameof(SelectedMapTile));
+            OnPropertyChanged(nameof(MapTiles));
+        }
+
         public void RefreshMapTiles()
         {
             if (Project == null)
@@ -111,7 +148,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 if (entry.Preview != null)
                 {
                     MapTiles.Add(
-                        new ProjectMapTileViewModel(entry));
+                        new ProjectMapTileViewModel(entry, MainViewModel.CommandService));
                 }
             }
         }
@@ -360,13 +397,20 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             }
         });
 
-        private string _selectedMapName = string.Empty;
+
         public string SelectedMapName
         {
-            get { return _selectedMapName; }
+            get => SelectedMapTile?.MapProjectEntry.Map.MapName ?? "";
+
             set
             {
-                _selectedMapName = value;
+                if (SelectedMapTile == null)
+                    return;
+
+                SelectedMapTile.MapProjectEntry.Map.MapName = value;
+
+                RefreshMaps();
+
                 OnPropertyChanged();
             }
         }
@@ -376,46 +420,359 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             if (SelectedMapTile != null && Project != null)
             {
                 RealmStudioMap selectedMap = SelectedMapTile.MapProjectEntry.Map;
-                string mapName = selectedMap.MapName;
+                string oldMapName = selectedMap.MapName;
 
-                SelectedMapName = mapName;
-
-                RenameDialog renameDialog = new RenameDialog();
-                renameDialog.DataContext = this;
+                RenameDialog renameDialog = new()
+                {
+                    DataContext = this
+                };
 
                 bool? result = renameDialog.ShowDialog();
 
                 if (result == true)
                 {
-                    if (SelectedMapName != mapName && !string.IsNullOrEmpty(SelectedMapName))
+                    if (SelectedMapName != oldMapName && !string.IsNullOrEmpty(SelectedMapName))
                     {
                         if (UserInterfaceUtilities.IsValidFileName(SelectedMapName))
                         {
-                            SelectedMapTile.MapProjectEntry.Map.MapName = SelectedMapName;
                             _mainWindowViewModel.CommandService.MarkProjectDataModified();
                             RefreshMapTiles();
+                        }
+                        else
+                        {
+                            SelectedMapName = oldMapName;
                         }
                     }
                 }
             }
         });
-    }
 
-    public sealed class ProjectMapTileViewModel
-    {
-        private readonly MapProjectEntry _entry;
 
-        public ProjectMapTileViewModel(MapProjectEntry entry)
+        // -------------------------
+        // Realm Properties
+        // -------------------------
+
+        RealmProperties? _realmPropertiesDlg = null;
+
+        public void OpenProjectPropertiesDialog()
         {
-            _entry = entry;
+            _realmPropertiesDlg = new()
+            {
+                DataContext = this
+            };
+
+            _realmPropertiesDlg.ShowDialog();
         }
 
-        public string MapName => _entry.Map.MapName;
+        public ICommand CloseRealmPropertiesCommand => new RelayCommand(() =>
+        {
+            CloseProjectPropertiesDialog();
+        });
 
-        public RealmMapType RealmType => _entry.Metadata.RealmType;
+        private void BeginRealmPropertiesUpdates()
+        {
+            Mouse.OverrideCursor = Cursors.Wait;
 
-        public MapProjectEntry MapProjectEntry => _entry;
+            if (_realmPropertiesDlg != null)
+            {
+                _realmPropertiesDlg.GenerateRealmDescriptionButton.IsEnabled = false;
+                _realmPropertiesDlg.GenerateMapDescriptionButton.IsEnabled = false;
+                _realmPropertiesDlg.SetRealmCharacteristicsButton.IsEnabled = false;
+                _realmPropertiesDlg.SetMapCharacteristicsButton.IsEnabled = false;
+                _realmPropertiesDlg.CreateRealmArticleButton.IsEnabled = false;
+                _realmPropertiesDlg.CreateMapArticleButton.IsEnabled = false;
 
-        public ImageSource? PreviewImage => _entry.Preview?.ToImageSource();
+                _realmPropertiesDlg.RealmPropertiesOkButton.IsEnabled = false;
+            }
+        }
+
+        private void RealmPropertiesUpdatesComplete()
+        {
+            Mouse.OverrideCursor = null;
+
+            if (_realmPropertiesDlg != null)
+            {
+                _realmPropertiesDlg.GenerateRealmDescriptionButton.IsEnabled = true;
+                _realmPropertiesDlg.GenerateMapDescriptionButton.IsEnabled = true;
+                _realmPropertiesDlg.SetRealmCharacteristicsButton.IsEnabled = true;
+                _realmPropertiesDlg.SetMapCharacteristicsButton.IsEnabled = true;
+                _realmPropertiesDlg.CreateRealmArticleButton.IsEnabled = true;
+                _realmPropertiesDlg.CreateMapArticleButton.IsEnabled = true;
+
+                _realmPropertiesDlg.RealmPropertiesOkButton.IsEnabled = true;
+            }
+        }
+
+        internal void CloseProjectPropertiesDialog()
+        {
+            _realmPropertiesDlg?.Close();
+            _realmPropertiesDlg = null;
+        }
+
+        private readonly ObjectCharacteristicsViewModel realmCharacteristics = new();
+
+        public ICommand SetRealmCharacteristicsCommand => new RelayCommand(() =>
+        {
+            ObjectCharacteristics realmObjectCharacteristicsDlg = new(realmCharacteristics, MapObjectType.Realm);
+            realmObjectCharacteristicsDlg.ShowDialog();
+        });
+
+        public ICommand GetRealmDescriptionCommand => new RelayCommand(async () =>
+        {
+            if (Project == null)
+            {
+                return;
+            }
+
+            if (realmCharacteristics != null)
+            {
+                string query = _descriptionService.BuildAiQuery("RealmStudioProject",
+                    ProjectName,
+                    realmCharacteristics.SelectedObjectType,
+                    [.. realmCharacteristics.ObjectCharacteristicsList]);
+
+                try
+                {
+                    BeginRealmPropertiesUpdates();
+
+                    _descriptionService.ClearDescription();
+                    await _descriptionService.GetMapObjectDescription(query);
+                    string description = _descriptionService.ObjectDescription;
+
+                    if (!string.IsNullOrEmpty(description))
+                    {
+                        Project.Metadata.Description = description;
+                        RefreshProjectMetadata();
+                        RefreshMaps();
+                        MainViewModel.CommandService.MarkProjectDataModified();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    RealmStudioXLogger.Exception("An error occurred retrieving an object description.", ex);
+                    MessageDialog dlg = MessageDialogFactory.ErrorDialog("Error retrieving realm project description.", ex.Message);
+                }
+                finally
+                {
+                    RealmPropertiesUpdatesComplete();
+                }
+            }
+        });
+
+        public ICommand LockRealmNameCommand => new RelayCommand(() =>
+        {
+            RealmNameLocked = !RealmNameLocked;
+        });
+
+        public ICommand GenerateRealmNameCommand => new RelayCommand(() =>
+        {
+            if (_realmNameLocked)
+            {
+                return;
+            }
+
+            string generatedName = GenerateName();
+
+            if (!string.IsNullOrEmpty(generatedName) && Project != null)
+            {
+                ProjectName = generatedName;
+            }
+        });
+
+        public ICommand GenerateMapNameCommand => new RelayCommand(() =>
+        {
+            if (_mapNameLocked)
+            {
+                return;
+            }
+
+            string generatedName = GenerateName();
+
+            if (!string.IsNullOrEmpty(generatedName) && SelectedMapTile != null)
+            {
+                SelectedMapTile.MapName = generatedName;
+                MainViewModel.CommandService.MarkMapModified();
+            }
+        });
+
+        public string GenerateName()
+        {
+            List<INameGenerator> generators = AssetManager.GetAllNameGenerators();
+
+            string generatedName = string.Empty;
+
+            if (generators.Count > 0)
+            {
+                int guardCount = 0;
+                int maxTries = 100;
+
+                while (string.IsNullOrEmpty(generatedName) && guardCount < maxTries)
+                {
+                    guardCount++;
+                    string name = NameManager.GenerateRandomPlaceName(generators);
+
+                    if (!string.IsNullOrEmpty(name))
+                    {
+                        generatedName = name;
+                    }
+                }
+            }
+
+            return generatedName;
+        }
+
+        private bool _realmNameLocked = false;
+
+        public bool RealmNameLocked
+        {
+            get { return _realmNameLocked; }
+            set
+            {
+                _realmNameLocked = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private bool _mapNameLocked = false;
+
+        public bool MapNameLocked
+        {
+            get { return _mapNameLocked; }
+            set
+            {
+                _mapNameLocked = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ICommand LockMapNameCommand => new RelayCommand(() =>
+        {
+            MapNameLocked = !MapNameLocked;
+        });
+
+        // -------------------------
+        // Selected Map Characteristics and Description
+        // -------------------------
+
+        private readonly Dictionary<string, ObjectCharacteristicsViewModel> mapCharacteristicsList = [];
+
+        public ICommand SetSelectedMapCharacteristicsCommand => new RelayCommand(() =>
+        {
+            if (SelectedMapTile == null)
+            {
+                return;
+            }
+
+            string mapId = SelectedMapTile.MapProjectEntry.MapId;
+            ObjectCharacteristicsViewModel? mapCharacteristics;
+
+            if (!mapCharacteristicsList.TryGetValue(mapId, out mapCharacteristics))
+            {
+                mapCharacteristics = new();
+                mapCharacteristicsList.Add(mapId, mapCharacteristics);
+            }
+
+            ObjectCharacteristics selectedMapCharacteristicsDlg = new(mapCharacteristics, MapObjectType.Map);
+            selectedMapCharacteristicsDlg.ShowDialog();
+        });
+
+        public ICommand GetSelectedMapDescriptionCommand => new RelayCommand(async () =>
+        {
+            if (SelectedMapTile == null)
+            {
+                return;
+            }
+
+            string mapId = SelectedMapTile.MapProjectEntry.MapId;
+            ObjectCharacteristicsViewModel? mapCharacteristics;
+
+            if (!mapCharacteristicsList.TryGetValue(mapId, out mapCharacteristics))
+            {
+                mapCharacteristics = new();
+                mapCharacteristicsList.Add(mapId, mapCharacteristics);
+            }
+
+            if (mapCharacteristics != null)
+            {
+                string mapName = SelectedMapTile.MapProjectEntry.Map.MapName;
+                string query = _descriptionService.BuildAiQuery("RealmStudioMap",
+                    mapName,
+                    mapCharacteristics.SelectedObjectType,
+                    mapCharacteristics.ObjectCharacteristicsList.ToList());
+
+                try
+                {
+                    BeginRealmPropertiesUpdates();
+
+                    _descriptionService.ClearDescription();
+                    await _descriptionService.GetMapObjectDescription(query);
+                    string description = _descriptionService.ObjectDescription;
+
+                    if (!string.IsNullOrEmpty(description))
+                    {
+                        SelectedMapTile.MapProjectEntry.Map.RealmDescription = description;
+                        RefreshMaps();
+                        MainViewModel.CommandService.MarkMapModified();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    RealmStudioXLogger.Exception("An error occurred retrieving an object description.", ex);
+                    MessageDialog dlg = MessageDialogFactory.ErrorDialog("Error retrieving map description.", ex.Message);
+                }
+                finally
+                {
+                    RealmPropertiesUpdatesComplete();
+                }
+            }
+        });
+    }
+
+    public sealed class ProjectMapTileViewModel(MapProjectEntry entry, CommandService cmdService) : ViewModelBase
+    {
+        private readonly CommandService _cmdService = cmdService;
+
+        public string MapName
+        {
+            get => entry.Map.MapName;
+            set
+            {
+                if (entry.Map.MapName == value)
+                {
+                    return;
+                }
+
+                if (!UserInterfaceUtilities.IsValidFileName(value))
+                {
+                    return;
+                }
+
+                entry.Map.MapName = value;
+                OnPropertyChanged();
+                _cmdService.MarkMapModified();
+            }
+        }
+
+        public string MapDescription
+        {
+            get => entry.Map.RealmDescription;
+            set
+            {
+                if (entry.Map.RealmDescription == value)
+                    return;
+
+                entry.Map.RealmDescription = value;
+                OnPropertyChanged();
+                _cmdService.MarkMapModified();
+            }
+        }
+
+        public RealmMapType RealmType => entry.Metadata.RealmType;
+
+        public MapProjectEntry MapProjectEntry => entry;
+
+        public string Dimensions => MapProjectEntry.Map.MapWidth.ToString() + "w x " + MapProjectEntry.Map.MapHeight.ToString() +"h";
+
+        public ImageSource? PreviewImage => entry.Preview?.ToImageSource();
     }
 }

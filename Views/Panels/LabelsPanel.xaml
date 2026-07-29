@@ -112,13 +112,14 @@
                                Foreground="#FF45443F"
                                HorizontalAlignment="Center"
                                Margin="0,0,0,3"/>
-                    <materialDesign:PackIcon Kind="TallyMark3"
-                                     Width="30"
-                                     Height="30"
+                    <materialDesign:PackIcon Kind="RenameOutline"
+                                     Width="24"
+                                     Height="24"
+                                     HorizontalAlignment="Center"
                                      RenderTransformOrigin="0.5,0.5"
                                      Opacity="0.7">
                         <materialDesign:PackIcon.RenderTransform>
-                            <RotateTransform Angle="90"/>
+                            <RotateTransform Angle="0"/>
                         </materialDesign:PackIcon.RenderTransform>
                     </materialDesign:PackIcon>
                 </StackPanel>
