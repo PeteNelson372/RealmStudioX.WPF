@@ -625,14 +625,14 @@
                             VerticalAlignment="Center"
                             Margin="3,3,3,3"/>
                     <Button
-                    Style="{StaticResource FlatToolButton}"
-                    Width="120"
-                    Height="50"
-                    Margin="3,3,3,3"
-                    Background="{Binding LandformOutlineBrush}"
-                    ToolTip="Select Landform Outline Color"
-                    PreviewMouseLeftButtonUp="OutlineColor_LeftClick"
-                    PreviewMouseRightButtonUp="OutlineColor_RightClick">
+                        Style="{StaticResource FlatToolButton}"
+                        Width="120"
+                        Height="50"
+                        Margin="3,3,3,3"
+                        Background="{Binding LandformOutlineBrush}"
+                        ToolTip="Select Landform Outline Color"
+                        PreviewMouseLeftButtonUp="OutlineColor_LeftClick"
+                        PreviewMouseRightButtonUp="OutlineColor_RightClick">
 
                         <materialDesign:PackIcon Kind="PaletteOutline"
                                     Width="36"
@@ -727,7 +727,7 @@
                             Margin="3,3,6,3"/>
                     </StackPanel>
 
-                    <controls:AssetBrowserControl x:Name="BackgroundTextureBrowser"
+                    <controls:AssetBrowserControl x:Name="LandformTextureBrowser"
                                                DataContext="{Binding TextureBrowser}" 
                                                Width="136"
                                                Height="160"

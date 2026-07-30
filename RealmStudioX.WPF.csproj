@@ -246,6 +246,9 @@
     <Compile Update="Views\Dialogs\ObjectCharacteristics.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Dialogs\LandformProperties.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Dialogs\RealmProperties.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

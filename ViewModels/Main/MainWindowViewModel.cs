@@ -16,14 +16,11 @@ using RealmStudioX.WPF.ViewModels.Panels;
 using RealmStudioX.WPF.Views.Dialogs;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Application = System.Windows.Application;
-using Cursor = System.Windows.Input.Cursor;
-using Cursors = System.Windows.Input.Cursors;
 
 namespace RealmStudioX.WPF.ViewModels.Main
 {
@@ -234,6 +231,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
             set => RecoveryService.AutoSaveEnabled = value;
         }
 
+
+
         private string _mapName = string.Empty;
         public string MapName
         {
@@ -415,11 +414,57 @@ namespace RealmStudioX.WPF.ViewModels.Main
         // Realm Properties
         // -------------------------
 
-        public ICommand OpenPropertiesCommand => new RelayCommand(() =>
+        public ICommand OpenRealmPropertiesCommand => new RelayCommand(() =>
         {
             ProjectViewModel.OpenProjectPropertiesDialog();
         });
 
+        public ICommand OpenObjectPropertiesDialogCommand => new RelayCommand(() =>
+        {
+            SelectionService.ObjectPropertiesPopupSuppressed = true;
+
+            try
+            {
+                if (SelectionService.PrimarySelection != null && SelectionService.PrimarySelection is Landform lf)
+                {
+                    OpenLandformPropertiesDialog(lf);
+                }
+            }
+            finally
+            {
+                SelectionService.ObjectPropertiesPopupSuppressed = false;
+            }
+        });
+
+        LandformProperties? _landformPropertiesDlg = null;
+
+        private void OpenLandformPropertiesDialog(Landform lf)
+        {
+            SelectionService.ObjectPropertiesPopupSuppressed = true;
+
+            try
+            {
+                _landformPropertiesDlg = new(lf, this)
+                {
+                    Owner = System.Windows.Application.Current.MainWindow,
+                };
+
+                _landformPropertiesDlg.ShowDialog();
+            }
+            finally
+            {
+                SelectionService.ObjectPropertiesPopupSuppressed = true;
+            }
+        }
+
+        public void CloseLandformProperties()
+        {
+            if (_landformPropertiesDlg != null)
+            {
+                _landformPropertiesDlg.Close();
+                _landformPropertiesDlg = null;
+            }
+        }
 
         // -------------------------
         // Selection Commands
@@ -681,6 +726,32 @@ namespace RealmStudioX.WPF.ViewModels.Main
         // -------------------------
         // Other Methods
         // -------------------------
+
+        public static string GenerateName()
+        {
+            List<INameGenerator> generators = AssetManager.GetAllNameGenerators();
+
+            string generatedName = string.Empty;
+
+            if (generators.Count > 0)
+            {
+                int guardCount = 0;
+                int maxTries = 100;
+
+                while (string.IsNullOrEmpty(generatedName) && guardCount < maxTries)
+                {
+                    guardCount++;
+                    string name = NameManager.GenerateRandomPlaceName(generators);
+
+                    if (!string.IsNullOrEmpty(name))
+                    {
+                        generatedName = name;
+                    }
+                }
+            }
+
+            return generatedName;
+        }
 
         public void SaveRealmProject()
         {

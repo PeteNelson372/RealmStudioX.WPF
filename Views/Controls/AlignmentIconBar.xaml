@@ -84,7 +84,7 @@
 
         <Button Style="{StaticResource IconBarButtonStyle}"
                 Command="{Binding DrawPathCommand}"
-                ToolTip="Draw arc for alignment and distribution">
+                ToolTip="Draw free-form curve for alignment and distribution">
             <materialDesign:PackIcon Kind="Gesture"
                              Width="22"
                              Height="22"

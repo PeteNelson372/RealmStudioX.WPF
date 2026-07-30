@@ -456,12 +456,22 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public void OpenProjectPropertiesDialog()
         {
-            _realmPropertiesDlg = new()
-            {
-                DataContext = this
-            };
+            MainViewModel.SelectionService.ObjectPropertiesPopupSuppressed = true;
 
-            _realmPropertiesDlg.ShowDialog();
+            try
+            {
+                _realmPropertiesDlg = new()
+                {
+                    Owner = System.Windows.Application.Current.MainWindow,
+                    DataContext = this
+                };
+
+                _realmPropertiesDlg.ShowDialog();
+            }
+            finally
+            {
+                MainViewModel.SelectionService.ObjectPropertiesPopupSuppressed = true;
+            }
         }
 
         public ICommand CloseRealmPropertiesCommand => new RelayCommand(() =>
@@ -571,7 +581,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 return;
             }
 
-            string generatedName = GenerateName();
+            string generatedName = MainWindowViewModel.GenerateName();
 
             if (!string.IsNullOrEmpty(generatedName) && Project != null)
             {
@@ -586,7 +596,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 return;
             }
 
-            string generatedName = GenerateName();
+            string generatedName = MainWindowViewModel.GenerateName();
 
             if (!string.IsNullOrEmpty(generatedName) && SelectedMapTile != null)
             {
@@ -595,31 +605,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             }
         });
 
-        public string GenerateName()
-        {
-            List<INameGenerator> generators = AssetManager.GetAllNameGenerators();
-
-            string generatedName = string.Empty;
-
-            if (generators.Count > 0)
-            {
-                int guardCount = 0;
-                int maxTries = 100;
-
-                while (string.IsNullOrEmpty(generatedName) && guardCount < maxTries)
-                {
-                    guardCount++;
-                    string name = NameManager.GenerateRandomPlaceName(generators);
-
-                    if (!string.IsNullOrEmpty(name))
-                    {
-                        generatedName = name;
-                    }
-                }
-            }
-
-            return generatedName;
-        }
 
         private bool _realmNameLocked = false;
 

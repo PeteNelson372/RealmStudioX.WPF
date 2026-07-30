@@ -187,7 +187,7 @@
                 </StatusBarItem>
             </StatusBar>
 
-            <Grid Grid.Row="1" Background="WhiteSmoke">
+            <Grid x:Name="HostGrid" Grid.Row="1" Background="WhiteSmoke">
                 
             <!-- SKGLControl host -->
             <wfi:WindowsFormsHost x:Name="FormsHost"
@@ -195,6 +195,35 @@
                 Background="White"
                 Cursor="None"
                 SizeChanged="OnViewportSizeChanged"/>
+
+                <!-- properties dialog opener -->
+
+                <Popup x:Name="OpenPropertiesPopup"
+                   IsOpen="{Binding SelectionService.PropertiesPopupVisible, Mode=OneWay}"
+                   Placement="Relative"
+                   PlacementTarget="{Binding ElementName=FormsHost}"
+                   HorizontalOffset="{Binding SelectionService.PropertiesPopupLeft, Mode=OneWay}"
+                   VerticalOffset="{Binding SelectionService.PropertiesPopupTop, Mode=OneWay}"
+                   StaysOpen="True"                   
+                   AllowsTransparency="True">
+
+                        <Button
+                            Style="{StaticResource FlatToolButton}"
+                            Width="30"
+                            Height="30"
+                            Margin="3,3,3,3"
+                            Background="#FFDFDBD2"
+                            ToolTip="Open Object Properties Dialog"
+                            Command="{Binding OpenObjectPropertiesDialogCommand}">
+
+                            <materialDesign:PackIcon Kind="InfoCircleOutline"
+                                        Width="22"
+                                        Height="22"
+                                        Background="#FFDFDBD2"
+                                        Foreground="#FF619C24"
+                                        Opacity="1"/>
+                        </Button>
+                </Popup>
 
                 <!-- Floating font picker -->
                 <Popup x:Name="FontPopup"

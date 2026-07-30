@@ -1,5 +1,4 @@
 ﻿using RealmStudioShapeRenderingLib;
-using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.Editor.UserInterface;

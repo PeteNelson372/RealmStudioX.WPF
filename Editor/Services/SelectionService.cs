@@ -59,6 +59,62 @@ namespace RealmStudioX.WPF.Editor.Services
             _selectionFilter.AllowsMarkers = true;
         }
 
+        private bool _objectPropertiesPopupSuppressed;
+
+        public bool ObjectPropertiesPopupSuppressed
+        {
+            get => _objectPropertiesPopupSuppressed;
+            set
+            {
+                if (_objectPropertiesPopupSuppressed == value)
+                    return;
+
+                _objectPropertiesPopupSuppressed = value;
+                OnPropertyChanged(nameof(PropertiesPopupVisible));
+            }
+        }
+
+        public bool PropertiesPopupVisible =>
+            !_objectPropertiesPopupSuppressed &&
+            PrimarySelection != null &&
+            (PrimarySelection is Landform
+             || PrimarySelection is WaterSystem
+             || PrimarySelection is Lake
+             || PrimarySelection is River
+             || PrimarySelection is PaintedWaterBody
+             || PrimarySelection is MapPath
+             || PrimarySelection is MapRegion
+             || PrimarySelection is MapSymbol);
+
+
+        private float _propertiesPopupLeft = 0;
+        public float PropertiesPopupLeft
+        {
+            get => _propertiesPopupLeft;
+            set
+            {
+                if (_propertiesPopupLeft == value)
+                    return;
+
+                _propertiesPopupLeft = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private float _propertiesPopupTop = 0;
+        public float PropertiesPopupTop
+        {
+            get => _propertiesPopupTop;
+            set
+            {
+                if (_propertiesPopupTop == value)
+                    return;
+
+                _propertiesPopupTop = value;
+                OnPropertyChanged();
+            }
+        }
+
         public bool LandformSelectionAllowed
         {
             get { return _landformSelectionAllowed; }
@@ -531,6 +587,17 @@ namespace RealmStudioX.WPF.Editor.Services
                     SelectSingle(selected);
                 }
 
+                if (PrimarySelection != null)
+                {
+                    PropertiesPopupLeft = PrimarySelection.Bounds.Left;
+                    PropertiesPopupTop = PrimarySelection.Bounds.Top;
+                }
+
+                OnPropertyChanged(nameof(SelectedObjects));
+                OnPropertyChanged(nameof(PropertiesPopupVisible));
+                OnPropertyChanged(nameof(PropertiesPopupLeft));
+                OnPropertyChanged(nameof(PropertiesPopupTop));
+
                 return selected;
             }
 
@@ -568,6 +635,17 @@ namespace RealmStudioX.WPF.Editor.Services
             {
                 SelectSingle(selectedCandidate);
             }
+
+            if (PrimarySelection != null)
+            {
+                PropertiesPopupLeft = PrimarySelection.Bounds.Left;
+                PropertiesPopupTop = PrimarySelection.Bounds.Top;
+            }
+
+            OnPropertyChanged(nameof(SelectedObjects));
+            OnPropertyChanged(nameof(PropertiesPopupVisible));
+            OnPropertyChanged(nameof(PropertiesPopupLeft));
+            OnPropertyChanged(nameof(PropertiesPopupTop));
 
             return selectedCandidate;
         }
@@ -607,6 +685,11 @@ namespace RealmStudioX.WPF.Editor.Services
             }
 
             SelectedObjects.Clear();
+
+            OnPropertyChanged(nameof(SelectedObjects));
+            OnPropertyChanged(nameof(PropertiesPopupVisible));
+            OnPropertyChanged(nameof(PropertiesPopupLeft));
+            OnPropertyChanged(nameof(PropertiesPopupTop));
 
             if (scene != null)
             {

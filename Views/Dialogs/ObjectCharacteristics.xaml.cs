@@ -50,6 +50,11 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 ObjectTypesList.ItemsSource = realmTypes;
                 TitleBarText.Text = "Map Characteristics";
             }
+            else if (objectType == MapObjectType.Landform)
+            {
+                ObjectTypesList.ItemsSource = landformTypes;
+                TitleBarText.Text = "Landform Characteristics";
+            }
         }
 
         private readonly List<string> realmTypes =
@@ -69,6 +74,20 @@ namespace RealmStudioX.WPF.Views.Dialogs
             "Continent",
             "Supercontinent",
             "Island",
+            "Atoll",
+            "Islet",
+            "Archipelago",
+            "Isle",
+            "Cay",
+            "Holm",
+            "Skerry",
+            "Spit",
+            "Peninsula",
+            "Cape",
+            "Reef",
+            "Beach",
+            "Insel"
+
         ];
 
         private readonly List<string> waterFeatureTypes =
