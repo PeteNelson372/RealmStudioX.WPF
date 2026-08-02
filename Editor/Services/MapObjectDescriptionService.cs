@@ -119,6 +119,16 @@
                         }
                     }
                     break;
+                case "WaterBody":
+                    {
+                        query = $"Generate a description for the fantasy map water body (lake, pond, river, stream, canal, etc.)";
+
+                        if (!string.IsNullOrEmpty(mapObjectDetailType))
+                        {
+                            query += $" of type '{mapObjectDetailType}'";
+                        }
+                    }
+                    break;
                 case "MapPath":
                     {
                         query = $"Generate a description for the fantasy map path (road, trail, avenue, track, etc.)";

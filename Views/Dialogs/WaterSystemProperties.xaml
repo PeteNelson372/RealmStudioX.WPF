@@ -1,0 +1,267 @@
+﻿<ui:ModalDialog x:Class="RealmStudioX.WPF.Views.Dialogs.WaterSystemProperties"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:ui="clr-namespace:RealmStudioX.WPF.Editor.UserInterface"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"        
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:views="clr-namespace:RealmStudioX.WPF.Views"
+        xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
+        xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+        xmlns:vm="clr-namespace:RealmStudioX.WPF.ViewModels.Dialogs"
+        xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
+        mc:Ignorable="d"
+        Title="Water System Properties"
+        Width="760"
+        Height="425"
+        MinWidth="760"
+        MaxWidth="760"
+        MinHeight="425"
+        MaxHeight="425"
+        Background="#FF45443F"
+        WindowStyle="None"
+        ResizeMode="NoResize">
+
+    <!-- WindowChrome -->
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="32"
+                            ResizeBorderThickness="0"
+                            CornerRadius="0"/>
+    </shell:WindowChrome.WindowChrome>
+
+    <ui:ModalDialog.Resources>
+        <conv:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+    </ui:ModalDialog.Resources>
+
+    <Grid Margin="10" Background="#FFDFDBD2">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <!-- Custom Title Bar -->
+            <RowDefinition Height="*"/>
+            <!-- Main -->
+            <RowDefinition Height="80"/>
+            <!-- Buttons -->
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Row="0"
+                       Text="Water System Properties"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Background="#FF45443F"
+                       Foreground="#E5E5E5"
+                       VerticalAlignment="Top"
+                       Height="30"
+                       Padding="20,0,0,0"
+                       Margin="0,0,0,0"/>
+        
+        <Border Grid.Row="1" Grid.Column="0" Padding="0" BorderBrush="#CCC" BorderThickness="1">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    
+                    <TextBlock Grid.Column="0"
+                     Padding="4"
+                     Margin="10,10,0,0"
+                     Text="Water System Id"/>
+
+                    <TextBlock Grid.Column="1"
+                     Padding="4"
+                     Margin="10,10,20,0"
+                     Text="{Binding SelectedWaterSystem.Id}"/>
+                </Grid>
+                <!-- Realm Name -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition Width="40" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                     Padding="4"
+                     Margin="10,10,0,0"
+                     Text="Name"/>
+
+                    <TextBox Grid.Column="1"
+                     Padding="4"
+                     Margin="10,10,20,0"
+                     IsEnabled="{Binding WaterSystemNameLocked,
+                        Converter={StaticResource InverseBooleanConverter}}"
+                     Text="{Binding WaterSystemName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Grid.Column="1"
+                       Text="Enter Water System Name..."
+                       Foreground="Gray"
+                       Margin="18,10,20,0"
+                       VerticalAlignment="Center"
+                       IsHitTestVisible="False"
+                       FontStyle="Italic">
+
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding WaterSystemName}" Value="">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+
+                                    <DataTrigger Binding="{Binding WaterSystemName}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+
+                    </TextBlock>
+
+                    <Button
+                        x:Name="GenerateNameButton"
+                        Grid.Column="2"
+                        Width="24"
+                        Height="24"
+                        Margin="0,10,0,0"
+                        VerticalAlignment="Center"
+                        ToolTip="Generate Water System Name"
+                        Style="{StaticResource FlatToolButton}"
+                        Command="{Binding GenerateWaterSystemNameCommand}">
+
+                        <materialDesign:PackIcon Kind="RenameOutline"
+                                     Width="17"
+                                     Height="17"
+                                     HorizontalAlignment="Center"
+                                     Opacity="0.7">
+                        </materialDesign:PackIcon>
+                    </Button>
+
+                    <Button Grid.Column="3"
+                        Width="24"
+                        Height="24"
+                        HorizontalAlignment="Right"
+                        Margin="0,10,14,0"
+                        ToolTip="Lock Water System Name"
+                        Style="{StaticResource FlatToolButton}"
+                        Background="Transparent"
+                        BorderThickness="0"                              
+                        Command="{Binding LockWaterSystemNameCommand}">
+
+                        <materialDesign:PackIcon
+                                    Width="16"
+                                    Height="16"
+                                    Opacity="0.7">
+
+                            <materialDesign:PackIcon.Style>
+                                <Style TargetType="materialDesign:PackIcon">
+
+                                    <!-- Default = unlocked -->
+                                    <Setter Property="Kind" Value="LockOpenOutline"/>
+
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding WaterSystemNameLocked}" Value="True">
+                                            <Setter Property="Kind" Value="Lock"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+
+                                </Style>
+                            </materialDesign:PackIcon.Style>
+
+                        </materialDesign:PackIcon>
+                    </Button>
+                </Grid>
+
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                     Padding="4"
+                     Margin="10,10,0,0"
+                     Text="Description"/>
+
+                    <Button x:Name="GenerateWaterSystemDescriptionButton"
+                        Width="32"
+                        Height="32"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Center"                        
+                        Margin="0,36,0,0"
+                        Style="{StaticResource FlatToolButton}"
+                        Command="{Binding GetWaterSystemDescriptionCommand}"
+                        ToolTip="Generate a description for the Water System using RealmStudioX AI integration.">
+                        <svgc:SvgViewbox Source="/Assets/svg/OAI_OpenAI-Blossom_Black.svg" Width="22" Height="22" />
+                    </Button>
+
+                    <Button
+                        x:Name="SetWaterSystemCharacteristicsButton"
+                        Width="32"
+                        Height="32"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Center"                        
+                        Margin="0,76,0,0"
+                        Style="{StaticResource FlatToolButton}"
+                        Command="{Binding SetWaterSystemCharacteristicsCommand}"
+                        ToolTip="Set the type and characteristics of the water system.">
+                        <materialDesign:PackIcon Kind="MapLegend"
+                                     Foreground="SaddleBrown"
+                                     HorizontalAlignment="Center"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+                    </Button>
+
+                    <Button
+                        x:Name="CreateWaterSystemArticleButton"
+                        Width="32"
+                        Height="32"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Center"                        
+                        Margin="0,116,0,0"
+                        Style="{StaticResource FlatToolButton}"
+                        ToolTip="Create and upload an article for the water system to World Anvil.">
+                        <materialDesign:PackIcon Kind="FileUpload"
+                                     Foreground="#FF8C0A0A"
+                                     HorizontalAlignment="Center"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+                    </Button>
+
+                    <TextBox Grid.Column="1"
+                     Padding="4"
+                     Height="200"
+                     Margin="10,10,20,0"
+                     TextWrapping="Wrap"
+                     Text="{Binding WaterSystemDescription, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                </Grid>
+
+            </StackPanel>
+
+        </Border>
+        <StackPanel Grid.Row="2" Grid.Column="0"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,12,10">
+
+            <Button x:Name="WaterSystemPropertiesOkButton"
+                Content="OK"
+                Command="{Binding CloseWaterSystemPropertiesCommand}"
+                Style="{StaticResource FlatToolButton}"
+                Width="60"
+                Height="60"/>
+        </StackPanel>
+
+    </Grid>
+</ui:ModalDialog>

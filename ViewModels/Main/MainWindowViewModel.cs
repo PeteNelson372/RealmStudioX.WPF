@@ -429,6 +429,22 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 {
                     OpenLandformPropertiesDialog(lf);
                 }
+                else if (SelectionService.PrimarySelection != null && SelectionService.PrimarySelection is WaterSystem ws)
+                {
+                    OpenWaterSystemPropertiesDialog(ws);
+                }
+                else if (SelectionService.PrimarySelection != null && SelectionService.PrimarySelection is Lake lake)
+                {
+                    OpenLakePropertiesDialog(lake);
+                }
+                else if (SelectionService.PrimarySelection != null && SelectionService.PrimarySelection is River river)
+                {
+                    OpenRiverPropertiesDialog(river);
+                }
+                else if (SelectionService.PrimarySelection != null && SelectionService.PrimarySelection is PaintedWaterBody waterBody)
+                {
+                    OpenWaterBodyPropertiesDialog(waterBody);
+                }
             }
             finally
             {
@@ -463,6 +479,126 @@ namespace RealmStudioX.WPF.ViewModels.Main
             {
                 _landformPropertiesDlg.Close();
                 _landformPropertiesDlg = null;
+            }
+        }
+
+        WaterSystemProperties? _waterSystemPropertiesDlg = null;
+
+        private void OpenWaterSystemPropertiesDialog(WaterSystem ws)
+        {
+            SelectionService.ObjectPropertiesPopupSuppressed = true;
+
+            try
+            {
+                _waterSystemPropertiesDlg = new(ws, this)
+                {
+                    Owner = System.Windows.Application.Current.MainWindow,
+                };
+
+                _waterSystemPropertiesDlg.ShowDialog();
+            }
+            finally
+            {
+                SelectionService.ObjectPropertiesPopupSuppressed = true;
+            }
+        }
+
+        public void CloseWaterSystemProperties()
+        {
+            if (_waterSystemPropertiesDlg != null)
+            {
+                _waterSystemPropertiesDlg.Close();
+                _waterSystemPropertiesDlg = null;
+            }
+        }
+
+        LakeProperties? _lakePropertiesDlg = null;
+
+        private void OpenLakePropertiesDialog(Lake lake)
+        {
+            SelectionService.ObjectPropertiesPopupSuppressed = true;
+
+            try
+            {
+                _lakePropertiesDlg = new(lake, this)
+                {
+                    Owner = System.Windows.Application.Current.MainWindow,
+                };
+
+                _lakePropertiesDlg.ShowDialog();
+            }
+            finally
+            {
+                SelectionService.ObjectPropertiesPopupSuppressed = true;
+            }
+        }
+
+        public void CloseLakeProperties()
+        {
+            if (_lakePropertiesDlg != null)
+            {
+                _lakePropertiesDlg.Close();
+                _lakePropertiesDlg = null;
+            }
+        }
+
+        RiverProperties? _riverPropertiesDlg = null;
+
+        private void OpenRiverPropertiesDialog(River river)
+        {
+            SelectionService.ObjectPropertiesPopupSuppressed = true;
+
+            try
+            {
+                _riverPropertiesDlg = new(river, this)
+                {
+                    Owner = System.Windows.Application.Current.MainWindow,
+                };
+
+                _riverPropertiesDlg.ShowDialog();
+            }
+            finally
+            {
+                SelectionService.ObjectPropertiesPopupSuppressed = true;
+            }
+        }
+
+        public void CloseRiverProperties()
+        {
+            if (_riverPropertiesDlg != null)
+            {
+                _riverPropertiesDlg.Close();
+                _riverPropertiesDlg = null;
+            }
+        }
+
+        WaterBodyProperties? _waterbodyPropertiesDlg = null;
+
+        private void OpenWaterBodyPropertiesDialog(PaintedWaterBody waterBody)
+        {
+            SelectionService.ObjectPropertiesPopupSuppressed = true;
+
+            try
+            {
+                _waterbodyPropertiesDlg = new(waterBody, this)
+                {
+                    Owner = System.Windows.Application.Current.MainWindow,
+                };
+
+                _waterbodyPropertiesDlg.ShowDialog();
+            }
+            finally
+            {
+                SelectionService.ObjectPropertiesPopupSuppressed = true;
+            }
+        }
+
+        public void CloseWaterBodyProperties()
+        {
+            if (_waterbodyPropertiesDlg != null)
+            {
+                _waterbodyPropertiesDlg.Close();
+                _waterbodyPropertiesDlg = null;
             }
         }
 
@@ -747,6 +883,27 @@ namespace RealmStudioX.WPF.ViewModels.Main
                     {
                         generatedName = name;
                     }
+                }
+            }
+
+            return generatedName;
+        }
+
+        public static string GenerateWaterFeatureName()
+        {
+            string generatedName = string.Empty;
+
+            int guardCount = 0;
+            int maxTries = 100;
+
+            while (string.IsNullOrEmpty(generatedName) && guardCount < maxTries)
+            {
+                guardCount++;
+                string name = NameManager.GenerateRandomWaterFeatureName();
+
+                if (!string.IsNullOrEmpty(name))
+                {
+                    generatedName = name;
                 }
             }
 

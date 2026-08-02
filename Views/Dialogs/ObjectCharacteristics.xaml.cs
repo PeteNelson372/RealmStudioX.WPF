@@ -55,6 +55,38 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 ObjectTypesList.ItemsSource = landformTypes;
                 TitleBarText.Text = "Landform Characteristics";
             }
+            else if (objectType == MapObjectType.WaterSystem)
+            {
+                List<string> waterTypes = [];
+                
+                waterTypes.AddRange(waterSystemTypes);
+                waterTypes.AddRange(waterFeatureTypes);
+                waterTypes.AddRange(riverTypes);
+
+                ObjectTypesList.ItemsSource = waterTypes;
+                TitleBarText.Text = "Water System Characteristics";
+            }
+            else if (objectType == MapObjectType.Lake)
+            {
+                ObjectTypesList.ItemsSource = waterFeatureTypes;
+                TitleBarText.Text = "Lake Characteristics";
+            }
+            else if (objectType == MapObjectType.River)
+            {
+                ObjectTypesList.ItemsSource = riverTypes;
+                TitleBarText.Text = "River Characteristics";
+            }
+            else if (objectType == MapObjectType.WaterFeature)
+            {
+                List<string> waterTypes = [];
+
+                waterTypes.AddRange(waterSystemTypes);
+                waterTypes.AddRange(waterFeatureTypes);
+                waterTypes.AddRange(riverTypes);
+
+                ObjectTypesList.ItemsSource = waterTypes;
+                TitleBarText.Text = "Water Feature Characteristics";
+            }
         }
 
         private readonly List<string> realmTypes =
@@ -88,6 +120,18 @@ namespace RealmStudioX.WPF.Views.Dialogs
             "Beach",
             "Insel"
 
+        ];
+
+        private readonly List<string> waterSystemTypes =
+        [
+            "Watershed",
+            "Basin",
+            "Catchment",
+            "Drainage",
+            "River Basin",
+            "Water System",
+            "Drainage Area",
+            "River System"
         ];
 
         private readonly List<string> waterFeatureTypes =
