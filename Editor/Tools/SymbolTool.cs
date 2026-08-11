@@ -369,8 +369,9 @@ namespace RealmStudioX
             // TODO: refactor
             _editor.SelectionService!.SelectAt(_scene.Map, worldPos, 4, false);
 
-            foreach (var symbol in _editor.SelectionService!.SelectedObjects)
+            foreach (var shapeReference in _editor.SelectionService!.SelectedObjects)
             {
+                var symbol = shapeReference.ReferencedShape;
                 if (symbol != null && symbol is MapSymbol ms)
                 {
                     Cmd_ModifySymbols paintCommand = new(_layer);

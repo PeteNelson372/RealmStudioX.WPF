@@ -34,6 +34,18 @@
             Modifiers="Control"
             Command="{Binding RedoCommand}" />
 
+        <KeyBinding Key="X"
+                Modifiers="Control"
+                Command="{Binding CutCommand}"/>
+
+        <KeyBinding Key="C"
+                Modifiers="Control"
+                Command="{Binding CopyCommand}"/>
+
+        <KeyBinding Key="V"
+                Modifiers="Control"
+                Command="{Binding PasteCommand}"/>
+
     </ui:RealmStudioMainWindow.InputBindings>
 
     <!-- WindowChrome -->
@@ -82,7 +94,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="350"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="280"/>
+                <ColumnDefinition Width="352"/>
             </Grid.ColumnDefinitions>
 
             <controls:MainMenu x:Name="MainMenu"
@@ -195,35 +207,6 @@
                 Background="White"
                 Cursor="None"
                 SizeChanged="OnViewportSizeChanged"/>
-
-                <!-- properties dialog opener -->
-
-                <Popup x:Name="OpenPropertiesPopup"
-                   IsOpen="{Binding SelectionService.PropertiesPopupVisible, Mode=OneWay}"
-                   Placement="Relative"
-                   PlacementTarget="{Binding ElementName=FormsHost}"
-                   HorizontalOffset="{Binding SelectionService.PropertiesPopupLeft, Mode=OneWay}"
-                   VerticalOffset="{Binding SelectionService.PropertiesPopupTop, Mode=OneWay}"
-                   StaysOpen="True"                   
-                   AllowsTransparency="True">
-
-                        <Button
-                            Style="{StaticResource FlatToolButton}"
-                            Width="30"
-                            Height="30"
-                            Margin="3,3,3,3"
-                            Background="#FFDFDBD2"
-                            ToolTip="Open Object Properties Dialog"
-                            Command="{Binding OpenObjectPropertiesDialogCommand}">
-
-                            <materialDesign:PackIcon Kind="InfoCircleOutline"
-                                        Width="22"
-                                        Height="22"
-                                        Background="#FFDFDBD2"
-                                        Foreground="#FF619C24"
-                                        Opacity="1"/>
-                        </Button>
-                </Popup>
 
                 <!-- Floating font picker -->
                 <Popup x:Name="FontPopup"
@@ -352,6 +335,29 @@
                     Margin="10,0" Foreground="IndianRed">
                 <TextBlock Text="{Binding Editor.State.StatusMessage}"/>
             </StatusBarItem>
+
+            <StatusBarItem
+                    HorizontalAlignment="Left"
+                    Width="155"
+                    Margin="10,0" Foreground="AntiqueWhite">
+                <TextBlock FontSize="12">
+                    <Run Text="Items Selected: "/>
+                    <Run Text="{Binding SelectionService.SelectionCount, Mode=OneWay}"/>
+                </TextBlock>
+                
+            </StatusBarItem>
+
+            <StatusBarItem
+                    HorizontalAlignment="Left"
+                    Width="250"
+                    Margin="10,0" Foreground="AntiqueWhite">
+                <TextBlock FontSize="12">
+                    <Run Text="Primary Selection: "/>
+                    <Run Text="{Binding SelectionService.PrimarySelectionTypeName, Mode=OneWay}"/>
+                </TextBlock>
+
+            </StatusBarItem>
+
         </StatusBar>
 
         <Grid Grid.Row="2" Grid.Column="2">

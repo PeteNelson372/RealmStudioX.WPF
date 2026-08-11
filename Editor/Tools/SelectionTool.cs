@@ -2,25 +2,18 @@
 using RealmStudioX.Core;
 using RealmStudioX.WPF.Editor.Services;
 using SkiaSharp;
-using static System.Windows.Forms.AxHost;
+using System.Windows.Input;
 
 namespace RealmStudioX.WPF.Editor.Tools
 {
-    internal class SelectionTool : IToolEditor, IDisposable
+    internal class SelectionTool(EditorController editor, SelectionService selectionService) : IToolEditor, IDisposable
     {
-        private EditorController _editor;
-        private SelectionService _selectionService;
+        private EditorController _editor = editor;
+        private SelectionService _selectionService = selectionService;
 
         private SKPoint _initialMousePoint = SKPoint.Empty;
         private SKRect _selectedRealmArea = SKRect.Empty;
         private List<SKPoint> _lassoPoints = [];
-
-        public SelectionTool(EditorController editor, SelectionService selectionService)
-        {
-            _editor = editor;
-            _selectionService = selectionService;
-        }
-
         private bool disposedValue;
 
         public void Activate()
@@ -37,7 +30,7 @@ namespace RealmStudioX.WPF.Editor.Tools
         {
             if (_editor.Scene != null)
             {
-                Cursor.Current = Cursors.Cross;
+                Mouse.OverrideCursor = null;
 
                 if (_editor.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
                 {
@@ -103,7 +96,15 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         public void OnMouseDoubleClick(PointerState state)
         {
+            if (_editor.Scene != null)
+            {
+                Mouse.OverrideCursor = null;
 
+                if (_editor.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
+                {
+                    _selectionService.SelectAt(_editor.Scene.Map, state.WorldPoint, 4, false);
+                }
+            }
         }
 
         public void OnMouseWheel(PointerState state)

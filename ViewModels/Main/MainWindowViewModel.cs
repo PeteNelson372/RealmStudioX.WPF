@@ -26,6 +26,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
 {
     public class MainWindowViewModel : ViewModelBase
     {
+        MainWindow _mainWindow;
         public static WindowManager WindowManager => ((App)Application.Current).WindowManager;
 
         private readonly EditorController _editor;
@@ -107,8 +108,9 @@ namespace RealmStudioX.WPF.ViewModels.Main
         private readonly string autosaveRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "RealmStudioX", "Autosave");
 
-        public MainWindowViewModel(EditorController editor, AssetManager assetManager, FontManager fontManager, ThemeManager themeManager)
+        public MainWindowViewModel(MainWindow mainWindow, EditorController editor, AssetManager assetManager, FontManager fontManager, ThemeManager themeManager)
         {
+            _mainWindow = mainWindow;
             _editor = editor;
             _assetManager = assetManager;
             _fontManager = fontManager;
@@ -143,6 +145,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
             _themeManager = themeManager;
 
             MapObjectDescriptionService = new();
+
+            Editor.SetMapObjectDescriptionService(MapObjectDescriptionService);
 
             // instantiate ViewModels for the panels; when adding a view model
             // remember to add a reference to it on the TabItem <panel:...> in MainTabs.xaml
@@ -224,14 +228,11 @@ namespace RealmStudioX.WPF.ViewModels.Main
             }
         }
 
-
         public bool AutoSaveEnabled
         {
             get => RecoveryService.AutoSaveEnabled;
             set => RecoveryService.AutoSaveEnabled = value;
         }
-
-
 
         private string _mapName = string.Empty;
         public string MapName
@@ -318,6 +319,88 @@ namespace RealmStudioX.WPF.ViewModels.Main
         public void UpdateZoomLabel(double zoom)
         {
             ZoomLevelLabel = $"Zoom: {(int)(zoom * 100)}%";
+        }
+
+        public double ScrollX
+        {
+            get => -_editor.Scene?.Camera.Pan.X ?? 0;
+            set
+            {
+                var cam = _editor.Scene?.Camera;
+
+                if (cam == null)
+                    return;
+
+                var clamped = Math.Clamp(value, 0, MaxScrollX);
+
+                cam.SetPan(new SKPoint(-(float)clamped, cam.Pan.Y),
+                           _viewPortSize.Width, _viewPortSize.Height);
+
+                OnPropertyChanged();
+            }
+        }
+
+        public double ScrollY
+        {
+            get => -_editor.Scene?.Camera.Pan.Y ?? 0;
+
+            set
+            {
+                var cam = _editor.Scene?.Camera;
+
+                if (cam == null)
+                    return;
+
+                var clamped = Math.Clamp(value, 0, MaxScrollY);
+
+                cam.SetPan(
+                    new SKPoint(cam.Pan.X, -(float)clamped),
+                    _viewPortSize.Width, _viewPortSize.Height);
+
+                OnPropertyChanged();
+            }
+        }
+
+        // ---------------------------------------------
+        // Coordinate transforms
+        // ---------------------------------------------
+
+        public SKPoint ScreenToWorld(SKPoint screen)
+        {
+            var cam = Editor.Scene?.Camera;
+
+            if (cam == null)
+                return screen;
+
+            return new SKPoint(
+                (screen.X - cam.Pan.X) / cam.Zoom,
+                (screen.Y - cam.Pan.Y) / cam.Zoom);
+        }
+
+        public SKPoint WorldToScreen(SKPoint world)
+        {
+            var cam = Editor.Scene?.Camera;
+
+            if (cam == null)
+                return world;
+
+            return new SKPoint(
+                world.X * cam.Zoom + cam.Pan.X,
+                world.Y * cam.Zoom + cam.Pan.Y);
+        }
+
+        public SKRect WorldToScreen(SKRect world)
+        {
+            var cam = Editor.Scene?.Camera;
+
+            if (cam == null)
+                return world;
+
+            return new SKRect(
+                world.Left * cam.Zoom + cam.Pan.X,
+                world.Top * cam.Zoom + cam.Pan.Y,
+                world.Right * cam.Zoom + cam.Pan.X,
+                world.Bottom * cam.Zoom + cam.Pan.Y);
         }
 
         // -------------------------
@@ -410,6 +493,46 @@ namespace RealmStudioX.WPF.ViewModels.Main
             CommandService.ActiveCommands.Redo();
         });
 
+        public ICommand CutCommand => new RelayCommand(() =>
+        {
+            if (SelectionService.SelectedObjects.Count == 0)
+            {
+                return;
+            }
+
+            SelectionService.CopySelectedObjects();
+
+            Cmd_CutObjects cutCmd = new(SelectionService.SelectedObjects, Editor.Scene!.Map);
+
+            CommandService.ActiveCommands.Execute(cutCmd);
+
+            CommandService.MarkMapModified();
+
+            _mainWindow.SkiaControl?.Refresh();
+        });
+
+        public ICommand CopyCommand => new RelayCommand(() =>
+        {
+            SelectionService.CopySelectedObjects();
+        });
+
+        public ICommand PasteCommand => new RelayCommand(() =>
+        {
+            if (SelectionService.Clipboard == null || SelectionService.Clipboard.Items.Count == 0)
+            {
+                return;
+            }
+
+            Cmd_PasteObjects command = new(Editor.Scene!.Map, SelectionService.Clipboard, _editor.CurrentPointerState.WorldPoint);
+
+            CommandService.ActiveCommands.Execute(command);
+
+            SelectionService.SelectObjects(command.PastedObjects);
+
+            CommandService.MarkMapModified();
+            _editor.RequestRedraw();
+        });
+
         // -------------------------
         // Realm Properties
         // -------------------------
@@ -418,189 +541,6 @@ namespace RealmStudioX.WPF.ViewModels.Main
         {
             ProjectViewModel.OpenProjectPropertiesDialog();
         });
-
-        public ICommand OpenObjectPropertiesDialogCommand => new RelayCommand(() =>
-        {
-            SelectionService.ObjectPropertiesPopupSuppressed = true;
-
-            try
-            {
-                if (SelectionService.PrimarySelection != null && SelectionService.PrimarySelection is Landform lf)
-                {
-                    OpenLandformPropertiesDialog(lf);
-                }
-                else if (SelectionService.PrimarySelection != null && SelectionService.PrimarySelection is WaterSystem ws)
-                {
-                    OpenWaterSystemPropertiesDialog(ws);
-                }
-                else if (SelectionService.PrimarySelection != null && SelectionService.PrimarySelection is Lake lake)
-                {
-                    OpenLakePropertiesDialog(lake);
-                }
-                else if (SelectionService.PrimarySelection != null && SelectionService.PrimarySelection is River river)
-                {
-                    OpenRiverPropertiesDialog(river);
-                }
-                else if (SelectionService.PrimarySelection != null && SelectionService.PrimarySelection is PaintedWaterBody waterBody)
-                {
-                    OpenWaterBodyPropertiesDialog(waterBody);
-                }
-            }
-            finally
-            {
-                SelectionService.ObjectPropertiesPopupSuppressed = false;
-            }
-        });
-
-        LandformProperties? _landformPropertiesDlg = null;
-
-        private void OpenLandformPropertiesDialog(Landform lf)
-        {
-            SelectionService.ObjectPropertiesPopupSuppressed = true;
-
-            try
-            {
-                _landformPropertiesDlg = new(lf, this)
-                {
-                    Owner = System.Windows.Application.Current.MainWindow,
-                };
-
-                _landformPropertiesDlg.ShowDialog();
-            }
-            finally
-            {
-                SelectionService.ObjectPropertiesPopupSuppressed = true;
-            }
-        }
-
-        public void CloseLandformProperties()
-        {
-            if (_landformPropertiesDlg != null)
-            {
-                _landformPropertiesDlg.Close();
-                _landformPropertiesDlg = null;
-            }
-        }
-
-        WaterSystemProperties? _waterSystemPropertiesDlg = null;
-
-        private void OpenWaterSystemPropertiesDialog(WaterSystem ws)
-        {
-            SelectionService.ObjectPropertiesPopupSuppressed = true;
-
-            try
-            {
-                _waterSystemPropertiesDlg = new(ws, this)
-                {
-                    Owner = System.Windows.Application.Current.MainWindow,
-                };
-
-                _waterSystemPropertiesDlg.ShowDialog();
-            }
-            finally
-            {
-                SelectionService.ObjectPropertiesPopupSuppressed = true;
-            }
-        }
-
-        public void CloseWaterSystemProperties()
-        {
-            if (_waterSystemPropertiesDlg != null)
-            {
-                _waterSystemPropertiesDlg.Close();
-                _waterSystemPropertiesDlg = null;
-            }
-        }
-
-        LakeProperties? _lakePropertiesDlg = null;
-
-        private void OpenLakePropertiesDialog(Lake lake)
-        {
-            SelectionService.ObjectPropertiesPopupSuppressed = true;
-
-            try
-            {
-                _lakePropertiesDlg = new(lake, this)
-                {
-                    Owner = System.Windows.Application.Current.MainWindow,
-                };
-
-                _lakePropertiesDlg.ShowDialog();
-            }
-            finally
-            {
-                SelectionService.ObjectPropertiesPopupSuppressed = true;
-            }
-        }
-
-        public void CloseLakeProperties()
-        {
-            if (_lakePropertiesDlg != null)
-            {
-                _lakePropertiesDlg.Close();
-                _lakePropertiesDlg = null;
-            }
-        }
-
-        RiverProperties? _riverPropertiesDlg = null;
-
-        private void OpenRiverPropertiesDialog(River river)
-        {
-            SelectionService.ObjectPropertiesPopupSuppressed = true;
-
-            try
-            {
-                _riverPropertiesDlg = new(river, this)
-                {
-                    Owner = System.Windows.Application.Current.MainWindow,
-                };
-
-                _riverPropertiesDlg.ShowDialog();
-            }
-            finally
-            {
-                SelectionService.ObjectPropertiesPopupSuppressed = true;
-            }
-        }
-
-        public void CloseRiverProperties()
-        {
-            if (_riverPropertiesDlg != null)
-            {
-                _riverPropertiesDlg.Close();
-                _riverPropertiesDlg = null;
-            }
-        }
-
-        WaterBodyProperties? _waterbodyPropertiesDlg = null;
-
-        private void OpenWaterBodyPropertiesDialog(PaintedWaterBody waterBody)
-        {
-            SelectionService.ObjectPropertiesPopupSuppressed = true;
-
-            try
-            {
-                _waterbodyPropertiesDlg = new(waterBody, this)
-                {
-                    Owner = System.Windows.Application.Current.MainWindow,
-                };
-
-                _waterbodyPropertiesDlg.ShowDialog();
-            }
-            finally
-            {
-                SelectionService.ObjectPropertiesPopupSuppressed = true;
-            }
-        }
-
-        public void CloseWaterBodyProperties()
-        {
-            if (_waterbodyPropertiesDlg != null)
-            {
-                _waterbodyPropertiesDlg.Close();
-                _waterbodyPropertiesDlg = null;
-            }
-        }
 
         // -------------------------
         // Selection Commands
@@ -619,6 +559,277 @@ namespace RealmStudioX.WPF.ViewModels.Main
             Editor.SetDrawingMode(MapDrawingMode.RealmLassoSelect);
             _editor.ActivateTool(EditorToolType.SelectionTool);
         });
+
+        // -------------------------
+        // Properties Dialogs
+        // -------------------------
+
+        public bool ObjectPropertiesDialogButtonEnabled
+        {
+            get
+            {
+                return SelectionService.PropertiesPopupEnabled;
+            }
+        }
+
+        public ICommand OpenObjectPropertiesDialogCommand => new RelayCommand(() =>
+        {
+            try
+            {
+                if (SelectionService!.PrimarySelection != null && SelectionService.PrimarySelection!.ReferencedShape is Landform lf)
+                {
+                    OpenLandformPropertiesDialog(lf);
+                }
+                else if (SelectionService!.PrimarySelection != null && SelectionService.PrimarySelection!.ReferencedShape is WaterSystem ws)
+                {
+                    OpenWaterSystemPropertiesDialog(ws);
+                }
+                else if (SelectionService!.PrimarySelection != null && SelectionService.PrimarySelection!.ReferencedShape is Lake lake)
+                {
+                    OpenLakePropertiesDialog(lake);
+                }
+                else if (SelectionService!.PrimarySelection != null && SelectionService.PrimarySelection!.ReferencedShape is River river)
+                {
+                    OpenRiverPropertiesDialog(river);
+                }
+                else if (SelectionService!.PrimarySelection != null && SelectionService.PrimarySelection!.ReferencedShape is PaintedWaterBody waterBody)
+                {
+                    OpenWaterBodyPropertiesDialog(waterBody);
+                }
+                else if (SelectionService!.PrimarySelection != null && SelectionService.PrimarySelection!.ReferencedShape is MapSymbol mapSymbol)
+                {
+                    OpenMapSymbolPropertiesDialog(mapSymbol);
+                }
+                else if (SelectionService!.PrimarySelection != null && SelectionService.PrimarySelection!.ReferencedShape is MapRegion mapRegion)
+                {
+                    OpenMapRegionPropertiesDialog(mapRegion);
+                }
+                else if (SelectionService!.PrimarySelection != null && SelectionService.PrimarySelection!.ReferencedShape is MapPath mapPath)
+                {
+                    OpenMapPathPropertiesDialog(mapPath);
+                }
+            }
+            finally
+            {
+            }
+        });
+
+        LandformProperties? _landformPropertiesDlg = null;
+
+        private void OpenLandformPropertiesDialog(Landform lf)
+        {
+            try
+            {
+                _landformPropertiesDlg = new(lf, this)
+                {
+                    Owner = System.Windows.Application.Current.MainWindow,
+                };
+
+                _landformPropertiesDlg.ShowDialog();
+            }
+            finally
+            {
+            }
+        }
+
+        public void CloseLandformProperties()
+        {
+            if (_landformPropertiesDlg != null)
+            {
+                _landformPropertiesDlg.Close();
+                _landformPropertiesDlg = null;
+            }
+        }
+
+        WaterSystemProperties? _waterSystemPropertiesDlg = null;
+
+        private void OpenWaterSystemPropertiesDialog(WaterSystem ws)
+        {
+            try
+            {
+                _waterSystemPropertiesDlg = new(ws, this)
+                {
+                    Owner = System.Windows.Application.Current.MainWindow,
+                };
+
+                _waterSystemPropertiesDlg.ShowDialog();
+            }
+            finally
+            {
+            }
+        }
+
+        public void CloseWaterSystemProperties()
+        {
+            if (_waterSystemPropertiesDlg != null)
+            {
+                _waterSystemPropertiesDlg.Close();
+                _waterSystemPropertiesDlg = null;
+            }
+        }
+
+
+        LakeProperties? _lakePropertiesDlg = null;
+
+        private void OpenLakePropertiesDialog(Lake lake)
+        {
+            try
+            {
+                _lakePropertiesDlg = new(lake, this)
+                {
+                    Owner = System.Windows.Application.Current.MainWindow,
+                };
+
+                _lakePropertiesDlg.ShowDialog();
+            }
+            finally
+            {
+            }
+        }
+
+        public void CloseLakeProperties()
+        {
+            if (_lakePropertiesDlg != null)
+            {
+                _lakePropertiesDlg.Close();
+                _lakePropertiesDlg = null;
+            }
+        }
+
+        RiverProperties? _riverPropertiesDlg = null;
+
+        private void OpenRiverPropertiesDialog(River river)
+        {
+            try
+            {
+                _riverPropertiesDlg = new(river, this)
+                {
+                    Owner = System.Windows.Application.Current.MainWindow,
+                };
+
+                _riverPropertiesDlg.ShowDialog();
+            }
+            finally
+            {
+            }
+        }
+
+        public void CloseRiverProperties()
+        {
+            if (_riverPropertiesDlg != null)
+            {
+                _riverPropertiesDlg.Close();
+                _riverPropertiesDlg = null;
+            }
+        }
+
+        WaterBodyProperties? _waterbodyPropertiesDlg = null;
+
+        private void OpenWaterBodyPropertiesDialog(PaintedWaterBody waterBody)
+        {
+            try
+            {
+                _waterbodyPropertiesDlg = new(waterBody, this)
+                {
+                    Owner = System.Windows.Application.Current.MainWindow,
+                };
+
+                _waterbodyPropertiesDlg.ShowDialog();
+            }
+            finally
+            {
+            }
+        }
+
+        public void CloseWaterBodyProperties()
+        {
+            if (_waterbodyPropertiesDlg != null)
+            {
+                _waterbodyPropertiesDlg.Close();
+                _waterbodyPropertiesDlg = null;
+            }
+        }
+
+        MapSymbolProperties? _mapSymbolPropertiesDlg = null;
+
+        private void OpenMapSymbolPropertiesDialog(MapSymbol mapSymbol)
+        {
+            try
+            {
+                _mapSymbolPropertiesDlg = new(mapSymbol, this)
+                {
+                    Owner = System.Windows.Application.Current.MainWindow,
+                };
+
+                _mapSymbolPropertiesDlg.ShowDialog();
+            }
+            finally
+            {
+            }
+        }
+
+        public void CloseMapSymbolProperties()
+        {
+            if (_mapSymbolPropertiesDlg != null)
+            {
+                _mapSymbolPropertiesDlg.Close();
+                _mapSymbolPropertiesDlg = null;
+            }
+        }
+
+        RegionProperties? _mapRegionPropertiesDlg = null;
+
+        private void OpenMapRegionPropertiesDialog(MapRegion mapRegion)
+        {
+            try
+            {
+                _mapRegionPropertiesDlg = new(mapRegion, this)
+                {
+                    Owner = System.Windows.Application.Current.MainWindow,
+                };
+
+                _mapRegionPropertiesDlg.ShowDialog();
+            }
+            finally
+            {
+            }
+        }
+
+        public void CloseMapRegionProperties()
+        {
+            if (_mapRegionPropertiesDlg != null)
+            {
+                _mapRegionPropertiesDlg.Close();
+                _mapRegionPropertiesDlg = null;
+            }
+        }
+
+        MapPathProperties? _mapPathPropertiesDlg = null;
+
+        private void OpenMapPathPropertiesDialog(MapPath mapPath)
+        {
+            try
+            {
+                _mapPathPropertiesDlg = new(mapPath, this)
+                {
+                    Owner = System.Windows.Application.Current.MainWindow,
+                };
+
+                _mapPathPropertiesDlg.ShowDialog();
+            }
+            finally
+            {
+            }
+        }
+
+        public void CloseMapPathProperties()
+        {
+            if (_mapPathPropertiesDlg != null)
+            {
+                _mapPathPropertiesDlg.Close();
+                _mapPathPropertiesDlg = null;
+            }
+        }
 
         // -------------------------
         // Layout Methods
@@ -855,8 +1066,6 @@ namespace RealmStudioX.WPF.ViewModels.Main
                     }
                 }
             }
-
-
         });
 
         // -------------------------
@@ -1691,46 +1900,6 @@ namespace RealmStudioX.WPF.ViewModels.Main
             else
             {
                 DrawingLayerLabel = "NONE";
-            }
-        }
-
-        public double ScrollX
-        {
-            get => -_editor.Scene?.Camera.Pan.X ?? 0;
-            set
-            {
-                var cam = _editor.Scene?.Camera;
-
-                if (cam == null)
-                    return;
-
-                var clamped = Math.Clamp(value, 0, MaxScrollX);
-
-                cam.SetPan(new SKPoint(-(float)clamped, cam.Pan.Y),
-                           _viewPortSize.Width, _viewPortSize.Height);
-
-                OnPropertyChanged();
-            }
-        }
-
-        public double ScrollY
-        {
-            get => -_editor.Scene?.Camera.Pan.Y ?? 0;
-
-            set
-            {
-                var cam = _editor.Scene?.Camera;
-
-                if (cam == null)
-                    return;
-
-                var clamped = Math.Clamp(value, 0, MaxScrollY);
-
-                cam.SetPan(
-                    new SKPoint(cam.Pan.X, -(float)clamped),
-                    _viewPortSize.Width, _viewPortSize.Height);
-
-                OnPropertyChanged();
             }
         }
 

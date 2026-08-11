@@ -110,7 +110,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 {
                     return lt.EditSession.Text;
                 }
-                else if (Editor.SelectionService!.PrimarySelection is MapLabel ml)
+                else if (Editor.SelectionService!.PrimarySelection != null && Editor.SelectionService!.PrimarySelection.ReferencedShape is MapLabel ml)
                 {
                     return ml.Text;
                 }
@@ -128,7 +128,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     OnPropertyChanged(nameof(LabelText));
                     LabelValuesChanged();
                 }
-                else if (Editor.SelectionService!.PrimarySelection is MapLabel ml)
+                else if (Editor.SelectionService!.PrimarySelection != null && Editor.SelectionService!.PrimarySelection.ReferencedShape is MapLabel ml)
                 {
                     ml.Text = value;
                     OnPropertyChanged(nameof(LabelText));

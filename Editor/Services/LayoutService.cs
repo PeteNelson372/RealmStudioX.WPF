@@ -41,13 +41,14 @@ namespace RealmStudioX.WPF.Editor.Services
 
             Cmd_ModifyObjects cmd = BeginModification();
 
-            float left = _selectionService.PrimarySelection.Bounds.Left;
+            float left = _selectionService.PrimarySelection.ReferencedShape!.Bounds.Left;
 
             try
             {
                 for (int i = 0; i < _selectionService.SelectionCount; i++)
                 {
-                    MapComponent2D alignable = (MapComponent2D)_selectionService.SelectedObjects[i];
+                    ShapeReference sr = _selectionService.SelectedObjects[i];
+                    MapComponent2D alignable = (MapComponent2D)sr.ReferencedShape!;
 
                     if (alignable != null && alignable is IAlignable)
                     {
@@ -74,15 +75,16 @@ namespace RealmStudioX.WPF.Editor.Services
 
             Cmd_ModifyObjects cmd = BeginModification();
 
-            float center = _selectionService.PrimarySelection.Bounds.MidX;
+            float center = _selectionService.PrimarySelection.ReferencedShape!.Bounds.MidX;
 
             try
             {
                 for (int i = 0; i < _selectionService.SelectionCount; i++)
                 {
-                    MapComponent2D alignable = (MapComponent2D)_selectionService.SelectedObjects[i];
+                    ShapeReference sr = _selectionService.SelectedObjects[i];
+                    MapComponent2D alignable = (MapComponent2D)sr.ReferencedShape!;
 
-                    if (alignable != null && alignable is IAlignable && alignable != _selectionService.PrimarySelection)
+                    if (alignable != null && alignable is IAlignable && alignable != _selectionService.PrimarySelection.ReferencedShape!)
                     {
                         UpdatePosition(alignable, center, AlignmentType.Center);
                     }
@@ -107,15 +109,16 @@ namespace RealmStudioX.WPF.Editor.Services
 
             Cmd_ModifyObjects cmd = BeginModification();
 
-            float right = _selectionService.PrimarySelection.Bounds.Right;
+            float right = _selectionService.PrimarySelection.ReferencedShape!.Bounds.Right;
 
             try
             {
                 for (int i = 0; i < _selectionService.SelectionCount; i++)
                 {
-                    MapComponent2D alignable = (MapComponent2D)_selectionService.SelectedObjects[i];
+                    ShapeReference sr = _selectionService.SelectedObjects[i];
+                    MapComponent2D alignable = (MapComponent2D)sr.ReferencedShape!;
 
-                    if (alignable != null && alignable is IAlignable && alignable != _selectionService.PrimarySelection)
+                    if (alignable != null && alignable is IAlignable && alignable != _selectionService.PrimarySelection.ReferencedShape!)
                     {
                         UpdatePosition(alignable, right, AlignmentType.Right);
                     }
@@ -140,15 +143,16 @@ namespace RealmStudioX.WPF.Editor.Services
 
             Cmd_ModifyObjects cmd = BeginModification();
 
-            float top = _selectionService.PrimarySelection.Bounds.Top;
+            float top = _selectionService.PrimarySelection.ReferencedShape!.Bounds.Top;
 
             try
             {
                 for (int i = 0; i < _selectionService.SelectionCount; i++)
                 {
-                    MapComponent2D alignable = (MapComponent2D)_selectionService.SelectedObjects[i];
+                    ShapeReference sr = _selectionService.SelectedObjects[i];
+                    MapComponent2D alignable = (MapComponent2D)sr.ReferencedShape!;
 
-                    if (alignable != null && alignable is IAlignable && alignable != _selectionService.PrimarySelection)
+                    if (alignable != null && alignable is IAlignable && alignable != _selectionService.PrimarySelection.ReferencedShape!)
                     {
                         UpdatePosition(alignable, top, AlignmentType.Top);
                     }
@@ -173,15 +177,16 @@ namespace RealmStudioX.WPF.Editor.Services
 
             Cmd_ModifyObjects cmd = BeginModification();
 
-            float middle = _selectionService.PrimarySelection.Bounds.MidY;
+            float middle = _selectionService.PrimarySelection.ReferencedShape!.Bounds.MidY;
 
             try
             {
                 for (int i = 0; i < _selectionService.SelectionCount; i++)
                 {
-                    MapComponent2D alignable = (MapComponent2D)_selectionService.SelectedObjects[i];
+                    ShapeReference sr = _selectionService.SelectedObjects[i];
+                    MapComponent2D alignable = (MapComponent2D)sr.ReferencedShape!;
 
-                    if (alignable != null && alignable is IAlignable && alignable != _selectionService.PrimarySelection)
+                    if (alignable != null && alignable is IAlignable && alignable != _selectionService.PrimarySelection.ReferencedShape!)
                     {
                         UpdatePosition(alignable, middle, AlignmentType.Middle);
                     }
@@ -206,15 +211,16 @@ namespace RealmStudioX.WPF.Editor.Services
 
             Cmd_ModifyObjects cmd = BeginModification();
 
-            float bottom = _selectionService.PrimarySelection.Bounds.Bottom;
+            float bottom = _selectionService.PrimarySelection.ReferencedShape!.Bounds.Bottom;
 
             try
             {
                 for (int i = 0; i < _selectionService.SelectionCount; i++)
                 {
-                    MapComponent2D alignable = (MapComponent2D)_selectionService.SelectedObjects[i];
+                    ShapeReference sr = _selectionService.SelectedObjects[i];
+                    MapComponent2D alignable = (MapComponent2D)sr.ReferencedShape!;
 
-                    if (alignable != null && alignable is IAlignable && alignable != _selectionService.PrimarySelection)
+                    if (alignable != null && alignable is IAlignable && alignable != _selectionService.PrimarySelection.ReferencedShape!)
                     {
                         UpdatePosition(alignable, bottom, AlignmentType.Bottom);
                     }
@@ -1060,14 +1066,26 @@ namespace RealmStudioX.WPF.Editor.Services
         {
             var cmd = new Cmd_ModifyObjects(_editor.Scene!.Map);
 
-            cmd.CaptureBefore(_selectionService.SelectedObjects.OfType<MapComponent2D>());
+            List<ShapeReference> selectedShapes = _selectionService.SelectedObjects.ToList();
+
+            List<MapComponent2D> selectedComponents = [.. selectedShapes
+                .Select(sr => sr.ReferencedShape)
+                .OfType<MapComponent2D>()];
+
+            cmd.CaptureBefore(selectedComponents);
 
             return cmd;
         }
 
         private void EndModification(Cmd_ModifyObjects cmd)
         {
-            cmd.CaptureAfter(_selectionService.SelectedObjects.OfType<MapComponent2D>());
+            List<ShapeReference> selectedShapes = _selectionService.SelectedObjects.ToList();
+
+            List<MapComponent2D> selectedComponents = [.. selectedShapes
+                .Select(sr => sr.ReferencedShape)
+                .OfType<MapComponent2D>()];
+
+            cmd.CaptureAfter(selectedComponents);
 
             _commands.ActiveCommands.Execute(cmd);
         }

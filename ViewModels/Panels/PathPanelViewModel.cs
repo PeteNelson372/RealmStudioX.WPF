@@ -319,7 +319,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public ICommand EditPathPointsCommand => new RelayCommand(() =>
         {
-            if (_editor != null && _editor.SelectionService!.PrimarySelection is MapPath mp)
+            if (_editor != null && _editor.SelectionService!.PrimarySelection != null && _editor.SelectionService!.PrimarySelection.ReferencedShape is MapPath mp)
             {
                 mp.Editor.IsEditing = EditPathPoints;
 

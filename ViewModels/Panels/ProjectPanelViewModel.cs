@@ -456,8 +456,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public void OpenProjectPropertiesDialog()
         {
-            MainViewModel.SelectionService.ObjectPropertiesPopupSuppressed = true;
-
             try
             {
                 _realmPropertiesDlg = new()
@@ -470,7 +468,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             }
             finally
             {
-                MainViewModel.SelectionService.ObjectPropertiesPopupSuppressed = true;
             }
         }
 

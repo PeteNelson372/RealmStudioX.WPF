@@ -60,7 +60,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                     {
                         if (editor.SelectionService!.SelectionCount == 1)
                         {
-                            if (editor.SelectionService!.PrimarySelection is Landform lf)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is Landform lf)
                             {
                                 MapLayer landformLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.LANDFORMLAYER);
 
@@ -75,7 +75,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is WaterSystem ws)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is WaterSystem ws)
                             {
                                 Cmd_ModifyWaterBodies cmd = new(editor.Scene!);
                                 cmd.RegisterRemovedWaterSystem(ws);
@@ -87,7 +87,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is WaterBody wb)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is WaterBody wb)
                             {
                                 Cmd_ModifyWaterBodies cmd = new(editor.Scene!);
                                 cmd.RegisterRemovedWaterBody(wb);
@@ -99,7 +99,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is MapSymbol symbol)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapSymbol symbol)
                             {
                                 MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.SYMBOLLAYER);
 
@@ -114,7 +114,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is MapPath path)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapPath path)
                             {
                                 MapLayer pathLowerLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.PATHLOWERLAYER);
                                 MapLayer pathUpperLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.PATHUPPERLAYER);
@@ -136,7 +136,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is MapLabel label)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapLabel label)
                             {
                                 MapLayer labelLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.LABELLAYER);
 
@@ -151,7 +151,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is PlacedMapBox box)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is PlacedMapBox box)
                             {
                                 MapLayer boxLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.BOXLAYER);
 
@@ -166,7 +166,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is IDrawnMapComponent)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is IDrawnMapComponent)
                             {
                                 // a drawn map component can be on any layer, so use Cmd_RemoveMapShapes to remove it
                                 // as it doesn't require a specific layer to be specified
@@ -199,7 +199,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
 
                         if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
                         {
-                            if (editor.SelectionService!.PrimarySelection is MapSymbol symbol)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapSymbol symbol)
                             {
                                 symbolLayer.MoveMapComponentZOrder(symbol, ZOrderMoveType.ForwardStep);
                                 return true;
@@ -207,7 +207,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                         }
                         else
                         {
-                            if (editor.SelectionService!.PrimarySelection is MapSymbol symbol)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapSymbol symbol)
                             {
                                 symbolLayer.MoveMapComponentZOrder(symbol, ZOrderMoveType.ForwardOne);
                                 return true;
@@ -221,7 +221,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
 
                         if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
                         {
-                            if (editor.SelectionService!.PrimarySelection is MapSymbol symbol)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapSymbol symbol)
                             {
                                 symbolLayer.MoveMapComponentZOrder(symbol, ZOrderMoveType.BackwardStep);
                                 return true;
@@ -229,7 +229,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                         }
                         else
                         {
-                            if (editor.SelectionService!.PrimarySelection is MapSymbol symbol)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapSymbol symbol)
                             {
                                 symbolLayer.MoveMapComponentZOrder(symbol, ZOrderMoveType.BackwardOne);
                                 return true;
@@ -242,7 +242,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                         if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control) &&
                             Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
                         {
-                            if (editor.SelectionService!.PrimarySelection is MapSymbol symbol)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapSymbol symbol)
                             {
                                 MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.SYMBOLLAYER);
 
@@ -257,7 +257,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                         if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control) &&
                             Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
                         {
-                            if (editor.SelectionService!.PrimarySelection is MapSymbol symbol)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapSymbol symbol)
                             {
                                 MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.SYMBOLLAYER);
 
@@ -269,7 +269,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                     break;
                 case Key.Home:
                     {
-                        if (editor.SelectionService!.PrimarySelection is MapSymbol symbol)
+                        if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapSymbol symbol)
                         {
                             MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.SYMBOLLAYER);
 
@@ -280,7 +280,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                     break;
                 case Key.End:
                     {
-                        if (editor.SelectionService!.PrimarySelection is MapSymbol symbol)
+                        if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapSymbol symbol)
                         {
                             MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(editor.Scene!.Map, MapBuilder.SYMBOLLAYER);
 
@@ -294,25 +294,25 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                         if (editor.SelectionService!.PrimarySelection != null)
                         {
                             // TODO: nudging of landforms; any other object types?
-                            if (editor.SelectionService!.PrimarySelection is MapSymbol symbol)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapSymbol symbol)
                             {
                                 editor.NudgeSymbol(symbol, Keys.Up, 0, -1);
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is MapLabel label)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapLabel label)
                             {
                                 editor.NudgeLabel(label, Keys.Up, 0, -1);
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is PlacedMapBox box)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is PlacedMapBox box)
                             {
                                 editor.NudgeBox(box, Keys.Up, 0, -1);
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is IDrawnMapComponent dmc)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is IDrawnMapComponent dmc)
                             {
                                 editor.NudgeDrawnMapComponent(dmc, Keys.Up, 0, -1);
                                 return true;
@@ -324,25 +324,25 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                     {
                         if (editor.SelectionService!.PrimarySelection != null)
                         {
-                            if (editor.SelectionService!.PrimarySelection is MapSymbol symbol)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapSymbol symbol)
                             {
                                 editor.NudgeSymbol(symbol, Keys.Down, 0, +1);
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is MapLabel label)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapLabel label)
                             {
                                 editor.NudgeLabel(label, Keys.Down, 0, +1);
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is PlacedMapBox box)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is PlacedMapBox box)
                             {
                                 editor.NudgeBox(box, Keys.Down, 0, +1);
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is IDrawnMapComponent dmc)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is IDrawnMapComponent dmc)
                             {
                                 editor.NudgeDrawnMapComponent(dmc, Keys.Up, 0, +1);
                                 return true;
@@ -354,25 +354,25 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                     {
                         if (editor.SelectionService!.PrimarySelection != null)
                         {
-                            if (editor.SelectionService!.PrimarySelection is MapSymbol symbol)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapSymbol symbol)
                             {
                                 editor.NudgeSymbol(symbol, Keys.Left, -1, 0);
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is MapLabel label)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapLabel label)
                             {
                                 editor.NudgeLabel(label, Keys.Left, -1, 0);
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is PlacedMapBox box)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is PlacedMapBox box)
                             {
                                 editor.NudgeBox(box, Keys.Left, -1, 0);
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is IDrawnMapComponent dmc)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is IDrawnMapComponent dmc)
                             {
                                 editor.NudgeDrawnMapComponent(dmc, Keys.Up, -1, 0);
                                 return true;
@@ -384,25 +384,25 @@ namespace RealmStudioX.WPF.Editor.UserInterface
                     {
                         if (editor.SelectionService!.PrimarySelection != null)
                         {
-                            if (editor.SelectionService!.PrimarySelection is MapSymbol symbol)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapSymbol symbol)
                             {
                                 editor.NudgeSymbol(symbol, Keys.Right, +1, 0);
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is MapLabel label)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is MapLabel label)
                             {
                                 editor.NudgeLabel(label, Keys.Right, +1, 0);
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is PlacedMapBox box)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is PlacedMapBox box)
                             {
                                 editor.NudgeBox(box, Keys.Right, +1, 0);
                                 return true;
                             }
 
-                            if (editor.SelectionService!.PrimarySelection is IDrawnMapComponent dmc)
+                            if (editor.SelectionService!.PrimarySelection != null && editor.SelectionService!.PrimarySelection.ReferencedShape is IDrawnMapComponent dmc)
                             {
                                 editor.NudgeDrawnMapComponent(dmc, Keys.Up, +1, 0);
                                 return true;

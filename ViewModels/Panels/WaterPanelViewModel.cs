@@ -216,7 +216,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public ICommand EditRiverCommand => new RelayCommand(() =>
         {
-            if (_editor != null && _editor.SelectionService!.PrimarySelection is River r)
+            if (_editor != null && _editor.SelectionService!.PrimarySelection != null && _editor.SelectionService!.PrimarySelection.ReferencedShape is River r)
             {
                 r.Editor.IsEditing = EditRiverPoints;
 

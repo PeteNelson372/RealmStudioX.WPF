@@ -97,7 +97,7 @@ namespace RealmStudioX.WPF
 
             _renderContext = new RenderContext(_assetManager.SymbolImageCache, _editor.State);
 
-            ViewModel = new MainWindowViewModel(_editor, _assetManager, _fontManager, _themeManager);
+            ViewModel = new MainWindowViewModel(this, _editor, _assetManager, _fontManager, _themeManager);
             DataContext = ViewModel;
 
             ViewModel.RenderContext = _renderContext;
@@ -246,7 +246,7 @@ namespace RealmStudioX.WPF
 
                 var screen = new SKPoint(e.X, e.Y);
 
-                var world = _editor.ScreenToWorld(screen);
+                var world = ViewModel.ScreenToWorld(screen);
 
                 var button = ConvertButton(e);
 
@@ -277,7 +277,7 @@ namespace RealmStudioX.WPF
 
                 var screen = new SKPoint(e.X, e.Y);
 
-                var world = _editor.ScreenToWorld(screen);
+                var world = ViewModel.ScreenToWorld(screen);
 
                 var button = ConvertButton(e);
 
@@ -309,7 +309,7 @@ namespace RealmStudioX.WPF
 
                 var screen = new SKPoint(e.X, e.Y);
 
-                var world = _editor.ScreenToWorld(screen);
+                var world = ViewModel.ScreenToWorld(screen);
 
                 var button = ConvertButton(e);
 
@@ -340,7 +340,7 @@ namespace RealmStudioX.WPF
                     return;
 
                 var screen = new SKPoint(e.X, e.Y);
-                var world = _editor.ScreenToWorld(screen);
+                var world = ViewModel.ScreenToWorld(screen);
 
                 var button = ConvertButton(e);
 
@@ -374,7 +374,7 @@ namespace RealmStudioX.WPF
                 if (_editor.Scene == null)
                     return;
                 var screen = new SKPoint(e.X, e.Y);
-                var world = _editor.ScreenToWorld(screen);
+                var world = ViewModel.ScreenToWorld(screen);
 
                 PointerState state = new()
                 {
@@ -406,7 +406,7 @@ namespace RealmStudioX.WPF
                 {
                     if (!ViewModel.SymbolsViewModel.UseAreaBrush)
                     {
-                        _skiaControl.Cursor = System.Windows.Forms.Cursors.Cross;
+                        _skiaControl.Cursor = System.Windows.Forms.Cursors.Default;
                     }
                 }
             };

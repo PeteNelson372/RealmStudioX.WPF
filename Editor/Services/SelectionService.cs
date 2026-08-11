@@ -1,8 +1,10 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
+using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using SkiaSharp;
 using System.Windows.Input;
+using Clipboard = RealmStudioX.Core.Clipboard;
 
 namespace RealmStudioX.WPF.Editor.Services
 {
@@ -16,17 +18,37 @@ namespace RealmStudioX.WPF.Editor.Services
 
         public SelectionFilter SelectionFilter => _selectionFilter;
 
-        private readonly List<ISelectable> _selectedObjects = [];
+        private readonly List<ShapeReference> _selectedObjects = [];
+
+        private Clipboard? _clipboard;
+
+        public Clipboard? Clipboard => _clipboard;
+
+        public bool CanPaste => _clipboard != null && _clipboard.Items.Count > 0;
 
         private SKPoint _lastClickPoint;
 
-        private List<ISelectable> _lastCandidates = [];
+        private List<ShapeReference> _lastCandidates = [];
 
         private int _candidateIndex;
 
-        public List<ISelectable> SelectedObjects { get { return _selectedObjects; } }
+        public List<ShapeReference> SelectedObjects
+        {
+            get { return _selectedObjects; }
+        }
 
-        public ISelectable? PrimarySelection =>  _selectedObjects.Count > 0 ? _selectedObjects[0] : null;
+        public ShapeReference? PrimarySelection
+        {
+            get { return _selectedObjects.Count > 0 ? _selectedObjects[0] : null; }
+        }
+
+        public string PrimarySelectionTypeName
+        {
+            get
+            {
+                return PrimarySelection != null && PrimarySelection.ReferencedShape != null ? PrimarySelection.ReferencedShape.GetType().Name : string.Empty;
+            }
+        }
 
         public bool HasSelection => _selectedObjects.Count > 0;
 
@@ -59,61 +81,18 @@ namespace RealmStudioX.WPF.Editor.Services
             _selectionFilter.AllowsMarkers = true;
         }
 
-        private bool _objectPropertiesPopupSuppressed;
-
-        public bool ObjectPropertiesPopupSuppressed
-        {
-            get => _objectPropertiesPopupSuppressed;
-            set
-            {
-                if (_objectPropertiesPopupSuppressed == value)
-                    return;
-
-                _objectPropertiesPopupSuppressed = value;
-                OnPropertyChanged(nameof(PropertiesPopupVisible));
-            }
-        }
-
-        public bool PropertiesPopupVisible =>
-            !_objectPropertiesPopupSuppressed &&
+        public bool PropertiesPopupEnabled =>
             PrimarySelection != null &&
-            (PrimarySelection is Landform
-             || PrimarySelection is WaterSystem
-             || PrimarySelection is Lake
-             || PrimarySelection is River
-             || PrimarySelection is PaintedWaterBody
-             || PrimarySelection is MapPath
-             || PrimarySelection is MapRegion
-             || PrimarySelection is MapSymbol);
+            PrimarySelection.ReferencedShape != null &&
+            (PrimarySelection.ReferencedShape is Landform
+             || PrimarySelection.ReferencedShape is WaterSystem
+             || PrimarySelection.ReferencedShape is Lake
+             || PrimarySelection.ReferencedShape is River
+             || PrimarySelection.ReferencedShape is PaintedWaterBody
+             || PrimarySelection.ReferencedShape is MapPath
+             || PrimarySelection.ReferencedShape is MapRegion
+             || PrimarySelection.ReferencedShape is MapSymbol);
 
-
-        private float _propertiesPopupLeft = 0;
-        public float PropertiesPopupLeft
-        {
-            get => _propertiesPopupLeft;
-            set
-            {
-                if (_propertiesPopupLeft == value)
-                    return;
-
-                _propertiesPopupLeft = value;
-                OnPropertyChanged();
-            }
-        }
-
-        private float _propertiesPopupTop = 0;
-        public float PropertiesPopupTop
-        {
-            get => _propertiesPopupTop;
-            set
-            {
-                if (_propertiesPopupTop == value)
-                    return;
-
-                _propertiesPopupTop = value;
-                OnPropertyChanged();
-            }
-        }
 
         public bool LandformSelectionAllowed
         {
@@ -416,6 +395,7 @@ namespace RealmStudioX.WPF.Editor.Services
             {
                 _markerSelectionAllowed = value;
                 OnPropertyChanged(nameof(MarkerSelectionAllowed));
+
                 if (value)
                 {
                     _selectionFilter.AllowsMarkers = true;
@@ -544,9 +524,9 @@ namespace RealmStudioX.WPF.Editor.Services
         });
 
 
-        public ISelectable? SelectAt(RealmStudioMap map, SKPoint worldPos, float tolerance, bool addToSelection = false)
+        public ShapeReference? SelectAt(RealmStudioMap map, SKPoint worldPos, float tolerance, bool addToSelection = false)
         {
-            List<ISelectable> candidates = [.. GetSelectionCandidatesAtPoint(map, worldPos, tolerance)];
+            List<ShapeReference> candidates = GetSelectionCandidatesAtPoint(map, worldPos, tolerance).ToList();
 
             if (candidates.Count == 0)
             {
@@ -564,16 +544,27 @@ namespace RealmStudioX.WPF.Editor.Services
             //
             if (candidates.Count == 1)
             {
-                ISelectable selected = candidates[0];
+                ShapeReference selected = candidates[0];
+
+                if (selected.ReferencedShape == null)
+                {
+                    return null;
+                }
 
                 ResetSelectionCycle();
 
                 if (SelectedObjects.Contains(selected))
                 {
                     _selectedObjects.Remove(selected);
-                    selected.IsSelected = false;
+                    selected.ReferencedShape.IsSelected = false;
 
                     SelectionChanged?.Invoke(this, EventArgs.Empty);
+
+                    OnPropertyChanged(nameof(SelectedObjects));
+                    OnPropertyChanged(nameof(PropertiesPopupEnabled));
+
+                    OnPropertyChanged(nameof(SelectionCount));
+                    OnPropertyChanged(nameof(PrimarySelectionTypeName));
 
                     return null;
                 }
@@ -587,16 +578,11 @@ namespace RealmStudioX.WPF.Editor.Services
                     SelectSingle(selected);
                 }
 
-                if (PrimarySelection != null)
-                {
-                    PropertiesPopupLeft = PrimarySelection.Bounds.Left;
-                    PropertiesPopupTop = PrimarySelection.Bounds.Top;
-                }
-
                 OnPropertyChanged(nameof(SelectedObjects));
-                OnPropertyChanged(nameof(PropertiesPopupVisible));
-                OnPropertyChanged(nameof(PropertiesPopupLeft));
-                OnPropertyChanged(nameof(PropertiesPopupTop));
+                OnPropertyChanged(nameof(PropertiesPopupEnabled));
+
+                OnPropertyChanged(nameof(SelectionCount));
+                OnPropertyChanged(nameof(PrimarySelectionTypeName));
 
                 return selected;
             }
@@ -625,7 +611,7 @@ namespace RealmStudioX.WPF.Editor.Services
                 _lastClickPoint = worldPos;
             }
 
-            ISelectable selectedCandidate = candidates[_candidateIndex];
+            ShapeReference selectedCandidate = candidates[_candidateIndex];
 
             if (addToSelection)
             {
@@ -636,36 +622,43 @@ namespace RealmStudioX.WPF.Editor.Services
                 SelectSingle(selectedCandidate);
             }
 
-            if (PrimarySelection != null)
-            {
-                PropertiesPopupLeft = PrimarySelection.Bounds.Left;
-                PropertiesPopupTop = PrimarySelection.Bounds.Top;
-            }
-
             OnPropertyChanged(nameof(SelectedObjects));
-            OnPropertyChanged(nameof(PropertiesPopupVisible));
-            OnPropertyChanged(nameof(PropertiesPopupLeft));
-            OnPropertyChanged(nameof(PropertiesPopupTop));
+            OnPropertyChanged(nameof(PropertiesPopupEnabled));
+
+            OnPropertyChanged(nameof(SelectionCount));
+            OnPropertyChanged(nameof(PrimarySelectionTypeName));
 
             return selectedCandidate;
         }
 
-        private void AddToSelection(ISelectable selected)
+        private void AddToSelection(ShapeReference selected)
         {
+            if (selected.ReferencedShape == null)
+            {
+                return;
+            }
+
             SelectedObjects.Add(selected);
-            selected.IsSelected = true;
+            selected.ReferencedShape.IsSelected = true;
             SelectionChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        private void SelectSingle(ISelectable selected)
+        private void SelectSingle(ShapeReference selected)
         {
+            if (selected.ReferencedShape == null)
+            {
+                return;
+            }
+
+            SelectedObjects.Add(selected);
+            
             ClearSelectionState();
 
             _selectedObjects.Clear();
 
             _selectedObjects.Add(selected);
 
-            selected.IsSelected = true;
+            selected.ReferencedShape.IsSelected = true;
 
             SelectionChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -674,11 +667,11 @@ namespace RealmStudioX.WPF.Editor.Services
         {
             for (int i = 0; i < SelectedObjects.Count; i++)
             {
-                if (SelectedObjects[i] is MapComponent2D selected)
+                if (SelectedObjects[i].ReferencedShape is MapComponent2D selected)
                 {
                     selected.IsSelected = false;
                 }
-                else if (SelectedObjects[i] is WaterSystem ws)
+                else if (SelectedObjects[i].ReferencedShape is WaterSystem ws)
                 {
                     ws.IsSelected = false;
                 }                
@@ -687,9 +680,10 @@ namespace RealmStudioX.WPF.Editor.Services
             SelectedObjects.Clear();
 
             OnPropertyChanged(nameof(SelectedObjects));
-            OnPropertyChanged(nameof(PropertiesPopupVisible));
-            OnPropertyChanged(nameof(PropertiesPopupLeft));
-            OnPropertyChanged(nameof(PropertiesPopupTop));
+            OnPropertyChanged(nameof(PropertiesPopupEnabled));
+
+            OnPropertyChanged(nameof(SelectionCount));
+            OnPropertyChanged(nameof(PrimarySelectionTypeName));
 
             if (scene != null)
             {
@@ -708,7 +702,7 @@ namespace RealmStudioX.WPF.Editor.Services
             _candidateIndex = 0;
         }
 
-        private static bool CandidateListsMatch(List<ISelectable> candidates, List<ISelectable> lastCandidates)
+        private static bool CandidateListsMatch(List<ShapeReference> candidates, List<ShapeReference> lastCandidates)
         {
             if (candidates.Count != lastCandidates.Count)
             {
@@ -717,7 +711,12 @@ namespace RealmStudioX.WPF.Editor.Services
 
             for (int i = 0; i < candidates.Count; i++)
             {
-                if (((ISelectable)candidates[i]).Id != ((ISelectable)lastCandidates[i]).Id)
+                if (candidates[i].ReferencedShape == null || lastCandidates[i].ReferencedShape == null)
+                {
+                    return false;
+                }
+
+                if (candidates[i].ReferencedShape!.Id != lastCandidates[i].ReferencedShape!.Id)
                 {
                     return false;
                 }
@@ -726,9 +725,9 @@ namespace RealmStudioX.WPF.Editor.Services
             return true;
         }
 
-        private List<ISelectable> GetSelectionCandidatesAtPoint(RealmStudioMap map, SKPoint worldPos, float tolerance)
+        private List<ShapeReference> GetSelectionCandidatesAtPoint(RealmStudioMap map, SKPoint worldPos, float tolerance)
         {
-            var hits = new List<ISelectable>();
+            var hits = new List<ShapeReference>();
 
             for (int layerIndex = map.MapLayers.Count - 1; layerIndex >= 0; layerIndex--)
             {
@@ -748,14 +747,26 @@ namespace RealmStudioX.WPF.Editor.Services
                     {
                         if (SelectionFilter.Allows(waterSystem) && waterSystem.HitTest(worldPos))
                         {
-                            hits.Add(waterSystem);
+                            ShapeReference wsRef = new ShapeReference()
+                            {
+                                ReferencedShape = waterSystem,
+                                ShapeLayer = layer
+                            };
+
+                            hits.Add(wsRef);
                         }
 
                         foreach (var waterBody in waterSystem.WaterBodies)
                         {
                             if (SelectionFilter.Allows(waterBody) && waterBody.HitTest(worldPos))
                             {
-                                hits.Add(waterBody);
+                                ShapeReference wbRef = new ShapeReference()
+                                {
+                                    ReferencedShape = waterBody,
+                                    ShapeLayer = layer
+                                };
+
+                                hits.Add(wbRef);
                             }
                         }
                     }
@@ -770,40 +781,76 @@ namespace RealmStudioX.WPF.Editor.Services
                         {
                             if (ms.HitTest(worldPos))
                             {
-                                hits.Add(ms);
+                                ShapeReference shapeRef = new ShapeReference()
+                                {
+                                    ReferencedShape = ms,
+                                    ShapeLayer = layer
+                                };
+
+                                hits.Add(shapeRef);
                             }
                         }
                         else if (shape is MapLabel ml && SelectionFilter.Allows(ml))
                         {
                             if (ml.HitTest(worldPos))
                             {
-                                hits.Add(ml);
+                                ShapeReference shapeRef = new ShapeReference()
+                                {
+                                    ReferencedShape = ml,
+                                    ShapeLayer = layer
+                                };
+
+                                hits.Add(shapeRef);
                             }
                         }
                         else if (shape is PlacedMapBox pmb && SelectionFilter.Allows(pmb))
                         {
                             if (pmb.HitTest(worldPos))
                             {
-                                hits.Add(pmb);
+                                ShapeReference shapeRef = new ShapeReference()
+                                {
+                                    ReferencedShape = pmb,
+                                    ShapeLayer = layer
+                                };
+
+                                hits.Add(shapeRef);
                             }
                         }
                         else if (shape is MapScale scale && SelectionFilter.Allows(scale))
                         {
                             if (scale.HitTest(worldPos))
                             {
-                                hits.Add(scale);
+                                ShapeReference shapeRef = new ShapeReference()
+                                {
+                                    ReferencedShape = scale,
+                                    ShapeLayer = layer
+                                };
+
+                                hits.Add(shapeRef);
                             }
                         }
                         else if (shape is MapPath path && SelectionFilter.Allows(path))
                         {
                             if (path.HitTest(worldPos))
                             {
-                                hits.Add(path);
+                                ShapeReference shapeRef = new ShapeReference()
+                                {
+                                    ReferencedShape = path,
+                                    ShapeLayer = layer
+                                };
+
+                                hits.Add(shapeRef);
                             }
                         }
                         else if (shape.HitTest(worldPos) && SelectionFilter.Allows(shape))
                         {
-                            hits.Add(shape);
+                            ShapeReference shapeRef = new ShapeReference()
+                            {
+                                ReferencedShape = shape,
+                                ShapeLayer = layer
+                            };
+
+                            hits.Add(shapeRef);
                         }
                     }
                 }
@@ -820,24 +867,24 @@ namespace RealmStudioX.WPF.Editor.Services
                 return;
             }
 
-            List<ISelectable> hits = GetSelectionCandidatesAtPoint(editor.Scene!.Map, worldPoint, tolerance);
+            List<ShapeReference> hits = GetSelectionCandidatesAtPoint(editor.Scene!.Map, worldPoint, tolerance);
 
             for (int i = 0; i < hits.Count; i++)
             {
-                ISelectable hit = hits[i];
+                ShapeReference hit = hits[i];
 
                 if (hit != null)
                 {
-                    if (hit is MapPath mp)
+                    if (hit.ReferencedShape is MapPath mp)
                     {
-                        SelectSingle(mp);
+                        SelectSingle(hit);
                         editor.LayoutTool.LayoutPath = mp.HitPath;
                         break;
                     }
 
-                    if (hit is River river)
+                    if (hit.ReferencedShape is River river)
                     {
-                        SelectSingle(river);
+                        SelectSingle(hit);
                         editor.LayoutTool.LayoutPath = Utilities.BuildPath(river.ControlPoints);
                         break;
                     }
@@ -848,22 +895,32 @@ namespace RealmStudioX.WPF.Editor.Services
 
         internal void SelectObjectsInArea(RealmStudioMap map, SKRect selectedRealmArea)
         {
-            List<ISelectable> candidates = [.. GetSelectionCandidatesInArea(map, selectedRealmArea)];
+            List<ShapeReference> candidates = [.. GetSelectionCandidatesInArea(map, selectedRealmArea)];
 
             ClearSelection();
 
             foreach (var selected in candidates)
             {
                 SelectedObjects.Add(selected);
-                selected.IsSelected = true;
+
+                if (selected.ReferencedShape != null)
+                {
+                    selected.ReferencedShape.IsSelected = true;
+                }
             }
+
+            OnPropertyChanged(nameof(SelectedObjects));
+            OnPropertyChanged(nameof(PropertiesPopupEnabled));
+
+            OnPropertyChanged(nameof(SelectionCount));
+            OnPropertyChanged(nameof(PrimarySelectionTypeName));
 
             SelectionChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public IEnumerable<ISelectable> GetSelectionCandidatesInArea(RealmStudioMap map, SKRect selectionRect)
+        public IEnumerable<ShapeReference> GetSelectionCandidatesInArea(RealmStudioMap map, SKRect selectionRect)
         {
-            var hits = new List<ISelectable>();
+            var hits = new List<ShapeReference>();
 
             for (int layerIndex = map.MapLayers.Count - 1; layerIndex >= 0; layerIndex--)
             {
@@ -883,14 +940,26 @@ namespace RealmStudioX.WPF.Editor.Services
                     {
                         if (SelectionFilter.Allows(waterSystem) && waterSystem.Bounds.IntersectsWith(selectionRect))
                         {
-                            hits.Add(waterSystem);
+                            ShapeReference shapeRef = new ShapeReference()
+                            {
+                                ReferencedShape = waterSystem,
+                                ShapeLayer = layer
+                            };
+
+                            hits.Add(shapeRef);
                         }
 
                         foreach (var waterBody in waterSystem.WaterBodies)
                         {
                             if (SelectionFilter.Allows(waterBody) && waterBody.Bounds.IntersectsWith(selectionRect))
                             {
-                                hits.Add(waterBody);
+                                ShapeReference shapeRef = new ShapeReference()
+                                {
+                                    ReferencedShape = waterBody,
+                                    ShapeLayer = layer
+                                };
+
+                                hits.Add(shapeRef);
                             }
                         }
                     }
@@ -905,26 +974,50 @@ namespace RealmStudioX.WPF.Editor.Services
                         {
                             if (ms.Bounds.IntersectsWith(selectionRect))
                             {
-                                hits.Add(ms);
+                                ShapeReference shapeRef = new ShapeReference()
+                                {
+                                    ReferencedShape = ms,
+                                    ShapeLayer = layer
+                                };
+
+                                hits.Add(shapeRef);
                             }
                         }
                         else if (shape is MapLabel ml && SelectionFilter.Allows(ml))
                         {
                             if (ml.Bounds.IntersectsWith(selectionRect))
                             {
-                                hits.Add(ml);
+                                ShapeReference shapeRef = new ShapeReference()
+                                {
+                                    ReferencedShape = ml,
+                                    ShapeLayer = layer
+                                };
+
+                                hits.Add(shapeRef);
                             }
                         }
                         else if (shape is MapScale scale && SelectionFilter.Allows(scale))
                         {
                             if (scale.Bounds.IntersectsWith(selectionRect))
                             {
-                                hits.Add(scale);
+                                ShapeReference shapeRef = new ShapeReference()
+                                {
+                                    ReferencedShape = scale,
+                                    ShapeLayer = layer
+                                };
+
+                                hits.Add(shapeRef);
                             }
                         }
                         else if (shape.Bounds.IntersectsWith(selectionRect) && SelectionFilter.Allows(shape))
                         {
-                            hits.Add(shape);
+                            ShapeReference shapeRef = new ShapeReference()
+                            {
+                                ReferencedShape = shape,
+                                ShapeLayer = layer
+                            };
+
+                            hits.Add(shapeRef);
                         }
                     }
                 }
@@ -936,22 +1029,32 @@ namespace RealmStudioX.WPF.Editor.Services
 
         internal void SelectObjectsInPath(RealmStudioMap map, SKPath lassoPath)
         {
-            List<ISelectable> candidates = [.. GetSelectionCandidatesInPath(map, lassoPath)];
+            List<ShapeReference> candidates = [.. GetSelectionCandidatesInPath(map, lassoPath)];
 
             ClearSelection();
 
             foreach (var selected in candidates)
             {
                 SelectedObjects.Add(selected);
-                selected.IsSelected = true;
+
+                if (selected.ReferencedShape != null)
+                {
+                    selected.ReferencedShape.IsSelected = true;
+                }
             }
+
+            OnPropertyChanged(nameof(SelectedObjects));
+            OnPropertyChanged(nameof(PropertiesPopupEnabled));
+
+            OnPropertyChanged(nameof(SelectionCount));
+            OnPropertyChanged(nameof(PrimarySelectionTypeName));
 
             SelectionChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public IEnumerable<ISelectable> GetSelectionCandidatesInPath(RealmStudioMap map, SKPath lassoPath)
+        public IEnumerable<ShapeReference> GetSelectionCandidatesInPath(RealmStudioMap map, SKPath lassoPath)
         {
-            var hits = new List<ISelectable>();
+            var hits = new List<ShapeReference>();
 
             for (int layerIndex = map.MapLayers.Count - 1; layerIndex >= 0; layerIndex--)
             {
@@ -973,7 +1076,12 @@ namespace RealmStudioX.WPF.Editor.Services
 
                         if (inter1 != null && inter1.IsEmpty && SelectionFilter.Allows(waterSystem))
                         {
-                            hits.Add(waterSystem);
+                            ShapeReference shapeRef = new ShapeReference()
+                            {
+                                ReferencedShape = waterSystem,
+                                ShapeLayer = layer
+                            };
+                            hits.Add(shapeRef);
                         }
 
                         foreach (var waterBody in waterSystem.WaterBodies)
@@ -982,7 +1090,12 @@ namespace RealmStudioX.WPF.Editor.Services
 
                             if (inter2 != null && inter2.IsEmpty && SelectionFilter.Allows(waterBody))
                             {
-                                hits.Add(waterBody);
+                                ShapeReference shapeRef = new ShapeReference()
+                                {
+                                    ReferencedShape = waterBody,
+                                    ShapeLayer = layer
+                                };
+                                hits.Add(shapeRef);
                             }
                         }
                     }
@@ -997,28 +1110,48 @@ namespace RealmStudioX.WPF.Editor.Services
                         {
                             if (lassoPath.Contains(ms.Bounds.MidX, ms.Bounds.MidY))
                             {
-                                hits.Add(ms);
+                                ShapeReference shapeRef = new ShapeReference()
+                                {
+                                    ReferencedShape = ms,
+                                    ShapeLayer = layer
+                                };
+                                hits.Add(shapeRef);
                             }
                         }
                         else if (shape is MapLabel ml && SelectionFilter.Allows(ml))
                         {
                             if (lassoPath.Contains(ml.Bounds.MidX, ml.Bounds.MidY))
                             {
-                                hits.Add(ml);
+                                ShapeReference shapeRef = new ShapeReference()
+                                {
+                                    ReferencedShape = ml,
+                                    ShapeLayer = layer
+                                };
+                                hits.Add(shapeRef);
                             }
                         }
                         else if (shape is MapScale scale && SelectionFilter.Allows(scale))
                         {
                             if (lassoPath.Contains(scale.Bounds.MidX, scale.Bounds.MidY))
                             {
-                                hits.Add(scale);
+                                ShapeReference shapeRef = new ShapeReference()
+                                {
+                                    ReferencedShape = scale,
+                                    ShapeLayer = layer
+                                };
+                                hits.Add(shapeRef);
                             }
                         }
                         else
                         {
                             if (lassoPath.Contains(shape.Bounds.MidX, shape.Bounds.MidY) && SelectionFilter.Allows(shape))
                             {
-                                hits.Add(shape);
+                                ShapeReference shapeRef = new ShapeReference()
+                                {
+                                    ReferencedShape = shape,
+                                    ShapeLayer = layer
+                                };
+                                hits.Add(shapeRef);
                             }
                         }
                     }
@@ -1029,15 +1162,131 @@ namespace RealmStudioX.WPF.Editor.Services
             return hits;
         }
 
+        private void DeleteSelectedObjects()
+        {
+            List<MapLayer> layersToUpdate = [];
+
+            foreach (ShapeReference sr in _selectedObjects)
+            {
+                if (sr.ReferencedShape != null && sr.ShapeLayer != null)
+                {
+                    ((MapComponent2D)sr.ReferencedShape).IsSelected = false;
+
+                    sr.ShapeLayer.Remove((MapComponent2D)sr.ReferencedShape);
+                    
+                    if (!layersToUpdate.Contains(sr.ShapeLayer))
+                    {
+                        layersToUpdate.Add(sr.ShapeLayer);
+                    }
+                }
+            }
+
+            foreach (MapLayer layer in layersToUpdate)
+            {
+                layer.RebuildIndexes();
+            }
+        }
+
+        public void CopySelectedObjects()
+        {
+            if (_selectedObjects.Count == 0)
+            {
+                _clipboard = null;
+                return;
+            }
+
+            SKRect bounds = GetSelectionBounds();
+
+            _clipboard = new Clipboard
+            {
+                Anchor = new SKPoint(bounds.MidX, bounds.MidY)
+            };
+
+            foreach (ShapeReference sr in _selectedObjects)
+            {
+                if (sr.ReferencedShape is MapSymbol || sr.ReferencedShape is MapPath || sr.ReferencedShape is IDrawnMapComponent)
+                {
+                    SKPoint location = SKPoint.Empty;
+                    
+                    if (sr.ReferencedShape is MapPath mp)
+                    {
+                        location = new SKPoint(mp.Bounds.MidX, mp.Bounds.MidY);
+                    }
+                    else if (sr.ReferencedShape is MapSymbol ms)
+                    {
+                        location = ms.Location;  // map symbol location is the center of the symbol bounds
+                    }
+                    else if (sr.ReferencedShape is IDrawnMapComponent && sr.ReferencedShape is IRectangularShape irs)
+                    {
+                        SKRect b = new(irs.TopLeft.X, irs.TopLeft.Y, irs.BottomRight.X, irs.BottomRight.Y);
+                        location = new SKPoint(b.MidX, b.MidY);
+                    }
+                    else if (sr.ReferencedShape is IDrawnMapComponent && sr.ReferencedShape is ICenterRadiusShape icrs)
+                    {
+                        location = icrs.Center;
+                    }
+                    else if (sr.ReferencedShape is IDrawnMapComponent && sr.ReferencedShape is IPointListShape ipls)
+                    {
+                        location = new SKPoint(ipls.Bounds.MidX, ipls.Bounds.MidY);
+                    }
+
+                    _clipboard.Items.Add(new ClipboardItem
+                    {
+                        MapLayerId = sr.ShapeLayer!.MapLayerId,
+                        Offset = new SKPoint(_clipboard.Anchor.X - location.X, _clipboard.Anchor.Y - location.Y),
+                        ObjectType = sr.ReferencedShape!.GetType(),
+                        SerializedObject =
+                            MapFileMethods.SerializeObject((dynamic)sr.ReferencedShape)
+                    });
+                }
+            }
+        }
+
+        public void SelectObjects(List<ShapeReference> newSelection)
+        {
+            ClearSelection();
+
+            foreach (ShapeReference sr in newSelection)
+            {
+                AddToSelection(sr);
+            }
+        }
+
+        public SKRect GetSelectionBounds()
+        {
+            if (_selectedObjects.Count == 0)
+                return SKRect.Empty;
+
+            bool first = true;
+            SKRect bounds = SKRect.Empty;
+
+            foreach (ShapeReference sr in _selectedObjects)
+            {
+                if (sr.ReferencedShape is not IShape2D shape)
+                    continue;
+
+                if (first)
+                {
+                    bounds = ((MapComponent2D)shape).Bounds;
+                    first = false;
+                }
+                else
+                {
+                    bounds = SKRect.Union(bounds, ((MapComponent2D)shape).Bounds);
+                }
+            }
+
+            return bounds;
+        }
     }
 
     // -------------------------------------------------
     // Selection Filter Class
     // -------------------------------------------------
 
-    public sealed class SelectionFilter()
+    public sealed class SelectionFilter
     {
-        public HashSet<Type> SelectableTypes { get; } = [];
+        public HashSet<Type> SelectableTypes { get; } = new HashSet<Type>();
 
         public bool AllowsStructures { get; set; } = true;
         public bool AllowsVegetation { get; set; } = true;

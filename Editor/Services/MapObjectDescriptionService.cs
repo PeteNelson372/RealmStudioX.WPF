@@ -58,7 +58,6 @@
         {
             string query = string.Empty;
 
-
             switch (mapObjectTypeName)
             {
                 case "RealmStudioProject":

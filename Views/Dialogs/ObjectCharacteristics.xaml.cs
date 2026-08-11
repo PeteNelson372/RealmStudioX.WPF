@@ -87,6 +87,21 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 ObjectTypesList.ItemsSource = waterTypes;
                 TitleBarText.Text = "Water Feature Characteristics";
             }
+            else if (objectType == MapObjectType.Region)
+            {
+                ObjectTypesList.ItemsSource = regionTypes;
+                TitleBarText.Text = "Region Characteristics";
+            }
+            else if (objectType == MapObjectType.MapPath)
+            {
+                ObjectTypesList.ItemsSource = pathTypes;
+                TitleBarText.Text = "Map Path Characteristics";
+            }
+            else if (objectType == MapObjectType.Symbol)
+            {
+                ObjectTypesList.ItemsSource = symbolTypes;
+                TitleBarText.Text = "Symbol Characteristics";
+            }
         }
 
         private readonly List<string> realmTypes =
@@ -310,6 +325,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             // Vegetation
             "Tree", "Oak", "Pine", "Willow", "Elm", "Fir", "Palm", "Maple", "Birch", "Cedar", "Cherry", "Apple", "Peach", "Redwood",
+            "Cypress", "Sequoia", "Spruce", "Ash", "Beech", "Hickory", "Walnut", "Chestnut", "Poplar", "Sycamore",
+            "Hemlock", "Larch", "Alder", "Dogwood", "Magnolia", "Hawthorn", "Juniper", "Yew", "Eucalyptus",
             "Shrub", "Bush", "Bramble", "Hedge", "Vine", "Reed", "Thicket",
             "Grass", "Turf", "Sod", "Moss", "Fern", "Lichen", "Flower", "Blossom", "Weed", "Undergrowth",
 

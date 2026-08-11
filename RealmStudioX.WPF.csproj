@@ -120,11 +120,11 @@
     <PackageReference Include="MaterialDesignThemes" Version="5.3.2" />
     <PackageReference Include="SharpVectors.Wpf" Version="1.8.5" />
     <PackageReference Include="SimplexNoise" Version="2.0.0" />
-    <PackageReference Include="SkiaSharp" Version="4.150.1" />
-    <PackageReference Include="SkiaSharp.Views" Version="4.150.1" />
-    <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="4.150.1" />
-    <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="4.150.1" />
-    <PackageReference Include="SkiaSharp.Views.WPF" Version="4.150.1" />
+    <PackageReference Include="SkiaSharp" Version="4.151.0" />
+    <PackageReference Include="SkiaSharp.Views" Version="4.151.0" />
+    <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="4.151.0" />
+    <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="4.151.0" />
+    <PackageReference Include="SkiaSharp.Views.WPF" Version="4.151.0" />
     <PackageReference Include="Svg.Skia" Version="5.1.1" />
   </ItemGroup>
 
@@ -241,6 +241,15 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Controls\CreateOpenDialogTitleBar.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Dialogs\MapPathProperties.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Dialogs\RegionProperties.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Dialogs\MapSymbolProperties.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Dialogs\WaterBodyProperties.xaml.cs">

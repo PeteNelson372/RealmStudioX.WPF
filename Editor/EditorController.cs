@@ -10,7 +10,9 @@ using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
+using System.Windows.Input;
 using CommandManager = RealmStudioX.Core.CommandManager;
+using Cursors = System.Windows.Input.Cursors;
 
 namespace RealmStudioX.WPF.Editor
 {
@@ -24,13 +26,18 @@ namespace RealmStudioX.WPF.Editor
         private PaintService? _paintService;
         private LayoutService? _layoutService;
         private LayoutOptions? _layoutOptions;
+        private MapObjectDescriptionService? _descriptionService;
 
         public LayoutOptions? LayoutOptions => _layoutOptions;
 
         private CommandManager _commands { get; } = new();
         public CommandManager Commands => _commands;
 
+        public CommandService? CommandService => _commandService;
+
         public SelectionService? SelectionService => _selectionService;
+
+        public MapObjectDescriptionService? DescriptionService => _descriptionService;
 
         private readonly AssetManager _assetManager;
         private readonly FontManager _fontManager;
@@ -99,6 +106,7 @@ namespace RealmStudioX.WPF.Editor
         private SKPath? _dragOriginalGeometry;
         private bool _isDragging;
 
+        public PointerState CurrentPointerState { get; private set; }
         private PointerState previousPointerState;
 
         public EditorController(AssetManager assetManager, FontManager fontManager)
@@ -112,6 +120,11 @@ namespace RealmStudioX.WPF.Editor
         public void SetCommandService(CommandService commandService)
         {
             _commandService = commandService;
+        }
+
+        public void SetMapObjectDescriptionService(MapObjectDescriptionService descriptionService)
+        {
+            _descriptionService = descriptionService;
         }
 
         public void MarkMapModified()
@@ -390,9 +403,12 @@ namespace RealmStudioX.WPF.Editor
                 canvas.DrawPath(LayoutTool?.LayoutPath, PaintObjects.LayoutPathPaint);
             }
 
-            if (_selectionService != null && _selectionService.PrimarySelection != null)
+            if (_selectionService != null
+                && _selectionService.PrimarySelection != null
+                && _selectionService.PrimarySelection.ReferencedShape != null
+                && _selectionService.PrimarySelection.ReferencedShape.IsSelected)
             {
-                canvas.DrawRect(_selectionService.PrimarySelection.Bounds, PaintObjects.Shape2DSelectPaint);
+                canvas.DrawRect(_selectionService.PrimarySelection.ReferencedShape!.Bounds, PaintObjects.Shape2DSelectPaint);
             }
         }
 
@@ -406,6 +422,7 @@ namespace RealmStudioX.WPF.Editor
 
             // Camera constraints depend on viewport size
             ClampCamera();
+
             RequestRedraw();
         }
 
@@ -415,6 +432,7 @@ namespace RealmStudioX.WPF.Editor
                 return;
 
             _scene.Camera.Reset(_viewportSize.Width, _viewportSize.Height);
+
             ClampCamera();
 
             RequestRedraw();
@@ -500,23 +518,6 @@ namespace RealmStudioX.WPF.Editor
         }
 
         // ---------------------------------------------
-        // Coordinate transforms
-        // ---------------------------------------------
-
-        public SKPoint ScreenToWorld(SKPoint screen)
-        {
-            var cam = _scene?.Camera;
-
-            if (cam == null)
-                return screen;
-
-            return new SKPoint(
-                (screen.X - cam.Pan.X) / cam.Zoom,
-                (screen.Y - cam.Pan.Y) / cam.Zoom);
-        }
-
-
-        // ---------------------------------------------
         // Mouse interaction
         // ---------------------------------------------
 
@@ -527,6 +528,7 @@ namespace RealmStudioX.WPF.Editor
                 return;
             }
 
+            CurrentPointerState = state;
             previousPointerState = state;
 
             if (state.Button == EditorMouseButton.Left)
@@ -539,7 +541,7 @@ namespace RealmStudioX.WPF.Editor
                     return;
                 }
 
-                if (_selectionService!.PrimarySelection is MapSymbol ms
+                if (_selectionService!.PrimarySelection != null && _selectionService!.PrimarySelection.ReferencedShape is MapSymbol ms
                     && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect
                     && state.Modifiers != InputModifiers.Shift)
                 {
@@ -547,7 +549,7 @@ namespace RealmStudioX.WPF.Editor
                     return;
                 }
 
-                if (_selectionService!.PrimarySelection is MapLabel ml
+                if (_selectionService!.PrimarySelection != null && _selectionService!.PrimarySelection.ReferencedShape is MapLabel ml
                     && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect
                     && state.Modifiers != InputModifiers.Shift)
                 {
@@ -555,7 +557,7 @@ namespace RealmStudioX.WPF.Editor
                     return;
                 }
 
-                if (_selectionService!.PrimarySelection is PlacedMapBox pmb
+                if (_selectionService!.PrimarySelection != null && _selectionService!.PrimarySelection.ReferencedShape is PlacedMapBox pmb
                     && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect
                     && state.Modifiers != InputModifiers.Shift)
                 {
@@ -563,7 +565,7 @@ namespace RealmStudioX.WPF.Editor
                     return;
                 }
 
-                if (_selectionService!.PrimarySelection is MapRegion region)
+                if (_selectionService!.PrimarySelection != null && _selectionService!.PrimarySelection.ReferencedShape is MapRegion region)
                 {
                     ActivateTool(EditorToolType.RegionTool);
                     ActiveEditorTool?.OnMouseDown(state);
@@ -571,7 +573,7 @@ namespace RealmStudioX.WPF.Editor
                     return;
                 }
 
-                if (_selectionService!.PrimarySelection is River river && river.Editor.IsEditing)
+                if (_selectionService!.PrimarySelection != null && _selectionService!.PrimarySelection.ReferencedShape is River river && river.Editor.IsEditing)
                 {
                     _activeModifyWaterBodyCommand = new(Scene);
                     _activeModifyWaterBodyCommand.CaptureBefore(river);
@@ -580,7 +582,7 @@ namespace RealmStudioX.WPF.Editor
                     return;
                 }
 
-                if (_selectionService!.PrimarySelection is MapPath mp && mp.Editor.IsEditing)
+                if (_selectionService!.PrimarySelection != null && _selectionService!.PrimarySelection.ReferencedShape is MapPath mp && mp.Editor.IsEditing)
                 {
                     MapLayer pathLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.PATHLOWERLAYER);
 
@@ -608,7 +610,7 @@ namespace RealmStudioX.WPF.Editor
 
                     if (_selectionService!.PrimarySelection != null)
                     {
-                        if (_selectionService!.PrimarySelection is Landform lf)
+                        if (_selectionService!.PrimarySelection.ReferencedShape is Landform lf)
                         {
                             if (lf.HitPath.Contains(state.WorldPoint.X, state.WorldPoint.Y))
                             {
@@ -622,7 +624,7 @@ namespace RealmStudioX.WPF.Editor
                             return;
                         }
 
-                        if (_selectionService!.PrimarySelection is MapScale scale)
+                        if (_selectionService!.PrimarySelection.ReferencedShape is MapScale scale)
                         {
                             _dragShape = scale;
                             _dragStartWorld = new SKPoint(scale.Location.X + scale.ScaleWidth / 2, scale.Location.Y + scale.ScaleHeight / 2);
@@ -631,7 +633,7 @@ namespace RealmStudioX.WPF.Editor
                             return;
                         }
 
-                        if (_selectionService!.PrimarySelection is IDrawnMapComponent dmc)
+                        if (_selectionService!.PrimarySelection.ReferencedShape is IDrawnMapComponent dmc)
                         {
                             _dragShape = (MapComponent2D)dmc;
                             _dragStartWorld = new SKPoint(_dragShape.Bounds.MidX, _dragShape.Bounds.MidY);
@@ -674,6 +676,8 @@ namespace RealmStudioX.WPF.Editor
                 return;
             }
 
+            CurrentPointerState = state;
+
             Scene.Camera.CurrentMouseLocation = state.ScreenPoint;
             Scene.Camera.CurrentCursorPoint = state.WorldPoint;
 
@@ -681,31 +685,31 @@ namespace RealmStudioX.WPF.Editor
             {
                 if (_selectionService!.PrimarySelection != null)
                 {
-                    if (_selectionService!.PrimarySelection is River river && river.Editor.IsEditing)
+                    if (_selectionService!.PrimarySelection.ReferencedShape is River river && river.Editor.IsEditing)
                     {
                         river.Editor.OnMouseMove(state.WorldPoint, 5);
                         return;
                     }
 
-                    if (_selectionService!.PrimarySelection is MapPath mp && mp.Editor.IsEditing)
+                    if (_selectionService!.PrimarySelection.ReferencedShape is MapPath mp && mp.Editor.IsEditing)
                     {
                         mp.Editor.OnMouseMove(state.WorldPoint, 5);
                         return;
                     }
 
-                    if (_selectionService!.PrimarySelection is MapSymbol ms && !_isTransforming)
+                    if (_selectionService!.PrimarySelection.ReferencedShape is MapSymbol ms && !_isTransforming)
                     {
                         SelectedSymbolNoButtonMove(ms, state.WorldPoint);
                         return;
                     }
 
-                    if (_selectionService!.PrimarySelection is MapLabel ml && !_isTransforming)
+                    if (_selectionService!.PrimarySelection.ReferencedShape is MapLabel ml && !_isTransforming)
                     {
                         SelectedLabelNoButtonMove(ml, state.WorldPoint);
                         return;
                     }
 
-                    if (_selectionService!.PrimarySelection is PlacedMapBox pmb && !_isTransforming)
+                    if (_selectionService!.PrimarySelection.ReferencedShape is PlacedMapBox pmb && !_isTransforming)
                     {
                         SelectedBoxNoButtonMove(pmb, state.WorldPoint);
                         return;
@@ -723,7 +727,8 @@ namespace RealmStudioX.WPF.Editor
                     return;
                 }
 
-                if (_selectionService!.PrimarySelection is River river && river.Editor.IsEditing)
+                if (_selectionService!.PrimarySelection != null
+                    && _selectionService!.PrimarySelection.ReferencedShape is River river && river.Editor.IsEditing)
                 {
                     river.Editor.OnMouseMove(state.WorldPoint, 5);
 
@@ -732,7 +737,8 @@ namespace RealmStudioX.WPF.Editor
                     return;
                 }
 
-                if (_selectionService!.PrimarySelection is MapPath mp && mp.Editor.IsEditing)
+                if (_selectionService!.PrimarySelection != null
+                    && _selectionService!.PrimarySelection.ReferencedShape is MapPath mp && mp.Editor.IsEditing)
                 {
                     mp.Editor.OnMouseMove(state.WorldPoint, 5);
 
@@ -750,19 +756,25 @@ namespace RealmStudioX.WPF.Editor
                     return;
                 }
 
-                if (_selectionService!.PrimarySelection is MapSymbol ms && _isTransforming && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
+                if (_selectionService!.PrimarySelection != null
+                    && _selectionService!.PrimarySelection.ReferencedShape is MapSymbol ms
+                    && _isTransforming && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
                 {
                     SelectedSymbolLeftButtonMove(ms, state.WorldPoint);
                     return;
                 }
 
-                if (_selectionService!.PrimarySelection is MapLabel ml && _isTransforming && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
+                if (_selectionService!.PrimarySelection != null
+                    && _selectionService!.PrimarySelection.ReferencedShape is MapLabel ml
+                    && _isTransforming && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
                 {
                     SelectedLabelLeftButtonMove(ml, state.WorldPoint);
                     return;
                 }
 
-                if (_selectionService!.PrimarySelection is PlacedMapBox pmb && _isTransforming && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
+                if (_selectionService!.PrimarySelection != null
+                    && _selectionService!.PrimarySelection.ReferencedShape is PlacedMapBox pmb
+                    && _isTransforming && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
                 {
                     SelectedBoxLeftButtonMove(pmb, state.WorldPoint);
                     return;
@@ -839,7 +851,9 @@ namespace RealmStudioX.WPF.Editor
                 return;
             }
 
-            if (_selectionService!.PrimarySelection is River river && river.Editor.IsEditing)
+            CurrentPointerState = state;
+
+            if (_selectionService!.PrimarySelection != null && _selectionService!.PrimarySelection.ReferencedShape is River river && river.Editor.IsEditing)
             {
                 river.Editor.OnMouseUp();
 
@@ -857,7 +871,7 @@ namespace RealmStudioX.WPF.Editor
                 return;
             }
 
-            if (_selectionService!.PrimarySelection is MapPath mp && mp.Editor.IsEditing)
+            if (_selectionService!.PrimarySelection != null && _selectionService!.PrimarySelection.ReferencedShape is MapPath mp && mp.Editor.IsEditing)
             {
                 mp.Editor.OnMouseUp();
 
@@ -883,19 +897,19 @@ namespace RealmStudioX.WPF.Editor
                 return;
             }
 
-            if (_selectionService!.PrimarySelection is MapSymbol ms && _isTransforming)
+            if (_selectionService!.PrimarySelection != null && _selectionService!.PrimarySelection.ReferencedShape is MapSymbol ms && _isTransforming)
             {
                 SelectedSymbolMouseUp(ms);
                 return;
             }
 
-            if (_selectionService!.PrimarySelection is MapLabel ml && _isTransforming)
+            if (_selectionService!.PrimarySelection != null && _selectionService!.PrimarySelection.ReferencedShape is MapLabel ml && _isTransforming)
             {
                 SelectedLabelMouseUp(ml);
                 return;
             }
 
-            if (_selectionService!.PrimarySelection is PlacedMapBox pmb && _isTransforming)
+            if (_selectionService!.PrimarySelection != null && _selectionService!.PrimarySelection.ReferencedShape is PlacedMapBox pmb && _isTransforming)
             {
                 SelectedBoxMouseUp(pmb);
                 return;
@@ -951,7 +965,7 @@ namespace RealmStudioX.WPF.Editor
 
         internal void OnMouseDoubleClick(PointerState state)
         {
-            if (_selectionService!.PrimarySelection is MapLabel ml && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
+            if (_selectionService!.PrimarySelection != null && _selectionService!.PrimarySelection.ReferencedShape is MapLabel ml && _editorState.CurrentDrawingMode == MapDrawingMode.ShapeSelect)
             {
                 if (_labelsPanelViewModel != null)
                 {
@@ -1154,7 +1168,7 @@ namespace RealmStudioX.WPF.Editor
 
         public void UpdateSelectedLandform(LandformShadingSettings shading, CoastlineSettings coastlineSettings)
         {
-            if (_selectionService!.PrimarySelection is Landform lf)
+            if (_selectionService!.PrimarySelection!.ReferencedShape is Landform lf)
             {
                 _commands.Execute(
                     new Cmd_UpdateLandformProperties(
@@ -1176,7 +1190,7 @@ namespace RealmStudioX.WPF.Editor
 
         public void UpdateSelectedPath(PathRenderStyle renderStyle)
         {
-            if (_selectionService!.PrimarySelection is MapPath mp)
+            if (_selectionService!.PrimarySelection!.ReferencedShape is MapPath mp)
             {
                 mp.ResolveAssets(_assetManager);
 
@@ -1194,7 +1208,7 @@ namespace RealmStudioX.WPF.Editor
 
         public void UpdateSelectedSymbol(ISymbolSettings settings)
         {
-            if (_selectionService!.PrimarySelection is MapSymbol symbol)
+            if (_selectionService!.PrimarySelection != null && _selectionService.PrimarySelection!.ReferencedShape is MapSymbol symbol)
             {
                 MapLayer symbolsLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.SYMBOLLAYER);
 
@@ -1217,7 +1231,7 @@ namespace RealmStudioX.WPF.Editor
 
         public void PaintSelectedSymbol(SKColor newColor, ISymbolSettings settings)
         {
-            if (_selectionService!.PrimarySelection is MapSymbol ms)
+            if (_selectionService!.PrimarySelection != null && _selectionService!.PrimarySelection.ReferencedShape is MapSymbol ms)
             {
                 MapLayer symbolLayer = MapBuilder.GetMapLayerByIndex(_scene!.Map, MapBuilder.SYMBOLLAYER);
 
@@ -1419,45 +1433,47 @@ namespace RealmStudioX.WPF.Editor
             switch (handle)
             {
                 case TransformHandle.Rotate:
-                    Cursor.Current = Cursors.Cross;
+                    Mouse.OverrideCursor = Cursors.Cross;
                     break;
 
                 case TransformHandle.TopLeft:
                 case TransformHandle.BottomRight:
-                    Cursor.Current = Cursors.SizeNWSE;
+                    Mouse.OverrideCursor = Cursors.SizeNWSE;
                     break;
 
                 case TransformHandle.TopRight:
                 case TransformHandle.BottomLeft:
-                    Cursor.Current = Cursors.SizeNESW;
+                    Mouse.OverrideCursor = Cursors.SizeNESW;
                     break;
 
                 case TransformHandle.Left:
                 case TransformHandle.Right:
-                    Cursor.Current = Cursors.SizeWE;
+                    Mouse.OverrideCursor = Cursors.SizeWE;
                     break;
 
                 case TransformHandle.Top:
                 case TransformHandle.Bottom:
-                    Cursor.Current = Cursors.SizeNS;
+                    Mouse.OverrideCursor = Cursors.SizeNS;
                     break;
 
                 case TransformHandle.Move:
-                    Cursor.Current = Cursors.SizeAll;
+                    Mouse.OverrideCursor = Cursors.SizeAll;
                     break;
                 case TransformHandle.ZTop:
                 case TransformHandle.ZForward:
-                    Cursor.Current = Cursors.PanNorth;
+                    Mouse.OverrideCursor = Cursors.ScrollN;
                     break;
 
                 case TransformHandle.ZBackward:
                 case TransformHandle.ZBottom:
-                    Cursor.Current = Cursors.PanSouth;
+                    Mouse.OverrideCursor = Cursors.ScrollS;
                     break;
 
                 case TransformHandle.None:
+                    Mouse.OverrideCursor = null;
                     break;
                 default:
+                    Mouse.OverrideCursor = null;
                     break;
             }
         }
@@ -1468,7 +1484,7 @@ namespace RealmStudioX.WPF.Editor
 
         public void UpdateSelectedLabel(ILabelSettings settings)
         {
-            if (_selectionService!.PrimarySelection is MapLabel label)
+            if (_selectionService!.PrimarySelection!.ReferencedShape is MapLabel label)
             {
                 MapLayer labelLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.LABELLAYER);
 
@@ -1643,7 +1659,7 @@ namespace RealmStudioX.WPF.Editor
         // -------------------------------------------------
         public void UpdateSelectedBox(IBoxSettings settings)
         {
-            if (_selectionService!.PrimarySelection is PlacedMapBox box)
+            if (_selectionService!.PrimarySelection!.ReferencedShape is PlacedMapBox box)
             {
                 Cmd_ModifyBox cmd = new(GetBoxLayer(), box);
 
