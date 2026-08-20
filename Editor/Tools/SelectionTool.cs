@@ -12,13 +12,24 @@ namespace RealmStudioX.WPF.Editor.Tools
         private SelectionService _selectionService = selectionService;
 
         private SKPoint _initialMousePoint = SKPoint.Empty;
+        
         private SKRect _selectedRealmArea = SKRect.Empty;
+
+        private SKRect _selectedArea = SKRect.Empty;
+
+        public SKRect SelectedArea
+        {
+            get { return _selectedArea; }
+            set { _selectedArea = value; }
+        }
+
         private List<SKPoint> _lassoPoints = [];
         private bool disposedValue;
 
         public void Activate()
         {
-
+            _selectedArea = SKRect.Empty;
+            _selectedRealmArea = SKRect.Empty;
         }
 
         public void Deactivate()
@@ -50,6 +61,10 @@ namespace RealmStudioX.WPF.Editor.Tools
                 {
                     _lassoPoints.Add(state.WorldPoint);
                 }
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.AreaSelection && state.Button == EditorMouseButton.Left)
+                {
+                    _initialMousePoint = state.WorldPoint;
+                }
             }            
         }
 
@@ -62,6 +77,10 @@ namespace RealmStudioX.WPF.Editor.Tools
             else if (_editor.CurrentDrawingMode == MapDrawingMode.RealmLassoSelect && state.Button == EditorMouseButton.Left)
             {
                 _lassoPoints.Add(state.WorldPoint);
+            }
+            else if (_editor.CurrentDrawingMode == MapDrawingMode.AreaSelection && state.Button == EditorMouseButton.Left)
+            {
+                _selectedArea = new(_initialMousePoint.X, _initialMousePoint.Y, state.WorldPoint.X, state.WorldPoint.Y);
             }
 
             _editor.RequestRedraw();
@@ -89,6 +108,15 @@ namespace RealmStudioX.WPF.Editor.Tools
                 _selectionService.SelectObjectsInPath(_editor.Scene!.Map, lassoPath);
 
                 _lassoPoints.Clear();
+
+                _editor.RequestRedraw();
+            }
+
+            if (_editor.CurrentDrawingMode == MapDrawingMode.AreaSelection && state.Button == EditorMouseButton.Left)
+            {
+                _selectedArea = new(_initialMousePoint.X, _initialMousePoint.Y, state.WorldPoint.X, state.WorldPoint.Y);
+
+                _initialMousePoint = SKPoint.Empty;
 
                 _editor.RequestRedraw();
             }
@@ -129,6 +157,12 @@ namespace RealmStudioX.WPF.Editor.Tools
             {
                 using SKPath lassoPath = Utilities.BuildClosedPath(_lassoPoints);
                 canvas.DrawPath(lassoPath, PaintObjects.LandformAreaSelectPaint);
+                return;
+            }
+
+            if (_editor.CurrentDrawingMode == MapDrawingMode.AreaSelection && _selectedArea != SKRect.Empty)
+            {
+                canvas.DrawRect(_selectedArea, PaintObjects.AreaSelectionPaint);
                 return;
             }
         }

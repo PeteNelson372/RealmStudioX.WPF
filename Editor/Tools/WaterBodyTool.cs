@@ -435,6 +435,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             }
 
             system.Add(newLake);
+            newLake.WaterSystem = system;
 
             cmd.RegisterAddedWaterBody(newLake);
             cmd.CaptureAfter(newLake);
@@ -477,6 +478,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                 {
                     RenderSettings = CreateRenderSettings()
                 };
+
                 cmd.RegisterAddedWaterSystem(system);
             }
             else if (intersectingSystems.Count == 1)
@@ -489,6 +491,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             }
 
             system.Add(river);
+            river.WaterSystem = system;
 
             cmd.RegisterAddedWaterBody(river);
 
@@ -545,6 +548,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             }
 
             system.Add(paintedWaterBody);
+            paintedWaterBody.WaterSystem = system;
 
             _activeModifyCommand.RegisterAddedWaterBody(paintedWaterBody);
 

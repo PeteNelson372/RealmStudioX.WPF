@@ -6,16 +6,28 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Controls"
              mc:Ignorable="d" 
-             d:DesignHeight="32" d:DesignWidth="356">
+             d:DesignHeight="32" d:DesignWidth="396">
     
     <!-- RIGHT ICON BAR -->
     <StackPanel Orientation="Horizontal"
+                HorizontalAlignment="Right"
                 DockPanel.Dock="Right"
                 Margin="0,0,20,0">
 
         <Button Style="{StaticResource IconBarButtonStyle}"
+                Command="{Binding SelectRealmAreaCommand}"
+                ToolTip="Select Realm Area"
+                Margin="0,0,15,0">
+            <materialDesign:PackIcon Kind="Select"
+                             Width="22"
+                             Height="22"
+                             Foreground="Coral"/>
+
+        </Button>
+
+        <Button Style="{StaticResource IconBarButtonStyle}"
                 Command="{Binding OpenObjectPropertiesDialogCommand}"
-                Margin="0,0,45,0"
+                Margin="0,0,15,0"
                 ToolTip="Open Properties Dialog">
             <materialDesign:PackIcon Kind="InfoBox"
                              Width="22"

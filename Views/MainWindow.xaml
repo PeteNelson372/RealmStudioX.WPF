@@ -46,6 +46,10 @@
                 Modifiers="Control"
                 Command="{Binding PasteCommand}"/>
 
+        <KeyBinding Key="R"
+                Modifiers="Control"
+                Command="{Binding ClearSelectionCommand}"/>
+
     </ui:RealmStudioMainWindow.InputBindings>
 
     <!-- WindowChrome -->
@@ -94,7 +98,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="350"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="352"/>
+                <ColumnDefinition Width="392"/>
             </Grid.ColumnDefinitions>
 
             <controls:MainMenu x:Name="MainMenu"

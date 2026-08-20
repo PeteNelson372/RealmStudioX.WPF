@@ -534,7 +534,8 @@ namespace RealmStudioX.WPF.Editor
             if (state.Button == EditorMouseButton.Left)
             {
                 if ((_editorState.CurrentDrawingMode == MapDrawingMode.RealmAreaSelect
-                    || _editorState.CurrentDrawingMode == MapDrawingMode.RealmLassoSelect)
+                    || _editorState.CurrentDrawingMode == MapDrawingMode.RealmLassoSelect
+                    || _editorState.CurrentDrawingMode == MapDrawingMode.AreaSelection)
                     && ActiveEditorTool is SelectionTool st)
                 {
                     st.OnMouseDown(state);
@@ -720,7 +721,8 @@ namespace RealmStudioX.WPF.Editor
             if (state.Button == EditorMouseButton.Left)
             {
                 if ((_editorState.CurrentDrawingMode == MapDrawingMode.RealmAreaSelect
-                    || _editorState.CurrentDrawingMode == MapDrawingMode.RealmLassoSelect)
+                    || _editorState.CurrentDrawingMode == MapDrawingMode.RealmLassoSelect
+                    || _editorState.CurrentDrawingMode == MapDrawingMode.AreaSelection)
                     && ActiveEditorTool is SelectionTool st)
                 {
                     st.OnMouseMove(state);
@@ -918,7 +920,8 @@ namespace RealmStudioX.WPF.Editor
             if (state.Button == EditorMouseButton.Left)
             {
                 if ((_editorState.CurrentDrawingMode == MapDrawingMode.RealmAreaSelect
-                    || _editorState.CurrentDrawingMode == MapDrawingMode.RealmLassoSelect)
+                    || _editorState.CurrentDrawingMode == MapDrawingMode.RealmLassoSelect
+                    || _editorState.CurrentDrawingMode == MapDrawingMode.AreaSelection)
                     && ActiveEditorTool is SelectionTool st)
                 {
                     st.OnMouseUp(state);
@@ -1190,7 +1193,7 @@ namespace RealmStudioX.WPF.Editor
 
         public void UpdateSelectedPath(PathRenderStyle renderStyle)
         {
-            if (_selectionService!.PrimarySelection!.ReferencedShape is MapPath mp)
+            if (_selectionService!.PrimarySelection != null && _selectionService!.PrimarySelection.ReferencedShape is MapPath mp)
             {
                 mp.ResolveAssets(_assetManager);
 
@@ -1484,7 +1487,7 @@ namespace RealmStudioX.WPF.Editor
 
         public void UpdateSelectedLabel(ILabelSettings settings)
         {
-            if (_selectionService!.PrimarySelection!.ReferencedShape is MapLabel label)
+            if (_selectionService!.PrimarySelection != null && _selectionService!.PrimarySelection.ReferencedShape is MapLabel label)
             {
                 MapLayer labelLayer = MapBuilder.GetMapLayerByIndex(Scene!.Map, MapBuilder.LABELLAYER);
 

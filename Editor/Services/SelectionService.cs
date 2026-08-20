@@ -58,8 +58,6 @@ namespace RealmStudioX.WPF.Editor.Services
 
         public int SelectionCount => _selectedObjects.Count;
 
-        private bool _landformSelectionAllowed = true;
-
         public SelectionService()
         {
             // Initialize the selection filter with all types allowed
@@ -93,6 +91,8 @@ namespace RealmStudioX.WPF.Editor.Services
              || PrimarySelection.ReferencedShape is MapRegion
              || PrimarySelection.ReferencedShape is MapSymbol);
 
+
+        private bool _landformSelectionAllowed = true;
 
         public bool LandformSelectionAllowed
         {

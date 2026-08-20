@@ -593,6 +593,8 @@ namespace RealmStudioX.WPF
                     canvas.Translate(_editor.Scene.Camera.Pan.X, _editor.Scene.Camera.Pan.Y);
                     canvas.Scale(_editor.Scene.Camera.Zoom);
 
+                    canvas.ClipRect(new SKRect(0, 0, _editor.Scene!.Map.MapWidth, _editor.Scene!.Map.MapHeight));
+
                     if (_skiaControl.GRContext != null
                         && _editor.Scene.Map != null)
                     {

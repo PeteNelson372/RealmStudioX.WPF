@@ -27,13 +27,14 @@ namespace RealmStudioX.WPF
 
         public string ApplicationName => _assembly.GetName().Name ?? "RealmStudioX";
 
-        public string CompanyName => GetAttribute<AssemblyCompanyAttribute>()?.Company ?? "Pete Nelson";
+        public string CompanyName => GetAttribute<AssemblyCompanyAttribute>()?.Company ?? "Zero Sum Games";
 
         public string ProductName => GetAttribute<AssemblyProductAttribute>()?.Product ?? ApplicationName;
 
         public string Copyright => GetAttribute<AssemblyCopyrightAttribute>()?.Copyright ?? "";
 
         public string Description => GetAttribute<AssemblyDescriptionAttribute>()?.Description ?? "";
+
 
         /// <summary>
         /// Semantic version string (preferred for display).
@@ -78,7 +79,7 @@ namespace RealmStudioX.WPF
             File.GetLastWriteTime(_assembly.Location);
 
         public string BuildDateString =>
-            BuildDate.ToString("MMMM d, yyyy");
+            BuildDate.ToString("yyyy-MM-dd HH:mm:ss 'UTC'");
 
         public string ExecutablePath =>
             _assembly.Location;

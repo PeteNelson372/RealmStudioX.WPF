@@ -37,7 +37,7 @@
 
         <MenuItem Header="Realm" Margin="0,6,0,0">
             <MenuItem Header="_Realm Properties" Command="{Binding OpenRealmPropertiesCommand}"/>
-            <MenuItem Header="Selected Object Properties" Command="{Binding OpenObjectPropertiesDialogCommand}"/>
+            <MenuItem Header="Selected _Object Properties" Command="{Binding OpenObjectPropertiesDialogCommand}"/>
             <MenuItem Header="Change Map _Size" Command="{Binding ChangeMapSizeCommand}"/>
             <MenuItem Header="Create _Detail Map" Command="{Binding CreateDetailMapCommand}"/>
             <MenuItem Header="_Trace Outline" Command="{Binding TraceOutlineCommand}"/>
@@ -47,6 +47,7 @@
         </MenuItem>
 
         <MenuItem Header="Assets" Margin="0,6,0,0">
+            <MenuItem Header="_Reload All Assets" Command="{Binding ReloadAssetsCommand}"/>            
             <MenuItem Header="_Create Symbol Collection..." Command="{Binding CreateSymbolCollectionCommand}"/>
             <MenuItem Header="_Import Assets From">
                 <MenuItem Header="Wonderdraft Asset _Zip File..." Command="{Binding ImportWonderdraftZipCommand}"/>

@@ -397,8 +397,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             if (state.Button == EditorMouseButton.Left)
             {
-                MapLayer drawLayer = _editor.ActiveDrawingLayer != null ?
-                _editor.ActiveDrawingLayer : MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.DRAWINGLAYER);
+                MapLayer drawLayer = _editor.ActiveDrawingLayer ?? MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.DRAWINGLAYER);
 
                 switch (_editorState.CurrentDrawingMode)
                 {

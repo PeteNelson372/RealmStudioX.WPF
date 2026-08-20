@@ -1,0 +1,381 @@
+﻿<ui:ModalDialog x:Class="RealmStudioX.WPF.Views.Dialogs.DetailMapDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:ui="clr-namespace:RealmStudioX.WPF.Editor.UserInterface"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"        
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:views="clr-namespace:RealmStudioX.WPF.Views"
+        xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+        xmlns:vm="clr-namespace:RealmStudioX.WPF.ViewModels.Dialogs"
+        mc:Ignorable="d"
+        Title="Resize Map"
+        Width="550"
+        Height="640"
+        MinWidth="550"
+        MaxWidth="550"
+        MinHeight="640"
+        MaxHeight="640"
+        Background="#FF45443F"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        Icon="../../Assets/ico/realm_studio_icon.ico">
+
+    <Window.Resources>
+        <ScaleTransform x:Key="RadioScaleTransform" ScaleX="1.0" ScaleY="1.0"/>
+    </Window.Resources>
+
+    <!-- WindowChrome -->
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="32"
+                            ResizeBorderThickness="0"
+                            CornerRadius="0"/>
+    </shell:WindowChrome.WindowChrome>
+
+    <Grid Margin="10" Background="#FFDFDBD2">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <!-- Title Bar -->
+            <RowDefinition Height="*"/>
+            <!-- Main -->
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ========================= -->
+        <!-- CUSTOM TITLE BAR -->
+        <!-- ========================= -->
+        <Border Grid.Row="0"
+            Grid.ColumnSpan="3"
+            Background="#FF45443F">
+
+            <TextBlock Text="Detail Map"
+                       Foreground="#E5E5E5"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Center"/>
+
+        </Border>
+
+        <StackPanel Grid.Row="1" Grid.Column="0">
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <GroupBox Grid.Column="0" Header="Realm Map Size Presets" Margin="10,10,10,0" Width="240" Height="480" HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <GroupBox.Resources>
+                        <Style TargetType="RadioButton">
+                            <Setter Property="SnapsToDevicePixels" Value="True"/>
+                            <Setter Property="OverridesDefaultStyle" Value="True"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="RadioButton">
+                                        <BulletDecorator Background="Transparent">
+                                            <BulletDecorator.Bullet>
+                                                <Grid Width="13" Height="13">
+                                                    <!-- Outer circle -->
+                                                    <Ellipse Stroke="#888" StrokeThickness="1" Fill="Transparent"/>
+
+                                                    <!-- Inner dot -->
+                                                    <Ellipse x:Name="Dot"
+                                                             Width="6.5" Height="6.5"
+                                                             Fill="#FF45443F"
+                                                             Visibility="Collapsed"/>
+                                                </Grid>
+                                            </BulletDecorator.Bullet>
+
+                                            <ContentPresenter VerticalAlignment="Center"
+                                                    Margin="6,0,0,0"/>
+                                        </BulletDecorator>
+
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="Dot" Property="Visibility" Value="Visible"/>
+                                            </Trigger>
+
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter Property="Opacity" Value="0.8"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </GroupBox.Resources>
+
+                    <ScrollViewer 
+                            VerticalScrollBarVisibility="Auto"
+                            MaxHeight="480">
+
+                        <ItemsControl x:Name="PresetList">
+
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <RadioButton Content="{Binding Display}"
+                                             Tag="{Binding}"
+                                             Margin="0,4"
+                                             GroupName="MapSizePresets"
+                                             IsChecked="{Binding IsSelected}"
+                                             Checked="OnPresetSelected"
+                                             LayoutTransform="{StaticResource RadioScaleTransform}"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                    </ScrollViewer>
+                </GroupBox>
+
+                <StackPanel Grid.Column="1" Width="240" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.ColumnSpan="2">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                    </Grid>
+
+                    <GroupBox Grid.Row="0" Header="Resized Realm Map Size"
+                            Padding="10"
+                            Margin="0">
+
+                        <Grid>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Width -->
+                            <TextBlock Text="Width"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,8,6"/>
+                            <Grid Grid.Column="1">
+                                <controls:NumericUpDown x:Name="WidthBox"
+                                     Value="{Binding DetailMapWidth}"
+                                     Minimum="500"
+                                     Maximum="10000"
+                                     Margin="0,0,6,6"
+                                     Width="100"/>
+                            </Grid>
+                            <!-- Lock -->
+                            <Button Grid.Column="2"
+                                    Width="28"
+                                    Height="28"
+                                    Margin="0,0,0,6"
+                                    ToolTip="Lock aspect ratio"
+                                    Background="#FFDFDBD2"
+                                    BorderBrush="#FFDFDBD2"
+                                    Click="OnToggleAspectLock">
+
+                                <materialDesign:PackIcon Kind="Lock"
+                                     Width="16"
+                                     Height="16"
+                                     Opacity="0.7"/>
+                            </Button>
+
+                            <!-- Height -->
+                            <TextBlock Text="Height"
+                                   Grid.Row="1"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,8,6"/>
+
+                            <Grid Grid.Row="1" Grid.Column="1">
+                                <controls:NumericUpDown x:Name="HeightBox"                                      
+                                     Grid.Column="1"
+                                     Value="{Binding DetailMapHeight}"
+                                     Minimum="500"
+                                     Maximum="10000"
+                                     Margin="0,0,6,6"
+                                     Width="100"/>
+                            </Grid>
+                            <!-- Swap -->
+                            <Button Grid.Row="1"
+                                    Grid.Column="2"
+                                    Width="28"
+                                    Height="28"
+                                    Background="#FFDFDBD2"
+                                    BorderBrush="#FFDFDBD2"                                        
+                                    ToolTip="Swap width/height"
+                                    Click="OnSwapDimensions">
+
+                                <materialDesign:PackIcon Kind="SwapVertical"
+                                     Width="18"
+                                     Height="18"
+                                     Opacity="0.7"/>
+                            </Button>
+
+                            <!-- Aspect Ratio -->
+                            <TextBlock Grid.Row="2"
+                                   Text="Aspect Ratio"
+                                   Margin="0,6,8,0"
+                                   VerticalAlignment="Center"/>
+
+                            <TextBlock x:Name="AspectRatioText"
+                                   Grid.Row="2"
+                                   Grid.Column="1"
+                                   Margin="0,6,0,0"
+                                   VerticalAlignment="Center"
+                                   Foreground="#666"
+                                   Text="{Binding AspectRatio, StringFormat=F2}"/>
+
+                        </Grid>
+
+                    </GroupBox>
+
+                    <GroupBox Grid.Row="1" Header="Selected Map Coordinates"
+                          Height="Auto"
+                          Padding="10,10,10,10"
+                          Margin="0,10,0,0">
+
+                        <Grid Height="Auto">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Width -->
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Left"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,8,3"/>
+                            <Grid Grid.Row="0" Grid.Column="1">
+                                <controls:NumericUpDown x:Name="SelectedLeftBox"
+                                     Value="{Binding SelectedLeft, Mode=TwoWay}"
+                                     Minimum="0"
+                                     Maximum="10000"
+                                     Margin="0,0,6,3"
+                                     Width="100"/>
+                            </Grid>
+
+                            <!-- Top -->
+                            <TextBlock Text="Top"
+                                   Grid.Row="1"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,8,3"/>
+
+                            <Grid Grid.Row="1" Grid.Column="1">
+                                <controls:NumericUpDown x:Name="SelectedTopBox"                                      
+                                     Grid.Column="1"
+                                     Value="{Binding SelectedTop, Mode=TwoWay}"
+                                     Minimum="0"
+                                     Maximum="10000"
+                                     Margin="0,0,6,3"
+                                     Width="100"/>
+                            </Grid>
+
+                            <!-- Width -->
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Right"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,8,3"/>
+                            <Grid Grid.Row="2" Grid.Column="1">
+                                <controls:NumericUpDown x:Name="SelectedRightBox"
+                                     Value="{Binding SelectedRight, Mode=TwoWay}"
+                                     Minimum="0"
+                                     Maximum="10000"
+                                     Margin="0,0,6,3"
+                                     Width="100"/>
+                            </Grid>
+
+                            <!-- Height -->
+                            <TextBlock Text="Bottom"
+                                   Grid.Row="3"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,8,3"/>
+
+                            <Grid Grid.Row="3" Grid.Column="1">
+                                <controls:NumericUpDown x:Name="SelectedBottomBox"                                      
+                                     Grid.Column="1"
+                                     Value="{Binding SelectedBottom, Mode=TwoWay}"
+                                     Minimum="0"
+                                     Maximum="10000"
+                                     Margin="0,0,6,3"
+                                     Width="100"/>
+                            </Grid>
+
+                        </Grid>
+
+                    </GroupBox>
+
+                    <GroupBox Grid.Row="2" Header="Include Features"
+                          Height="160"
+                          Padding="3,3,3,3"
+                          Margin="0,10,0,0">
+
+                        <StackPanel Orientation="Vertical">
+                            <CheckBox Content="Terrain Symbols"
+                              Margin="3,3,3,0"
+                              IsChecked="{Binding IncludeTerrainSymbols}"/>
+                            
+                            <CheckBox Content="Vegetation Symbols"
+                              Margin="3,3,3,0"
+                              IsChecked="{Binding IncludeVegetationSymbols}"/>
+
+                            <CheckBox Content="Structure Symbols"
+                              Margin="3,3,3,0"
+                              IsChecked="{Binding IncludeStructureSymbols}"/>
+
+                            <CheckBox Content="Marker Symbols"
+                              Margin="3,3,3,0"
+                              IsChecked="{Binding IncludeMarkerSymbols}"/>
+
+                            <CheckBox Content="Paths"
+                              Margin="3,3,3,0"
+                              IsChecked="{Binding IncludePaths}"/>
+
+                            <CheckBox Content="Labels"
+                              Margin="3,3,3,0"
+                              IsChecked="{Binding IncludeLabels}"/>
+
+                        </StackPanel>
+                    </GroupBox>
+
+                    <StackPanel Grid.Row="2" Grid.Column="0"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Margin="0,20,0,0">
+
+                        <Button Content="Create"
+                            Command="{Binding DetailMapCommand}"
+                            Style="{StaticResource FlatToolButton}"
+                            Margin="0,0,20,0"
+                            Width="60"
+                            Height="60"/>
+
+                        <Button Content="Cancel"
+                            Command="{Binding CancelDetailCommand}"
+                            Style="{StaticResource FlatToolButton}"
+                            Width="60"
+                            Height="60"/>
+                    </StackPanel>
+                </StackPanel>
+
+
+            </Grid>
+        </StackPanel>
+
+    </Grid>
+</ui:ModalDialog>

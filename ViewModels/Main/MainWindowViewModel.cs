@@ -7,6 +7,7 @@ using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.Editor.Tools;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
+using RealmStudioX.WPF.Models.Map;
 using RealmStudioX.WPF.Models.Startup;
 using RealmStudioX.WPF.Models.UserInterface;
 using RealmStudioX.WPF.ViewModels.Controls;
@@ -17,15 +18,19 @@ using RealmStudioX.WPF.Views.Dialogs;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
 using System.IO;
+using System.Reflection;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Application = System.Windows.Application;
+using Cursors = System.Windows.Input.Cursors;
 
 namespace RealmStudioX.WPF.ViewModels.Main
 {
     public class MainWindowViewModel : ViewModelBase
     {
+        public App RealmStudioApp => (App)Application.Current;
+
         MainWindow _mainWindow;
         public static WindowManager WindowManager => ((App)Application.Current).WindowManager;
 
@@ -407,6 +412,10 @@ namespace RealmStudioX.WPF.ViewModels.Main
         // Commands (menu and buttons)
         // -------------------------
 
+        // -------------------------
+        // New, Open, Save, Export, Exit Commands
+        // -------------------------
+
         public ICommand NewOpenCommand => new RelayCommand(() =>
         {
             ShowCreateOpenDialog();
@@ -462,17 +471,6 @@ namespace RealmStudioX.WPF.ViewModels.Main
             }
         });
 
-        public ICommand ResetZoomCommand => new RelayCommand(() =>
-        {
-            _editor.Scene?.Camera?.Reset(_editor.Scene.Map.MapWidth, _editor.Scene.Map.MapHeight);
-        });
-
-
-        public ICommand OpenNameGeneratorConfigCommand => new RelayCommand(() =>
-        {
-            RequestOpenNameGeneratorConfig?.Invoke();
-        });
-
         public ICommand ExitCommand => new RelayCommand(() =>
         {
             if (!TryShutdown())
@@ -483,6 +481,10 @@ namespace RealmStudioX.WPF.ViewModels.Main
             Application.Current.Shutdown();
         });
 
+        // -------------------------
+        // Undo / Redo Commands
+        // -------------------------
+
         public ICommand UndoCommand => new RelayCommand(() =>
         {
             CommandService.ActiveCommands.Undo();
@@ -492,6 +494,10 @@ namespace RealmStudioX.WPF.ViewModels.Main
         {
             CommandService.ActiveCommands.Redo();
         });
+
+        // -------------------------
+        // Cut, Copy, Paste, Clear Selection Commands
+        // -------------------------
 
         public ICommand CutCommand => new RelayCommand(() =>
         {
@@ -533,6 +539,108 @@ namespace RealmStudioX.WPF.ViewModels.Main
             _editor.RequestRedraw();
         });
 
+        public ICommand ClearSelectionCommand => new RelayCommand(() =>
+        {
+            SelectionService.ClearSelection();
+        });
+
+        // -------------------------
+        // Change Map Size Command
+        // -------------------------
+
+        public ICommand ChangeMapSizeCommand => new RelayCommand(() =>
+        {
+            if (_editor.Scene == null || _editor.Scene.Map == null)
+            {
+                return;
+            }
+
+            var dialog = new ResizeMapDialog(_editor.Scene.Map);
+            var result = dialog.ShowDialog();
+
+            if (result == true)
+            {
+                // Handle the result of the resize operation
+                ResizeMapResult? dlgResult = dialog.ViewModel.Result;
+
+                if (dlgResult != null)
+                {
+                    dlgResult.SelectedArea = new SKRect(0, 0, _editor.Scene!.Map.MapWidth, _editor.Scene!.Map.MapHeight);
+                    dlgResult.CreationOperation = RealmCreationOperation.ResizeMap;
+
+                    RealmStudioMap? resizedMap = ProjectViewModel.CreateMapFromMap(dlgResult,
+                        _editor.Scene!.Map,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true);
+
+                    if (ProjectViewModel.Project != null && resizedMap != null)
+                    {
+                        ProjectViewModel.ImportMapIntoProject(ProjectViewModel.Project, resizedMap);
+
+                        CommandService.MarkProjectDataModified();
+                        _projectManager.NotifyProjectChanged();
+                    }
+                }
+            }
+        });
+
+        public ICommand CreateDetailMapCommand => new RelayCommand(() =>
+        {
+            if (_editor.ActiveEditorTool is SelectionTool selectionTool && selectionTool.SelectedArea != SKRect.Empty)
+            {
+
+                var dialog = new DetailMapDialog(_editor, _editor.Scene!.Map, selectionTool.SelectedArea);
+                var result = dialog.ShowDialog();
+
+                if (result == true)
+                {
+                    // create the detail map
+
+                    // Handle the result of the resize operation
+                    ResizeMapResult? dlgResult = dialog.ViewModel.Result;                   
+
+                    if (dlgResult != null)
+                    {
+                        dlgResult.CreationOperation = RealmCreationOperation.DetailMap;
+
+                        RealmStudioMap? detailMap = ProjectViewModel.CreateMapFromMap(dlgResult,
+                            _editor.Scene!.Map,
+                            dlgResult.IncludeTerrainSymbols,
+                            dlgResult.IncludeVegetationSymbols,
+                            dlgResult.IncludeStructureSymbols,
+                            dlgResult.IncludeMarkerSymbols,
+                            dlgResult.IncludeLabels,
+                            dlgResult.IncludeBoxes,
+                            dlgResult.IncludePaths,
+                            dlgResult.IncludeScale,
+                            dlgResult.IncludeGrid,
+                            dlgResult.IncludeRegions,
+                            dlgResult.IncludeDrawnShapes,
+                            dlgResult.IncludeHeightMap);
+
+                        if (ProjectViewModel.Project != null && detailMap != null)
+                        {
+                            ProjectViewModel.ImportMapIntoProject(ProjectViewModel.Project, detailMap);
+
+                            CommandService.MarkProjectDataModified();
+                            _projectManager.NotifyProjectChanged();
+                        }
+                    }
+                }
+            }
+
+        });
+
         // -------------------------
         // Realm Properties
         // -------------------------
@@ -542,6 +650,40 @@ namespace RealmStudioX.WPF.ViewModels.Main
             ProjectViewModel.OpenProjectPropertiesDialog();
         });
 
+        // -------------------------
+        // Reload Assets
+        // -------------------------
+
+        public ICommand ReloadAssetsCommand => new RelayCommand(async () =>
+        {
+            try
+            {
+                Mouse.OverrideCursor = Cursors.Wait;
+                await AssetManager.LoadAsync();
+            }
+            finally
+            {
+                Mouse.OverrideCursor = null;
+                MessageDialogFactory.InformationDialog("Assets Reloaded", "Assets have been reloaded.").ShowDialog();
+            }
+        });
+
+        // -------------------------
+        // Name Generator Config
+        // -------------------------
+
+        public ICommand OpenNameGeneratorConfigCommand => new RelayCommand(() =>
+        {
+            RequestOpenNameGeneratorConfig?.Invoke();
+        });
+
+        public ICommand OpenAboutCommand => new RelayCommand(() =>
+        {
+            var dialog = new AboutDialog(this);
+            dialog.ShowDialog();
+        });
+
+        
         // -------------------------
         // Selection Commands
         // -------------------------
@@ -558,6 +700,22 @@ namespace RealmStudioX.WPF.ViewModels.Main
             SelectionService.ClearSelection();
             Editor.SetDrawingMode(MapDrawingMode.RealmLassoSelect);
             _editor.ActivateTool(EditorToolType.SelectionTool);
+        });
+
+        public ICommand SelectRealmAreaCommand => new RelayCommand(() =>
+        {
+            SelectionService.ClearSelection();
+            Editor.SetDrawingMode(MapDrawingMode.AreaSelection);
+            _editor.ActivateTool(EditorToolType.SelectionTool);
+        });
+
+        // -------------------------
+        // Reset Zoom Command
+        // -------------------------
+
+        public ICommand ResetZoomCommand => new RelayCommand(() =>
+        {
+            _editor.Scene?.Camera?.Reset(_editor.Scene.Map.MapWidth, _editor.Scene.Map.MapHeight);
         });
 
         // -------------------------
@@ -1419,6 +1577,46 @@ namespace RealmStudioX.WPF.ViewModels.Main
             return map;
         }
 
+        public static RealmStudioMap? CreateMap(ResizeMapResult resizeMapResult)
+        {
+            if (resizeMapResult.Map == null)
+            {
+                return null;
+            }
+
+            string mapName = resizeMapResult.Map.MapName;
+
+            if (string.IsNullOrEmpty(mapName))
+            {
+                mapName = "Default";
+            }
+
+            if (resizeMapResult.CreationOperation == RealmCreationOperation.ResizeMap)
+            {
+                mapName += " (resized)";
+            }
+            else if (resizeMapResult.CreationOperation == RealmCreationOperation.DetailMap)
+            {
+                mapName += " (detail)";
+            }
+
+            string mapPath = mapName + RealmStudioFileFormat.RawMapExtension;
+
+            string mapAreaUnits = resizeMapResult.Map.MapAreaUnits ?? "miles";
+
+            float mapAreaWidth = resizeMapResult.Map.MapAreaWidth;
+            float mapAreaHeight = resizeMapResult.Map.MapAreaHeight;
+
+            RealmMapType realmMapType = resizeMapResult.Map.RealmType;
+
+            RealmStudioMap map = MapBuilder.CreateMap(mapPath, mapName, resizeMapResult.Width, resizeMapResult.Height, mapAreaWidth, mapAreaHeight, mapAreaUnits);
+
+            map.RealmType = realmMapType;
+            map.RealmDescription = resizeMapResult.Map.RealmDescription;
+
+            return map;
+        }
+
         public void OpenRealmProject(CreateOpenPackageResult result)
         {
             RealmStudioMap? map = null;
@@ -1882,6 +2080,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 MapDrawingMode.DrawingSelect => "Select Drawn Object",
                 MapDrawingMode.InteriorFloorPaint => "Paint Interior Floor",
                 MapDrawingMode.ShapeSelect => "Select Any Shape",
+                MapDrawingMode.AreaSelection => "Select Realm Area",
                 _ => "Undefined",
             };
 
