@@ -18,7 +18,7 @@
         Icon="pack://application:,,,/Assets/ico/realm_studio_icon.ico">
 
     <Grid VerticalAlignment="Top">
-        <Image Margin="0" Stretch="UniformToFill" Source="pack://application:,,,/Assets/png/Realm Studio X Icon.png" Visibility="Visible"/>
+        <Image Margin="0" VerticalAlignment="Center" Stretch="UniformToFill" Source="pack://application:,,,/Assets/png/Realm Studio Icon - new.png" Visibility="Visible"/>
         <TextBlock x:Name="VersionText" Margin="0, 315, 0, 0" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="12" Foreground="#C8C8C8" Text="Version" Visibility="Visible"/>
         <TextBlock x:Name="LoadingStatusText" Margin="0, 332, 0, 0" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="16" Foreground="#C8C8C8" Text="Starting Realm Studio X..." Visibility="Visible"/>
     </Grid>

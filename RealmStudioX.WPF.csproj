@@ -61,6 +61,7 @@
     <None Remove="Assets\png\LineDashPath.png" />
     <None Remove="Assets\png\OAI_OpenAI-Blossom_Black.png" />
     <None Remove="Assets\png\RailroadTracksPath.png" />
+    <None Remove="Assets\png\Realm Studio Icon - new.png" />
     <None Remove="Assets\png\Realm Studio Icon 1024x1024.png" />
     <None Remove="Assets\png\Realm Studio X Icon.png" />
     <None Remove="Assets\png\ShadedLinePath.png" />
@@ -77,6 +78,7 @@
     <None Remove="Assets\png\SmallDashesPath.png" />
     <None Remove="Assets\png\SolidPath.png" />
     <None Remove="Assets\png\ThickLinePath.png" />
+    <None Remove="Assets\png\ZeroSum white - no background.png" />
     <None Remove="Assets\svg\OAI_OpenAI-Blossom_Black.svg" />
     <None Remove="Properties\Logging\log4net.config" />
     <None Remove="Views\Dialogs\brookmonte-group-logo.png" />
@@ -186,6 +188,9 @@
     <Resource Include="Assets\png\RailroadTracksPath.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Assets\png\Realm Studio Icon - new.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Assets\png\Realm Studio Icon 1024x1024.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
@@ -216,11 +221,11 @@
     <Resource Include="Assets\png\ThickLinePath.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Assets\png\ZeroSum white - no background.png" />
     <Resource Include="Assets\svg\OAI_OpenAI-Blossom_Black.svg" />
     <Resource Include="Views\Dialogs\brookmonte-group-logo.png" />
     <Resource Include="Views\Dialogs\GitHub_Logo.png" />
     <Resource Include="Views\Dialogs\gplv3-127x51.png" />
-    <Resource Include="Views\Dialogs\ZeroSum white - no background.png" />
   </ItemGroup>
 
   <ItemGroup>

@@ -71,7 +71,7 @@
                     <Image Width="127" Height="100"
                            HorizontalAlignment="Left"
                            Stretch="Fill"
-                           Source="/Views/Dialogs/ZeroSum white - no background.png"
+                           Source="/Assets/png/ZeroSum white - no background.png"
                            RenderOptions.BitmapScalingMode="HighQuality"
                            SnapsToDevicePixels="True"
                            UseLayoutRounding="True"/>
