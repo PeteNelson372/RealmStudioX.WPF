@@ -20,7 +20,11 @@ namespace RealmStudioX.WPF.Editor.Tools
         public SKRect SelectedArea
         {
             get { return _selectedArea; }
-            set { _selectedArea = value; }
+            set
+            {
+                _selectedArea = value;
+                _selectionService.SelectedArea = value;
+            }
         }
 
         private List<SKPoint> _lassoPoints = [];

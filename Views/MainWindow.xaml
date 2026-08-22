@@ -11,7 +11,7 @@
         xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
         Title="RealmStudioX"
         Width="1580"
-        Height="1024"
+        Height="1032"
         Background="#FFDFDBD2"
         ShowInTaskbar="True"
         WindowStyle="None"

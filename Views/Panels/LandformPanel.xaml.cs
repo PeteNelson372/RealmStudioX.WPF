@@ -14,22 +14,11 @@ namespace RealmStudioX.WPF.Views.Panels
     /// </summary>
     public partial class LandformPanel : System.Windows.Controls.UserControl
     {
-        private LandformPanelViewModel ViewModel =>
-            (LandformPanelViewModel)DataContext;
+        private LandformPanelViewModel ViewModel => (LandformPanelViewModel)DataContext;
 
         public LandformPanel()
         {
             InitializeComponent();
-        }
-
-        private void SelectGeneratedLandformType_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is System.Windows.Controls.Button btn && btn.Tag != null && btn.Tag is GeneratedLandformType type)
-            {
-                ViewModel.SelectedLandformType = type;
-            }
-
-            DropDownButton.IsChecked = false;
         }
 
         private void OutlineColor_LeftClick(object sender, MouseButtonEventArgs e)
@@ -152,8 +141,6 @@ namespace RealmStudioX.WPF.Views.Panels
             {
                 ViewModel.SelectedCoastlineStyle = style;
             }
-
-            DropDownButton.IsChecked = false;
         }
     }
 }

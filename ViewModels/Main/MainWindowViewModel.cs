@@ -18,7 +18,6 @@ using RealmStudioX.WPF.Views.Dialogs;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
 using System.IO;
-using System.Reflection;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -53,6 +52,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
         public AssetManager AssetManager => _assetManager;
 
         private readonly FontManager _fontManager;
+
+        public FontManager FontManager => _fontManager;
 
         public readonly ThemeManager _themeManager;
         public ThemeManager ThemeManager => _themeManager;
@@ -107,6 +108,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
         public ExportService ExportService { get; }
 
         public MapObjectDescriptionService MapObjectDescriptionService { get; }
+
+        public HeightMapManager HeightMapManager { get; } = new();
 
         public event Action? RequestOpenNameGeneratorConfig;
 
@@ -286,6 +289,20 @@ namespace RealmStudioX.WPF.ViewModels.Main
         {
             get => _cursorPointLabel;
             set => SetProperty(ref _cursorPointLabel, value);
+        }
+
+        private bool _renderHeightMap = false;
+        public bool RenderHeightMap
+        {
+            get => _renderHeightMap;
+            set
+            {
+                if (_renderHeightMap == value)
+                    return;
+
+                _renderHeightMap = value;
+                OnPropertyChanged();
+            }
         }
 
         public double MaxScrollX =>
@@ -639,6 +656,22 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 }
             }
 
+        });
+
+
+        public ICommand DisplayHeightMapCommand => new RelayCommand(() =>
+        {
+            RenderHeightMap = !RenderHeightMap;
+
+            if (RenderHeightMap && _editor.Scene != null)
+            {
+                _editor.SetDrawingMode(MapDrawingMode.HeightMapPaint);
+
+                // select the landform tab
+                SelectedTabIndex = 3;
+
+                HeightMapManager.AddMapImagesToHeightMapLayer(_editor.Scene.Map);
+            }
         });
 
         // -------------------------
@@ -1277,7 +1310,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
             return generatedName;
         }
 
-        public void SaveRealmProject()
+        public void SaveRealmProject(bool isClosing = false)
         {
             try
             {
@@ -1364,7 +1397,10 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
                 MapFileMethods.SaveProject(mapProjectPath, currentProject);
 
-                ProjectViewModel.LoadProject(currentProject);
+                if (!isClosing)
+                {
+                    ProjectViewModel.LoadProject(currentProject);
+                }
 
                 CommandService.MarkSaved();
 
@@ -1461,7 +1497,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 switch (((MessageDialogViewModel)dlg.DataContext).Result)
                 {
                     case MessageDialogResult.Yes:
-                        SaveRealmProject();
+                        SaveRealmProject(true);
                         shutdown = true;
                         break;
                     case MessageDialogResult.No:
@@ -1860,6 +1896,9 @@ namespace RealmStudioX.WPF.ViewModels.Main
             // go through the map and load textures and bitmaps, etc.
             // load shape assets
             AssetInitializer.InitializeMapShapeAssets(map, _assetManager, _fontManager);
+            bool addHeightMap = false;
+
+            MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.HEIGHTMAPLAYER);
 
             // finalize the geometry of the shapes
             foreach (MapLayer layer in map.MapLayers)
@@ -1883,6 +1922,46 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
                 layer.RebuildIndexes();
             }
+
+            foreach (MapComponent2D mc2d in heightMapLayer.Shapes)
+            {
+                if (mc2d is MapHeightMap hm)
+                {
+                    try
+                    {
+                        // deserialize the HeightMap, then
+                        // reconstruct the MapHeightMap from
+                        // the deserialized values
+
+                        if (hm.HeightMap == null || hm.HeightMap.Length == 0)
+                        {
+                            hm.Initialize(map.MapWidth, map.MapHeight);
+                        }
+                        else
+                        {
+                            hm.RebuildHeightMapBitmap();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        MessageDialog dlg = MessageDialogFactory.ErrorDialog("Create Height Map Error", "An error occured deserializing the height map: " + e.Message);
+                        dlg.ShowDialog();
+                        addHeightMap = true;
+                    }
+                }
+            }
+
+            
+            if (addHeightMap)
+            {
+                MapHeightMap newHeightMap = HeightMapManager.CreateHeightMap(map.MapWidth, map.MapHeight);
+
+                heightMapLayer.Clear();
+                heightMapLayer.Add(newHeightMap);
+
+                heightMapLayer.RebuildIndexes();
+            }
+            
 
             foreach (WaterSystem ws in map.WaterSystems)
             {
@@ -1977,7 +2056,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
             };
 
             newScene.Camera.Viewport = new SKRect(0, 0, map.MapWidth, map.MapHeight);
-            _editor.SetScene(newScene);
+            _editor.SetScene(newScene, this);
 
             AttachScene(newScene);
         }

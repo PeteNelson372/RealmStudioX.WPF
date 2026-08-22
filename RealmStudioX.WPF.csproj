@@ -50,6 +50,7 @@
     <None Remove="Assets\png\AnimalTracksPath.png" />
     <None Remove="Assets\png\BirdTracksPath.png" />
     <None Remove="Assets\png\BorderedLinePath.png" />
+    <None Remove="Assets\png\brookmonte-group-logo.png" />
     <None Remove="Assets\png\ChevronPath.png" />
     <None Remove="Assets\png\DashDotDotPath.png" />
     <None Remove="Assets\png\DashDotPath.png" />
@@ -58,6 +59,8 @@
     <None Remove="Assets\png\DoubleLinePath.png" />
     <None Remove="Assets\png\eyedropper.png" />
     <None Remove="Assets\png\FootprintsPath.png" />
+    <None Remove="Assets\png\GitHub_Logo.png" />
+    <None Remove="Assets\png\gplv3-127x51.png" />
     <None Remove="Assets\png\LineDashPath.png" />
     <None Remove="Assets\png\OAI_OpenAI-Blossom_Black.png" />
     <None Remove="Assets\png\RailroadTracksPath.png" />
@@ -157,6 +160,7 @@
     <Resource Include="Assets\png\BorderedLinePath.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Assets\png\brookmonte-group-logo.png" />
     <Resource Include="Assets\png\ChevronPath.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
@@ -181,6 +185,8 @@
     <Resource Include="Assets\png\FootprintsPath.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Assets\png\GitHub_Logo.png" />
+    <Resource Include="Assets\png\gplv3-127x51.png" />
     <Resource Include="Assets\png\LineDashPath.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
@@ -223,9 +229,6 @@
     </Resource>
     <Resource Include="Assets\png\ZeroSum white - no background.png" />
     <Resource Include="Assets\svg\OAI_OpenAI-Blossom_Black.svg" />
-    <Resource Include="Views\Dialogs\brookmonte-group-logo.png" />
-    <Resource Include="Views\Dialogs\GitHub_Logo.png" />
-    <Resource Include="Views\Dialogs\gplv3-127x51.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -238,6 +241,12 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Update="Views\Controls\LandformControls.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Controls\HeightMapControls.xaml.cs">
+      <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Controls\CreateMapDialogTitleBar.xaml.cs">
       <SubType>Code</SubType>

@@ -7,6 +7,7 @@ using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.Models.UserInterface;
 using RealmStudioX.WPF.ViewModels.Controls;
+using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
@@ -216,7 +217,7 @@ namespace RealmStudioX.WPF.Editor
 
         public MapScene? Scene => _scene;
 
-        public void SetScene(MapScene scene)
+        public void SetScene(MapScene scene, MainWindowViewModel mainViewModel)
         {
             // Unsubscribe from old scene (if any)
             if (_scene != null)
@@ -228,7 +229,7 @@ namespace RealmStudioX.WPF.Editor
 
             _activeTool = null;
 
-            _toolFactory = new(_commands, _assetManager, _scene, _editorState, this, _fontManager, _selectionService!, _paintService!, _layoutService!, _scene.RenderContext);
+            _toolFactory = new(mainViewModel);
 
             // Subscribe to new scene
             _scene.SceneChanged += OnSceneChanged;
@@ -1171,7 +1172,7 @@ namespace RealmStudioX.WPF.Editor
 
         public void UpdateSelectedLandform(LandformShadingSettings shading, CoastlineSettings coastlineSettings)
         {
-            if (_selectionService!.PrimarySelection!.ReferencedShape is Landform lf)
+            if (_selectionService!.PrimarySelection != null && _selectionService!.PrimarySelection!.ReferencedShape is Landform lf)
             {
                 _commands.Execute(
                     new Cmd_UpdateLandformProperties(
@@ -2221,6 +2222,7 @@ namespace RealmStudioX.WPF.Editor
         DrawingTool,
         SelectionTool,
         PaintTool,
-        LayoutPathTool
+        LayoutPathTool,
+        HeightMapTool,
     }
 }

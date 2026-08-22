@@ -10,7 +10,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
         public ColorPalette? PaintPalette { get; }
         public SKColor PaintingColor { get; set; }
         public int BrushSpacing { get; set; }
-        public int BrushSize { get; set; }
+        public int PaintBrushSize { get; set; }
         public BrushPatternItem? SelectedBrushPattern { get; set; }
         public ObservableCollection<BrushPatternItem> BrushPatterns { get; }
     }

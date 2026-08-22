@@ -310,7 +310,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         public int MinBrushSize { get; } = 1;
         public int MaxBrushSize { get; } = 256;
 
-        public int BrushSize
+        public int PaintBrushSize
         {
             get => _mainWindowViewModel.PaintService.Settings.BrushSize;
             set
@@ -324,16 +324,16 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public void MouseWheelBrushSizeChanged(int delta)
         {
-            int newSize = BrushSize + delta;
-            BrushSize = newSize;
+            int newSize = PaintBrushSize + delta;
+            PaintBrushSize = newSize;
 
-            _mainWindowViewModel.PaintService.Settings.BrushSize = BrushSize;
+            _mainWindowViewModel.PaintService.Settings.BrushSize = PaintBrushSize;
         }
 
 
         public ICommand PaintBrushCommand => new RelayCommand(() =>
         {
-            _mainWindowViewModel.PaintService.Settings.BrushSize = BrushSize;
+            _mainWindowViewModel.PaintService.Settings.BrushSize = PaintBrushSize;
             _mainWindowViewModel.PaintService.Settings.SelectedColor = PaintingColor;
 
             _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.WATERDRAWINGLAYER));
@@ -343,7 +343,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public ICommand ErasePaintCommand => new RelayCommand(() =>
         {
-            _mainWindowViewModel.PaintService.Settings.BrushSize = BrushSize;
+            _mainWindowViewModel.PaintService.Settings.BrushSize = PaintBrushSize;
 
             _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.WATERDRAWINGLAYER));
             _editor.SetDrawingMode(MapDrawingMode.WaterColorErase);

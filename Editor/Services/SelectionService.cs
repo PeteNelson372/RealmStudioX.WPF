@@ -49,6 +49,13 @@ namespace RealmStudioX.WPF.Editor.Services
                 return PrimarySelection != null && PrimarySelection.ReferencedShape != null ? PrimarySelection.ReferencedShape.GetType().Name : string.Empty;
             }
         }
+        private SKRect _selectedArea = SKRect.Empty;
+
+        public SKRect SelectedArea
+        {
+            get { return _selectedArea; }
+            set { _selectedArea = value; }
+        }
 
         public bool HasSelection => _selectedObjects.Count > 0;
 

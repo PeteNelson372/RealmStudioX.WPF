@@ -4,6 +4,7 @@ using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.Editor.Services;
+using RealmStudioX.WPF.Editor.Tools;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.Models.Startup;
 using RealmStudioX.WPF.ViewModels.Main;
@@ -468,11 +469,11 @@ namespace RealmStudioX.WPF
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.LandColor)
             {
-                //ViewModel.LandformViewModel.LandPaintBrushSize += sizeDelta;
+                ViewModel.LandformViewModel.PaintBrushSize += sizeDelta;
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.LandColorErase)
             {
-                //ViewModel.LandformViewModel.LandPaintEraserSize += sizeDelta;
+                ViewModel.LandformViewModel.LandformEraserSize += sizeDelta;
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.OceanErase)
             {
@@ -492,19 +493,19 @@ namespace RealmStudioX.WPF
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.WaterColor)
             {
-                //ViewModel.WaterViewModel.WaterColorBrushSize += sizeDelta;
+                ViewModel.WaterViewModel.PaintBrushSize += sizeDelta;
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.WaterColorErase)
             {
-                //ViewModel.WaterViewModel.WaterColorEraserSize += sizeDelta;
+                ViewModel.WaterViewModel.WaterEraserSize += sizeDelta;
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.MapHeightIncrease)
             {
-                //MainMediator.SelectedBrushSize = RealmMapMethods.GetNewBrushSize(LandBrushSizeTrack, sizeDelta);
+                ViewModel.LandformViewModel.LandformBrushSize += sizeDelta;
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.MapHeightDecrease)
             {
-                //MainMediator.SelectedBrushSize = RealmMapMethods.GetNewBrushSize(LandBrushSizeTrack, sizeDelta);
+                ViewModel.LandformViewModel.LandformBrushSize += sizeDelta;
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.DrawingLine)
             {
@@ -599,15 +600,27 @@ namespace RealmStudioX.WPF
                         && _editor.Scene.Map != null)
                     {
                         _renderContext.Zoom = _editor.Scene.Camera.Zoom;
-                        _editor.Scene.Render(canvas);
 
-                        _editor.RenderOverlay(canvas);
+                        if (ViewModel.RenderHeightMap)
+                        {
+                            e.Surface.Canvas.Clear(SKColors.Black);
 
-                        // TODO: handle rendering height map
+                            // render the height map
+                            HeightMapManager.RenderHeightMap(_editor.Scene.Map,
+                                e.Surface.Canvas,
+                                ViewModel.SelectionService.SelectedArea);
 
-                        canvas.DrawRect(new SKRect(0, 0, _editor.Scene.Map!.MapWidth, _editor.Scene.Map.MapHeight), PaintObjects.MapBoundaryPaint);
+                            _editor.RenderOverlay(canvas);
+                        }
+                        else
+                        {
+                            _editor.Scene.Render(canvas);
+
+                            _editor.RenderOverlay(canvas);
+
+                            canvas.DrawRect(new SKRect(0, 0, _editor.Scene.Map!.MapWidth, _editor.Scene.Map.MapHeight), PaintObjects.MapBoundaryPaint);
+                        }
                     }
-
                 }
             }
         }

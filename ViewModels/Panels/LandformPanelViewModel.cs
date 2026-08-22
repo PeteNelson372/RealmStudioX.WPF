@@ -1,6 +1,7 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
+using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
@@ -110,6 +111,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 var clamped = Math.Clamp(value, MinLandformBrushSize, MaxLandformBrushSize);
 
                 _landformBrushSize = clamped;
+                
                 OnPropertyChanged();
             }
         }
@@ -303,25 +305,65 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         public int MinBrushSize { get; } = 1;
         public int MaxBrushSize { get; } = 256;
 
-        public int BrushSize
+        public int PaintBrushSize
         {
             get => _mainWindowViewModel.PaintService.Settings.BrushSize;
             set
             {
                 var clamped = Math.Clamp(value, MinBrushSize, MaxBrushSize);
-                OnPropertyChanged();
-
                 _mainWindowViewModel.PaintService.Settings.BrushSize = clamped;
+
+                OnPropertyChanged();
             }
         }
 
         public void MouseWheelBrushSizeChanged(int delta)
         {
-            int newSize = BrushSize + delta;
-            BrushSize = newSize;
+            int newSize = PaintBrushSize + delta;
+            PaintBrushSize = newSize;
 
-            _mainWindowViewModel.PaintService.Settings.BrushSize = BrushSize;
+            _mainWindowViewModel.PaintService.Settings.BrushSize = PaintBrushSize;
         }
+
+
+        // height map
+
+        public float MinHeightMapBrushStrength { get; } = 1;
+        public float MaxHeightMapBrushStrength { get; } = 20;
+
+        private float _heightMapBrushStrength = 10;
+        public float HeightMapBrushStrength
+        {
+            get => _heightMapBrushStrength;
+            set
+            {
+                var clamped = Math.Clamp(value, MinHeightMapBrushStrength, MaxHeightMapBrushStrength);
+                _heightMapBrushStrength = clamped;
+
+                OnPropertyChanged();
+            }
+        }
+
+        public ICommand IncreaseHeightCommand => new RelayCommand(() =>
+        {
+            if (MainViewModel.RenderHeightMap && _editor.Scene != null)
+            {
+                _editor.SetDrawingMode(MapDrawingMode.MapHeightIncrease);
+
+                _editor.ActivateTool(EditorToolType.HeightMapTool);
+            }
+        });
+
+        public ICommand DecreaseHeightCommand => new RelayCommand(() =>
+        {
+            if (MainViewModel.RenderHeightMap && _editor.Scene != null)
+            {
+                _editor.SetDrawingMode(MapDrawingMode.MapHeightDecrease);
+
+                _editor.ActivateTool(EditorToolType.HeightMapTool);
+            }
+        });
+
 
         private void LandformValuesChanged()
         {
@@ -393,7 +435,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         // paint
         public ICommand PaintBrushCommand => new RelayCommand(() =>
         {
-            _mainWindowViewModel.PaintService.Settings.BrushSize = BrushSize;
+            _mainWindowViewModel.PaintService.Settings.BrushSize = PaintBrushSize;
             _mainWindowViewModel.PaintService.Settings.SelectedColor = PaintingColor;
 
             _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.LANDDRAWINGLAYER));
@@ -403,7 +445,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public ICommand ErasePaintCommand => new RelayCommand(() =>
         {
-            _mainWindowViewModel.PaintService.Settings.BrushSize = BrushSize;
+            _mainWindowViewModel.PaintService.Settings.BrushSize = PaintBrushSize;
 
             _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.LANDDRAWINGLAYER));
             _editor.SetDrawingMode(MapDrawingMode.LandErase);

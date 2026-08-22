@@ -3,46 +3,25 @@ using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.Models.UserInterface;
+using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.ViewModels.Panels;
 
 namespace RealmStudioX.WPF.Editor.Tools
 {
-    public class ToolFactory
+    public class ToolFactory(MainWindowViewModel mainWindowViewModel)
     {
-        private readonly CommandManager _commands;
-        private readonly IAssetProvider _assets;
-        private readonly MapScene _scene;
-        private readonly EditorState _editorState;
-        private readonly EditorController _editor;
-        private readonly FontManager _fontManager;
-        private readonly SelectionService _selectionService;
-        private readonly PaintService _paintService;
-        private readonly LayoutService _layoutService;
-        private readonly RenderContext _renderContext;
-
-        public ToolFactory(
-            CommandManager commands,
-            IAssetProvider assets,
-            MapScene scene,
-            EditorState editorState,
-            EditorController editor,
-            FontManager fontManager,
-            SelectionService selectionService,
-            PaintService paintService,
-            LayoutService layoutService,
-            RenderContext renderContext)
-        {
-            _commands = commands;
-            _assets = assets;
-            _scene = scene;
-            _editorState = editorState;
-            _editor = editor;
-            _fontManager = fontManager;
-            _selectionService = selectionService;
-            _paintService = paintService;
-            _layoutService = layoutService;
-            _renderContext = renderContext;
-        }
+        private readonly CommandManager _commands = mainWindowViewModel.Editor.Commands;
+        private readonly IAssetProvider _assets = mainWindowViewModel.AssetManager;
+        private readonly MapScene _scene = mainWindowViewModel.Editor.Scene!;
+        private readonly EditorState _editorState = mainWindowViewModel.Editor.State;
+        private readonly EditorController _editor = mainWindowViewModel.Editor;
+        private readonly FontManager _fontManager = mainWindowViewModel.FontManager;
+        private readonly SelectionService _selectionService = mainWindowViewModel.SelectionService;
+        private readonly PaintService _paintService = mainWindowViewModel.PaintService;
+        private readonly LayoutService _layoutService = mainWindowViewModel.LayoutService;
+        private readonly RenderContext _renderContext = mainWindowViewModel.RenderContext!;
+        private readonly HeightMapManager _heightMapManager = mainWindowViewModel.HeightMapManager;
+        private readonly MainWindowViewModel _mainWindowViewModel = mainWindowViewModel;
 
         public IToolEditor? Create(EditorToolType type, object? context)
         {
@@ -286,6 +265,18 @@ namespace RealmStudioX.WPF.Editor.Tools
                 case EditorToolType.LayoutPathTool:
                     {
                         return _editor.LayoutTool;
+                    }
+                case EditorToolType.HeightMapTool:
+                    {
+                        if (_editor.ActiveEditorTool is not HeightMapTool)
+                        {
+                            tool = new HeightMapTool(_editor, _heightMapManager, _mainWindowViewModel);
+                            return tool;
+                        }
+                        else
+                        {
+                            return _editor.ActiveEditorTool;
+                        }
                     }
             }
 
