@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+﻿using RealmStudioX.WPF.ViewModels.Main;
+using System.Windows.Controls;
 
 namespace RealmStudioX.WPF.Views.Controls
 {
@@ -9,9 +10,13 @@ namespace RealmStudioX.WPF.Views.Controls
     {
         public event EventHandler? TabSelectionChanged;
 
+        public MainWindowViewModel ViewModel { get; }
+
         public MainTabs()
         {
             InitializeComponent();
+
+            ViewModel = (MainWindowViewModel)DataContext;
 
             MainTabControl.SelectionChanged += (s, e) => TabSelectionChanged?.Invoke(this, EventArgs.Empty);
         }

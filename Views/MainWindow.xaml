@@ -9,6 +9,7 @@
         xmlns:views="clr-namespace:RealmStudioX.WPF.Views"
         xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
         xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
+        xmlns:panels="clr-namespace:RealmStudioX.WPF.Views.Panels"
         Title="RealmStudioX"
         Width="1580"
         Height="1032"
@@ -122,20 +123,24 @@
                 VerticalAlignment="Top"
                 Height="32"/>
 
-
-
-
         </Grid>
 
 
         <Grid Grid.Row="2">
             <!-- Tab Control -->
             <Grid Grid.Column="1" Background="#FFDFDBD2">
-                <controls:MainTabs x:Name="MainTabs"
+                <controls:MainTabs x:Name="MainTabs" DataContext="{Binding ViewModel}"
                     Background="#FFDFDBD2"
                     Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
             </Grid>
 
+        </Grid>
+
+        <Grid Grid.Row="2" Visibility="{Binding RenderHeightMap, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <!-- Tab Control -->
+            <Grid Grid.Column="1" Background="#FFDFDBD2">
+                <panels:HeightMapPanel x:Name="HeightMapPanel" DataContext="{Binding HeightMapViewModel}"/>
+            </Grid>
         </Grid>
 
         <!-- ========================= -->
@@ -377,6 +382,10 @@
             <ContentControl x:Name="SecondaryPanelHost"
                     Grid.Row="0"
                     Background="WhiteSmoke"/>
+
+            <Grid Grid.Row="0" Visibility="{Binding RenderHeightMap, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <panels:HeightMapToolPanel/>
+            </Grid>
             
             <!-- Zoom controls -->
             <StackPanel Grid.Row="1"

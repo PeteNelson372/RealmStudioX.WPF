@@ -1,6 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
 using SkiaSharp;
-using System.Windows.Media.Media3D;
 
 namespace RealmStudioX.WPF.Editor.Services
 {
@@ -8,7 +7,6 @@ namespace RealmStudioX.WPF.Editor.Services
     {
         public static void AddMapImagesToHeightMapLayer(RealmStudioMap map)
         {
-            MapLayer landformLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.LANDFORMLAYER);
             MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.HEIGHTMAPLAYER);
 
             MapHeightMap? heightMap = null;
@@ -48,6 +46,20 @@ namespace RealmStudioX.WPF.Editor.Services
             return heightMap;
         }
 
+        public static void SetHeightMapPalette(RealmStudioMap map, HypsometricPalette palette)
+        {
+            MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.HEIGHTMAPLAYER);
+
+            if (heightMapLayer.Shapes.Count == 0)
+            {
+                return;
+            }
+
+            MapHeightMap heightMap = (MapHeightMap)heightMapLayer.Shapes[0];
+
+            heightMap.HeightMapPalette = palette;
+        }
+
         internal static void RenderHeightMap(RealmStudioMap map, SKCanvas renderCanvas, SKRect? selectedArea)
         {
             MapLayer landformLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.LANDFORMLAYER);
@@ -55,7 +67,7 @@ namespace RealmStudioX.WPF.Editor.Services
 
             renderCanvas.DrawRect(new SKRect(1, 1, map.MapWidth, map.MapHeight), PaintObjects.LandformAreaSelectPaint);
 
-            SKPathBuilder pathBuilder = new SKPathBuilder();
+            SKPathBuilder pathBuilder = new();
 
             for (int i = 0; i < landformLayer.Shapes.Count; i++)
             {
@@ -97,14 +109,13 @@ namespace RealmStudioX.WPF.Editor.Services
             if (heightMapBitmap != null && heightMap != null)
             {
                 ApplyHeightBrush(mapPoint.X, mapPoint.Y, brushRadius, heightMap, changeAmount);
-                //activeHeightMap.RebuildHeightMapBitmap();
 
                 int left = (int)Math.Max(1, mapPoint.X - brushRadius);
                 int right = (int)Math.Min(map.MapWidth - 2, mapPoint.X + brushRadius);
                 int top = (int)Math.Max(1, mapPoint.Y - brushRadius);
                 int bottom = (int)Math.Min(map.MapHeight - 2, mapPoint.Y + brushRadius);
 
-                MapHeightMap.UpdateHeightMapBitmap(heightMapBitmap, heightMap, left, top, right, bottom);
+                activeHeightMap.UpdateHeightMapBitmap(heightMapBitmap, heightMap, left, top, right, bottom);
             }            
         }
 
@@ -158,7 +169,7 @@ namespace RealmStudioX.WPF.Editor.Services
 
                     value = average / 9.0f;
 
-                    heightMap[x, y] = Math.Clamp(value, 35.0f, 255.0f);
+                    heightMap[x, y] = value;
                 }
             }
         }

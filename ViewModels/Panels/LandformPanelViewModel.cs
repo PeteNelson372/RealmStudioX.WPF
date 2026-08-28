@@ -325,46 +325,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             _mainWindowViewModel.PaintService.Settings.BrushSize = PaintBrushSize;
         }
 
-
-        // height map
-
-        public float MinHeightMapBrushStrength { get; } = 1;
-        public float MaxHeightMapBrushStrength { get; } = 20;
-
-        private float _heightMapBrushStrength = 10;
-        public float HeightMapBrushStrength
-        {
-            get => _heightMapBrushStrength;
-            set
-            {
-                var clamped = Math.Clamp(value, MinHeightMapBrushStrength, MaxHeightMapBrushStrength);
-                _heightMapBrushStrength = clamped;
-
-                OnPropertyChanged();
-            }
-        }
-
-        public ICommand IncreaseHeightCommand => new RelayCommand(() =>
-        {
-            if (MainViewModel.RenderHeightMap && _editor.Scene != null)
-            {
-                _editor.SetDrawingMode(MapDrawingMode.MapHeightIncrease);
-
-                _editor.ActivateTool(EditorToolType.HeightMapTool);
-            }
-        });
-
-        public ICommand DecreaseHeightCommand => new RelayCommand(() =>
-        {
-            if (MainViewModel.RenderHeightMap && _editor.Scene != null)
-            {
-                _editor.SetDrawingMode(MapDrawingMode.MapHeightDecrease);
-
-                _editor.ActivateTool(EditorToolType.HeightMapTool);
-            }
-        });
-
-
         private void LandformValuesChanged()
         {
             if (_assetManager == null)

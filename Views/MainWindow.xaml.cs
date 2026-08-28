@@ -4,7 +4,6 @@ using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.Editor.Services;
-using RealmStudioX.WPF.Editor.Tools;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.Models.Startup;
 using RealmStudioX.WPF.ViewModels.Main;
@@ -61,6 +60,7 @@ namespace RealmStudioX.WPF
             ["Background"] = new BackgroundToolPanel(),
             ["Ocean"] = new OceanToolPanel(),
             ["Land"] = new LandToolPanel(),
+            ["Height Map"] = new BackgroundToolPanel(),
             ["Water"] = new WaterToolPanel(),
             ["Paths"] = new PathsToolPanel(),
             ["Symbols"] = new SymbolsToolPanel(),
@@ -113,6 +113,8 @@ namespace RealmStudioX.WPF
                 TitleBar.MaximizeClicked += (s, e) => MaximizeHandler();
                 TitleBar.ExitClicked += (s, e) => ExitHandler();
                 TitleBar.UpdateAvailableClicked += (s, e) => NewVersionHandler();
+
+                MainTabs.DataContext = ViewModel;
 
                 MainTabs.TabSelectionChanged += (s, e) => MainTabControl_SelectionChanged(s, e);
 
@@ -829,6 +831,11 @@ namespace RealmStudioX.WPF
             if (_toolPanels[tab] is LandToolPanel landtoolpanel)
             {
                 landtoolpanel.DataContext = ViewModel.LandformViewModel;
+            }
+
+            if (_toolPanels[tab] is HeightMapToolPanel heightmappanel)
+            {
+                heightmappanel.DataContext = ViewModel.HeightMapViewModel;
             }
 
             if (_toolPanels[tab] is WaterToolPanel watertoolpanel)

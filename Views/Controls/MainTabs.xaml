@@ -98,7 +98,7 @@
             <panels:OceanPanel DataContext="{Binding OceanViewModel}"/>
         </TabItem>
         <TabItem Header="Land">
-            <panels:LandformPanel DataContext="{Binding LandformViewModel}"/>
+            <panels:LandformPanel DataContext="{Binding LandformViewModel}" />
         </TabItem>
         <TabItem Header="Water">
             <panels:WaterPanel DataContext="{Binding WaterViewModel}"/>
@@ -133,6 +133,7 @@
         <TabItem Header="Planet" Visibility="Collapsed">
             <panels:PlanetPanel/>
         </TabItem>
+        
 
     </TabControl>
 </UserControl>

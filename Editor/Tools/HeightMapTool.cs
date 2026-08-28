@@ -31,6 +31,12 @@ namespace RealmStudioX.WPF.Editor.Tools
                 if (mc2d is MapHeightMap mhm)
                 {
                     activeHeightMap = mhm;
+
+                    activeHeightMap.MinimumHeight = _mainViewModel.HeightMapViewModel.MinimumHeight;
+                    activeHeightMap.MaximumHeight = _mainViewModel.HeightMapViewModel.MaximumHeight;
+                    activeHeightMap.HeightMapPalette = _mainViewModel.HeightMapViewModel.SelectedPalette;
+
+                    break;
                 }
             }
         }
@@ -52,35 +58,35 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         public void OnMouseDown(PointerState state)
         {
-            if (state.Button == EditorMouseButton.Left && _editor.Scene != null)
+            if (state.Button == EditorMouseButton.Left && _editor.Scene != null && activeHeightMap != null)
             {
-                float brushStrength = _mainViewModel.LandformViewModel.HeightMapBrushStrength;
+                float heightChange = _mainViewModel.HeightMapViewModel.HeightChange;
 
                 if (_editor.CurrentDrawingMode == MapDrawingMode.MapHeightDecrease)
                 {
-                    brushStrength = -brushStrength;
+                    heightChange = -heightChange;
                 }
 
                 float brushRadius = _mainViewModel.LandformViewModel.LandformBrushSize / 2.0f;
 
-                ApplyHeightMapBrush(state, activeHeightMap, brushStrength, brushRadius);
+                ApplyHeightMapBrush(state, activeHeightMap, heightChange, brushRadius);
             }
         }
 
         public void OnMouseMove(PointerState state)
         {
-            if (state.Button == EditorMouseButton.Left && _editor.Scene != null)
+            if (state.Button == EditorMouseButton.Left && _editor.Scene != null && activeHeightMap != null)
             {
-                float brushStrength = _mainViewModel.LandformViewModel.HeightMapBrushStrength;
+                float heightChange = _mainViewModel.HeightMapViewModel.HeightChange;
 
                 if (_editor.CurrentDrawingMode == MapDrawingMode.MapHeightDecrease)
                 {
-                    brushStrength = -brushStrength;
+                    heightChange = -heightChange;
                 }
 
                 float brushRadius = _mainViewModel.LandformViewModel.LandformBrushSize / 2.0f;
 
-                ApplyHeightMapBrush(state, activeHeightMap, brushStrength, brushRadius);
+                ApplyHeightMapBrush(state, activeHeightMap, heightChange, brushRadius);
             }
         }
 
@@ -99,9 +105,9 @@ namespace RealmStudioX.WPF.Editor.Tools
             canvas.DrawCircle(world, _mainViewModel.LandformViewModel.LandformBrushSize / 2.0f, PaintObjects.CursorCircleGreenPaint);
         }
 
-        private void ApplyHeightMapBrush(PointerState state, MapHeightMap activeHeightMap, float brushStrength, float brushRadius)
+        private void ApplyHeightMapBrush(PointerState state, MapHeightMap activeHeightMap, float heightChange, float brushRadius)
         {
-            HeightMapManager.ChangeHeightMapAreaHeight(_editor.Scene!.Map, activeHeightMap, state.WorldPoint, brushRadius, brushStrength);
+            HeightMapManager.ChangeHeightMapAreaHeight(_editor.Scene!.Map, activeHeightMap, state.WorldPoint, brushRadius, heightChange);
 
             _mainViewModel.CommandService.MarkMapModified();
         }

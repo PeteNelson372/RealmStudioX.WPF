@@ -15,6 +15,7 @@ using RealmStudioX.WPF.ViewModels.Dialogs;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Panels;
 using RealmStudioX.WPF.Views.Dialogs;
+using RealmStudioX.WPF.Views.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
 using System.IO;
@@ -70,6 +71,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
         public OceanPanelViewModel OceanViewModel { get; }
 
         public LandformPanelViewModel LandformViewModel { get; }
+
+        public HeightMapPanelViewModel HeightMapViewModel { get; }
 
         public WaterPanelViewModel WaterViewModel { get; }
 
@@ -171,6 +174,9 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
             // Landform Panel
             LandformViewModel = new LandformPanelViewModel(this,_editor, assetManager);
+
+            // Height Map Panel
+            HeightMapViewModel = new HeightMapPanelViewModel(this);
 
             // Water Body Panel
             WaterViewModel = new WaterPanelViewModel(this, _editor, assetManager);
@@ -663,14 +669,13 @@ namespace RealmStudioX.WPF.ViewModels.Main
         {
             RenderHeightMap = !RenderHeightMap;
 
-            if (RenderHeightMap && _editor.Scene != null)
+            if (RenderHeightMap && _editor.Scene != null && HeightMapViewModel.SelectedPalette != null)
             {
                 _editor.SetDrawingMode(MapDrawingMode.HeightMapPaint);
-
-                // select the landform tab
-                SelectedTabIndex = 3;
-
                 HeightMapManager.AddMapImagesToHeightMapLayer(_editor.Scene.Map);
+
+                // set the height map palette
+                HeightMapManager.SetHeightMapPalette(_editor.Scene.Map, HeightMapViewModel.SelectedPalette);
             }
         });
 

@@ -95,15 +95,17 @@
         <TextBlock
                 HorizontalAlignment="Center"
                 Margin="0,20,0,3">
-            <Run Text="  Brush"/>
+            <Run Text="Increase /"/>
             <LineBreak/>
-            <Run Text="Strength"/>
+            <Run Text="Decrease"/>
+            <LineBreak/>
+            <Run Text="Amount"/>
         </TextBlock>
         <Grid>
-            <controls:NumericUpDown x:Name="BrushStrengthBox"
-                                     Value="{Binding HeightMapBrushStrength}"
+            <controls:NumericUpDown x:Name="HeightChangeBox"
+                                     Value="{Binding HeightChange}"
                                      Minimum="1.0"
-                                     Maximum="20.0"                                     
+                                     Maximum="1000.0"                                     
                                      Margin="4,0,0,10"
                                      Width="60"/>
         </Grid>
