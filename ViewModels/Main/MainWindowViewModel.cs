@@ -621,7 +621,6 @@ namespace RealmStudioX.WPF.ViewModels.Main
         {
             if (_editor.ActiveEditorTool is SelectionTool selectionTool && selectionTool.SelectedArea != SKRect.Empty)
             {
-
                 var dialog = new DetailMapDialog(_editor, _editor.Scene!.Map, selectionTool.SelectedArea);
                 var result = dialog.ShowDialog();
 
@@ -664,7 +663,6 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         });
 
-
         public ICommand DisplayHeightMapCommand => new RelayCommand(() =>
         {
             RenderHeightMap = !RenderHeightMap;
@@ -678,6 +676,26 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 HeightMapManager.SetHeightMapPalette(_editor.Scene.Map, HeightMapViewModel.SelectedPalette);
             }
         });
+
+        public ICommand SelectHeightMapPaletteCommand => new RelayCommand(() =>
+        {
+            if (_editor.Scene != null)
+            {
+                var dialog = new SelectHeightMapPaletteDialog(this.HeightMapViewModel);
+                var result = dialog.ShowDialog();
+
+                if (result == true)
+                {
+                    if (HeightMapViewModel.UserSelectedPalette != null)
+                    {
+                        // set the height map palette
+                        HeightMapViewModel.SelectedPalette = HeightMapViewModel.UserSelectedPalette;
+
+                    }
+                }
+            }
+        });
+
 
         // -------------------------
         // Realm Properties
@@ -1944,8 +1962,10 @@ namespace RealmStudioX.WPF.ViewModels.Main
                         }
                         else
                         {
-                            hm.RebuildHeightMapBitmap();
+                            hm.RebuildHypsometricColorLookup();
                         }
+
+                        heightMapLayer.RebuildIndexes();
                     }
                     catch (Exception e)
                     {

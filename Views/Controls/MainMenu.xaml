@@ -42,7 +42,9 @@
             <MenuItem Header="Create _Detail Map" Command="{Binding CreateDetailMapCommand}"/>
             <MenuItem Header="_Trace Outline" Command="{Binding TraceOutlineCommand}"/>
             <Separator/>
-            <MenuItem Header="Display _Height Map..." Command="{Binding DisplayHeightMapCommand}" IsCheckable="True" IsChecked="{Binding RenderHeightMap, Mode=OneWay}"/>
+            <MenuItem Header="Display _Height Map" Command="{Binding DisplayHeightMapCommand}" IsCheckable="True" IsChecked="{Binding RenderHeightMap, Mode=OneWay}"/>
+            <MenuItem Header="Select _Height Map Color Palette..." Command="{Binding SelectHeightMapPaletteCommand}"/>
+            <Separator/>
             <MenuItem Header="Display World _Globe..." Command="{Binding DisplayWorldGlobeCommand}"/>
         </MenuItem>
 

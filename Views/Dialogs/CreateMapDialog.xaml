@@ -129,11 +129,11 @@
                                                 <ControlTemplate TargetType="ListBoxItem">
 
                                                     <Border x:Name="Border"
-                                                    Background="#EEE"
-                                                    BorderBrush="#CCC"
-                                                    BorderThickness="1"
-                                                    CornerRadius="4"
-                                                    Padding="6">
+                                                        Background="#EEE"
+                                                        BorderBrush="#CCC"
+                                                        BorderThickness="1"
+                                                        CornerRadius="4"
+                                                        Padding="6">
 
                                                         <StackPanel Orientation="Horizontal"
                                                             VerticalAlignment="Center">
@@ -147,8 +147,8 @@
 
                                                             <!-- Label -->
                                                             <TextBlock Text="{Binding Name}"
-                                                           FontSize="14"
-                                                           VerticalAlignment="Center"/>
+                                                               FontSize="14"
+                                                               VerticalAlignment="Center"/>
 
                                                         </StackPanel>
 

@@ -1,7 +1,9 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
 using RealmStudioX.WPF.Editor.Services;
+using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.ViewModels.Main;
+using RealmStudioX.WPF.Views.Dialogs;
 using SkiaSharp;
 
 namespace RealmStudioX.WPF.Editor.Tools
@@ -22,6 +24,8 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         private MapHeightMap? activeHeightMap;
 
+        public MapHeightMap? ActiveHeightMap => activeHeightMap;
+
         public void Activate()
         {
             MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.HEIGHTMAPLAYER);
@@ -35,6 +39,8 @@ namespace RealmStudioX.WPF.Editor.Tools
                     activeHeightMap.MinimumHeight = _mainViewModel.HeightMapViewModel.MinimumHeight;
                     activeHeightMap.MaximumHeight = _mainViewModel.HeightMapViewModel.MaximumHeight;
                     activeHeightMap.HeightMapPalette = _mainViewModel.HeightMapViewModel.SelectedPalette;
+
+                    activeHeightMap.RebuildHypsometricColorLookup();
 
                     break;
                 }

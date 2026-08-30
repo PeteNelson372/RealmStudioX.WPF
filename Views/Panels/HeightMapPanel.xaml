@@ -43,7 +43,7 @@
             HorizontalAlignment="Left"
             Width="140"
             Height="Auto"
-            Margin="15,40,0,0">
+            Margin="15,20,0,0">
 
             <StackPanel Orientation="Vertical">
                 <TextBlock Text="Minimum Height"
@@ -90,8 +90,9 @@
                                   Background="#FFDFDBD2"
                                   SelectedValuePath="Content"
                                   SelectedValue="{Binding HeightUnit, Mode=TwoWay}">
-                    <!-- Default = Meters -->
-
+                    
+                    <!-- Default = feet -->
+                    <!-- TODO: set default based on user preference for metric or US units -->
                     <ComboBoxItem Content="Centimeters"/>
                     <ComboBoxItem Content="Inches"/>
                     <ComboBoxItem Content="Feet"/>
@@ -99,9 +100,6 @@
                     <ComboBoxItem Content="Meters"/>
                     <ComboBoxItem Content="Kilometers"/>
                     <ComboBoxItem Content="Miles"/>
-                    <ComboBoxItem Content="Astronomical Units (AU)"/>
-                    <ComboBoxItem Content="Light Years"/>
-                    <ComboBoxItem Content="Parsecs"/>
 
                 </ComboBox>
 

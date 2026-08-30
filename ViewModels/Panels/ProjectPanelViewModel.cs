@@ -1675,7 +1675,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
             if (includeHeightMap)
             {
-                // TODO: height map not yet implemented
                 MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(currentMap, MapBuilder.HEIGHTMAPLAYER);
 
                 if (heightMapLayer.Shapes.Count == 2)
@@ -1691,29 +1690,23 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     {
                         if (landformLayer.Shapes[i] is Landform l)
                         {
-                            //l.RenderLandformForHeightMap(canvas);
+                            l.RenderLandformForHeightMap(currentMap, canvas);
                         }
                     }
 
-                    //MapImage landformImage = new()
-                    //{
-                    //    MapImageBitmap = b.Copy()
-                    //};
-
-                    //newHeightMapLayer.Shapes.Add(landformImage);
-
                     if (heightMapLayer.Shapes[1] is MapHeightMap mhm)
                     {
-                        //Bitmap resizedBitmap = new(mhm.HeightMapImage.ToBitmap(), resizedMap.MapWidth, resizedMap.MapHeight);
+                        // TODO: how can heightmap values be scaled to the new map size?
+                        MapHeightMap newHeightMap = new()
+                        {
+                            HeightMapPalette = mhm.HeightMapPalette,
+                            HeightUnit = mhm.HeightUnit,
+                            MaximumHeight = mhm.MaximumHeight,
+                            MinimumHeight = mhm.MinimumHeight,
 
-                        //MapHeightMap heightMap = new()
-                        //{
-                        //    Width = resizedMap.MapWidth,
-                        //    Height = resizedMap.MapHeight,
-                        //    MapImageBitmap = resizedBitmap.ToSKBitmap(),
-                        //};
+                        };
 
-                        //newHeightMapLayer.Shapes.Add(heightMap);
+                        newHeightMapLayer.Shapes.Add(newHeightMap);
                     }
                 }
             }

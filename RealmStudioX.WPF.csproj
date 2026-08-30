@@ -281,6 +281,9 @@
     <Compile Update="Views\Dialogs\MapSymbolProperties.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Dialogs\SelectHeightMapPaletteDialog.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Dialogs\WaterBodyProperties.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

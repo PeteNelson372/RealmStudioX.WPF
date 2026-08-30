@@ -27,6 +27,7 @@ namespace RealmStudioX.WPF.Editor.Services
             {
                 MapHeightMap newHeightMap = CreateHeightMap(map.MapWidth, map.MapHeight);
 
+
                 heightMapLayer.Add(newHeightMap);
             }
             else
@@ -55,9 +56,12 @@ namespace RealmStudioX.WPF.Editor.Services
                 return;
             }
 
-            MapHeightMap heightMap = (MapHeightMap)heightMapLayer.Shapes[0];
+
+            MapHeightMap? heightMap = (MapHeightMap)heightMapLayer.Shapes[0];
 
             heightMap.HeightMapPalette = palette;
+
+            heightMap.RebuildHypsometricColorLookup();
         }
 
         internal static void RenderHeightMap(RealmStudioMap map, SKCanvas renderCanvas, SKRect? selectedArea)
@@ -82,15 +86,6 @@ namespace RealmStudioX.WPF.Editor.Services
 
             pathBuilder.Detach();
             pathBuilder.Dispose();
-
-            foreach (MapComponent2D c in heightMapLayer.Shapes)
-            {
-                if (c is MapHeightMap mhm && mhm.HeightMapBitmap != null)
-                {
-                    renderCanvas.DrawBitmap(mhm.HeightMapBitmap, 0, 0, SKSamplingOptions.Default);
-                    break;
-                }
-            }
 
             if (selectedArea != null)
             {
@@ -170,54 +165,6 @@ namespace RealmStudioX.WPF.Editor.Services
                     value = average / 9.0f;
 
                     heightMap[x, y] = value;
-                }
-            }
-        }
-
-        private static void UpdateHeightMapBitmap(
-            SKBitmap bitmap,
-            float[,] heightMap,
-            int left,
-            int top,
-            int right,
-            int bottom)
-        {
-            using SKPixmap? pixmap = bitmap.PeekPixels();
-
-            if (pixmap == null)
-                return;
-
-            IntPtr pixels = pixmap.GetPixels();
-            int rowBytes = pixmap.RowBytes;
-
-            for (int y = top; y <= bottom; y++)
-            {
-                IntPtr row = pixels + (y * rowBytes);
-
-                for (int x = left; x <= right; x++)
-                {
-                    byte value = (byte)Math.Clamp(
-                        MathF.Round(heightMap[x, y]),
-                        35.0f,
-                        255.0f);
-
-                    int offset = x * 4;
-
-                    System.Runtime.InteropServices.Marshal.WriteByte(
-                        row + offset,
-                        value);
-
-                    System.Runtime.InteropServices.Marshal.WriteByte(
-                        row + offset + 1,
-                        value);
-
-                    System.Runtime.InteropServices.Marshal.WriteByte(
-                        row + offset + 2,
-                        value);
-
-                    System.Runtime.InteropServices.Marshal.WriteByte(
-                        row + offset + 3,
-                        255);
                 }
             }
         }

@@ -805,9 +805,12 @@ namespace RealmStudioX.WPF
         //==========================================
         private void MainTabControl_SelectionChanged(object? s, EventArgs e)
         {
-            ShowToolPanel(((TabItem)MainTabs.MainTabControl.SelectedItem).Header.ToString());
+            if (MainTabs.MainTabControl.SelectedItem != null)
+            {
+                ShowToolPanel(((TabItem)MainTabs.MainTabControl.SelectedItem).Header.ToString());
 
-            ViewModel.PaintService?.Reset();
+                ViewModel.PaintService?.Reset();
+            }
         }
 
         private void ShowToolPanel(string? tab)

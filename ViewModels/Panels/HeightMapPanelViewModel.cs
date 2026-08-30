@@ -1,6 +1,7 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
+using RealmStudioX.WPF.Editor.Tools;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
 using System.IO;
@@ -15,6 +16,8 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         private readonly EditorController _editor;
 
         private List<HypsometricPalette> _hypsometricPalettes = [];
+
+        public List<HypsometricPalette> HypsometricPalettes => _hypsometricPalettes;
 
         public HeightMapPanelViewModel(MainWindowViewModel mainViewModel)
         {
@@ -49,27 +52,72 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     }
                 }
             }
+
+            // height change is initially set to 1% of range
+            HeightChange = (Math.Abs(MaximumHeight) + Math.Abs(MinimumHeight)) * 0.01f;
         }
 
         private float _minimumHeight = -5000;
         public float MinimumHeight
         {
             get { return _minimumHeight; }
-            set { SetProperty(ref _minimumHeight, value); }
+            set
+            {
+                if (value < _maximumHeight)
+                {
+                    SetProperty(ref _minimumHeight, value);
+
+                    if (_editor.ActiveEditorTool is HeightMapTool hmt && hmt.ActiveHeightMap != null)
+                    {
+                        hmt.ActiveHeightMap.MinimumHeight = MinimumHeight;
+                        hmt.ActiveHeightMap.MaximumHeight = MaximumHeight;
+                        hmt.ActiveHeightMap.HeightUnit = HeightUnit;
+                        hmt.ActiveHeightMap.HeightMapPalette = _selectedPalette;
+                        hmt.ActiveHeightMap.RebuildHypsometricColorLookup();
+                    }
+                }
+            }
         }
 
         private float _maximumHeight = 50000;
         public float MaximumHeight
         {
             get { return _maximumHeight; }
-            set { SetProperty(ref _maximumHeight, value); }
+            set
+            {
+                if (value > _minimumHeight)
+                {
+                    SetProperty(ref _maximumHeight, value);
+
+                    if (_editor.ActiveEditorTool is HeightMapTool hmt && hmt.ActiveHeightMap != null)
+                    {
+                        hmt.ActiveHeightMap.MinimumHeight = MinimumHeight;
+                        hmt.ActiveHeightMap.MaximumHeight = MaximumHeight;
+                        hmt.ActiveHeightMap.HeightUnit = HeightUnit;
+                        hmt.ActiveHeightMap.HeightMapPalette = _selectedPalette;
+                        hmt.ActiveHeightMap.RebuildHypsometricColorLookup();
+                    }
+                }
+            }
         }
 
         private string _heightUnit = "Feet";
         public string HeightUnit
         {
             get => _heightUnit;
-            set { SetProperty(ref _heightUnit, value); }
+            set
+            {
+                SetProperty(ref _heightUnit, value);
+
+                if (_editor.ActiveEditorTool is HeightMapTool hmt && hmt.ActiveHeightMap != null)
+                {
+                    hmt.ActiveHeightMap.MinimumHeight = MinimumHeight;
+                    hmt.ActiveHeightMap.MaximumHeight = MaximumHeight;
+                    hmt.ActiveHeightMap.HeightUnit = HeightUnit;
+                    hmt.ActiveHeightMap.HeightMapPalette = _selectedPalette;
+                    hmt.ActiveHeightMap.RebuildHypsometricColorLookup();
+                }
+            }
         }
 
         private float _heightChange = 100.0f;
@@ -77,7 +125,19 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         public float HeightChange
         {
             get => _heightChange;
-            set => SetProperty(ref _heightChange, value);
+            set
+            {
+                SetProperty(ref _heightChange, value);
+
+                if (_editor.ActiveEditorTool is HeightMapTool hmt && hmt.ActiveHeightMap != null)
+                {
+                    hmt.ActiveHeightMap.MinimumHeight = MinimumHeight;
+                    hmt.ActiveHeightMap.MaximumHeight = MaximumHeight;
+                    hmt.ActiveHeightMap.HeightUnit = HeightUnit;
+                    hmt.ActiveHeightMap.HeightMapPalette = _selectedPalette;
+                    hmt.ActiveHeightMap.RebuildHypsometricColorLookup();
+                }
+            }
         }
 
         private HypsometricPalette? _selectedPalette;
@@ -86,7 +146,37 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             get { return _selectedPalette; }
             set
             {
-                SetProperty(ref _selectedPalette, value);
+                if (value != null)
+                {
+                    SetProperty(ref _selectedPalette, value);
+
+                    if (_selectedPalette != null)
+                    {
+                        Tints.Clear();
+                        Tints = [.. _selectedPalette.Tints];
+
+                        _editor.ActivateTool(EditorToolType.HeightMapTool);
+
+                        if (_editor.ActiveEditorTool is HeightMapTool hmt && hmt.ActiveHeightMap != null)
+                        {
+                            hmt.ActiveHeightMap.MinimumHeight = MinimumHeight;
+                            hmt.ActiveHeightMap.MaximumHeight = MaximumHeight;
+                            hmt.ActiveHeightMap.HeightUnit = HeightUnit;
+                            hmt.ActiveHeightMap.HeightMapPalette = _selectedPalette;
+                            hmt.ActiveHeightMap.RebuildHypsometricColorLookup();
+                        }
+                    }
+                }
+            }
+        }
+
+        private HypsometricPalette? _userSelectedPalette;
+        public HypsometricPalette? UserSelectedPalette
+        {
+            get { return _userSelectedPalette; }
+            set
+            {
+                SetProperty(ref _userSelectedPalette, value);
             }
         }
 
