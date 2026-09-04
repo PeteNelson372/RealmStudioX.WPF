@@ -1,0 +1,80 @@
+﻿<UserControl x:Class="RealmStudioX.WPF.Views.Controls.ThreeDMenu"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="32" d:DesignWidth="1304">
+    
+    <Menu Background="#FFDFDBD2"
+        Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+        Height="32">
+
+        <MenuItem Header="_File" Margin="10,6,0,0">
+            <MenuItem Header="_Open" Command="{Binding OpenModelCommand}"/>
+            <MenuItem Header="_Save" Command="{Binding SaveModelCommand}"/>
+           
+            <Separator/>
+
+            <MenuItem Header="E_xit" Click="OnExit"/>
+
+        </MenuItem>
+
+        <MenuItem Header="_View" Margin="0,6,0,0">
+            <MenuItem Header="Fit _Model" Command="{Binding FitModelCommand}"/>
+            <MenuItem Header="_Reset Camera" Command="{Binding ResetCameraCommand}"/>
+
+            <Separator/>
+
+            <MenuItem Header="_Front" Command="{Binding ViewFrontCommand}"/>
+            <MenuItem Header="_Back" Command="{Binding ViewBackCommand}"/>
+            <MenuItem Header="_Left" Command="{Binding ViewLeftCommand}"/>
+            <MenuItem Header="_Right" Command="{Binding ViewRightCommand}"/>
+            <MenuItem Header="_Top" Command="{Binding ViewTopCommand}"/>
+            <MenuItem Header="Botto_m" Command="{Binding ViewBottomCommand}"/>
+
+            <Separator/>
+
+            <MenuItem Header="_Perspective" Command="{Binding PerspectiveViewCommand}"/>
+            <MenuItem Header="_Orthogonal" Command="{Binding OrthogonalViewCommand}"/>
+
+            <Separator/>
+
+            <MenuItem Header="View_Cube" Command="{Binding ShowViewCubeCommand}" IsCheckable="True" IsChecked="{Binding ShowViewCube, Mode=OneWay}"/>
+            <MenuItem Header="_Coordinate System" Command="{Binding ShowCoordinateSystemCommand}" IsCheckable="True" IsChecked="{Binding ShowCoordinateSystem, Mode=OneWay}"/>
+            <MenuItem Header="_Grid" Command="{Binding ShowGridCommand}" IsCheckable="True" IsChecked="{Binding ShowGrid, Mode=OneWay}"/>
+            <MenuItem Header="_Bounding Box" Command="{Binding ShowBoundingBoxCommand}" IsCheckable="True" IsChecked="{Binding ShowBoundingBox, Mode=OneWay}"/>
+            <MenuItem Header="_WireFrame" Command="{Binding ShowWireFrameCommand}" IsCheckable="True" IsChecked="{Binding ShowWireFrame, Mode=OneWay}"/>
+
+        </MenuItem>
+
+        <MenuItem Header="_Camera" Margin="0,6,0,0">
+            <MenuItem Header="_Reset" Command="{Binding ResetCameraCommand}"/>
+            <MenuItem Header="_Up Axis">
+                <MenuItem Header="_X" Command="{Binding SetXUpCommand}"/>
+                <MenuItem Header="_Y" Command="{Binding SetYUpCommand}"/>
+                <MenuItem Header="_Z" Command="{Binding SetZUpCommand}"/>
+            </MenuItem>
+        </MenuItem>
+
+        <MenuItem Header="_Lighting" Margin="0,6,0,0">
+            <MenuItem Header="_Reset" Command="{Binding ResetLightingCommand}"/>
+            <MenuItem Header="_Directional Lighting" Command="{Binding ShowDirectionalLightingCommand}" IsCheckable="True" IsChecked="{Binding ShowDirectionalLighting, Mode=OneWay}">
+                <MenuItem Header="_Intensity" Command="{Binding SetDirectionalIntensityCommand}"/>
+                <MenuItem Header="_Direction" Command="{Binding SetDirectionalDirectionCommand}"/>
+                <MenuItem Header="_Color" Command="{Binding SetDirectionalColorCommand}"/>
+            </MenuItem>
+            <MenuItem Header="_Ambient Lighting" Command="{Binding ShowAmbientLightingCommand}" IsCheckable="True" IsChecked="{Binding ShowAmbientLighting, Mode=OneWay}">
+                <MenuItem Header="_Intensity" Command="{Binding SetAmbientIntensityCommand}"/>
+                <MenuItem Header="_Color" Command="{Binding SetAmbientColorCommand}"/>
+            </MenuItem>            
+        </MenuItem>
+
+        <MenuItem Header="_Preferences" Margin="0,6,0,0" Command="{Binding OpenPreferencesCommand}"/>
+
+        <MenuItem Header="Help" Margin="0,6,0,0" Command="{Binding Open3DHelpContentsCommand}"/>
+
+
+    </Menu>
+</UserControl>

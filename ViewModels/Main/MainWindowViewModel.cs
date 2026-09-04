@@ -92,6 +92,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public DrawingPanelViewModel DrawingViewModel { get; }
 
+        public ThreeDViewModel ThreeDViewModel { get; }
+
         public NameGenConfigViewModel NameGenConfigViewModel { get; }
 
         public CommandService CommandService { get; }
@@ -112,7 +114,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public MapObjectDescriptionService MapObjectDescriptionService { get; }
 
-        public HeightMapManager HeightMapManager { get; } = new();
+        public HeightMapManager HeightMapManager { get; }
 
         public event Action? RequestOpenNameGeneratorConfig;
 
@@ -208,6 +210,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
             NameGenConfigViewModel = new NameGenConfigViewModel(this);
 
             Layout = new LayoutOptions();
+
+            HeightMapManager = new HeightMapManager(HeightMapViewModel);
 
             _editor.SetLabelsViewModel(LabelsViewModel);
 
@@ -674,6 +678,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
                 // set the height map palette
                 HeightMapManager.SetHeightMapPalette(_editor.Scene.Map, HeightMapViewModel.SelectedPalette);
+
+
             }
         });
 
@@ -696,6 +702,11 @@ namespace RealmStudioX.WPF.ViewModels.Main
             }
         });
 
+        public ICommand DisplayWorldGlobeCommand => new RelayCommand(() =>
+        {
+
+        });
+        
 
         // -------------------------
         // Realm Properties
@@ -764,6 +775,19 @@ namespace RealmStudioX.WPF.ViewModels.Main
             Editor.SetDrawingMode(MapDrawingMode.AreaSelection);
             _editor.ActivateTool(EditorToolType.SelectionTool);
         });
+
+
+        // -------------------------
+        // Open 3D Viewer Command
+        // -------------------------
+
+        public ICommand Open3DViewerCommand => new RelayCommand(() =>
+        {
+            ThreeDModelViewer threeDModelViewer = new();
+            threeDModelViewer.Show();
+        });
+
+        
 
         // -------------------------
         // Reset Zoom Command

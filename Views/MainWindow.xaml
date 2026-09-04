@@ -384,7 +384,7 @@
                     Background="WhiteSmoke"/>
 
             <Grid Grid.Row="0" Visibility="{Binding RenderHeightMap, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <panels:HeightMapToolPanel/>
+                <panels:HeightMapToolPanel DataContext="{Binding HeightMapViewModel}"/>
             </Grid>
             
             <!-- Zoom controls -->

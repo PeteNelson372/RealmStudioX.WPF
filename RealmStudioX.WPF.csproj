@@ -122,22 +122,29 @@
 
   <ItemGroup>
     <PackageReference Include="Clipper2" Version="2.0.0" />
-    <PackageReference Include="log4net" Version="3.3.2" />
+    <PackageReference Include="HelixToolkit" Version="3.1.2" />
+    <PackageReference Include="HelixToolkit.SharpDX.Assimp" Version="3.1.2" />
+    <PackageReference Include="HelixToolkit.Wpf" Version="3.1.2" />
+    <PackageReference Include="HelixToolkit.Wpf.SharpDX" Version="3.1.2" />
+    <PackageReference Include="log4net" Version="3.4.0" />
     <PackageReference Include="MaterialDesignColors" Version="5.3.2" />
     <PackageReference Include="MaterialDesignThemes" Version="5.3.2" />
     <PackageReference Include="SharpVectors.Wpf" Version="1.8.5" />
     <PackageReference Include="SimplexNoise" Version="2.0.0" />
-    <PackageReference Include="SkiaSharp" Version="4.151.0" />
-    <PackageReference Include="SkiaSharp.Views" Version="4.151.0" />
-    <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="4.151.0" />
-    <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="4.151.0" />
-    <PackageReference Include="SkiaSharp.Views.WPF" Version="4.151.0" />
-    <PackageReference Include="Svg.Skia" Version="5.1.1" />
+    <PackageReference Include="SkiaSharp" Version="4.151.2" />
+    <PackageReference Include="SkiaSharp.Views" Version="4.151.2" />
+    <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="4.151.2" />
+    <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="4.151.2" />
+    <PackageReference Include="SkiaSharp.Views.WPF" Version="4.151.2" />
+    <PackageReference Include="Svg.Skia" Version="5.2.3" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="RealmStudioShapeRenderingLib">
       <HintPath>..\RealmStudioShapeRenderingLib\bin\Debug\net8.0\RealmStudioShapeRenderingLib.dll</HintPath>
+    </Reference>
+    <Reference Include="RealmStudioX.3D">
+      <HintPath>..\RealmStudioX.3D\obj\Debug\net8.0-windows\RealmStudioX.3D.dll</HintPath>
     </Reference>
     <Reference Include="RealmStudioX.Core">
       <HintPath>..\RealmStudioX.Core\bin\Debug\net8.0\RealmStudioX.Core.dll</HintPath>
@@ -254,6 +261,12 @@
     <Compile Update="Views\Controls\AlignmentIconBar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Controls\ThreeDMenu.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Controls\ThreeDViewTitleBar.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Controls\PixelEditTitleBar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -261,6 +274,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Controls\CreateOpenDialogTitleBar.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Dialogs\ThreeDModelViewer.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Dialogs\AboutDialog.xaml.cs">

@@ -60,7 +60,7 @@ namespace RealmStudioX.WPF
             ["Background"] = new BackgroundToolPanel(),
             ["Ocean"] = new OceanToolPanel(),
             ["Land"] = new LandToolPanel(),
-            ["Height Map"] = new BackgroundToolPanel(),
+            ["Height Map"] = new HeightMapToolPanel(),
             ["Water"] = new WaterToolPanel(),
             ["Paths"] = new PathsToolPanel(),
             ["Symbols"] = new SymbolsToolPanel(),
@@ -608,7 +608,7 @@ namespace RealmStudioX.WPF
                             e.Surface.Canvas.Clear(SKColors.Black);
 
                             // render the height map
-                            HeightMapManager.RenderHeightMap(_editor.Scene.Map,
+                            ViewModel.HeightMapManager.RenderHeightMap(_editor.Scene.Map,
                                 e.Surface.Canvas,
                                 ViewModel.SelectionService.SelectedArea);
 

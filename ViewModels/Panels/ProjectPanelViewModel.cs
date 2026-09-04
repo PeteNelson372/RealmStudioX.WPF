@@ -13,14 +13,12 @@ using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Dialogs;
 using SkiaSharp;
-using SkiaSharp.Views.Desktop;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Media3D;
-using System.Xml;
-using System.Xml.Serialization;
 using Cursors = System.Windows.Input.Cursors;
+using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
+using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 namespace RealmStudioX.WPF.ViewModels.Panels
 {
@@ -303,9 +301,9 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 Title = "Open RealmStudioX Map"
             };
 
-            DialogResult result = ofd.ShowDialog();
+            bool? result = ofd.ShowDialog();
 
-            if (result == DialogResult.OK && Project != null)
+            if (result == true && Project != null)
             {
                 try
                 {

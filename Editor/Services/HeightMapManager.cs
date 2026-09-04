@@ -1,10 +1,19 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
+using SkiaSharp.Views.WPF;
 
 namespace RealmStudioX.WPF.Editor.Services
 {
     public class HeightMapManager
     {
+        private HeightMapPanelViewModel heightMapViewModel;
+
+        public HeightMapManager(HeightMapPanelViewModel heightMapViewModel)
+        {
+            this.heightMapViewModel = heightMapViewModel;
+        }
+
         public static void AddMapImagesToHeightMapLayer(RealmStudioMap map)
         {
             MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.HEIGHTMAPLAYER);
@@ -26,8 +35,6 @@ namespace RealmStudioX.WPF.Editor.Services
             if (heightMap == null)
             {
                 MapHeightMap newHeightMap = CreateHeightMap(map.MapWidth, map.MapHeight);
-
-
                 heightMapLayer.Add(newHeightMap);
             }
             else
@@ -64,10 +71,18 @@ namespace RealmStudioX.WPF.Editor.Services
             heightMap.RebuildHypsometricColorLookup();
         }
 
-        internal static void RenderHeightMap(RealmStudioMap map, SKCanvas renderCanvas, SKRect? selectedArea)
+        public void RenderHeightMap(RealmStudioMap map, SKCanvas renderCanvas, SKRect? selectedArea)
         {
             MapLayer landformLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.LANDFORMLAYER);
             MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.HEIGHTMAPLAYER);
+
+            if (heightMapLayer.Shapes.Count == 0)
+            {
+                return;
+            }
+
+
+            MapHeightMap? heightMap = (MapHeightMap)heightMapLayer.Shapes[0];
 
             renderCanvas.DrawRect(new SKRect(1, 1, map.MapWidth, map.MapHeight), PaintObjects.LandformAreaSelectPaint);
 
@@ -86,6 +101,33 @@ namespace RealmStudioX.WPF.Editor.Services
 
             pathBuilder.Detach();
             pathBuilder.Dispose();
+
+            if (heightMapViewModel.ShowContourLines)
+            {
+
+                using SKPaint ContourPaint = new()
+                {
+                    Style = SKPaintStyle.Stroke,
+                    Color = heightMapViewModel.LineColor.ToSKColor(),
+                    StrokeWidth = heightMapViewModel.ContourLineWidth,
+                    IsAntialias = true
+                };
+
+                using SKPaint MajorContourPaint = new()
+                {
+                    Style = SKPaintStyle.Stroke,
+                    Color = heightMapViewModel.MajorLineColor.ToSKColor(),
+                    StrokeWidth = heightMapViewModel.MajorLineWidth,
+                    IsAntialias = true
+                };
+
+                heightMap.RenderContours(
+                    renderCanvas,
+                    heightMapViewModel.ContourInterval,
+                    heightMapViewModel.MajorContourInterval,
+                    ContourPaint,
+                    MajorContourPaint);
+            }
 
             if (selectedArea != null)
             {
@@ -111,6 +153,8 @@ namespace RealmStudioX.WPF.Editor.Services
                 int bottom = (int)Math.Min(map.MapHeight - 2, mapPoint.Y + brushRadius);
 
                 activeHeightMap.UpdateHeightMapBitmap(heightMapBitmap, heightMap, left, top, right, bottom);
+
+                activeHeightMap.InvalidateContours();
             }            
         }
 

@@ -6,6 +6,9 @@ using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
 using System.IO;
 using System.Windows.Input;
+using System.Windows.Media;
+using Brush = System.Windows.Media.Brush;
+using Color = System.Windows.Media.Color;
 
 namespace RealmStudioX.WPF.ViewModels.Panels
 {
@@ -40,6 +43,9 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     {
                         _hypsometricPalettes.Add(palette);
 
+                        // TODO: allow the user to select a default palette in the settings,
+                        // and use that instead of hardcoding the Natural Earth palette
+
                         // use the Natural Earth palette as the default
                         if (palette.Id.Equals("b83f2d91-6a47-4e15-9c72-f08a35d614be"))
                         {
@@ -69,11 +75,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
                     if (_editor.ActiveEditorTool is HeightMapTool hmt && hmt.ActiveHeightMap != null)
                     {
-                        hmt.ActiveHeightMap.MinimumHeight = MinimumHeight;
-                        hmt.ActiveHeightMap.MaximumHeight = MaximumHeight;
-                        hmt.ActiveHeightMap.HeightUnit = HeightUnit;
-                        hmt.ActiveHeightMap.HeightMapPalette = _selectedPalette;
-                        hmt.ActiveHeightMap.RebuildHypsometricColorLookup();
+                        UpdateHeightMapProperties(hmt.ActiveHeightMap);
                     }
                 }
             }
@@ -91,11 +93,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
                     if (_editor.ActiveEditorTool is HeightMapTool hmt && hmt.ActiveHeightMap != null)
                     {
-                        hmt.ActiveHeightMap.MinimumHeight = MinimumHeight;
-                        hmt.ActiveHeightMap.MaximumHeight = MaximumHeight;
-                        hmt.ActiveHeightMap.HeightUnit = HeightUnit;
-                        hmt.ActiveHeightMap.HeightMapPalette = _selectedPalette;
-                        hmt.ActiveHeightMap.RebuildHypsometricColorLookup();
+                        UpdateHeightMapProperties(hmt.ActiveHeightMap);
                     }
                 }
             }
@@ -111,11 +109,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
                 if (_editor.ActiveEditorTool is HeightMapTool hmt && hmt.ActiveHeightMap != null)
                 {
-                    hmt.ActiveHeightMap.MinimumHeight = MinimumHeight;
-                    hmt.ActiveHeightMap.MaximumHeight = MaximumHeight;
-                    hmt.ActiveHeightMap.HeightUnit = HeightUnit;
-                    hmt.ActiveHeightMap.HeightMapPalette = _selectedPalette;
-                    hmt.ActiveHeightMap.RebuildHypsometricColorLookup();
+                    UpdateHeightMapProperties(hmt.ActiveHeightMap);
                 }
             }
         }
@@ -131,11 +125,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
                 if (_editor.ActiveEditorTool is HeightMapTool hmt && hmt.ActiveHeightMap != null)
                 {
-                    hmt.ActiveHeightMap.MinimumHeight = MinimumHeight;
-                    hmt.ActiveHeightMap.MaximumHeight = MaximumHeight;
-                    hmt.ActiveHeightMap.HeightUnit = HeightUnit;
-                    hmt.ActiveHeightMap.HeightMapPalette = _selectedPalette;
-                    hmt.ActiveHeightMap.RebuildHypsometricColorLookup();
+                    UpdateHeightMapProperties(hmt.ActiveHeightMap);
                 }
             }
         }
@@ -159,11 +149,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
                         if (_editor.ActiveEditorTool is HeightMapTool hmt && hmt.ActiveHeightMap != null)
                         {
-                            hmt.ActiveHeightMap.MinimumHeight = MinimumHeight;
-                            hmt.ActiveHeightMap.MaximumHeight = MaximumHeight;
-                            hmt.ActiveHeightMap.HeightUnit = HeightUnit;
-                            hmt.ActiveHeightMap.HeightMapPalette = _selectedPalette;
-                            hmt.ActiveHeightMap.RebuildHypsometricColorLookup();
+                            UpdateHeightMapProperties(hmt.ActiveHeightMap);
                         }
                     }
                 }
@@ -207,6 +193,99 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 _editor.ActivateTool(EditorToolType.HeightMapTool);
             }
         });
+
+        private void UpdateHeightMapProperties(MapHeightMap heightMap)
+        {
+            heightMap.MinimumHeight = MinimumHeight;
+            heightMap.MaximumHeight = MaximumHeight;
+            heightMap.HeightUnit = HeightUnit;
+            heightMap.HeightMapPalette = _selectedPalette;
+            heightMap.RebuildHypsometricColorLookup();
+        }
+
+        //
+        // contour lines
+        //
+
+        private bool _showContourLines = false;
+        public bool ShowContourLines
+        {
+            get => _showContourLines;
+            set => SetProperty(ref _showContourLines, value);
+        }
+
+        private float _contourInterval = 1000.0f;
+        public float ContourInterval
+        {
+            get => _contourInterval;
+            set => SetProperty(ref _contourInterval, value);
+        }
+
+        // major contour line color
+
+        private Color _majorLineColor = Colors.Gray;
+        public Color MajorLineColor
+        {
+            get => _majorLineColor;
+            set
+            {
+                if (SetProperty(ref _majorLineColor, value))
+                {
+                    _majorLineColorBrush.Color = value;
+                }
+            }
+        }
+
+        private readonly SolidColorBrush _majorLineColorBrush = new(Colors.Gray);
+
+        public Brush MajorLineColorBrush => _majorLineColorBrush;
+
+        //  contour line color
+
+        private Color _lineColor = Colors.LightGray;
+        public Color LineColor
+        {
+            get => _lineColor;
+            set
+            {
+                if (SetProperty(ref _lineColor, value))
+                {
+                    _lineColorBrush.Color = value;
+                }
+            }
+        }
+
+        private readonly SolidColorBrush _lineColorBrush = new(Colors.LightGray);
+
+        public Brush LineColorBrush => _lineColorBrush;
+
+        private int _majorLineWidth = 2;
+        public int MajorLineWidth
+        {
+            get => _majorLineWidth;
+            set => SetProperty(ref _majorLineWidth, value);
+        }
+
+        private int _contourLineWidth = 1;
+        public int ContourLineWidth
+        {
+            get => _contourLineWidth;
+            set => SetProperty(ref _contourLineWidth, value);
+        }
+
+        private int _majorContourInterval = 5;
+        public int MajorContourInterval
+        {
+            get => _majorContourInterval;
+            set => SetProperty(ref _majorContourInterval, value);
+        }
+
+        private bool _showContourLabels = false;
+        public bool ShowContourLabels
+        {
+            get => _showContourLabels;
+            set => SetProperty(ref _showContourLabels, value);
+        }
     }
 }
 

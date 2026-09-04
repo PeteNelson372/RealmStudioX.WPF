@@ -3,6 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Panels"
+             xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+             xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
+             xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
+             xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"             
              mc:Ignorable="d"
              d:DesignHeight="922" d:DesignWidth="152">
 
@@ -16,8 +23,165 @@
                 <RowDefinition Height="*"/>
                 <!-- Content -->
             </Grid.RowDefinitions>
-            
-            <!-- Background Tool Panel does not have any controls -->
+
+            <StackPanel Orientation="Vertical">
+                <TextBlock
+                    HorizontalAlignment="Left"
+                    Margin="5,10,0,3">
+                    <Run Text="Show Contour Lines"/>
+
+                </TextBlock>
+
+                <CheckBox x:Name="ShowContourLinesToggle"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Margin="10,10,0,3"
+                        IsChecked="{Binding ShowContourLines, Mode=TwoWay}"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                <TextBlock
+                    HorizontalAlignment="Left"
+                    Margin="5,20,0,3">
+                    <Run Text="Contour Interval"/>
+                </TextBlock>
+                <Grid>
+                    <controls:NumericUpDown x:Name="ContourIntervalBox"
+                                     Value="{Binding ContourInterval}"
+                                     HorizontalAlignment="Right"
+                                     Minimum="10.0"
+                                     Maximum="10000.0"                                     
+                                     Margin="0,0,10,0"
+                                     Width="60"/>
+                </Grid>
+
+                <TextBlock
+                    HorizontalAlignment="Left"
+                    Margin="5,20,0,3">
+                    <Run Text="Major Contour Interval"/>
+                </TextBlock>
+                <Grid>
+                    <controls:NumericUpDown x:Name="MajorContourIntervalBox"
+                                     Value="{Binding MajorContourInterval}"
+                                     HorizontalAlignment="Right"
+                                     Minimum="1"
+                                     Maximum="10"                                     
+                                     Margin="0,0,10,0"
+                                     Width="60"/>
+                </Grid>
+
+                <TextBlock
+                    HorizontalAlignment="Left"
+                    Margin="5,20,0,3">
+                    <Run Text="Major Line Width"/>
+                </TextBlock>
+                <Grid>
+                    <controls:NumericUpDown x:Name="MajorContourLineWidthBox"
+                                     Value="{Binding MajorLineWidth}"
+                                     HorizontalAlignment="Right"
+                                     Minimum="1"
+                                     Maximum="10"                                     
+                                     Margin="0,0,10,0"
+                                     Width="60"/>
+                </Grid>
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="0,3,3,3">
+
+                    <TextBlock
+                        HorizontalAlignment="Left"
+                        Margin="0,10,0,3">
+                        <Run Text="Major Line Color"/>
+                    </TextBlock>
+                    
+                    <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Width="120"
+                        Height="50"
+                        Margin="3,3,3,3"
+                        Background="{Binding MajorLineColorBrush}"
+                        ToolTip="Select Major Contour Line Color"
+                        PreviewMouseLeftButtonUp="MajorLineColor_LeftClick"
+                        PreviewMouseRightButtonUp="MajorLineColor_RightClick">
+
+                        <materialDesign:PackIcon Kind="PaletteOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Opacity="0.7"/>
+                    </Button>
+
+                </StackPanel>
+
+                <TextBlock
+                    HorizontalAlignment="Left"
+                    Margin="5,20,0,3">
+                    <Run Text="Line Width"/>
+                </TextBlock>
+                <Grid>
+                    <controls:NumericUpDown x:Name="ContourLineWidthBox"
+                                     Value="{Binding ContourLineWidth}"
+                                     HorizontalAlignment="Right"
+                                     Minimum="1"
+                                     Maximum="10"                                     
+                                     Margin="0,0,10,0"
+                                     Width="60"/>
+                </Grid>
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+                    Width="Auto"
+                    Height="Auto"
+                    Margin="0,3,3,3">
+
+                    <TextBlock
+                        HorizontalAlignment="Left"
+                        Margin="5,10,0,3">
+                        <Run Text="Line Color"/>
+                    </TextBlock>
+
+                    <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Width="120"
+                        Height="50"
+                        Margin="3,3,3,3"
+                        Background="{Binding LineColorBrush}"
+                        ToolTip="Select Contour Line Color"
+                        PreviewMouseLeftButtonUp="LineColor_LeftClick"
+                        PreviewMouseRightButtonUp="LineColor_RightClick">
+
+                        <materialDesign:PackIcon Kind="PaletteOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Opacity="0.7"/>
+                    </Button>
+
+                </StackPanel>
+
+                <!-- contour line labels are not currently supported in the height map rendering, so this is commented out for now
+                <TextBlock
+                    HorizontalAlignment="Left"
+                    Margin="5,10,0,3">
+                    <Run Text="Show Contour Labels"/>
+
+                </TextBlock>
+
+                <CheckBox x:Name="ShowLabelsToggle"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Margin="10,10,0,3"
+                        IsChecked="{Binding ShowContourLabels, Mode=TwoWay}"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+            -->
+            </StackPanel>
+
         </Grid>
 
     </Border>
