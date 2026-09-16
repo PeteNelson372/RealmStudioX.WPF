@@ -10,19 +10,19 @@ using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
 namespace RealmStudioX.WPF.ViewModels.Dialogs
 {
-    public class ThreeDViewModel(ThreeDViewer modelViewer) : ViewModelBase
+    public class HeightMapDXViewModel(HeightMapDXModelViewer modelViewer) : ViewModelBase
     {
-        private ModelViewerControl _modelViewer = modelViewer.ModelViewer;
+        private ModelViewer3DXControl _modelViewer = modelViewer.ModelViewer;
 
         public ICommand OpenModelCommand => new RelayCommand(() =>
         {
-            LoadModel();
+            //LoadModel();
 
             SetDefaultLightingValues();
 
-            //_modelViewer.SetAmbientLightIntensity(_ambientLightIntensity);
-            //_modelViewer.SetKeyLightIntensity(_keyLightIntensity);
-            //_modelViewer.SetFillLightIntensity(_fillLightIntensity);
+            _modelViewer.SetAmbientLightIntensity(_ambientLightIntensity);
+            _modelViewer.SetKeyLightIntensity(_keyLightIntensity);
+            _modelViewer.SetFillLightIntensity(_fillLightIntensity);
         });
 
         private void SetDefaultLightingValues()
@@ -75,48 +75,6 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             _modelViewer.SetCameraView(ModelViewDirection.Bottom);
         });
 
-        private bool _isPerspectiveView = true;
-        public bool IsPerspectiveView
-        {
-            get => _isPerspectiveView;
-            set
-            {
-                if (_isPerspectiveView != value)
-                {
-                    _isPerspectiveView = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        public ICommand PerspectiveViewCommand => new RelayCommand(() =>
-        {
-            IsPerspectiveView = true;
-            IsOrthographicView = false;
-
-            _modelViewer.SetCameraProjection(CameraProjection.Perspective);
-        });
-
-        private bool _isOrthographicView = false;
-        public bool IsOrthographicView
-        {
-            get => _isOrthographicView;
-            set
-            {
-                if (_isOrthographicView != value)
-                {
-                    _isOrthographicView = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-        public ICommand OrthographicViewCommand => new RelayCommand(() =>
-        {
-            IsOrthographicView = true;
-            IsPerspectiveView = false;
-            _modelViewer.SetCameraProjection(CameraProjection.Orthographic);
-        });
-
         public ICommand SetXUpCommand => new RelayCommand(() =>
         {
             _modelViewer.SetUpDirection(ModelUpDirection.XUp);
@@ -132,7 +90,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             _modelViewer.SetUpDirection(ModelUpDirection.ZUp);
         });
 
-        private bool _showViewCube = true;
+        private bool _showViewCube = false;
 
         public bool ShowViewCube
         {
@@ -153,7 +111,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             ShowViewCube = !ShowViewCube;
         });
 
-        private bool _showCoordinateSystem = true;
+        private bool _showCoordinateSystem = false;
 
         public bool ShowCoordinateSystem
         {
@@ -262,7 +220,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 if (_ambientLightIntensity != value)
                 {
                     _ambientLightIntensity = value;
-                    //_modelViewer.SetAmbientLightIntensity(_ambientLightIntensity);
+                    _modelViewer.SetAmbientLightIntensity(_ambientLightIntensity);
                     OnPropertyChanged();
                 }
             }
@@ -277,7 +235,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 if (_keyLightIntensity != value)
                 {
                     _keyLightIntensity = value;
-                    //_modelViewer.SetKeyLightIntensity(_keyLightIntensity);
+                    _modelViewer.SetKeyLightIntensity(_keyLightIntensity);
                     OnPropertyChanged();
                 }
             }
@@ -292,7 +250,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 if (_fillLightIntensity != value)
                 {
                     _fillLightIntensity = value;
-                    //_modelViewer.SetFillLightIntensity(_fillLightIntensity);
+                    _modelViewer.SetFillLightIntensity(_fillLightIntensity);
                     OnPropertyChanged();
                 }
             }

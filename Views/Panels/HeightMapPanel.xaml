@@ -44,16 +44,41 @@
             HorizontalAlignment="Left"
             Width="140"
             Height="Auto"
-            Margin="15,20,0,0">
+            Margin="15,0,0,0">
+
+            <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                <TextBlock Text="Brush Size"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="3,3,3,3"/>
+
+                <Slider x:Name="HeightMapBrushSizeSlider"
+                                Style="{StaticResource ModernSlider}"
+                                behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                                Width="120"
+                                AutoToolTipPlacement="TopLeft"
+                                AutoToolTipPrecision="0"
+                                Minimum="{Binding MinHeightMaoBrushSize}"
+                                Maximum="{Binding MaxHeightMapBrushSize}"                            
+                                Value="{Binding HeightMapBrushSize}"/>
+
+            </StackPanel>
 
             <StackPanel Orientation="Vertical">
-                <TextBlock Text="Minimum Height"
+                <TextBlock Text="Minimum Elevation"
                     VerticalAlignment="Center"
-                    Margin="0,0,8,6"/>
+                    Margin="0,15,8,6"/>
             
                 <Grid Grid.Column="1">
-                    <controls:NumericUpDown x:Name="MinHeightBox"
-                                         Value="{Binding MinimumHeight}"
+                    <controls:NumericUpDown x:Name="MinElevationBox"
+                                         Value="{Binding MinimumElevation}"
                                          Minimum="-5000"
                                          Maximum="1000"
                                          Margin="0,0,6,6"
@@ -63,13 +88,13 @@
 
             <StackPanel Orientation="Vertical" Margin="0,10,8,6">
                 
-                <TextBlock Text="Maximum Height"
+                <TextBlock Text="Maximum Elevation"
                     VerticalAlignment="Center"
                     Margin="0,0,0,6"/>
 
                 <Grid Grid.Column="1">
-                    <controls:NumericUpDown x:Name="MaxHeightBox"
-                                         Value="{Binding MaximumHeight}"
+                    <controls:NumericUpDown x:Name="MaxElevationBox"
+                                         Value="{Binding MaximumElevation}"
                                          Minimum="1000"
                                          Maximum="50000"
                                          Margin="0,0,6,6"
@@ -79,7 +104,7 @@
 
             <StackPanel Orientation="Vertical">
 
-                <TextBlock Text="Height Units"
+                <TextBlock Text="Elevation Units"
                                    VerticalAlignment="Center"
                                    Margin="0,0,0,6"/>
 
@@ -90,7 +115,7 @@
                                   Margin="0,0,0,6"
                                   Background="#FFDFDBD2"
                                   SelectedValuePath="Content"
-                                  SelectedValue="{Binding HeightUnit, Mode=TwoWay}">
+                                  SelectedValue="{Binding ElevationUnit, Mode=TwoWay}">
                     
                     <!-- Default = feet -->
                     <!-- TODO: set default based on user preference for metric or US units -->

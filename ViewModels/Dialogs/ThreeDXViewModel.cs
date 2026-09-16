@@ -2,6 +2,7 @@
 using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX._3D.Views.Controls;
 using RealmStudioX.WPF.Editor.UserInterface;
+using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.Views.Dialogs;
 using System.Windows.Input;
@@ -10,9 +11,9 @@ using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
 namespace RealmStudioX.WPF.ViewModels.Dialogs
 {
-    public class ThreeDViewModel(ThreeDViewer modelViewer) : ViewModelBase
+    public class ThreeDXViewModel(ThreeDXModelViewer modelViewer) : ViewModelBase
     {
-        private ModelViewerControl _modelViewer = modelViewer.ModelViewer;
+        private ModelViewer3DXControl _modelViewer = modelViewer.ModelViewer;
 
         public ICommand OpenModelCommand => new RelayCommand(() =>
         {
@@ -20,9 +21,9 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
             SetDefaultLightingValues();
 
-            //_modelViewer.SetAmbientLightIntensity(_ambientLightIntensity);
-            //_modelViewer.SetKeyLightIntensity(_keyLightIntensity);
-            //_modelViewer.SetFillLightIntensity(_fillLightIntensity);
+            _modelViewer.SetAmbientLightIntensity(_ambientLightIntensity);
+            _modelViewer.SetKeyLightIntensity(_keyLightIntensity);
+            _modelViewer.SetFillLightIntensity(_fillLightIntensity);
         });
 
         private void SetDefaultLightingValues()
@@ -262,7 +263,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 if (_ambientLightIntensity != value)
                 {
                     _ambientLightIntensity = value;
-                    //_modelViewer.SetAmbientLightIntensity(_ambientLightIntensity);
+                    _modelViewer.SetAmbientLightIntensity(_ambientLightIntensity);
                     OnPropertyChanged();
                 }
             }
@@ -277,7 +278,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 if (_keyLightIntensity != value)
                 {
                     _keyLightIntensity = value;
-                    //_modelViewer.SetKeyLightIntensity(_keyLightIntensity);
+                    _modelViewer.SetKeyLightIntensity(_keyLightIntensity);
                     OnPropertyChanged();
                 }
             }
@@ -292,7 +293,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 if (_fillLightIntensity != value)
                 {
                     _fillLightIntensity = value;
-                    //_modelViewer.SetFillLightIntensity(_fillLightIntensity);
+                    _modelViewer.SetFillLightIntensity(_fillLightIntensity);
                     OnPropertyChanged();
                 }
             }

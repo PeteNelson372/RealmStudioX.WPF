@@ -92,8 +92,6 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public DrawingPanelViewModel DrawingViewModel { get; }
 
-        public ThreeDViewModel ThreeDViewModel { get; }
-
         public NameGenConfigViewModel NameGenConfigViewModel { get; }
 
         public CommandService CommandService { get; }
@@ -678,8 +676,6 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
                 // set the height map palette
                 HeightMapManager.SetHeightMapPalette(_editor.Scene.Map, HeightMapViewModel.SelectedPalette);
-
-
             }
         });
 
@@ -783,8 +779,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public ICommand Open3DViewerCommand => new RelayCommand(() =>
         {
-            ThreeDModelViewer threeDModelViewer = new();
-            threeDModelViewer.Show();
+            ThreeDViewer threeDViewer = new();
+            threeDViewer.Show();
         });
 
         
@@ -1930,6 +1926,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
             SelectionService.ClearSelection();
             SelectedTabIndex = 1;
 
+            HeightMapViewModel.SetCurrentHeightMap();
+
             _editor.State.StatusMessage = $"Map {map.MapName} opened.";
 
             _editor.RequestRedraw();
@@ -2189,6 +2187,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 MapDrawingMode.HeightMapPaint => "Paint Height Map",
                 MapDrawingMode.MapHeightIncrease => "Increase Map Height",
                 MapDrawingMode.MapHeightDecrease => "Decrease Map Height",
+                MapDrawingMode.MapHeightSmooth => "Smooth Height Map Area",
                 MapDrawingMode.DrawingLine => "Draw Line",
                 MapDrawingMode.DrawingErase => "Erase",
                 MapDrawingMode.DrawingPaint => "Paint",

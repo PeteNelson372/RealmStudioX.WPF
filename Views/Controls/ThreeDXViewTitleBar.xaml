@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="RealmStudioX.WPF.Views.Controls.ThreeDViewTitleBar"
+﻿<UserControl x:Class="RealmStudioX.WPF.Views.Controls.ThreeDXViewTitleBar"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -75,7 +75,7 @@
                     VerticalAlignment="Center">
 
             <!-- App Title -->
-            <TextBlock Text="Realm Studio X - 3D Model Viewer"
+            <TextBlock Text="Realm Studio X - 3DX Model Viewer"
                    Foreground="#E5E5E5"
                    FontSize="16"
                    FontWeight="SemiBold"

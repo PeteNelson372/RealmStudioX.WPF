@@ -3,9 +3,9 @@
 namespace RealmStudioX.WPF.Views.Controls
 {
     /// <summary>
-    /// Interaction logic for ThreeDViewTitleBar.xaml
+    /// Interaction logic for ThreeDXViewTitleBar.xaml
     /// </summary>
-    public partial class ThreeDViewTitleBar : System.Windows.Controls.UserControl
+    public partial class ThreeDXViewTitleBar : System.Windows.Controls.UserControl
     {
         public event EventHandler? OpenClicked;
         public event EventHandler? SaveClicked;
@@ -13,7 +13,7 @@ namespace RealmStudioX.WPF.Views.Controls
         public event EventHandler? MaximizeClicked;
         public event EventHandler? ExitClicked;
 
-        public ThreeDViewTitleBar()
+        public ThreeDXViewTitleBar()
         {
             InitializeComponent();
         }

@@ -3,15 +3,17 @@
 namespace RealmStudioX.WPF.Views.Controls
 {
     /// <summary>
-    /// Interaction logic for ThreeDMenu.xaml
+    /// Interaction logic for HeightMapDXViewTitleBar.xaml
     /// </summary>
-    public partial class ThreeDMenu : System.Windows.Controls.UserControl
+    public partial class HeightMapDXViewTitleBar : System.Windows.Controls.UserControl
     {
         public event EventHandler? OpenClicked;
         public event EventHandler? SaveClicked;
+        public event EventHandler? MinimizeClicked;
+        public event EventHandler? MaximizeClicked;
         public event EventHandler? ExitClicked;
 
-        public ThreeDMenu()
+        public HeightMapDXViewTitleBar()
         {
             InitializeComponent();
         }
@@ -24,6 +26,12 @@ namespace RealmStudioX.WPF.Views.Controls
 
         private void OnExit(object sender, RoutedEventArgs e)
             => ExitClicked?.Invoke(this, EventArgs.Empty);
+
+        private void OnMinimize(object sender, RoutedEventArgs e)
+            => MinimizeClicked?.Invoke(this, EventArgs.Empty);
+
+        private void OnMaximize(object sender, RoutedEventArgs e)
+            => MaximizeClicked?.Invoke(this, EventArgs.Empty);
 
     }
 }

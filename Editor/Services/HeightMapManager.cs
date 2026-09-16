@@ -1,4 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX._3D.Models;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
@@ -81,7 +82,6 @@ namespace RealmStudioX.WPF.Editor.Services
                 return;
             }
 
-
             MapHeightMap? heightMap = (MapHeightMap)heightMapLayer.Shapes[0];
 
             renderCanvas.DrawRect(new SKRect(1, 1, map.MapWidth, map.MapHeight), PaintObjects.LandformAreaSelectPaint);
@@ -104,7 +104,6 @@ namespace RealmStudioX.WPF.Editor.Services
 
             if (heightMapViewModel.ShowContourLines)
             {
-
                 using SKPaint ContourPaint = new()
                 {
                     Style = SKPaintStyle.Stroke,
@@ -132,84 +131,6 @@ namespace RealmStudioX.WPF.Editor.Services
             if (selectedArea != null)
             {
                 renderCanvas.DrawRect((SKRect)selectedArea, PaintObjects.LandformAreaSelectPaint);
-            }
-        }
-
-        internal static void ChangeHeightMapAreaHeight(RealmStudioMap? map, MapHeightMap activeHeightMap, SKPoint mapPoint, float brushRadius, float changeAmount)
-        {
-            ArgumentNullException.ThrowIfNull(map);
-
-            float[,]? heightMap = activeHeightMap.HeightMap;
-
-            SKBitmap? heightMapBitmap = activeHeightMap.HeightMapBitmap;
-
-            if (heightMapBitmap != null && heightMap != null)
-            {
-                ApplyHeightBrush(mapPoint.X, mapPoint.Y, brushRadius, heightMap, changeAmount);
-
-                int left = (int)Math.Max(1, mapPoint.X - brushRadius);
-                int right = (int)Math.Min(map.MapWidth - 2, mapPoint.X + brushRadius);
-                int top = (int)Math.Max(1, mapPoint.Y - brushRadius);
-                int bottom = (int)Math.Min(map.MapHeight - 2, mapPoint.Y + brushRadius);
-
-                activeHeightMap.UpdateHeightMapBitmap(heightMapBitmap, heightMap, left, top, right, bottom);
-
-                activeHeightMap.InvalidateContours();
-            }            
-        }
-
-        private static void ApplyHeightBrush(
-            float centerX,
-            float centerY,
-            float radius,
-            float[,] heightMap,
-            float changeAmount)
-        {
-            int width = heightMap.GetLength(0);
-            int height = heightMap.GetLength(1);
-
-            float radiusSquared = radius * radius;
-
-            int left = (int)Math.Max(1, centerX - radius);
-            int right = (int)Math.Min(width - 2, centerX + radius);
-            int top = (int)Math.Max(1, centerY - radius);
-            int bottom = (int)Math.Min(height - 2, centerY + radius);
-
-            for (int y = top; y <= bottom; y++)
-            {
-                int dy = (int)(y - centerY);
-                int dySquared = dy * dy;
-
-                for (int x = left; x <= right; x++)
-                {
-                    int dx = (int)(x - centerX);
-
-                    if (dx * dx + dySquared > radiusSquared)
-                        continue;
-
-                    float value = heightMap[x, y];
-
-                    // Increase/decrease the height.
-                    value += changeAmount;
-
-                    // Calculate the 3x3 average.
-                    float average =
-                        heightMap[x - 1, y - 1] +
-                        heightMap[x, y - 1] +
-                        heightMap[x + 1, y - 1] +
-
-                        heightMap[x - 1, y] +
-                        value +
-                        heightMap[x + 1, y] +
-
-                        heightMap[x - 1, y + 1] +
-                        heightMap[x, y + 1] +
-                        heightMap[x + 1, y + 1];
-
-                    value = average / 9.0f;
-
-                    heightMap[x, y] = value;
-                }
             }
         }
     }

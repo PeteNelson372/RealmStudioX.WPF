@@ -503,11 +503,15 @@ namespace RealmStudioX.WPF
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.MapHeightIncrease)
             {
-                ViewModel.LandformViewModel.LandformBrushSize += sizeDelta;
+                ViewModel.HeightMapViewModel.HeightMapBrushSize += sizeDelta;
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.MapHeightDecrease)
             {
-                ViewModel.LandformViewModel.LandformBrushSize += sizeDelta;
+                ViewModel.HeightMapViewModel.HeightMapBrushSize += sizeDelta;
+            }
+            else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.MapHeightSmooth)
+            {
+                ViewModel.HeightMapViewModel.HeightMapBrushSize += sizeDelta;
             }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.DrawingLine)
             {

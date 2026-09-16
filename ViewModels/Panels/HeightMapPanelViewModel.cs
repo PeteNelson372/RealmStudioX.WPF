@@ -1,9 +1,9 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
-using RealmStudioX.WPF.Editor.Tools;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
+using RealmStudioX.WPF.Views.Dialogs;
 using System.IO;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -58,75 +58,149 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     }
                 }
             }
-
-            // height change is initially set to 1% of range
-            HeightChange = (Math.Abs(MaximumHeight) + Math.Abs(MinimumHeight)) * 0.01f;
         }
 
-        private float _minimumHeight = -5000;
-        public float MinimumHeight
+        MapHeightMap? _currentHeightMap = null;
+
+        public void SetCurrentHeightMap()
         {
-            get { return _minimumHeight; }
+            MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.HEIGHTMAPLAYER);
+
+            if (heightMapLayer.Shapes.Count > 0)
+            {
+                _currentHeightMap = (MapHeightMap)heightMapLayer.Shapes[0];
+
+                MinimumElevation = _currentHeightMap.MinimumElevation;
+                MaximumElevation = _currentHeightMap.MaximumElevation;
+                ElevationUnit = _currentHeightMap.ElevationUnit;
+
+                SelectedPalette = _currentHeightMap.HeightMapPalette;
+
+                _currentHeightMap.RebuildHypsometricColorLookup();
+            }
+        }
+
+        public int MinHeightMapBrushSize { get; } = 4;
+        public int MaxHeightMapBrushSize { get; } = 256;
+
+        private int _heightMapBrushSize = 64;
+        public int HeightMapBrushSize
+        {
+            get => _heightMapBrushSize;
             set
             {
-                if (value < _maximumHeight)
-                {
-                    SetProperty(ref _minimumHeight, value);
+                var clamped = Math.Clamp(value, MinHeightMapBrushSize, MaxHeightMapBrushSize);
 
-                    if (_editor.ActiveEditorTool is HeightMapTool hmt && hmt.ActiveHeightMap != null)
+                _heightMapBrushSize = clamped;
+
+                OnPropertyChanged();
+            }
+        }
+
+        private float _minimumElevation = -5000;
+        public float MinimumElevation
+        {
+            get { return _minimumElevation; }
+            set
+            {
+                if (value < _maximumElevation)
+                {
+                    SetProperty(ref _minimumElevation, value);
+
+                    if (_currentHeightMap != null)
                     {
-                        UpdateHeightMapProperties(hmt.ActiveHeightMap);
+                        UpdateHeightMapProperties(_currentHeightMap);
                     }
                 }
             }
         }
 
-        private float _maximumHeight = 50000;
-        public float MaximumHeight
+        private float _maximumElevation = 50000;
+        public float MaximumElevation
         {
-            get { return _maximumHeight; }
+            get { return _maximumElevation; }
             set
             {
-                if (value > _minimumHeight)
+                if (value > _minimumElevation)
                 {
-                    SetProperty(ref _maximumHeight, value);
+                    SetProperty(ref _maximumElevation, value);
 
-                    if (_editor.ActiveEditorTool is HeightMapTool hmt && hmt.ActiveHeightMap != null)
+                    if (_currentHeightMap != null)
                     {
-                        UpdateHeightMapProperties(hmt.ActiveHeightMap);
+                        UpdateHeightMapProperties(_currentHeightMap);
                     }
                 }
             }
         }
 
-        private string _heightUnit = "Feet";
-        public string HeightUnit
+        private string _elevationUnit = "Feet";
+        public string ElevationUnit
         {
-            get => _heightUnit;
+            get => _elevationUnit;
             set
             {
-                SetProperty(ref _heightUnit, value);
+                SetProperty(ref _elevationUnit, value);
 
-                if (_editor.ActiveEditorTool is HeightMapTool hmt && hmt.ActiveHeightMap != null)
+                if (_currentHeightMap != null)
                 {
-                    UpdateHeightMapProperties(hmt.ActiveHeightMap);
+                    UpdateHeightMapProperties(_currentHeightMap);
                 }
             }
         }
 
-        private float _heightChange = 100.0f;
+        public float MinElevationChange { get; } = 1.0f;
+        public float MaxElevationChange { get; } = 1000.0f;
 
-        public float HeightChange
+        private float _elevationChange = 100.0f;
+
+        public float ElevationChange
         {
-            get => _heightChange;
+            get => _elevationChange;
             set
             {
-                SetProperty(ref _heightChange, value);
+                var clamped = Math.Clamp(value, MinElevationChange, MaxElevationChange);
+                SetProperty(ref _elevationChange, clamped);
 
-                if (_editor.ActiveEditorTool is HeightMapTool hmt && hmt.ActiveHeightMap != null)
+                if (_currentHeightMap != null)
                 {
-                    UpdateHeightMapProperties(hmt.ActiveHeightMap);
+                    UpdateHeightMapProperties(_currentHeightMap);
                 }
+            }
+        }
+
+
+        public int MinElevationScale { get; } = 1;
+        public int MaxElevationScale { get; } = 1000;
+
+        private int _elevationScale = 200;
+
+        public int ElevationScale
+        {
+            get => _elevationScale;
+            set
+            {
+                var clamped = Math.Clamp(value, MinElevationScale, MaxElevationScale);
+                SetProperty(ref _elevationScale, clamped);
+
+                if (_currentHeightMap != null)
+                {
+                    UpdateHeightMapProperties(_currentHeightMap);
+                }
+            }
+        }
+
+        public int MinSmoothingStrength { get; } = 1;
+        public int MaxSmoothingStrength { get; } = 25;
+
+        private int _smoothingStrength = 10;
+
+        public int SmoothingStrength
+        {
+            get => _smoothingStrength;
+            set
+            {
+                var clamped = Math.Clamp(value, MinSmoothingStrength, MaxSmoothingStrength);
+                SetProperty(ref _smoothingStrength, clamped);
             }
         }
 
@@ -147,9 +221,9 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
                         _editor.ActivateTool(EditorToolType.HeightMapTool);
 
-                        if (_editor.ActiveEditorTool is HeightMapTool hmt && hmt.ActiveHeightMap != null)
+                        if (_currentHeightMap != null)
                         {
-                            UpdateHeightMapProperties(hmt.ActiveHeightMap);
+                            UpdateHeightMapProperties(_currentHeightMap);
                         }
                     }
                 }
@@ -174,7 +248,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             set { SetProperty(ref _tints, value); }
         }
 
-        public ICommand IncreaseHeightCommand => new RelayCommand(() =>
+        public ICommand IncreaseElevationCommand => new RelayCommand(() =>
         {
             if (_mainViewModel.RenderHeightMap && _editor.Scene != null)
             {
@@ -184,7 +258,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             }
         });
 
-        public ICommand DecreaseHeightCommand => new RelayCommand(() =>
+        public ICommand DecreaseElevationCommand => new RelayCommand(() =>
         {
             if (_mainViewModel.RenderHeightMap && _editor.Scene != null)
             {
@@ -194,14 +268,37 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             }
         });
 
+        public ICommand SmoothElevationCommand => new RelayCommand(() =>
+        {
+            if (_mainViewModel.RenderHeightMap && _editor.Scene != null)
+            {
+                _editor.SetDrawingMode(MapDrawingMode.MapHeightSmooth);
+
+                _editor.ActivateTool(EditorToolType.HeightMapTool);
+            }
+        });
+
         private void UpdateHeightMapProperties(MapHeightMap heightMap)
         {
-            heightMap.MinimumHeight = MinimumHeight;
-            heightMap.MaximumHeight = MaximumHeight;
-            heightMap.HeightUnit = HeightUnit;
+            heightMap.MinimumElevation = MinimumElevation;
+            heightMap.MaximumElevation = MaximumElevation;
+            heightMap.ElevationUnit = ElevationUnit;
             heightMap.HeightMapPalette = _selectedPalette;
             heightMap.RebuildHypsometricColorLookup();
         }
+
+        public ICommand Open3DViewCommand => new RelayCommand(() =>
+        {
+            if (_mainViewModel.RenderHeightMap && _editor.Scene != null && _currentHeightMap != null)
+            {
+                HeightMapDXModelViewer heightMap3DViewer = new(_mainViewModel, _currentHeightMap,
+                    MinimumElevation,
+                    MaximumElevation,
+                    ElevationScale);
+
+                heightMap3DViewer.Show();
+            }
+        });
 
         //
         // contour lines

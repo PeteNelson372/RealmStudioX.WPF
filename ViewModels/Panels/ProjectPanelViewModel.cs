@@ -1698,9 +1698,9 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                         MapHeightMap newHeightMap = new()
                         {
                             HeightMapPalette = mhm.HeightMapPalette,
-                            HeightUnit = mhm.HeightUnit,
-                            MaximumHeight = mhm.MaximumHeight,
-                            MinimumHeight = mhm.MinimumHeight,
+                            ElevationUnit = mhm.ElevationUnit,
+                            MaximumElevation = mhm.MaximumElevation,
+                            MinimumElevation = mhm.MinimumElevation,
 
                         };
 

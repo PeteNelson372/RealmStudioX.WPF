@@ -11,7 +11,7 @@
              xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
              xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib" 
              mc:Ignorable="d" 
-             d:DesignHeight="630" d:DesignWidth="72">
+             d:DesignHeight="698" d:DesignWidth="72">
 
     <!-- RIGHT ICON BAR -->
     <StackPanel
@@ -21,7 +21,7 @@
             HorizontalAlignment="Center"
             Background="#FFDFDBD2"
             Width="72"
-            Height="630"
+            Height="Auto"
             Grid.ColumnSpan="2" Grid.RowSpan="2">
 
         <Button
@@ -49,13 +49,13 @@
         <Separator Margin="0,10,0,10" Width="50" Height="1" Background="#FF45443F"/>
 
         <Button
-                x:Name="IncreaseHeightButton"
+                x:Name="IncreaseElevationButton"
                 Width="58"
                 Height="58"
                 Margin="0,10,0,0"
-                ToolTip="Increase Height"
+                ToolTip="Increase Elevation"
                 Style="{StaticResource FlatToolButton}"
-                Command="{Binding IncreaseHeightCommand}">
+                Command="{Binding IncreaseElevationCommand}">
             <StackPanel Orientation="Vertical">
                 <TextBlock Text="Increase"
                                FontSize="12"
@@ -71,13 +71,13 @@
         </Button>
 
         <Button
-                x:Name="DecreaseHeightButton"
+                x:Name="DecreaseElevationButton"
                 Width="58"
                 Height="58"
                 Margin="0,10,0,0"
-                ToolTip="Decrease Height"
+                ToolTip="Decrease Elevation"
                 Style="{StaticResource FlatToolButton}"
-                Command="{Binding DecreaseHeightCommand}">
+                Command="{Binding DecreaseElevationCommand}">
             <StackPanel Orientation="Vertical">
                 <TextBlock Text="Decrease"
                                FontSize="12"
@@ -103,13 +103,52 @@
         </TextBlock>
         <Grid>
             <controls:NumericUpDown x:Name="HeightChangeBox"
-                                     Value="{Binding HeightChange}"
-                                     Minimum="1.0"
-                                     Maximum="1000.0"                                     
+                                     Value="{Binding ElevationChange}"
+                                     Minimum="{Binding MinElevationChange}"
+                                     Maximum="{Binding MaxElevationChange}"                                     
                                      Margin="4,0,0,10"
                                      Width="60"/>
         </Grid>
-        <Separator Margin="0,15,0,10" Width="50" Height="1" Background="#FF45443F"/>
+
+        <Button
+                x:Name="SmoothBrushButton"
+                Width="58"
+                Height="58"
+                Margin="0,10,0,0"
+                ToolTip="Smooth Elevation"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding SmoothElevationCommand}">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Smooth"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                <materialDesign:PackIcon Kind="SmoothingIronOutline"
+                                     HorizontalAlignment="Center"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+            </StackPanel>
+        </Button>
+
+        <TextBlock
+                HorizontalAlignment="Center"
+                Margin="0,20,0,3">
+            <Run Text="Smoothing"/>
+            <LineBreak/>
+            <Run Text="Strength"/>
+        </TextBlock>
+        <Grid>
+            <controls:NumericUpDown x:Name="SmoothingStrengthBox"
+                                     Value="{Binding SmoothingStrength}"                                    
+                                     Minimum="{Binding MinSmoothingStrength}"
+                                     Maximum="{Binding MaxSmoothingStrength}"                                    
+                                     Margin="4,0,0,10"
+                                     Width="60" CoarseFactor="1" FineFactor="1"/>
+        </Grid>
+
+        <Separator Margin="0,15,0,10" Width="50" Height="2" Background="#FF45443F"/>
         <Button
                 x:Name="ThreeDViewButton"
                 Width="58"
@@ -132,22 +171,21 @@
             </StackPanel>
         </Button>
 
-        <StackPanel Orientation="Vertical">
-            <TextBlock
+        <TextBlock
                 HorizontalAlignment="Center"
-                Margin="0,10,0,3">
-            <Run Text=" Update"/>
+                Margin="0,20,0,3">
+            <Run Text="Elevation"/>
             <LineBreak/>
-            <Run Text="3D View"/>
-            </TextBlock>
-            
-            <CheckBox x:Name="Update3DViewToggle"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        IsChecked="{Binding Update3DView, Mode=TwoWay}"
-                        Style="{StaticResource ToggleSwitchStyle}"
-                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
-        </StackPanel>
+            <Run Text="Scale"/>
+        </TextBlock>
+        <Grid>
+            <controls:NumericUpDown x:Name="ElevationScaleChangeBox"
+                                     Value="{Binding ElevationScale}"
+                                     Minimum="{Binding MinElevationScale}"
+                                     Maximum="{Binding MaxElevationScale}"                                     
+                                     Margin="4,0,0,20"
+                                     Width="60"/>
+        </Grid>
 
     </StackPanel>
 

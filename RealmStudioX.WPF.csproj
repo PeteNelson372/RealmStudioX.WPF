@@ -129,13 +129,13 @@
     <PackageReference Include="log4net" Version="3.4.0" />
     <PackageReference Include="MaterialDesignColors" Version="5.3.2" />
     <PackageReference Include="MaterialDesignThemes" Version="5.3.2" />
-    <PackageReference Include="SharpVectors.Wpf" Version="1.8.5" />
+    <PackageReference Include="SharpVectors.Wpf" Version="1.8.6" />
     <PackageReference Include="SimplexNoise" Version="2.0.0" />
-    <PackageReference Include="SkiaSharp" Version="4.151.2" />
-    <PackageReference Include="SkiaSharp.Views" Version="4.151.2" />
-    <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="4.151.2" />
-    <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="4.151.2" />
-    <PackageReference Include="SkiaSharp.Views.WPF" Version="4.151.2" />
+    <PackageReference Include="SkiaSharp" Version="4.152.0" />
+    <PackageReference Include="SkiaSharp.Views" Version="4.152.0" />
+    <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="4.152.0" />
+    <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="4.152.0" />
+    <PackageReference Include="SkiaSharp.Views.WPF" Version="4.152.0" />
     <PackageReference Include="Svg.Skia" Version="5.2.3" />
   </ItemGroup>
 
@@ -261,10 +261,22 @@
     <Compile Update="Views\Controls\AlignmentIconBar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Controls\ThreeDMenu.xaml.cs">
+    <Compile Update="Views\Controls\ThreeDViewerMenu.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Controls\ThreeDViewTitleBar.xaml.cs">
+    <Compile Update="Views\Controls\HeightMapDXMenu.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Controls\ThreeDXMenu.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Controls\ThreeDViewerTitleBar.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Controls\HeightMapDXViewTitleBar.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Controls\ThreeDXViewTitleBar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Controls\PixelEditTitleBar.xaml.cs">
@@ -276,7 +288,10 @@
     <Compile Update="Views\Controls\CreateOpenDialogTitleBar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Dialogs\ThreeDModelViewer.xaml.cs">
+    <Compile Update="Views\Dialogs\HeightMapDXModelViewer.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Dialogs\ThreeDXModelViewer.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Dialogs\AboutDialog.xaml.cs">

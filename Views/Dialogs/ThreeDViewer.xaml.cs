@@ -1,18 +1,16 @@
 ﻿using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.ViewModels.Dialogs;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows;
+using RealmStudioX.WPF.Views.Controls;
 
 namespace RealmStudioX.WPF.Views.Dialogs
 {
     /// <summary>
-    /// Interaction logic for AboutDialog.xaml
+    /// Interaction logic for ThreeDViewer.xaml
     /// </summary>
-    public partial class ThreeDModelViewer : ModelessDialog, INotifyPropertyChanged
+    public partial class ThreeDViewer :  ModelessDialog
     {
         public override string WindowId { get; } = Guid.NewGuid().ToString();
-
 
         public ThreeDViewModel ViewModel { get; private set; }
 
@@ -22,7 +20,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
         public event EventHandler? MaximizeClicked;
         public event EventHandler? ExitClicked;
 
-        public ThreeDModelViewer()
+        public ThreeDViewer()
         {
             InitializeComponent();
 
@@ -30,32 +28,19 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             DataContext = ViewModel;
 
-            TitleBar.DataContext = ViewModel;
+            ThreeDTitleBar.DataContext = ViewModel;
 
             ThreeDMenu.DataContext = ViewModel;
 
-            SizeChanged += (s, e) => OnWindowSizeChanged(ActualWidth, ActualHeight);
-
             Loaded += (s, e) =>
             {
-                TitleBar.MinimizeClicked += (s, e) => MinimizeHandler();
-                TitleBar.MaximizeClicked += (s, e) => MaximizeHandler();
-                TitleBar.ExitClicked += (s, e) => ExitHandler();
+                ThreeDTitleBar.MinimizeClicked += (s, e) => MinimizeHandler();
+                ThreeDTitleBar.MaximizeClicked += (s, e) => MaximizeHandler();
+                ThreeDTitleBar.ExitClicked += (s, e) => ExitHandler();
 
                 ThreeDMenu.ExitClicked += (s, e) => ExitHandler();
-
-                OnWindowSizeChanged(ActualWidth, ActualHeight);
             };
         }
-
-        private void OnWindowSizeChanged(
-            double width,
-            double height)
-        {
-            ModelViewer.Width = width - 20;  // account for the width of the margins
-            ModelViewer.Height = height - 100; // account for the height of the title bar, menu, and margins
-        }
-
         private void ExitHandler()
         {
             Close();
@@ -73,13 +58,5 @@ namespace RealmStudioX.WPF.Views.Dialogs
             WindowState = WindowState.Minimized;
         }
 
-
-        // INotifyPropertyChanged implementation
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 }
