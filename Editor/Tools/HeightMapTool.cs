@@ -3,7 +3,7 @@ using RealmStudioX._3D.Models;
 using RealmStudioX.Core;
 using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.ViewModels.Main;
-using SharpDX.Mathematics.Interop;
+using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 
 namespace RealmStudioX.WPF.Editor.Tools
@@ -43,10 +43,6 @@ namespace RealmStudioX.WPF.Editor.Tools
         private int _heightMapModBottom;
         private bool _heightMapHasModRegion;
 
-        private readonly record struct LandformBoundary(SKPath Perimeter, SKRect Bounds);
-
-        private List<LandformBoundary> _landformBoundaries = [];
-
         public void Activate()
         {
             MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.HEIGHTMAPLAYER);
@@ -67,29 +63,14 @@ namespace RealmStudioX.WPF.Editor.Tools
                 }
             }
 
-            // get landform perimeters and bounds
-            MapLayer landformLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.LANDFORMLAYER);
+            _mainViewModel.LandformViewModel.UpdateLandformBoundaries();
 
-            _landformBoundaries.Clear();
-
-            foreach (Shape2D shape in landformLayer.Shapes)
-            {
-                if (shape is Landform landform)
-                {
-                    SKPath perimeter = landform.PerimeterPath;
-
-                    _landformBoundaries.Add(
-                        new LandformBoundary(
-                            perimeter,
-                            perimeter.Bounds));
-                }
-            }
 
             // TODO: this call is here temporarily to clean up heightmaps used for testing
             // it can be removed once the code is ready for production
             if (activeHeightMap != null && activeHeightMap.HeightMap != null)
             {
-                ClearHeightsOutsideLandforms(activeHeightMap.HeightMap, _landformBoundaries);
+                LandformPanelViewModel.ClearHeightsOutsideLandforms(activeHeightMap.HeightMap, _mainViewModel.LandformViewModel.LandformBoundaries);
             }
 
         }
@@ -144,35 +125,6 @@ namespace RealmStudioX.WPF.Editor.Tools
             else if (_editor.CurrentDrawingMode == MapDrawingMode.MapHeightSmooth)
             {
                 ApplySmoothingBrushAtPointer(state);
-            }
-        }
-
-        private static void ClearHeightsOutsideLandforms(float[,] heightMap, IReadOnlyList<LandformBoundary> boundaries)
-        {
-            int width = heightMap.GetLength(0);
-            int height = heightMap.GetLength(1);
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    bool insideLandform = false;
-
-                    foreach (LandformBoundary boundary in boundaries)
-                    {
-                        if (!boundary.Bounds.Contains(x, y))
-                            continue;
-
-                        if (boundary.Perimeter.Contains(x, y))
-                        {
-                            insideLandform = true;
-                            break;
-                        }
-                    }
-
-                    if (!insideLandform)
-                        heightMap[x, y] = 0.0f;
-                }
             }
         }
 
@@ -236,20 +188,6 @@ namespace RealmStudioX.WPF.Editor.Tools
             }
         }
 
-        private bool IsInsideLandform(float x, float y)
-        {
-            foreach (LandformBoundary boundary in _landformBoundaries)
-            {
-                if (!boundary.Bounds.Contains(x, y))
-                    continue;
-
-                if (boundary.Perimeter.Contains(x, y))
-                    return true;
-            }
-
-            return false;
-        }
-
         private void ApplyHeightMapBrush(PointerState state, MapHeightMap activeHeightMap, float heightChange, float brushRadius)
         {
             ChangeHeightMapAreaHeight(_editor.Scene!.Map, activeHeightMap, state.WorldPoint, brushRadius, heightChange);
@@ -311,7 +249,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                 for (int x = left; x <= right; x++)
                 {
-                    if (!IsInsideLandform(x, y))
+                    if (!_mainViewModel.LandformViewModel.IsInsideLandform(x, y))
                         continue;
 
                     float dx = x - centerX;
@@ -438,7 +376,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                 for (int x = left; x <= right; x++)
                 {
-                    if (!IsInsideLandform(x, y))
+                    if (!_mainViewModel.LandformViewModel.IsInsideLandform(x, y))
                         continue;
 
                     float dx = x - centerX;

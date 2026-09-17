@@ -58,7 +58,7 @@
                 Grid.ColumnSpan="2"
                 Background="#FFDFDBD2"
                 Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
-                Height="64"/>
+                Height="32"/>
 
         <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Vertical" Margin="10,0,10,10">
             <threeD:ModelViewer3DXControl x:Name="ModelViewer" HorizontalAlignment="Left" VerticalAlignment="Top"/>

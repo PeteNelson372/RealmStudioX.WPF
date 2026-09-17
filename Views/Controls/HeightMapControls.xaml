@@ -46,7 +46,7 @@
             </StackPanel>
         </Button>
 
-        <Separator Margin="0,10,0,10" Width="50" Height="1" Background="#FF45443F"/>
+        <Separator Margin="0,10,0,10" Width="50" Height="2" Background="#FF45443F"/>
 
         <Button
                 x:Name="IncreaseElevationButton"

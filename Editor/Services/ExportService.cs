@@ -1,5 +1,4 @@
-﻿using Microsoft.Win32;
-using RealmStudioShapeRenderingLib;
+﻿using RealmStudioShapeRenderingLib;
 using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
@@ -8,7 +7,6 @@ using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.Views.Dialogs;
 using SkiaSharp;
-using System.Formats.Tar;
 using System.IO;
 using System.IO.Compression;
 using SaveFileDialog = Microsoft.Win32.SaveFileDialog;

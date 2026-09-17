@@ -35,7 +35,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             InitializeComponent();
 
             MainViewModel = mainViewModel;
-            ViewModel = new HeightMapDXViewModel(this);
+            ViewModel = new HeightMapDXViewModel(this, MainViewModel.Editor.Scene!.Map);
 
             DataContext = ViewModel;
 
@@ -57,7 +57,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 {
                     _terrain = new HeightMapTerrain3D();
 
-                    _terrain.Create(heightMap, minimumElevation, maximumElevation, elevationScale);
+                    _terrain.Create(heightMap, minimumElevation, maximumElevation, elevationScale, MainViewModel.LandformViewModel.IsInsideLandform);
 
                     if (_terrain.Model != null)
                     {
@@ -67,6 +67,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
                         }
                         
                         ModelViewer.Viewport3D.Items.Add(_terrain.Model);
+
+                        ModelViewer.ModelBounds = _terrain.Bounds;
 
                         ModelViewer.FitModel(_terrain.Bounds);
                     }
@@ -79,7 +81,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
         public void OnWindowSizeChanged(double width, double height)
         {
             ModelViewer.Width = width - 20;  // account for the width of the margins
-            ModelViewer.Height = height - 100; // account for the height of the title bar, menu, and margins
+            ModelViewer.Height = height - 68; // account for the height of the title bar, menu, and margins
         }
 
         private void ExitHandler()

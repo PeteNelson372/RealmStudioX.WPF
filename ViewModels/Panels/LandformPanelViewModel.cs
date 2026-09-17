@@ -64,6 +64,72 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             }
         }
 
+        public readonly record struct LandformBoundary(SKPath Perimeter, SKRect Bounds);
+
+        private readonly List<LandformBoundary> _landformBoundaries = [];
+
+        public IReadOnlyList<LandformBoundary> LandformBoundaries => _landformBoundaries;
+
+        public void UpdateLandformBoundaries()
+        {
+            MapLayer landformLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.LANDFORMLAYER);
+
+            _landformBoundaries.Clear();
+
+            foreach (Shape2D shape in landformLayer.Shapes.Cast<Shape2D>())
+            {
+                if (shape is Landform landform)
+                {
+                    SKPath perimeter = landform.PerimeterPath;
+
+                    _landformBoundaries.Add(new LandformBoundary(perimeter, perimeter.Bounds));
+                }
+            }
+        }
+
+        public bool IsInsideLandform(float x, float y)
+        {
+            foreach (LandformBoundary boundary in _landformBoundaries)
+            {
+                if (!boundary.Bounds.Contains(x, y))
+                    continue;
+
+                if (boundary.Perimeter.Contains(x, y))
+                    return true;
+            }
+
+            return false;
+        }
+
+        public static void ClearHeightsOutsideLandforms(float[,] heightMap, IReadOnlyList<LandformBoundary> boundaries)
+        {
+            int width = heightMap.GetLength(0);
+            int height = heightMap.GetLength(1);
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    bool insideLandform = false;
+
+                    foreach (LandformBoundary boundary in boundaries)
+                    {
+                        if (!boundary.Bounds.Contains(x, y))
+                            continue;
+
+                        if (boundary.Perimeter.Contains(x, y))
+                        {
+                            insideLandform = true;
+                            break;
+                        }
+                    }
+
+                    if (!insideLandform)
+                        heightMap[x, y] = 0.0f;
+                }
+            }
+        }
+
         private GeneratedLandformType _selectedLandformType = GeneratedLandformType.NotSet;
         
         public GeneratedLandformType SelectedLandformType

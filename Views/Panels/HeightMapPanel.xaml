@@ -181,15 +181,15 @@
 
                                                 <Binding
                                                     RelativeSource="{RelativeSource AncestorType={x:Type DataGrid}}"
-                                                    Path="DataContext.MinimumHeight"/>
+                                                    Path="DataContext.MinimumElevation"/>
 
                                                 <Binding
                                                     RelativeSource="{RelativeSource AncestorType={x:Type DataGrid}}"
-                                                    Path="DataContext.MaximumHeight"/>
+                                                    Path="DataContext.MaximumElevation"/>
 
                                                 <Binding
                                                     RelativeSource="{RelativeSource AncestorType={x:Type DataGrid}}"
-                                                    Path="DataContext.HeightUnit"/>
+                                                    Path="DataContext.ElevationUnit"/>
 
                                             </MultiBinding>
                                         </TextBlock.Text>

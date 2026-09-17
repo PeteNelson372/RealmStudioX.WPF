@@ -1,29 +1,30 @@
 ﻿using RealmStudioShapeRenderingLib;
-using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX._3D.Views.Controls;
-using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.Views.Dialogs;
+using System.IO;
 using System.Windows.Input;
-using Cursors = System.Windows.Input.Cursors;
-using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
+using System.Windows.Media.Imaging;
+using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 namespace RealmStudioX.WPF.ViewModels.Dialogs
 {
-    public class HeightMapDXViewModel(HeightMapDXModelViewer modelViewer) : ViewModelBase
+    public class HeightMapDXViewModel : ViewModelBase
     {
-        private ModelViewer3DXControl _modelViewer = modelViewer.ModelViewer;
+        private readonly ModelViewer3DXControl _modelViewer;
+        private readonly RealmStudioMap _map;
 
-        public ICommand OpenModelCommand => new RelayCommand(() =>
+        public HeightMapDXViewModel(HeightMapDXModelViewer modelViewer, RealmStudioMap map)
         {
-            //LoadModel();
+            _modelViewer = modelViewer.ModelViewer;
+            _map = map;
 
             SetDefaultLightingValues();
 
             _modelViewer.SetAmbientLightIntensity(_ambientLightIntensity);
             _modelViewer.SetKeyLightIntensity(_keyLightIntensity);
             _modelViewer.SetFillLightIntensity(_fillLightIntensity);
-        });
+        }
 
         private void SetDefaultLightingValues()
         {
@@ -42,6 +43,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
         public ICommand ResetCameraCommand => new RelayCommand(() =>
         {
+            ResetModelViewerDefaults();
             _modelViewer.ResetCamera();
         });
 
@@ -132,84 +134,59 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             ShowCoordinateSystem = !ShowCoordinateSystem;
         });
 
-        private bool _showGrid = false;
-
-        public bool ShowGrid
+        public ICommand Snapshot3DSceneCommand => new RelayCommand(() =>
         {
-            get => _showGrid;
-            set
+            BitmapSource? bitmap = _modelViewer.CreateSnapshot(_map.MapWidth, _map.MapHeight);
+
+            if (bitmap != null)
             {
-                if (_showGrid != value)
-                {
-                    _showGrid = value;
-                    _modelViewer.ShowGrid(_showGrid);
-                    OnPropertyChanged();
-                }
+                SaveSnapshot(bitmap);
             }
-        }
-
-        public ICommand ShowGridCommand => new RelayCommand(() =>
-        {
-            ShowGrid = !ShowGrid;
         });
 
-        private bool _showBoundingBox = false;
-
-        public bool ShowBoundingBox
+        private static void SaveSnapshot(BitmapSource bitmap)
         {
-            get => _showBoundingBox;
-            set
+            SaveFileDialog dialog = new()
             {
-                if (_modelViewer.IsModelLoaded)
-                {
-                    if (_showBoundingBox != value)
+                Title = "Save 3D Heightmap Snapshot",
+                Filter =
+                    "PNG Image (*.png)|*.png|" +
+                    "JPEG Image (*.jpg;*.jpeg)|*.jpg;*.jpeg|" +
+                    "BMP Image (*.bmp)|*.bmp",
+                DefaultExt = ".png",
+                AddExtension = true
+            };
+
+            if (dialog.ShowDialog() != true)
+                return;
+
+            BitmapEncoder encoder;
+
+            switch (Path.GetExtension(dialog.FileName).ToLowerInvariant())
+            {
+                case ".jpg":
+                case ".jpeg":
+                    encoder = new JpegBitmapEncoder
                     {
-                        _showBoundingBox = value;
-                        _modelViewer.ShowBoundingBox(_showBoundingBox);
-                        OnPropertyChanged();
-                    }
-                }
-                else
-                {
-                    _showBoundingBox = false;
-                    OnPropertyChanged();
-                }
+                        QualityLevel = 95
+                    };
+                    break;
+
+                case ".bmp":
+                    encoder = new BmpBitmapEncoder();
+                    break;
+
+                default:
+                    encoder = new PngBitmapEncoder();
+                    break;
             }
+
+            encoder.Frames.Add(BitmapFrame.Create(bitmap));
+
+            using FileStream stream = File.Create(dialog.FileName);
+
+            encoder.Save(stream);
         }
-
-        public ICommand ShowBoundingBoxCommand => new RelayCommand(() =>
-        {
-            ShowBoundingBox = !ShowBoundingBox;
-        });
-
-        private bool _showWireframe = false;
-
-        public bool ShowWireFrame
-        {
-            get => _showWireframe;
-            set
-            {
-                if (_modelViewer.IsModelLoaded)
-                {
-                    if (_showWireframe != value)
-                    {
-                        _showWireframe = value;
-                        _modelViewer.ShowWireframe(_showWireframe);
-                        OnPropertyChanged();
-                    }
-                }
-                else
-                {
-                    _showWireframe = false;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        public ICommand ShowWireFrameCommand => new RelayCommand(() =>
-        {
-            ShowWireFrame = !ShowWireFrame;
-        });
 
         private float _ambientLightIntensity = 0.4f;
         public float AmbientLightIntensity
@@ -256,58 +233,10 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             }
         }
 
-        private void LoadModel()
-        {
-            try
-            {
-                OpenFileDialog ofd = new()
-                {
-                    Title = "Open 3D Model",
-                    DefaultExt = "obj",
-                    Filter =
-                        "3D Model files|*.obj;*.stl;*.3ds;*.lwo;*.off|" +
-                        "OBJ files (*.obj)|*.obj|" +
-                        "STL files (*.stl)|*.stl|" +
-                        "3DS files (*.3ds)|*.3ds|" +
-                        "LWO files (*.lwo)|*.lwo|" +
-                        "OFF files (*.off)|*.off|" +
-                        "All files (*.*)|*.*",
-                    CheckFileExists = true,
-                    RestoreDirectory = true,
-                    Multiselect = false
-                };
-
-                if (ofd.ShowDialog() == true)
-                {
-                    if (ofd.FileName != "")
-                    {
-                        ResetModelViewerDefaults();
-
-                        Mouse.OverrideCursor = Cursors.Wait;
-                        _modelViewer.LoadModel(ofd.FileName);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                RealmStudioXLogger.Error(ex.Message);
-                MessageDialog dlg = MessageDialogFactory.ErrorDialog("Error Loading Model", ex.Message);
-                dlg.ShowDialog();
-            }
-            finally
-            {
-                Mouse.OverrideCursor = null;
-            }
-
-        }
-
         private void ResetModelViewerDefaults()
         {
-            ShowViewCube = true;
-            ShowCoordinateSystem = true;
-            ShowWireFrame = false;
-            ShowGrid = false;
-            ShowBoundingBox = false;
+            ShowViewCube = false;
+            ShowCoordinateSystem = false;
         }
 
     }
