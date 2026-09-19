@@ -1,7 +1,6 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
-using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
@@ -76,7 +75,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
             _landformBoundaries.Clear();
 
-            foreach (Shape2D shape in landformLayer.Shapes.Cast<Shape2D>())
+            foreach (MapComponent2D shape in landformLayer.Shapes)
             {
                 if (shape is Landform landform)
                 {
@@ -85,20 +84,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     _landformBoundaries.Add(new LandformBoundary(perimeter, perimeter.Bounds));
                 }
             }
-        }
-
-        public bool IsInsideLandform(float x, float y)
-        {
-            foreach (LandformBoundary boundary in _landformBoundaries)
-            {
-                if (!boundary.Bounds.Contains(x, y))
-                    continue;
-
-                if (boundary.Perimeter.Contains(x, y))
-                    return true;
-            }
-
-            return false;
         }
 
         public static void ClearHeightsOutsideLandforms(float[,] heightMap, IReadOnlyList<LandformBoundary> boundaries)

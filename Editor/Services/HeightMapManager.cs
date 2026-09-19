@@ -1,5 +1,4 @@
 ﻿using RealmStudioShapeRenderingLib;
-using RealmStudioX._3D.Models;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
@@ -72,6 +71,128 @@ namespace RealmStudioX.WPF.Editor.Services
             heightMap.RebuildHypsometricColorLookup();
         }
 
+        public void RenderHeightMap(
+            RealmStudioMap map,
+            SKCanvas renderCanvas,
+            SKRect? selectedArea)
+        {
+            MapLayer landformLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.LANDFORMLAYER);
+
+            MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.HEIGHTMAPLAYER);
+
+            if (heightMapLayer.Shapes.Count == 0)
+                return;
+
+            if (heightMapLayer.Shapes[0] is not MapHeightMap heightMap)
+            {
+                return;
+            }
+
+            // Start with the background outside the landforms.
+            renderCanvas.DrawRect(
+                new SKRect(1, 1, map.MapWidth, map.MapHeight),
+                PaintObjects.LandformAreaSelectPaint);
+
+            SKPathBuilder pathBuilder = new();
+
+            for (int i = 0; i < landformLayer.Shapes.Count; i++)
+            {
+                if (landformLayer.Shapes[i] is Landform landform)
+                {
+                    pathBuilder.AddPath(landform.PerimeterPath);
+                    //landformPath.AddPath(landform.PerimeterPath);
+                }
+            }
+
+            SKPath landformPath = pathBuilder.Snapshot();
+
+            pathBuilder.Detach();
+            pathBuilder.Dispose();
+
+            renderCanvas.Save();
+
+            // Restrict the heightmap to the actual map.
+            renderCanvas.ClipRect(
+                new SKRect(
+                    0,
+                    0,
+                    map.MapWidth,
+                    map.MapHeight));
+
+            // Restrict the heightmap to the landforms.
+            if (!landformPath.IsEmpty)
+            {
+                renderCanvas.ClipPath(landformPath);
+
+                for (int i = 0; i < landformLayer.Shapes.Count; i++)
+                {
+                    if (landformLayer.Shapes[i] is Landform lf)
+                    {
+                        lf.RenderLandformHeightMap(renderCanvas);
+                    }
+                }
+            }
+
+            landformPath.Dispose();
+
+            renderCanvas.Restore();
+
+            // Draw landform boundaries/selection information.
+            for (int i = 0; i < landformLayer.Shapes.Count; i++)
+            {
+                if (landformLayer.Shapes[i] is Landform landform)
+                {
+                    renderCanvas.DrawPath(
+                        landform.PerimeterPath,
+                        PaintObjects.LandformHeightMapOutlinePaint);
+
+                    if (landform.IsSelected)
+                    {
+                        landform.PerimeterPath.GetBounds(
+                            out SKRect boundsRect);
+
+                        renderCanvas.DrawRect(
+                            boundsRect,
+                            PaintObjects.LandformSelectPaint);
+                    }
+                }
+            }
+
+            if (heightMapViewModel.ShowContourLines)
+            {
+                using SKPaint contourPaint = new()
+                {
+                    Style = SKPaintStyle.Stroke,
+                    Color = heightMapViewModel.LineColor.ToSKColor(),
+                    StrokeWidth = heightMapViewModel.ContourLineWidth,
+                    IsAntialias = true
+                };
+
+                using SKPaint majorContourPaint = new()
+                {
+                    Style = SKPaintStyle.Stroke,
+                    Color = heightMapViewModel.MajorLineColor.ToSKColor(),
+                    StrokeWidth = heightMapViewModel.MajorLineWidth,
+                    IsAntialias = true
+                };
+
+                heightMap.RenderContours(
+                    renderCanvas,
+                    heightMapViewModel.ContourInterval,
+                    heightMapViewModel.MajorContourInterval,
+                    contourPaint,
+                    majorContourPaint);
+            }
+
+            if (selectedArea != null)
+            {
+                renderCanvas.DrawRect(
+                    (SKRect)selectedArea,
+                    PaintObjects.LandformAreaSelectPaint);
+            }
+        }
+
+        /*
         public void RenderHeightMap(RealmStudioMap map, SKCanvas renderCanvas, SKRect? selectedArea)
         {
             MapLayer landformLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.LANDFORMLAYER);
@@ -133,5 +254,6 @@ namespace RealmStudioX.WPF.Editor.Services
                 renderCanvas.DrawRect((SKRect)selectedArea, PaintObjects.LandformAreaSelectPaint);
             }
         }
+        */
     }
 }

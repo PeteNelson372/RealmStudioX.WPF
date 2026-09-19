@@ -1688,7 +1688,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     {
                         if (landformLayer.Shapes[i] is Landform l)
                         {
-                            l.RenderLandformForHeightMap(currentMap, canvas);
+                            //l.RenderLandformForHeightMap(currentMap, canvas);
                         }
                     }
 

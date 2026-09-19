@@ -58,13 +58,15 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     }
                 }
             }
+
+
         }
 
         MapHeightMap? _currentHeightMap = null;
 
-        public void SetCurrentHeightMap()
+        public void SetCurrentHeightMap(RealmStudioMap map)
         {
-            MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.HEIGHTMAPLAYER);
+            MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.HEIGHTMAPLAYER);
 
             if (heightMapLayer.Shapes.Count > 0)
             {
@@ -77,6 +79,19 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 SelectedPalette = _currentHeightMap.HeightMapPalette;
 
                 _currentHeightMap.RebuildHypsometricColorLookup();
+            }
+
+            if (_currentHeightMap != null)
+            {
+                MapLayer landformLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.LANDFORMLAYER);
+
+                foreach (MapComponent2D shape in landformLayer.Shapes)
+                {
+                    if (shape is Landform landform)
+                    {
+                        landform.RebuildHeightMapBitmap(_currentHeightMap);
+                    }
+                }
             }
         }
 

@@ -5,6 +5,8 @@ using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
+using System.Collections;
+using Application = System.Windows.Application;
 
 namespace RealmStudioX.WPF.Editor.Tools
 {
@@ -43,6 +45,31 @@ namespace RealmStudioX.WPF.Editor.Tools
         private int _heightMapModBottom;
         private bool _heightMapHasModRegion;
 
+        // Separate region for the current mouse stroke. The render
+        // region may be consumed by the background worker before
+        // MouseUp, but the 3D terrain still needs the complete stroke.
+        private int _strokeModLeft;
+        private int _strokeModTop;
+        private int _strokeModRight;
+        private int _strokeModBottom;
+        private bool _strokeHasModRegion;
+
+        private readonly object _heightMapRenderLock = new();
+
+        private Task? _heightMapRenderTask;
+
+        private bool _heightMapRenderRequested;
+
+        private int _heightMapRenderGeneration;
+
+        private readonly List<Landform> _heightMapLandforms = [];
+
+        private readonly object _heightMapModifiedRegionLock = new();
+
+        private BitArray? _landformMask;
+        private int _landformMaskWidth;
+        private int _landformMaskHeight;
+
         public void Activate()
         {
             MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.HEIGHTMAPLAYER);
@@ -73,6 +100,31 @@ namespace RealmStudioX.WPF.Editor.Tools
                 LandformPanelViewModel.ClearHeightsOutsideLandforms(activeHeightMap.HeightMap, _mainViewModel.LandformViewModel.LandformBoundaries);
             }
 
+            _heightMapLandforms.Clear();
+
+            MapLayer landformLayer =
+                MapBuilder.GetMapLayerByIndex(
+                    _editor.Scene!.Map,
+                    MapBuilder.LANDFORMLAYER);
+
+            foreach (MapComponent2D shape in landformLayer.Shapes)
+            {
+                if (shape is Landform landform &&
+                    !landform.HitPath.IsEmpty)
+                {
+                    _heightMapLandforms.Add(landform);
+                }
+            }
+
+            if (activeHeightMap != null)
+            {
+                foreach (Landform landform in _heightMapLandforms)
+                {
+                    landform.RebuildHeightMapBitmap(activeHeightMap);
+                }
+            }
+
+            BuildLandformMask();
         }
 
         public void Cancel()
@@ -109,6 +161,8 @@ namespace RealmStudioX.WPF.Editor.Tools
             }
             else if (_editor.CurrentDrawingMode == MapDrawingMode.MapHeightSmooth)
             {
+                ResetHeightMapModifiedRegion();
+
                 _brushRadius = _mainViewModel.HeightMapViewModel.HeightMapBrushSize / 2.0f;
                 _smoothingStrength = _mainViewModel.HeightMapViewModel.SmoothingStrength / 100.0f;
 
@@ -127,36 +181,169 @@ namespace RealmStudioX.WPF.Editor.Tools
                 ApplySmoothingBrushAtPointer(state);
             }
         }
+        private void BuildLandformMask()
+        {
+            _landformMask = null;
+            _landformMaskWidth = 0;
+            _landformMaskHeight = 0;
+
+            RealmStudioMap? map =
+                _editor.Scene?.Map;
+
+            if (map == null ||
+                _heightMapLandforms.Count == 0)
+            {
+                return;
+            }
+
+            _landformMaskWidth =
+                map.MapWidth;
+
+            _landformMaskHeight =
+                map.MapHeight;
+
+            int pixelCount =
+                checked(
+                    _landformMaskWidth *
+                    _landformMaskHeight);
+
+            BitArray mask =
+                new(pixelCount);
+
+            /*
+             * Rasterize each landform once when the HeightMapTool
+             * becomes active. SKPath.Contains() is deliberately kept
+             * out of the painting hot path.
+             */
+            foreach (Landform landform in _heightMapLandforms)
+            {
+                landform.PerimeterPath.GetBounds(
+                    out SKRect bounds);
+
+                int left =
+                    Math.Max(
+                        0,
+                        (int)Math.Floor(bounds.Left));
+
+                int top =
+                    Math.Max(
+                        0,
+                        (int)Math.Floor(bounds.Top));
+
+                int right =
+                    Math.Min(
+                        _landformMaskWidth - 1,
+                        (int)Math.Ceiling(bounds.Right));
+
+                int bottom =
+                    Math.Min(
+                        _landformMaskHeight - 1,
+                        (int)Math.Ceiling(bounds.Bottom));
+
+                if (left > right ||
+                    top > bottom)
+                {
+                    continue;
+                }
+
+                for (int y = top;
+                     y <= bottom;
+                     y++)
+                {
+                    int rowIndex =
+                        y * _landformMaskWidth;
+
+                    for (int x = left;
+                         x <= right;
+                         x++)
+                    {
+                        int index =
+                            rowIndex + x;
+
+                        if (mask[index])
+                            continue;
+
+                        if (landform.PerimeterPath.Contains(x, y))
+                            mask[index] = true;
+                    }
+                }
+            }
+
+            _landformMask = mask;
+        }
+
+        public bool IsInsideLandform(int x, int y)
+        {
+            BitArray? mask = _landformMask;
+
+            if (mask == null)
+                return false;
+
+            if ((uint)x >= (uint)_landformMaskWidth ||
+                (uint)y >= (uint)_landformMaskHeight)
+            {
+                return false;
+            }
+
+            return mask[
+                y * _landformMaskWidth + x];
+        }
 
         public void ApplySmoothingBrushAtPointer(PointerState state)
         {
-            if (state.Button == EditorMouseButton.Left
-                && _editor.Scene != null
-                && activeHeightMap != null
-                && activeHeightMap.HeightMap != null)
+            if (state.Button != EditorMouseButton.Left ||
+                _editor.Scene == null ||
+                activeHeightMap == null ||
+                activeHeightMap.HeightMap == null)
             {
-                float[,]? heightMap = activeHeightMap.HeightMap;
-                int width = heightMap.GetLength(0);
-                int height = heightMap.GetLength(1);
-
-                SKBitmap? heightMapBitmap = activeHeightMap.HeightMapBitmap;
-
-                if (heightMapBitmap != null && heightMap != null)
-                {
-                    ApplySmoothingBrush(state.WorldPoint.X, state.WorldPoint.Y, _brushRadius, activeHeightMap.HeightMap, _smoothingStrength);
-
-                    int left = (int)Math.Max(1, state.WorldPoint.X - _brushRadius);
-                    int right = (int)Math.Min(width - 2, state.WorldPoint.X + _brushRadius);
-                    int top = (int)Math.Max(1, state.WorldPoint.Y - _brushRadius);
-                    int bottom = (int)Math.Min(height - 2, state.WorldPoint.Y + _brushRadius);
-
-                    activeHeightMap.UpdateHeightMapBitmap(heightMapBitmap, heightMap, left, top, right, bottom);
-
-                    activeHeightMap.InvalidateContours();
-
-                    AccumulateHeightMapModifiedRegion(left, top, right, bottom);
-                }
+                return;
             }
+
+            float[,] heightMap =
+                activeHeightMap.HeightMap;
+
+            int width =
+                heightMap.GetLength(0);
+
+            int height =
+                heightMap.GetLength(1);
+
+            ApplySmoothingBrush(
+                state.WorldPoint.X,
+                state.WorldPoint.Y,
+                _brushRadius,
+                heightMap,
+                _smoothingStrength);
+
+            int left =
+                (int)Math.Max(
+                    1,
+                    state.WorldPoint.X - _brushRadius);
+
+            int right =
+                (int)Math.Min(
+                    width - 2,
+                    state.WorldPoint.X + _brushRadius);
+
+            int top =
+                (int)Math.Max(
+                    1,
+                    state.WorldPoint.Y - _brushRadius);
+
+            int bottom =
+                (int)Math.Min(
+                    height - 2,
+                    state.WorldPoint.Y + _brushRadius);
+
+            activeHeightMap.InvalidateContours();
+
+            AccumulateHeightMapModifiedRegion(
+                left,
+                top,
+                right,
+                bottom);
+
+            RequestHeightMapRender();
         }
 
         public void ChangeHeightMapElevationAtPointer(PointerState state)
@@ -167,12 +354,33 @@ namespace RealmStudioX.WPF.Editor.Tools
             }
         }
 
-
-
         public void OnMouseUp(PointerState state)
         {
-            _activeTerrain?.UpdateRegion(_heightMapModLeft, _heightMapModTop, _heightMapModRight, _heightMapModBottom);
-            ResetHeightMapModifiedRegion();
+            int left;
+            int top;
+            int right;
+            int bottom;
+            bool hasRegion;
+
+            lock (_heightMapModifiedRegionLock)
+            {
+                left = _strokeModLeft;
+                top = _strokeModTop;
+                right = _strokeModRight;
+                bottom = _strokeModBottom;
+                hasRegion = _strokeHasModRegion;
+
+                _strokeHasModRegion = false;
+            }
+
+            if (hasRegion)
+            {
+                _activeTerrain?.UpdateRegion(
+                    left,
+                    top,
+                    right,
+                    bottom);
+            }
         }
 
         public void OnMouseWheel(PointerState state)
@@ -191,37 +399,416 @@ namespace RealmStudioX.WPF.Editor.Tools
         private void ApplyHeightMapBrush(PointerState state, MapHeightMap activeHeightMap, float heightChange, float brushRadius)
         {
             ChangeHeightMapAreaHeight(_editor.Scene!.Map, activeHeightMap, state.WorldPoint, brushRadius, heightChange);
-
-            _mainViewModel.CommandService.MarkMapModified();
         }
 
         private void ResetHeightMapModifiedRegion()
         {
-            _heightMapHasModRegion = false;
+            lock (_heightMapModifiedRegionLock)
+            {
+                _heightMapModLeft = 1;
+                _heightMapModTop = 1;
+                _heightMapModRight = 0;
+                _heightMapModBottom = 0;
+                _heightMapHasModRegion = false;
+
+                _strokeModLeft = 1;
+                _strokeModTop = 1;
+                _strokeModRight = 0;
+                _strokeModBottom = 0;
+                _strokeHasModRegion = false;
+            }
         }
 
-        internal void ChangeHeightMapAreaHeight(RealmStudioMap? map, MapHeightMap activeHeightMap, SKPoint mapPoint, float brushRadius, float changeAmount)
+        internal void ChangeHeightMapAreaHeight(
+            RealmStudioMap? map,
+            MapHeightMap activeHeightMap,
+            SKPoint mapPoint,
+            float brushRadius,
+            float changeAmount)
         {
             ArgumentNullException.ThrowIfNull(map);
 
-            float[,]? heightMap = activeHeightMap.HeightMap;
+            float[,]? heightMap =
+                activeHeightMap.HeightMap;
 
-            SKBitmap? heightMapBitmap = activeHeightMap.HeightMapBitmap;
+            if (heightMap == null)
+                return;
 
-            if (heightMapBitmap != null && heightMap != null)
+            ApplyHeightBrush(
+                mapPoint.X,
+                mapPoint.Y,
+                brushRadius,
+                heightMap,
+                changeAmount);
+
+            int left =
+                (int)Math.Max(
+                    1,
+                    mapPoint.X - brushRadius);
+
+            int right =
+                (int)Math.Min(
+                    map.MapWidth - 2,
+                    mapPoint.X + brushRadius);
+
+            int top =
+                (int)Math.Max(
+                    1,
+                    mapPoint.Y - brushRadius);
+
+            int bottom =
+                (int)Math.Min(
+                    map.MapHeight - 2,
+                    mapPoint.Y + brushRadius);
+
+            if (left > right || top > bottom)
+                return;
+
+            activeHeightMap.InvalidateContours();
+
+            /*
+             * Accumulate the changed region and increment the render
+             * generation under the same lock. This keeps the region
+             * and generation as one consistent render request.
+             */
+            AccumulateHeightMapModifiedRegion(
+                left,
+                top,
+                right,
+                bottom);
+
+            RequestHeightMapRender();
+        }
+
+        private void RequestHeightMapRender()
+        {
+            lock (_heightMapRenderLock)
             {
-                ApplyHeightBrush(mapPoint.X, mapPoint.Y, brushRadius, heightMap, changeAmount);
+                /*
+                 * Coalesce mouse-move requests into one worker. The worker
+                 * always renders the newest accumulated modified region.
+                 */
+                _heightMapRenderRequested = true;
 
-                int left = (int)Math.Max(1, mapPoint.X - brushRadius);
-                int right = (int)Math.Min(map.MapWidth - 2, mapPoint.X + brushRadius);
-                int top = (int)Math.Max(1, mapPoint.Y - brushRadius);
-                int bottom = (int)Math.Min(map.MapHeight - 2, mapPoint.Y + brushRadius);
+                if (_heightMapRenderTask != null &&
+                    !_heightMapRenderTask.IsCompleted)
+                {
+                    return;
+                }
 
-                activeHeightMap.UpdateHeightMapBitmap(heightMapBitmap, heightMap, left, top, right, bottom);
+                _heightMapRenderTask =
+                    Task.Run(ProcessHeightMapRenderQueue);
+            }
+        }
 
-                activeHeightMap.InvalidateContours();
+        private void ProcessHeightMapRenderQueue()
+        {
+            while (true)
+            {
+                lock (_heightMapRenderLock)
+                {
+                    if (!_heightMapRenderRequested)
+                    {
+                        _heightMapRenderTask = null;
+                        return;
+                    }
 
-                AccumulateHeightMapModifiedRegion(left, top, right, bottom);
+                    _heightMapRenderRequested = false;
+                }
+
+                if (!TryGetHeightMapRenderRequest(
+                        out SKRect modifiedRect,
+                        out int generation))
+                {
+                    continue;
+                }
+
+                RenderHeightMapPatches(
+                    generation,
+                    modifiedRect);
+            }
+        }
+
+        private void RenderHeightMapPatches(
+            int generation,
+            SKRect modifiedRect)
+        {
+            MapHeightMap? heightMap =
+                activeHeightMap;
+
+            if (heightMap == null ||
+                heightMap.HeightMap == null ||
+                modifiedRect.IsEmpty)
+            {
+                return;
+            }
+
+            List<HeightMapPatchResult> results = [];
+
+            try
+            {
+                foreach (Landform landform in _heightMapLandforms)
+                {
+                    /*
+                     * A patch is normally tiny. If the mouse has moved
+                     * while we are rendering, abandon this batch instead
+                     * of producing stale pixels.
+                     */
+                    if (generation !=
+                        Volatile.Read(
+                            ref _heightMapRenderGeneration))
+                    {
+                        DisposePatchResults(results);
+                        return;
+                    }
+
+                    landform.PerimeterPath.GetBounds(
+                        out SKRect landformBounds);
+
+                    if (!landformBounds.IntersectsWith(
+                            modifiedRect))
+                    {
+                        continue;
+                    }
+
+                    SKBitmap? patch =
+                        landform.CreateHeightMapPatch(
+                            heightMap,
+                            modifiedRect,
+                            out SKRect patchBounds);
+
+                    if (patch == null)
+                        continue;
+
+                    /*
+                     * The worker never modifies the bitmap currently being
+                     * displayed. It applies the patch to the Landform's
+                     * back buffer instead.
+                     */
+                    landform.ApplyHeightMapPatchToBackBuffer(
+                        patch,
+                        patchBounds);
+
+                    results.Add(
+                        new HeightMapPatchResult(
+                            landform,
+                            patch,
+                            patchBounds));
+                }
+
+                if (generation !=
+                    Volatile.Read(
+                        ref _heightMapRenderGeneration))
+                {
+                    DisposePatchResults(results);
+                    return;
+                }
+
+                InstallHeightMapPatchResults(
+                    results,
+                    generation);
+            }
+            catch
+            {
+                DisposePatchResults(results);
+                throw;
+            }
+        }
+
+        private bool TryGetHeightMapRenderRequest(
+            out SKRect modifiedRect,
+            out int generation)
+        {
+            lock (_heightMapModifiedRegionLock)
+            {
+                if (!_heightMapHasModRegion)
+                {
+                    modifiedRect = SKRect.Empty;
+
+                    generation =
+                        Volatile.Read(
+                            ref _heightMapRenderGeneration);
+
+                    return false;
+                }
+
+                modifiedRect = new SKRect(
+                    _heightMapModLeft,
+                    _heightMapModTop,
+                    _heightMapModRight + 1,
+                    _heightMapModBottom + 1);
+
+                generation =
+                    Volatile.Read(
+                        ref _heightMapRenderGeneration);
+
+                return true;
+            }
+        }
+
+        private void AccumulateHeightMapModifiedRegion(
+            int left,
+            int top,
+            int right,
+            int bottom)
+        {
+            lock (_heightMapModifiedRegionLock)
+            {
+                if (!_heightMapHasModRegion)
+                {
+                    _heightMapModLeft = left;
+                    _heightMapModTop = top;
+                    _heightMapModRight = right;
+                    _heightMapModBottom = bottom;
+                    _heightMapHasModRegion = true;
+                }
+                else
+                {
+                    _heightMapModLeft =
+                        Math.Min(
+                            _heightMapModLeft,
+                            left);
+
+                    _heightMapModTop =
+                        Math.Min(
+                            _heightMapModTop,
+                            top);
+
+                    _heightMapModRight =
+                        Math.Max(
+                            _heightMapModRight,
+                            right);
+
+                    _heightMapModBottom =
+                        Math.Max(
+                            _heightMapModBottom,
+                            bottom);
+                }
+
+                /*
+                 * Keep the generation synchronized with the modified
+                 * region. The worker captures both under this same lock.
+                 */
+                Interlocked.Increment(
+                    ref _heightMapRenderGeneration);
+
+                /*
+                 * The 3D terrain uses a separate stroke region. It is
+                 * intentionally not cleared when a 2D patch is installed.
+                 */
+                if (!_strokeHasModRegion)
+                {
+                    _strokeModLeft = left;
+                    _strokeModTop = top;
+                    _strokeModRight = right;
+                    _strokeModBottom = bottom;
+                    _strokeHasModRegion = true;
+                }
+                else
+                {
+                    _strokeModLeft =
+                        Math.Min(
+                            _strokeModLeft,
+                            left);
+
+                    _strokeModTop =
+                        Math.Min(
+                            _strokeModTop,
+                            top);
+
+                    _strokeModRight =
+                        Math.Max(
+                            _strokeModRight,
+                            right);
+
+                    _strokeModBottom =
+                        Math.Max(
+                            _strokeModBottom,
+                            bottom);
+                }
+            }
+        }
+
+        private static void DisposePatchResults(
+            List<HeightMapPatchResult> results)
+        {
+            foreach (HeightMapPatchResult result in results)
+            {
+                result.Patch.Dispose();
+            }
+        }
+
+        private void InstallHeightMapPatchResults(
+            List<HeightMapPatchResult> results,
+            int generation)
+        {
+            Application.Current.Dispatcher.BeginInvoke(() =>
+            {
+                /*
+                 * The UI thread gets the final say. If the user moved the
+                 * mouse since this batch was rendered, none of these
+                 * patches are allowed to reach the displayed bitmaps.
+                 */
+                if (generation !=
+                    Volatile.Read(
+                        ref _heightMapRenderGeneration))
+                {
+                    DisposePatchResults(results);
+                    RequestHeightMapRender();
+                    return;
+                }
+
+                foreach (HeightMapPatchResult result in results)
+                {
+                    result.Landform.CommitHeightMapPatch(
+                        result.Patch,
+                        result.PatchBounds);
+
+                    result.Patch.Dispose();
+                }
+
+                results.Clear();
+
+                /*
+                 * Consume the rendered region only if no newer height
+                 * modification has occurred. The stroke region remains
+                 * untouched for the 3D terrain update on MouseUp.
+                 */
+                lock (_heightMapModifiedRegionLock)
+                {
+                    if (generation ==
+                        Volatile.Read(
+                            ref _heightMapRenderGeneration))
+                    {
+                        _heightMapHasModRegion = false;
+
+                        _heightMapModLeft = 1;
+                        _heightMapModTop = 1;
+                        _heightMapModRight = 0;
+                        _heightMapModBottom = 0;
+                    }
+                }
+
+                _editor.RequestRedraw();
+            });
+        }
+
+        private sealed class HeightMapPatchResult
+        {
+            public Landform Landform { get; }
+
+            public SKBitmap Patch { get; }
+
+            public SKRect PatchBounds { get; }
+
+            public HeightMapPatchResult(
+                Landform landform,
+                SKBitmap patch,
+                SKRect patchBounds)
+            {
+                Landform = landform;
+                Patch = patch;
+                PatchBounds = patchBounds;
             }
         }
 
@@ -232,68 +819,74 @@ namespace RealmStudioX.WPF.Editor.Tools
             float[,] heightMap,
             float changeAmount)
         {
+            BitArray? landformMask = _landformMask;
+
+            if (landformMask == null)
+                return;
+
             int width = heightMap.GetLength(0);
             int height = heightMap.GetLength(1);
 
-            float radiusSquared = radius * radius;
+            float radiusSquared =
+                radius * radius;
 
-            int left = (int)Math.Max(1, centerX - radius);
-            int right = (int)Math.Min(width - 2, centerX + radius);
-            int top = (int)Math.Max(1, centerY - radius);
-            int bottom = (int)Math.Min(height - 2, centerY + radius);
+            int left =
+                (int)Math.Max(
+                    1,
+                    centerX - radius);
+
+            int right =
+                (int)Math.Min(
+                    width - 2,
+                    centerX + radius);
+
+            int top =
+                (int)Math.Max(
+                    1,
+                    centerY - radius);
+
+            int bottom =
+                (int)Math.Min(
+                    height - 2,
+                    centerY + radius);
 
             for (int y = top; y <= bottom; y++)
             {
-                float dy = y - centerY;
-                float dySquared = dy * dy;
+                float dy =
+                    y - centerY;
+
+                float dySquared =
+                    dy * dy;
+
+                int rowIndex =
+                    y * width;
 
                 for (int x = left; x <= right; x++)
                 {
-                    if (!_mainViewModel.LandformViewModel.IsInsideLandform(x, y))
-                        continue;
-
-                    float dx = x - centerX;
+                    float dx =
+                        x - centerX;
 
                     float distanceSquared =
                         dx * dx + dySquared;
 
-                    if (distanceSquared > radiusSquared)
+                    if (distanceSquared >
+                        radiusSquared)
+                    {
+                        continue;
+                    }
+
+                    if (!landformMask[rowIndex + x])
                         continue;
 
-                    // Full strength at the center, falling smoothly
-                    // to zero at the edge of the brush.
                     float falloff =
-                        1.0f - distanceSquared / radiusSquared;
+                        1.0f -
+                        distanceSquared /
+                        radiusSquared;
 
                     heightMap[x, y] +=
                         changeAmount * falloff;
                 }
             }
-        }
-
-        private void AccumulateHeightMapModifiedRegion(
-            int left,
-            int top,
-            int right,
-            int bottom)
-        {
-            if (!_heightMapHasModRegion)
-            {
-                _heightMapModLeft = left;
-                _heightMapModTop = top;
-                _heightMapModRight = right;
-                _heightMapModBottom = bottom;
-                _heightMapHasModRegion = true;
-                return;
-            }
-
-            _heightMapModLeft = Math.Min(_heightMapModLeft, left);
-
-            _heightMapModTop = Math.Min(_heightMapModTop, top);
-
-            _heightMapModRight = Math.Max(_heightMapModRight, right);
-
-            _heightMapModBottom = Math.Max(_heightMapModBottom, bottom);
         }
 
         private void ApplySmoothingBrush(
@@ -303,6 +896,11 @@ namespace RealmStudioX.WPF.Editor.Tools
             float[,] heightMap,
             float smoothingStrength)
         {
+            BitArray? landformMask = _landformMask;
+
+            if (landformMask == null)
+                return;
+
             int width = heightMap.GetLength(0);
             int height = heightMap.GetLength(1);
 
@@ -376,7 +974,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                 for (int x = left; x <= right; x++)
                 {
-                    if (!_mainViewModel.LandformViewModel.IsInsideLandform(x, y))
+                    if (!landformMask[y * width + x])
                         continue;
 
                     float dx = x - centerX;

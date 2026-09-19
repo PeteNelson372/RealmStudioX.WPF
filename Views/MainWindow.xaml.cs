@@ -14,6 +14,7 @@ using RealmStudioX.WPF.Views.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -583,6 +584,9 @@ namespace RealmStudioX.WPF
 
         }
 
+
+        private Stopwatch _paintStopwatch = Stopwatch.StartNew();
+
         private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
         {
             ArgumentNullException.ThrowIfNull(_skiaControl);
@@ -609,17 +613,25 @@ namespace RealmStudioX.WPF
 
                         if (ViewModel.RenderHeightMap)
                         {
-                            e.Surface.Canvas.Clear(SKColors.Black);
+                            // render the map as a heightmap
+                            canvas.Clear(SKColors.Black);
 
                             // render the height map
                             ViewModel.HeightMapManager.RenderHeightMap(_editor.Scene.Map,
-                                e.Surface.Canvas,
+                                canvas,
                                 ViewModel.SelectionService.SelectedArea);
+
+                            // render the heightmap overlay here
+                            //if (ViewModel.HeightMapViewModel.OverlayEnabled)
+                            //{
+                               //_editor.Scene.RenderHeightMapOverlay(canvas);
+                            //}
 
                             _editor.RenderOverlay(canvas);
                         }
                         else
                         {
+                            // render the map normally
                             _editor.Scene.Render(canvas);
 
                             _editor.RenderOverlay(canvas);

@@ -103,9 +103,23 @@ namespace RealmStudioX.WPF.Editor.Tools
         {
             if (state.Button == EditorMouseButton.Left)
             {
-                if (_editor.CurrentDrawingMode == MapDrawingMode.LandPaint && _activeModifyCommand != null)
+                MapLayer landLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.LANDFORMLAYER);
+                MapLayer landDrawingLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.LANDDRAWINGLAYER);
+
+                if (_editor.CurrentDrawingMode == MapDrawingMode.LandPaint && _activeModifyCommand != null && _activeLandform != null)
                 {
-                    EndPaint();
+                    //EndPaint();
+
+                    _activeLandform.EndStroke();
+
+                    MergeOverlappingLandforms();
+
+                    _activeLandform.EndInteractive();
+
+                    _editor.Scene!.MarkLandClipPathModified();
+
+                    landLayer.InvalidateTiles(_activeLandform.Bounds);
+                    landDrawingLayer.InvalidateTiles(_activeLandform.Bounds);
 
                     foreach (var lf in _modifiedLandforms)
                     {
@@ -113,6 +127,10 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                         var simplified = RealmStudioShapeRenderingLib.Utilities.SimplifyPath(lf.HitPath);
                         lf.ReplaceGeometry(simplified);
+
+                        landLayer.InvalidateTiles(lf.Bounds);
+                        landDrawingLayer.InvalidateTiles(lf.Bounds);
+
                     }
 
                     _commands.Execute(_activeModifyCommand);
@@ -126,6 +144,9 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                         // Process splitting
                         ProcessPotentialSplit(lf);
+
+                        landLayer.InvalidateTiles(lf.Bounds);
+                        landDrawingLayer.InvalidateTiles(lf.Bounds);
                     }
 
                     _commands.Execute(_activeModifyCommand);
@@ -479,10 +500,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                 var brushRadius = _editor.CurrentDrawingMode
                     == MapDrawingMode.LandErase ? _landformSettings.LandformEraserSize / 2 : _landformSettings.LandformBrushSize / 2;
 
-                canvas.DrawCircle(
-                    world,
-                    brushRadius,
-                    PaintObjects.CursorCirclePaint);
+                canvas.DrawCircle(world, brushRadius, PaintObjects.CursorCirclePaint);
             }
         }
 

@@ -15,7 +15,6 @@ using RealmStudioX.WPF.ViewModels.Dialogs;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Panels;
 using RealmStudioX.WPF.Views.Dialogs;
-using RealmStudioX.WPF.Views.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
 using System.IO;
@@ -309,6 +308,17 @@ namespace RealmStudioX.WPF.ViewModels.Main
                     return;
 
                 _renderHeightMap = value;
+
+                if (_renderHeightMap)
+                {
+                    // build the heightmap overlay
+                    Editor.Scene?.BuildHeightMapOverlay();
+                }
+                else
+                {
+                    Editor.Scene?.ClearHeightMapOverlay();
+                }
+
                 OnPropertyChanged();
             }
         }
@@ -1926,7 +1936,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
             SelectionService.ClearSelection();
             SelectedTabIndex = 1;
 
-            HeightMapViewModel.SetCurrentHeightMap();
+            HeightMapViewModel.SetCurrentHeightMap(map);
 
             _editor.State.StatusMessage = $"Map {map.MapName} opened.";
 
@@ -1941,7 +1951,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
             // go through the map and load textures and bitmaps, etc.
             // load shape assets
             AssetInitializer.InitializeMapShapeAssets(map, _assetManager, _fontManager);
-            bool addHeightMap = false;
+            bool addHeightMap = true;
 
             MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.HEIGHTMAPLAYER);
 
@@ -1986,6 +1996,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
                         {
                             hm.RebuildHypsometricColorLookup();
                         }
+
+                        addHeightMap = false;
 
                         heightMapLayer.RebuildIndexes();
                     }
