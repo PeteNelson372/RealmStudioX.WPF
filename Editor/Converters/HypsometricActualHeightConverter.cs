@@ -27,15 +27,19 @@ namespace RealmStudioX.WPF.Editor.Converters
 
             if (normalizedHeight < 0.0f)
             {
-                actualHeight =
-                    normalizedHeight *
-                    MathF.Abs(minimumHeight);
+                // There is no negative elevation range.
+                if (minimumHeight >= 0.0f)
+                    actualHeight = 0.0f;
+                else
+                    actualHeight = normalizedHeight * MathF.Abs(minimumHeight);
             }
             else
             {
-                actualHeight =
-                    normalizedHeight *
-                    maximumHeight;
+                // There is no positive elevation range.
+                if (maximumHeight <= 0.0f)
+                    actualHeight = 0.0f;
+                else
+                    actualHeight = normalizedHeight * maximumHeight;
             }
 
             return $"{actualHeight:0.##}";

@@ -131,27 +131,12 @@
     <PackageReference Include="MaterialDesignThemes" Version="5.3.2" />
     <PackageReference Include="SharpVectors.Wpf" Version="1.8.6" />
     <PackageReference Include="SimplexNoise" Version="2.0.0" />
-    <PackageReference Include="SkiaSharp" Version="4.152.0" />
-    <PackageReference Include="SkiaSharp.Views" Version="4.152.0" />
-    <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="4.152.0" />
-    <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="4.152.0" />
-    <PackageReference Include="SkiaSharp.Views.WPF" Version="4.152.0" />
+    <PackageReference Include="SkiaSharp" Version="4.152.1" />
+    <PackageReference Include="SkiaSharp.Views" Version="4.152.1" />
+    <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="4.152.1" />
+    <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="4.152.1" />
+    <PackageReference Include="SkiaSharp.Views.WPF" Version="4.152.1" />
     <PackageReference Include="Svg.Skia" Version="5.2.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="RealmStudioShapeRenderingLib">
-      <HintPath>..\RealmStudioShapeRenderingLib\bin\Debug\net8.0\RealmStudioShapeRenderingLib.dll</HintPath>
-    </Reference>
-    <Reference Include="RealmStudioX.3D">
-      <HintPath>..\RealmStudioX.3D\obj\Debug\net8.0-windows\RealmStudioX.3D.dll</HintPath>
-    </Reference>
-    <Reference Include="RealmStudioX.Core">
-      <HintPath>..\RealmStudioX.Core\bin\Debug\net8.0\RealmStudioX.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="RealmStudioX.Infrastructure">
-      <HintPath>..\RealmStudioX.Infrastructure\bin\Debug\net8.0\RealmStudioX.Infrastructure.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>
@@ -370,6 +355,14 @@
 
   <ItemGroup>
     <Folder Include="Editor\Controls\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RealmStudioImageAnalysisLib\RealmStudioImageAnalysisLib.csproj" />
+    <ProjectReference Include="..\RealmStudioShapeRenderingLib\RealmStudioShapeRenderingLib.csproj" />
+    <ProjectReference Include="..\RealmStudioX.3D\RealmStudioX.3D.csproj" />
+    <ProjectReference Include="..\RealmStudioX.Core\RealmStudioX.Core.csproj" />
+    <ProjectReference Include="..\RealmStudioX.Infrastructure\RealmStudioX.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

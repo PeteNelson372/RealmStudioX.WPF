@@ -21,6 +21,10 @@
             
             <Separator/>
 
+            <MenuItem Header="_Import Landforms from Image..." Command="{Binding ImportLandformFromImageCommand}"/>
+
+            <Separator/>
+            
             <MenuItem Header="E_xit" Command="{Binding ExitCommand}"/>
 
         </MenuItem>
@@ -40,7 +44,6 @@
             <MenuItem Header="Selected _Object Properties" Command="{Binding OpenObjectPropertiesDialogCommand}"/>
             <MenuItem Header="Change Map _Size" Command="{Binding ChangeMapSizeCommand}"/>
             <MenuItem Header="Create _Detail Map" Command="{Binding CreateDetailMapCommand}"/>
-            <MenuItem Header="_Trace Outline" Command="{Binding TraceOutlineCommand}"/>
             <Separator/>
             <MenuItem Header="Display _Height Map" Command="{Binding DisplayHeightMapCommand}" IsCheckable="True" IsChecked="{Binding RenderHeightMap, Mode=OneWay}"/>
             <MenuItem Header="Select _Height Map Color Palette..." Command="{Binding SelectHeightMapPaletteCommand}"/>

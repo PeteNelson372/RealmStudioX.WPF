@@ -28,6 +28,21 @@
                 <TextBlock
                     HorizontalAlignment="Left"
                     Margin="5,10,0,3">
+                    <Run Text="Show Map Objects"/>
+
+                </TextBlock>
+
+                <CheckBox x:Name="ShowMapObjectsToggle"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Margin="10,10,0,3"
+                        IsChecked="{Binding OverlayEnabled, Mode=TwoWay}"
+                        Style="{StaticResource ToggleSwitchStyle}"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+                
+                <TextBlock
+                    HorizontalAlignment="Left"
+                    Margin="5,10,0,3">
                     <Run Text="Show Contour Lines"/>
 
                 </TextBlock>

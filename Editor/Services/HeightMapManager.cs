@@ -1,7 +1,9 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.WPF.ViewModels.Dialogs;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
+using System.Collections;
 
 namespace RealmStudioX.WPF.Editor.Services
 {
@@ -9,12 +11,21 @@ namespace RealmStudioX.WPF.Editor.Services
     {
         private HeightMapPanelViewModel heightMapViewModel;
 
+        private BitArray? _landformMask;
+        public BitArray? LandformMask => _landformMask;
+
+        private int _landformMaskWidth;
+        public int LandformMaskWidth => _landformMaskWidth;
+
+        private int _landformMaskHeight;
+        public int LandformMaskHeight => _landformMaskHeight;
+
         public HeightMapManager(HeightMapPanelViewModel heightMapViewModel)
         {
             this.heightMapViewModel = heightMapViewModel;
         }
 
-        public static void AddMapImagesToHeightMapLayer(RealmStudioMap map)
+        public static MapHeightMap AddHeightMapToHeightMapLayer(RealmStudioMap map)
         {
             MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.HEIGHTMAPLAYER);
 
@@ -34,13 +45,15 @@ namespace RealmStudioX.WPF.Editor.Services
 
             if (heightMap == null)
             {
-                MapHeightMap newHeightMap = CreateHeightMap(map.MapWidth, map.MapHeight);
-                heightMapLayer.Add(newHeightMap);
+                heightMap = CreateHeightMap(map.MapWidth, map.MapHeight);
+                heightMapLayer.Add(heightMap);
             }
             else
             {
                 heightMapLayer.Add(heightMap);
             }
+
+            return heightMap;
         }
 
         public static MapHeightMap CreateHeightMap(int width, int height)
@@ -192,68 +205,122 @@ namespace RealmStudioX.WPF.Editor.Services
             }
         }
 
-        /*
-        public void RenderHeightMap(RealmStudioMap map, SKCanvas renderCanvas, SKRect? selectedArea)
+        internal void InitializeHeightMapPanel(RealmStudioMap map, HypsometricPalette selectedPalette)
         {
-            MapLayer landformLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.LANDFORMLAYER);
-            MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.HEIGHTMAPLAYER);
+            MapHeightMap heightMap = AddHeightMapToHeightMapLayer(map);
 
-            if (heightMapLayer.Shapes.Count == 0)
+            // set the height map palette
+            SetHeightMapPalette(map, selectedPalette);
+
+            MapLayer landformLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.LANDFORMLAYER);
+
+            heightMap.RebuildHypsometricColorLookup();
+
+            foreach (MapComponent2D shape in landformLayer.Shapes)
+            {
+                if (shape is Landform landform)
+                {
+                    landform.RebuildHeightMapBitmap(heightMap);
+                }
+            }
+
+            BuildLandformMask(map);
+        }
+
+        private void BuildLandformMask(RealmStudioMap map)
+        {
+            _landformMask = null;
+            _landformMaskWidth = 0;
+            _landformMaskHeight = 0;
+
+            MapLayer landformLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.LANDFORMLAYER);
+
+            if (map == null ||
+                landformLayer.Shapes.Count == 0)
             {
                 return;
             }
 
-            MapHeightMap? heightMap = (MapHeightMap)heightMapLayer.Shapes[0];
+            _landformMaskWidth =
+                map.MapWidth;
 
-            renderCanvas.DrawRect(new SKRect(1, 1, map.MapWidth, map.MapHeight), PaintObjects.LandformAreaSelectPaint);
+            _landformMaskHeight =
+                map.MapHeight;
 
-            SKPathBuilder pathBuilder = new();
+            int pixelCount =
+                checked(
+                    _landformMaskWidth *
+                    _landformMaskHeight);
 
-            for (int i = 0; i < landformLayer.Shapes.Count; i++)
+            BitArray mask =
+                new(pixelCount);
+
+            /*
+             * Rasterize each landform once when the HeightMapTool
+             * becomes active. SKPath.Contains() is deliberately kept
+             * out of the painting hot path.
+             */
+            foreach (MapComponent2D shape in landformLayer.Shapes)
             {
-                if (landformLayer.Shapes[i] is Landform l)
+                if (shape is not Landform landform)
                 {
-                    l.RenderLandformForHeightMap(map, renderCanvas);
-                    pathBuilder.AddPath(l.PerimeterPath);
+                    continue;
+                }
+
+                landform.PerimeterPath.GetBounds(
+                    out SKRect bounds);
+
+                int left =
+                    Math.Max(
+                        0,
+                        (int)Math.Floor(bounds.Left));
+
+                int top =
+                    Math.Max(
+                        0,
+                        (int)Math.Floor(bounds.Top));
+
+                int right =
+                    Math.Min(
+                        _landformMaskWidth - 1,
+                        (int)Math.Ceiling(bounds.Right));
+
+                int bottom =
+                    Math.Min(
+                        _landformMaskHeight - 1,
+                        (int)Math.Ceiling(bounds.Bottom));
+
+                if (left > right ||
+                    top > bottom)
+                {
+                    continue;
+                }
+
+                for (int y = top;
+                     y <= bottom;
+                     y++)
+                {
+                    int rowIndex =
+                        y * _landformMaskWidth;
+
+                    for (int x = left;
+                         x <= right;
+                         x++)
+                    {
+                        int index =
+                            rowIndex + x;
+
+                        if (mask[index])
+                            continue;
+
+                        if (landform.PerimeterPath.Contains(x, y))
+                            mask[index] = true;
+                    }
                 }
             }
 
-            renderCanvas.ClipPath(pathBuilder.Snapshot());
-
-            pathBuilder.Detach();
-            pathBuilder.Dispose();
-
-            if (heightMapViewModel.ShowContourLines)
-            {
-                using SKPaint ContourPaint = new()
-                {
-                    Style = SKPaintStyle.Stroke,
-                    Color = heightMapViewModel.LineColor.ToSKColor(),
-                    StrokeWidth = heightMapViewModel.ContourLineWidth,
-                    IsAntialias = true
-                };
-
-                using SKPaint MajorContourPaint = new()
-                {
-                    Style = SKPaintStyle.Stroke,
-                    Color = heightMapViewModel.MajorLineColor.ToSKColor(),
-                    StrokeWidth = heightMapViewModel.MajorLineWidth,
-                    IsAntialias = true
-                };
-
-                heightMap.RenderContours(
-                    renderCanvas,
-                    heightMapViewModel.ContourInterval,
-                    heightMapViewModel.MajorContourInterval,
-                    ContourPaint,
-                    MajorContourPaint);
-            }
-
-            if (selectedArea != null)
-            {
-                renderCanvas.DrawRect((SKRect)selectedArea, PaintObjects.LandformAreaSelectPaint);
-            }
+            _landformMask = mask;
         }
-        */
+
     }
 }

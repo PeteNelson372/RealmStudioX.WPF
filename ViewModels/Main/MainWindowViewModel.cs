@@ -1,4 +1,6 @@
-﻿using RealmStudioShapeRenderingLib;
+﻿using OpenTK;
+using RealmStudioImageAnalysisLib;
+using RealmStudioShapeRenderingLib;
 using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
@@ -675,17 +677,32 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         });
 
+        public ICommand ImportLandformFromImageCommand => new RelayCommand(() =>
+        {
+            string imageFile = UserInterfaceUtilities.SelectBitmapFile();
+
+            ImageLandformAnalyzer analyzer = new();
+            ImageAnalysisResult analyzedImage = analyzer.Analyze(imageFile);
+        });
+        
+
         public ICommand DisplayHeightMapCommand => new RelayCommand(() =>
         {
             RenderHeightMap = !RenderHeightMap;
 
             if (RenderHeightMap && _editor.Scene != null && HeightMapViewModel.SelectedPalette != null)
             {
-                _editor.SetDrawingMode(MapDrawingMode.HeightMapPaint);
-                HeightMapManager.AddMapImagesToHeightMapLayer(_editor.Scene.Map);
+                try
+                {
+                    Mouse.OverrideCursor = Cursors.Wait;
+                    _editor.SetDrawingMode(MapDrawingMode.HeightMapPaint);
 
-                // set the height map palette
-                HeightMapManager.SetHeightMapPalette(_editor.Scene.Map, HeightMapViewModel.SelectedPalette);
+                    HeightMapManager.InitializeHeightMapPanel(_editor.Scene.Map, HeightMapViewModel.SelectedPalette);
+                }
+                finally
+                {
+                    Mouse.OverrideCursor = null;
+                }
             }
         });
 
@@ -1905,42 +1922,53 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public void OpenMap(RealmStudioProject project, RealmStudioMap map)
         {
-            InitializeScene(map);
-
-            MapName = project.Metadata.ProjectName + ": " + map.MapName;
-            MapSizeLabel = $"Map Size: {map.MapWidth} x {map.MapHeight}, Map Area: {map.MapAreaWidth} x {map.MapAreaHeight} {map.MapAreaUnits}";
-
-            ScaleViewModel.UnitLabel = map.MapAreaUnits;
-            ScaleViewModel.FontStyle = new FontStyleModel
+            try
             {
-                Family = "Segoe UI",
-                Size = 14,
-            };
+                _editor.State.StatusMessage = $"Opening Map {map.MapName}.";
 
-            FinalizeMapLoad(map);
+                Mouse.OverrideCursor = Cursors.Wait;
 
-            _editor.Scene!.MarkLandClipPathModified();
-            _editor.Scene!.MarkWaterSystemClipPathModified();
+                InitializeScene(map);
 
-            PaintService.SetMapDimensions(map.MapWidth, map.MapHeight);
+                MapName = project.Metadata.ProjectName + ": " + map.MapName;
+                MapSizeLabel = $"Map Size: {map.MapWidth} x {map.MapHeight}, Map Area: {map.MapAreaWidth} x {map.MapAreaHeight} {map.MapAreaUnits}";
 
-            _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.DRAWINGLAYER));
-            
-            _editor.SetDrawingMode(MapDrawingMode.None);
+                ScaleViewModel.UnitLabel = map.MapAreaUnits;
+                ScaleViewModel.FontStyle = new FontStyleModel
+                {
+                    Family = "Segoe UI",
+                    Size = 14,
+                };
 
-            _editor.Commands.ClearAll();
+                FinalizeMapLoad(map);
 
-            RecoveryService.SelectedProject = project;
-            RecoveryService.SelectedMap = map;
+                _editor.Scene!.MarkLandClipPathModified();
+                _editor.Scene!.MarkWaterSystemClipPathModified();
 
-            SelectionService.ClearSelection();
-            SelectedTabIndex = 1;
+                PaintService.SetMapDimensions(map.MapWidth, map.MapHeight);
 
-            HeightMapViewModel.SetCurrentHeightMap(map);
+                _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.DRAWINGLAYER));
 
-            _editor.State.StatusMessage = $"Map {map.MapName} opened.";
+                _editor.SetDrawingMode(MapDrawingMode.None);
 
-            _editor.RequestRedraw();
+                _editor.Commands.ClearAll();
+
+                RecoveryService.SelectedProject = project;
+                RecoveryService.SelectedMap = map;
+
+                SelectionService.ClearSelection();
+                SelectedTabIndex = 1;
+
+                HeightMapViewModel.SetCurrentHeightMap(map);
+
+                _editor.State.StatusMessage = $"Map {map.MapName} opened.";
+
+                _editor.RequestRedraw();
+            }
+            finally
+            {
+                Mouse.OverrideCursor = null;
+            }
         }
 
         public void FinalizeMapLoad(RealmStudioMap map)
@@ -1958,6 +1986,9 @@ namespace RealmStudioX.WPF.ViewModels.Main
             // finalize the geometry of the shapes
             foreach (MapLayer layer in map.MapLayers)
             {
+                // set the LayerRect correcly
+                layer.LayerRect = new SKRect(0, 0, map.MapWidth, map.MapHeight);
+
                 foreach (MapComponent2D shape  in layer.Shapes)
                 {
                     shape.FinalizeShapeGeometry(map);

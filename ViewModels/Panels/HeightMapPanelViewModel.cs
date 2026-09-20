@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
+using Cursors = System.Windows.Input.Cursors;
 
 namespace RealmStudioX.WPF.ViewModels.Panels
 {
@@ -76,22 +77,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 MaximumElevation = _currentHeightMap.MaximumElevation;
                 ElevationUnit = _currentHeightMap.ElevationUnit;
 
-                SelectedPalette = _currentHeightMap.HeightMapPalette;
-
-                _currentHeightMap.RebuildHypsometricColorLookup();
-            }
-
-            if (_currentHeightMap != null)
-            {
-                MapLayer landformLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.LANDFORMLAYER);
-
-                foreach (MapComponent2D shape in landformLayer.Shapes)
-                {
-                    if (shape is Landform landform)
-                    {
-                        landform.RebuildHeightMapBitmap(_currentHeightMap);
-                    }
-                }
+                SelectedPalette = _currentHeightMap.HeightMapPalette;                
             }
         }
 
@@ -306,14 +292,31 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         {
             if (_mainViewModel.RenderHeightMap && _editor.Scene != null && _currentHeightMap != null)
             {
-                HeightMapDXModelViewer heightMap3DViewer = new(_mainViewModel, _currentHeightMap,
-                    MinimumElevation,
-                    MaximumElevation,
-                    ElevationScale);
+                try
+                {
+                    Mouse.OverrideCursor = Cursors.Wait;
 
-                heightMap3DViewer.Show();
+                    HeightMapDXModelViewer heightMap3DViewer = new(_mainViewModel, _currentHeightMap,
+                        MinimumElevation,
+                        MaximumElevation,
+                        ElevationScale);
+
+                    heightMap3DViewer.Show();
+                }
+                finally
+                {
+                    Mouse.OverrideCursor = null;
+                }
             }
         });
+
+        private bool _overlayEnabled = true;
+        public bool OverlayEnabled
+        {
+            get => _overlayEnabled;
+            set => SetProperty(ref _overlayEnabled, value);
+        }
+
 
         //
         // contour lines

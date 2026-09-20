@@ -2,7 +2,6 @@
 using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX._3D.Views.Controls;
 using RealmStudioX.WPF.Editor.UserInterface;
-using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.Views.Dialogs;
 using System.Windows.Input;

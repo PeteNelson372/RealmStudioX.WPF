@@ -79,9 +79,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             {
                 if (shape is Landform landform)
                 {
-                    SKPath perimeter = landform.PerimeterPath;
-
-                    _landformBoundaries.Add(new LandformBoundary(perimeter, perimeter.Bounds));
+                    _landformBoundaries.Add(new LandformBoundary(landform.PerimeterPath, landform.PerimeterPath.Bounds));
                 }
             }
         }

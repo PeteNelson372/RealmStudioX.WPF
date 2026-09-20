@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="../RealmStudioImageAnalysisLib/RealmStudioImageAnalysisLib.csproj" Id="028592d7-1b9a-44a5-b706-a0ce13a47539" />
+  <Project Path="../RealmStudioShapeRenderingLib/RealmStudioShapeRenderingLib.csproj" />
+  <Project Path="../RealmStudioX.3D/RealmStudioX.3D.csproj" />
+  <Project Path="../RealmStudioX.Core/RealmStudioX.Core.csproj" />
+  <Project Path="../RealmStudioX.Infrastructure/RealmStudioX.Infrastructure.csproj" />
+  <Project Path="RealmStudioX.WPF.csproj" />
+</Solution>

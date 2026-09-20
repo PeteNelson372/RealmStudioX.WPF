@@ -270,7 +270,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                     {
                         if (_editor.ActiveEditorTool is not HeightMapTool)
                         {
-                            tool = new HeightMapTool(_editor, _heightMapManager, _mainWindowViewModel);
+                            tool = new HeightMapTool(_editor, _mainWindowViewModel);
                             return tool;
                         }
                         else

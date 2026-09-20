@@ -584,9 +584,6 @@ namespace RealmStudioX.WPF
 
         }
 
-
-        private Stopwatch _paintStopwatch = Stopwatch.StartNew();
-
         private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
         {
             ArgumentNullException.ThrowIfNull(_skiaControl);
@@ -622,10 +619,10 @@ namespace RealmStudioX.WPF
                                 ViewModel.SelectionService.SelectedArea);
 
                             // render the heightmap overlay here
-                            //if (ViewModel.HeightMapViewModel.OverlayEnabled)
-                            //{
-                               //_editor.Scene.RenderHeightMapOverlay(canvas);
-                            //}
+                            if (ViewModel.HeightMapViewModel.OverlayEnabled)
+                            {
+                               _editor.Scene.RenderHeightMapOverlay(canvas);
+                            }
 
                             _editor.RenderOverlay(canvas);
                         }

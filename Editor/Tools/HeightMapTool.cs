@@ -1,19 +1,17 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX._3D.Models;
 using RealmStudioX.Core;
-using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using System.Collections;
+using System.Windows.Input;
 using Application = System.Windows.Application;
+using Cursors = System.Windows.Input.Cursors;
 
 namespace RealmStudioX.WPF.Editor.Tools
 {
-    internal class HeightMapTool(
-            EditorController editor,
-            HeightMapManager heightMapManager,
-            MainWindowViewModel mainViewModel) : IToolEditor, IDisposable
+    internal class HeightMapTool(EditorController editor, MainWindowViewModel mainViewModel) : IToolEditor, IDisposable
     {
         private bool disposedValue;
         // -------------------------------------------------
@@ -21,7 +19,6 @@ namespace RealmStudioX.WPF.Editor.Tools
         // -------------------------------------------------
 
         private readonly EditorController _editor = editor;
-        private readonly HeightMapManager _heightMapManager = heightMapManager;
         private readonly MainWindowViewModel _mainViewModel = mainViewModel;
 
         private MapHeightMap? activeHeightMap;
@@ -66,65 +63,60 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         private readonly object _heightMapModifiedRegionLock = new();
 
-        private BitArray? _landformMask;
-        private int _landformMaskWidth;
-        private int _landformMaskHeight;
-
         public void Activate()
         {
-            MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.HEIGHTMAPLAYER);
-
-            foreach (MapComponent2D mc2d in heightMapLayer.Shapes)
+            try
             {
-                if (mc2d is MapHeightMap mhm)
+                Mouse.OverrideCursor = Cursors.Wait;
+
+                MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.HEIGHTMAPLAYER);
+
+                foreach (MapComponent2D mc2d in heightMapLayer.Shapes)
                 {
-                    activeHeightMap = mhm;
+                    if (mc2d is MapHeightMap mhm)
+                    {
+                        activeHeightMap = mhm;
 
-                    activeHeightMap.MinimumElevation = _mainViewModel.HeightMapViewModel.MinimumElevation;
-                    activeHeightMap.MaximumElevation = _mainViewModel.HeightMapViewModel.MaximumElevation;
-                    activeHeightMap.HeightMapPalette = _mainViewModel.HeightMapViewModel.SelectedPalette;
+                        activeHeightMap.MinimumElevation = _mainViewModel.HeightMapViewModel.MinimumElevation;
+                        activeHeightMap.MaximumElevation = _mainViewModel.HeightMapViewModel.MaximumElevation;
+                        activeHeightMap.HeightMapPalette = _mainViewModel.HeightMapViewModel.SelectedPalette;
 
-                    activeHeightMap.RebuildHypsometricColorLookup();
+                        activeHeightMap.RebuildHypsometricColorLookup();
 
-                    break;
+                        break;
+                    }
+                }
+
+                _mainViewModel.LandformViewModel.UpdateLandformBoundaries();
+
+
+                // TODO: this call is here temporarily to clean up heightmaps used for testing
+                // it can be removed once the code is ready for production
+                if (activeHeightMap != null && activeHeightMap.HeightMap != null)
+                {
+                    LandformPanelViewModel.ClearHeightsOutsideLandforms(activeHeightMap.HeightMap, _mainViewModel.LandformViewModel.LandformBoundaries);
+                }
+
+                _heightMapLandforms.Clear();
+
+                MapLayer landformLayer =
+                    MapBuilder.GetMapLayerByIndex(
+                        _editor.Scene!.Map,
+                        MapBuilder.LANDFORMLAYER);
+
+                foreach (MapComponent2D shape in landformLayer.Shapes)
+                {
+                    if (shape is Landform landform &&
+                        !landform.HitPath.IsEmpty)
+                    {
+                        _heightMapLandforms.Add(landform);
+                    }
                 }
             }
-
-            _mainViewModel.LandformViewModel.UpdateLandformBoundaries();
-
-
-            // TODO: this call is here temporarily to clean up heightmaps used for testing
-            // it can be removed once the code is ready for production
-            if (activeHeightMap != null && activeHeightMap.HeightMap != null)
+            finally
             {
-                LandformPanelViewModel.ClearHeightsOutsideLandforms(activeHeightMap.HeightMap, _mainViewModel.LandformViewModel.LandformBoundaries);
+                Mouse.OverrideCursor = null;
             }
-
-            _heightMapLandforms.Clear();
-
-            MapLayer landformLayer =
-                MapBuilder.GetMapLayerByIndex(
-                    _editor.Scene!.Map,
-                    MapBuilder.LANDFORMLAYER);
-
-            foreach (MapComponent2D shape in landformLayer.Shapes)
-            {
-                if (shape is Landform landform &&
-                    !landform.HitPath.IsEmpty)
-                {
-                    _heightMapLandforms.Add(landform);
-                }
-            }
-
-            if (activeHeightMap != null)
-            {
-                foreach (Landform landform in _heightMapLandforms)
-                {
-                    landform.RebuildHeightMapBitmap(activeHeightMap);
-                }
-            }
-
-            BuildLandformMask();
         }
 
         public void Cancel()
@@ -144,6 +136,8 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         public void OnMouseDown(PointerState state)
         {
+            _editor.CommandService!.MarkMapModified();
+
             if (_editor.CurrentDrawingMode == MapDrawingMode.MapHeightIncrease || _editor.CurrentDrawingMode == MapDrawingMode.MapHeightDecrease)
             {
                 _heightChange = _mainViewModel.HeightMapViewModel.ElevationChange;
@@ -181,112 +175,24 @@ namespace RealmStudioX.WPF.Editor.Tools
                 ApplySmoothingBrushAtPointer(state);
             }
         }
-        private void BuildLandformMask()
-        {
-            _landformMask = null;
-            _landformMaskWidth = 0;
-            _landformMaskHeight = 0;
 
-            RealmStudioMap? map =
-                _editor.Scene?.Map;
-
-            if (map == null ||
-                _heightMapLandforms.Count == 0)
-            {
-                return;
-            }
-
-            _landformMaskWidth =
-                map.MapWidth;
-
-            _landformMaskHeight =
-                map.MapHeight;
-
-            int pixelCount =
-                checked(
-                    _landformMaskWidth *
-                    _landformMaskHeight);
-
-            BitArray mask =
-                new(pixelCount);
-
-            /*
-             * Rasterize each landform once when the HeightMapTool
-             * becomes active. SKPath.Contains() is deliberately kept
-             * out of the painting hot path.
-             */
-            foreach (Landform landform in _heightMapLandforms)
-            {
-                landform.PerimeterPath.GetBounds(
-                    out SKRect bounds);
-
-                int left =
-                    Math.Max(
-                        0,
-                        (int)Math.Floor(bounds.Left));
-
-                int top =
-                    Math.Max(
-                        0,
-                        (int)Math.Floor(bounds.Top));
-
-                int right =
-                    Math.Min(
-                        _landformMaskWidth - 1,
-                        (int)Math.Ceiling(bounds.Right));
-
-                int bottom =
-                    Math.Min(
-                        _landformMaskHeight - 1,
-                        (int)Math.Ceiling(bounds.Bottom));
-
-                if (left > right ||
-                    top > bottom)
-                {
-                    continue;
-                }
-
-                for (int y = top;
-                     y <= bottom;
-                     y++)
-                {
-                    int rowIndex =
-                        y * _landformMaskWidth;
-
-                    for (int x = left;
-                         x <= right;
-                         x++)
-                    {
-                        int index =
-                            rowIndex + x;
-
-                        if (mask[index])
-                            continue;
-
-                        if (landform.PerimeterPath.Contains(x, y))
-                            mask[index] = true;
-                    }
-                }
-            }
-
-            _landformMask = mask;
-        }
 
         public bool IsInsideLandform(int x, int y)
         {
-            BitArray? mask = _landformMask;
+            BitArray? mask = _mainViewModel.HeightMapManager.LandformMask;
+
 
             if (mask == null)
                 return false;
 
-            if ((uint)x >= (uint)_landformMaskWidth ||
-                (uint)y >= (uint)_landformMaskHeight)
+            if ((uint)x >= (uint)_mainViewModel.HeightMapManager.LandformMaskWidth ||
+                (uint)y >= (uint)_mainViewModel.HeightMapManager.LandformMaskHeight)
             {
                 return false;
             }
 
             return mask[
-                y * _landformMaskWidth + x];
+                y * _mainViewModel.HeightMapManager.LandformMaskWidth + x];
         }
 
         public void ApplySmoothingBrushAtPointer(PointerState state)
@@ -819,7 +725,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             float[,] heightMap,
             float changeAmount)
         {
-            BitArray? landformMask = _landformMask;
+            BitArray? landformMask = _mainViewModel.HeightMapManager.LandformMask;
 
             if (landformMask == null)
                 return;
@@ -896,7 +802,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             float[,] heightMap,
             float smoothingStrength)
         {
-            BitArray? landformMask = _landformMask;
+            BitArray? landformMask = _mainViewModel.HeightMapManager.LandformMask;
 
             if (landformMask == null)
                 return;
