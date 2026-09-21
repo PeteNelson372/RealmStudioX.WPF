@@ -1,5 +1,4 @@
-﻿using OpenTK;
-using RealmStudioImageAnalysisLib;
+﻿using RealmStudioImageAnalysisLib;
 using RealmStudioShapeRenderingLib;
 using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX.Core;
