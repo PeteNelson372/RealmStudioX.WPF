@@ -69,6 +69,10 @@ namespace RealmStudioX.WPF.Editor.Tools
                 {
                     _initialMousePoint = state.WorldPoint;
                 }
+                else if (_editor.CurrentDrawingMode == MapDrawingMode.SelectImportRegions)
+                {
+                    _selectionService.SelectImportRegionAt(_editor.Scene.Map, state.WorldPoint, 4);
+                }
             }            
         }
 

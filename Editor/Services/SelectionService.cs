@@ -1285,6 +1285,22 @@ namespace RealmStudioX.WPF.Editor.Services
 
             return bounds;
         }
+
+        public void SelectImportRegionAt(RealmStudioMap map, SKPoint worldPoint, int v)
+        {
+            MapLayer workLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.WORKLAYER);
+
+            foreach(Shape2D shape in workLayer.Shapes.Cast<Shape2D>())
+            {
+                if (shape is ImportRegion ir)
+                {
+                    if (ir.HitTest(worldPoint))
+                    {
+                        ir.IsSelected = !ir.IsSelected;
+                    }
+                }
+            }
+        }
     }
 
     // -------------------------------------------------

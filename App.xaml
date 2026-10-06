@@ -27,6 +27,8 @@
 
             <conv:ContrastingBrushConverter x:Key="ContrastingBrushConverter"/>
 
+            <conv:StringToBooleanConverter x:Key="StringToBooleanConverter"/>
+
             <ResourceDictionary.MergedDictionaries>
 
                 <ResourceDictionary Source="Themes/Colors.xaml"/>

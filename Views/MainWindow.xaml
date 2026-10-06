@@ -143,6 +143,13 @@
             </Grid>
         </Grid>
 
+        <Grid Grid.Row="2" Visibility="{Binding ShowImportPanel, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <!-- Tab Control -->
+            <Grid Grid.Column="1" Background="#FFDFDBD2">
+                <panels:ImportPanel x:Name="ImportPanel" DataContext="{Binding ImportViewModel}"/>
+            </Grid>
+        </Grid>
+
         <!-- ========================= -->
         <!-- SKIA GPU CANVAS -->
         <!-- ========================= -->

@@ -1,0 +1,137 @@
+﻿<UserControl x:Class="RealmStudioX.WPF.Views.Panels.ImportPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Panels"
+             xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+             xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
+             xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
+             xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"
+             mc:Ignorable="d" 
+             d:DesignHeight="916" d:DesignWidth="235">
+
+    <Grid Visibility="Visible" Background="#FFDFDBD2">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="72"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Row="1" Grid.Column="1">
+
+        <!-- controls -->
+            <controls:ImportControls Visibility="Visible"/>
+
+        </Grid>
+
+        <StackPanel
+            Grid.Row="1"
+            Grid.Column="0"
+            Orientation="Vertical"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Width="140"
+            Height="Auto"
+            Margin="15,0,0,0">
+
+            <StackPanel
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Center"
+                        Width="130"
+                        Height="Auto"
+                        Margin="3,3,3,3">
+
+                <TextBlock Text="Select Import File"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Margin="3,3,3,3"/>
+                <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Width="120"
+                        Height="50"
+                        Margin="3,3,3,3"
+                        HorizontalAlignment="Center"
+                        ToolTip="Select Import File"
+                        Command="{Binding SelectImportFileCommand}">
+
+                    <materialDesign:PackIcon Kind="FileImageAddOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Opacity="0.7"/>
+                </Button>
+            </StackPanel>
+
+            <StackPanel
+                Orientation="Vertical"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Center"
+                Width="130"
+                Height="Auto"
+                Margin="3,20,3,3">
+
+                <TextBlock Text="Analyze Image File"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Margin="3,3,3,3"/>
+                <Button
+                    Style="{StaticResource FlatToolButton}"
+                    Width="120"
+                    Height="50"
+                    Margin="3,3,3,3"
+                    HorizontalAlignment="Center"
+                    ToolTip="Select Import File"
+                    IsEnabled="{Binding ImageFileName, Converter={StaticResource StringToBooleanConverter}}"
+                    Command="{Binding AnalyzeImportFileCommand}">
+
+                    <materialDesign:PackIcon Kind="LandPlots"
+                                Width="36"
+                                Height="36"
+                                Opacity="0.7"/>
+                </Button>
+            </StackPanel>
+
+            <StackPanel
+                Orientation="Vertical"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Center"
+                Width="130"
+                Height="Auto"
+                Margin="3,20,3,3">
+
+                <TextBlock Text="Extract Landforms"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Margin="3,3,3,3"/>
+                <Button
+                    Style="{StaticResource FlatToolButton}"
+                    Width="120"
+                    Height="50"
+                    Margin="3,3,3,3"
+                    HorizontalAlignment="Center"
+                    ToolTip="Select Import File"
+                    IsEnabled="{Binding ImageFileName, Converter={StaticResource StringToBooleanConverter}}"
+                    Command="{Binding ExtractLandformsCommand}">
+
+                    <materialDesign:PackIcon Kind="LandPlotsCircleVariant"
+                                Width="36"
+                                Height="36"
+                                Opacity="0.7"/>
+                </Button>
+            </StackPanel>
+
+        </StackPanel>
+
+    </Grid>
+</UserControl>

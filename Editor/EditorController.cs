@@ -2224,5 +2224,6 @@ namespace RealmStudioX.WPF.Editor
         PaintTool,
         LayoutPathTool,
         HeightMapTool,
+        ImportRegionTool,
     }
 }

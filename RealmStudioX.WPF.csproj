@@ -234,6 +234,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Update="Views\Controls\ImportControls.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Controls\LandformControls.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -337,6 +340,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Dialogs\RenameDialog.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Panels\ImportToolPanel.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Panels\ImportPanel.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Panels\HeightMapToolPanel.xaml.cs">

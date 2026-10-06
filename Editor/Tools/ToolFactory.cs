@@ -278,6 +278,18 @@ namespace RealmStudioX.WPF.Editor.Tools
                             return _editor.ActiveEditorTool;
                         }
                     }
+                case EditorToolType.ImportRegionTool:
+                    {
+                        if (_editor.ActiveEditorTool is not ImportRegionTool)
+                        {
+                            tool = new ImportRegionTool(_editor, _mainWindowViewModel, _mainWindowViewModel.ImportViewModel);
+                            return tool;
+                        }
+                        else
+                        {
+                            return _editor.ActiveEditorTool;
+                        }
+                    }
             }
 
             return null;

@@ -62,6 +62,7 @@ namespace RealmStudioX.WPF
             ["Ocean"] = new OceanToolPanel(),
             ["Land"] = new LandToolPanel(),
             ["Height Map"] = new HeightMapToolPanel(),
+            ["Import"] = new ImportToolPanel(),
             ["Water"] = new WaterToolPanel(),
             ["Paths"] = new PathsToolPanel(),
             ["Symbols"] = new SymbolsToolPanel(),
@@ -626,6 +627,21 @@ namespace RealmStudioX.WPF
 
                             _editor.RenderOverlay(canvas);
                         }
+                        else if (ViewModel.ShowImportPanel)
+                        {                            
+                            canvas.Clear(SKColors.Black);
+
+                            if (ViewModel.ImportViewModel.ImageBitmap != null)
+                            {
+                                // TODO: render the image bitmap with reduced opacity
+                                canvas.DrawBitmap(ViewModel.ImportViewModel.ImageBitmap, new SKPoint(0, 0), SKSamplingOptions.Default);
+                            }
+
+                            // render the ImportRegion objects in the worklayer
+                            _editor.Scene.RenderWorklayer(canvas);
+
+                            _editor.RenderOverlay(canvas);
+                        }
                         else
                         {
                             // render the map normally
@@ -852,6 +868,11 @@ namespace RealmStudioX.WPF
             if (_toolPanels[tab] is HeightMapToolPanel heightmappanel)
             {
                 heightmappanel.DataContext = ViewModel.HeightMapViewModel;
+            }
+
+            if (_toolPanels[tab] is ImportToolPanel importtoolpanel)
+            {
+                importtoolpanel.DataContext = ViewModel.ImportViewModel;
             }
 
             if (_toolPanels[tab] is WaterToolPanel watertoolpanel)

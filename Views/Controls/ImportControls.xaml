@@ -1,0 +1,187 @@
+﻿<UserControl x:Class="RealmStudioX.WPF.Views.Controls.ImportControls"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Controls"
+             xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+             xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
+             xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
+             xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib" 
+             mc:Ignorable="d" 
+             d:DesignHeight="522" d:DesignWidth="72">
+
+    <!-- RIGHT ICON BAR -->
+    <StackPanel
+            Grid.Row="1"
+            Orientation="Vertical"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Center"
+            Background="#FFDFDBD2"
+            Width="72"
+            Height="Auto"
+            Grid.ColumnSpan="2" Grid.RowSpan="2">
+
+        <Button
+                x:Name="RegionSelectButton"
+                Width="58"
+                Height="58"
+                Margin="0,10,0,0"
+                ToolTip="Select Import Region"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding SelectRegionCommand}">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Select"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                <materialDesign:PackIcon Kind="CursorDefault"
+                                     HorizontalAlignment="Center"
+                                     Width="20"
+                                     Height="20"
+                                     Opacity="0.7"/>
+            </StackPanel>
+        </Button>
+
+        <Separator Margin="0,10,0,10" Width="50" Height="2" Background="#FF45443F"/>
+
+        <Button
+                x:Name="AcceptRegionButton"
+                Width="58"
+                Height="58"
+                Margin="0,10,0,0"
+                ToolTip="Accept Region for Import"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding AcceptRegionCommand}">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Accept"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                <materialDesign:PackIcon Kind="ImageArea"
+                                     HorizontalAlignment="Center"
+                                     Width="26"
+                                     Height="26"
+                                     Opacity="0.7"/>
+            </StackPanel>
+        </Button>
+
+        <Button
+                x:Name="RejectRegionButton"
+                Width="58"
+                Height="58"
+                Margin="0,10,0,0"
+                ToolTip="Reject Region"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding RejectRegionCommand}">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Reject"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                <materialDesign:PackIcon Kind="ImageBrokenVariant"
+                                     HorizontalAlignment="Center"
+                                     Width="26"
+                                     Height="26"
+                                     Opacity="0.7"/>
+            </StackPanel>
+        </Button>
+
+        <Button
+                x:Name="TraceButton"
+                Width="58"
+                Height="58"
+                Margin="0,10,0,0"
+                ToolTip="Trace Region"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding TraceRegionCommand}">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Trace"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                <materialDesign:PackIcon Kind="ImageEditOutline"
+                                     HorizontalAlignment="Center"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+            </StackPanel>
+        </Button>
+
+        <Button
+                x:Name="ResetRegionsButton"
+                Width="58"
+                Height="58"
+                Margin="0,15,0,0"
+                ToolTip="Reset Import Regions"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding ResetRegionsCommand}">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Reset"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                <materialDesign:PackIcon Kind="Restore"
+                                     HorizontalAlignment="Center"
+                                     Width="22"
+                                     Height="22"
+                                     Opacity="0.7"/>
+            </StackPanel>
+        </Button>
+
+        <Button
+                x:Name="RemoveRegionButton"
+                Width="58"
+                Height="58"
+                Margin="0,15,0,0"
+                ToolTip="Remove Selected Import Region"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding RemoveSelectedRegionCommand}">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Remove"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                <materialDesign:PackIcon Kind="Remove"
+                                     HorizontalAlignment="Center"
+                                     Width="22"
+                                     Height="22"
+                                     Opacity="0.7"/>
+            </StackPanel>
+        </Button>
+
+        <Button
+                x:Name="ClearRegionsButton"
+                Width="58"
+                Height="58"
+                Margin="0,15,0,10"
+                ToolTip="Clear All Import Regions"
+                Style="{StaticResource FlatToolButton}"
+                Command="{Binding ClearRegionsCommand}">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Clear"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+                <materialDesign:PackIcon Kind="ClearBoxOutline"
+                                     HorizontalAlignment="Center"
+                                     Width="22"
+                                     Height="22"
+                                     Opacity="0.7"/>
+            </StackPanel>
+        </Button>
+
+
+    </StackPanel>
+
+
+</UserControl>

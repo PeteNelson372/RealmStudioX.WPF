@@ -13,18 +13,14 @@
 
         <MenuItem Header="_File" Margin="10,6,0,0">
             <MenuItem Header="_New/Open" Command="{Binding NewOpenCommand}"/>
-            <MenuItem Header="_Save" Command="{Binding SaveCommand}"/>
+            <MenuItem Header="_Save" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S"/>
 
             <Separator/>
 
             <MenuItem Header="_Export..." Command="{Binding ExportCommand}"/>
-            
-            <Separator/>
-
-            <MenuItem Header="_Import Landforms from Image..." Command="{Binding ImportLandformFromImageCommand}"/>
 
             <Separator/>
-            
+
             <MenuItem Header="E_xit" Command="{Binding ExitCommand}"/>
 
         </MenuItem>
@@ -45,8 +41,10 @@
             <MenuItem Header="Change Map _Size" Command="{Binding ChangeMapSizeCommand}"/>
             <MenuItem Header="Create _Detail Map" Command="{Binding CreateDetailMapCommand}"/>
             <Separator/>
-            <MenuItem Header="Display _Height Map" Command="{Binding DisplayHeightMapCommand}" IsCheckable="True" IsChecked="{Binding RenderHeightMap, Mode=OneWay}"/>
-            <MenuItem Header="Select _Height Map Color Palette..." Command="{Binding SelectHeightMapPaletteCommand}"/>
+            <MenuItem Header="Display _Height Map" Command="{Binding DisplayHeightMapCommand}" IsCheckable="True" IsChecked="{Binding RenderHeightMap, Mode=OneWay}" ToolTip="Show Height Map Panel"/>
+            <MenuItem Header="Select Height Map Color _Palette..." Command="{Binding SelectHeightMapPaletteCommand}"/>
+            <Separator/>
+            <MenuItem Header="_Import..." Command="{Binding ImportCommand}" IsCheckable="True" IsChecked="{Binding ShowImportPanel, Mode=OneWay}" ToolTip="Show Import Panel"/>
             <Separator/>
             <MenuItem Header="Display World _Globe..." Command="{Binding DisplayWorldGlobeCommand}"/>
         </MenuItem>

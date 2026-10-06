@@ -29,9 +29,9 @@ namespace RealmStudioX.WPF.ViewModels.Main
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        public App RealmStudioApp => (App)Application.Current;
+        public static App RealmStudioApp => (App)Application.Current;
 
-        MainWindow _mainWindow;
+        private readonly MainWindow _mainWindow;
         public static WindowManager WindowManager => ((App)Application.Current).WindowManager;
 
         private readonly EditorController _editor;
@@ -92,6 +92,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public DrawingPanelViewModel DrawingViewModel { get; }
 
+        public ImportPanelViewModel ImportViewModel { get; }
+
         public NameGenConfigViewModel NameGenConfigViewModel { get; }
 
         public CommandService CommandService { get; }
@@ -113,6 +115,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
         public MapObjectDescriptionService MapObjectDescriptionService { get; }
 
         public HeightMapManager HeightMapManager { get; }
+
+        public LandformPerimeterExtractionService PerimeterExtractionService { get; }
 
         public event Action? RequestOpenNameGeneratorConfig;
 
@@ -205,11 +209,15 @@ namespace RealmStudioX.WPF.ViewModels.Main
             // Drawing Panel
             DrawingViewModel = new DrawingPanelViewModel(this, _editor, assetManager);
 
+            ImportViewModel = new ImportPanelViewModel(this);
+
             NameGenConfigViewModel = new NameGenConfigViewModel(this);
 
             Layout = new LayoutOptions();
 
             HeightMapManager = new HeightMapManager(HeightMapViewModel);
+
+            PerimeterExtractionService = new LandformPerimeterExtractionService();
 
             _editor.SetLabelsViewModel(LabelsViewModel);
 
@@ -319,6 +327,21 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 {
                     Editor.Scene?.ClearHeightMapOverlay();
                 }
+
+                OnPropertyChanged();
+            }
+        }
+
+        private bool _showImportPanel = false;
+        public bool ShowImportPanel
+        {
+            get => _showImportPanel;
+            set
+            {
+                if (_showImportPanel == value)
+                    return;
+
+                _showImportPanel = value;
 
                 OnPropertyChanged();
             }
@@ -676,12 +699,22 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         });
 
-        public ICommand ImportLandformFromImageCommand => new RelayCommand(() =>
+        public ICommand ImportCommand => new RelayCommand(() =>
         {
-            string imageFile = UserInterfaceUtilities.SelectBitmapFile();
+            ShowImportPanel = !ShowImportPanel;
 
-            ImageLandformAnalyzer analyzer = new();
-            ImageAnalysisResult analyzedImage = analyzer.Analyze(imageFile);
+            if (ShowImportPanel && _editor.Scene != null)
+            {
+                try
+                {
+                    Mouse.OverrideCursor = Cursors.Wait;
+                    _editor.SetDrawingMode(MapDrawingMode.ImportLandforms);
+                }
+                finally
+                {
+                    Mouse.OverrideCursor = null;
+                }
+            }
         });
         
 
@@ -1975,9 +2008,14 @@ namespace RealmStudioX.WPF.ViewModels.Main
             PlacedMapFrame? pmf = null;
             MapGrid? grid = null;
 
+            // construct missing layers for the map - some maps may be missing the worklayer or other layers;
+            // this method constructs the missing layers so the map can be rendered
+            MapBuilder.ConstructMissingLayersForMap(map);
+
             // go through the map and load textures and bitmaps, etc.
             // load shape assets
             AssetInitializer.InitializeMapShapeAssets(map, _assetManager, _fontManager);
+
             bool addHeightMap = true;
 
             MapLayer heightMapLayer = MapBuilder.GetMapLayerByIndex(map, MapBuilder.HEIGHTMAPLAYER);
@@ -2250,6 +2288,9 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 MapDrawingMode.InteriorFloorPaint => "Paint Interior Floor",
                 MapDrawingMode.ShapeSelect => "Select Any Shape",
                 MapDrawingMode.AreaSelection => "Select Realm Area",
+                MapDrawingMode.ImportLandforms => "Import Landforms",
+                MapDrawingMode.SelectImportRegions => "Select Import Regions",
+                MapDrawingMode.TraceImportRegion => "Trace Import Region",
                 _ => "Undefined",
             };
 
