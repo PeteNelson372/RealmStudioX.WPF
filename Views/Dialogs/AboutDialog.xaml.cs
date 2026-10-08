@@ -1,10 +1,6 @@
-﻿using RealmStudioShapeRenderingLib;
-using RealmStudioX.WPF.Editor;
-using RealmStudioX.WPF.Editor.UserInterface;
+﻿using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.Models.Map;
-using RealmStudioX.WPF.ViewModels.Dialogs;
 using RealmStudioX.WPF.ViewModels.Main;
-using SkiaSharp;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -22,9 +18,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
         public override string WindowId { get; } = Guid.NewGuid().ToString();
 
         public ResizeMapResult? Result { get; private set; }
-
-        private double _aspectRatio = 1920.0 / 1080.0;
-        private bool _lockAspect = true;
 
         public MainWindowViewModel ViewModel { get; private set; }
 

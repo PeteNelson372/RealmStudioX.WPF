@@ -14,12 +14,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         public ThreeDViewModel ViewModel { get; private set; }
 
-        public event EventHandler? OpenClicked;
-        public event EventHandler? SaveClicked;
-        public event EventHandler? MinimizeClicked;
-        public event EventHandler? MaximizeClicked;
-        public event EventHandler? ExitClicked;
-
         public ThreeDViewer()
         {
             InitializeComponent();

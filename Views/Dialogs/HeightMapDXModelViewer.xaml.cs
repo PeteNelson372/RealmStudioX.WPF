@@ -20,12 +20,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
         public MainWindowViewModel MainViewModel;
         public HeightMapDXViewModel ViewModel { get; private set; }
 
-        public event EventHandler? OpenClicked;
-        public event EventHandler? SaveClicked;
-        public event EventHandler? MinimizeClicked;
-        public event EventHandler? MaximizeClicked;
-        public event EventHandler? ExitClicked;
-
         private HeightMapTerrain3D? _terrain;
 
         public HeightMapTerrain3D? Terrain => _terrain;

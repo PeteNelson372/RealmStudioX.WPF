@@ -1,8 +1,7 @@
-﻿using Microsoft.ML.OnnxRuntime.Tensors;
+﻿using Microsoft.CodeAnalysis.Diagnostics;
 using RealmStudioImageAnalysisLib;
 using RealmStudioShapeRenderingLib;
 using RealmStudioShapeRenderingLib.Logging;
-using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
@@ -11,9 +10,7 @@ using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Dialogs;
 using SkiaSharp;
-using System.IO;
 using System.Windows.Input;
-using System.Windows.Shapes;
 using Cursors = System.Windows.Input.Cursors;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using Path = System.IO.Path;
@@ -22,22 +19,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 {
     public class ImportPanelViewModel : ViewModelBase
     {
-        private readonly static string rootRealmStudioXDirectory =
-            Path.Combine(
-                Environment.GetFolderPath(
-                    Environment.SpecialFolder.MyDocuments),
-                "RealmStudioX");
-
-        private static string assetsDirectory =
-            Path.Combine(
-                rootRealmStudioXDirectory,
-                "Assets");
-
-        private static string imageAnalysisDirectory =
-            Path.Combine(
-                assetsDirectory,
-                "ImageAnalysis");
-
         private readonly MainWindowViewModel _mainViewModel;
 
         private readonly EditorController _editor;
@@ -62,20 +43,13 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public List<ImportRegion> ImportRegions => _importRegions;
 
-        private readonly LandformPerimeterExtractionService _perimeterExtractionService;
-
         public ImportPanelViewModel(MainWindowViewModel mainViewModel)
         {
             _mainViewModel = mainViewModel;
             _editor = mainViewModel.Editor;
-
-            assetsDirectory = AssetManager.RootAssetDirectory;
-
-            imageAnalysisDirectory = Path.Combine(assetsDirectory, "ImageAnalysis");
-            _perimeterExtractionService = _mainViewModel.PerimeterExtractionService;
         }
 
-        private LandformAnalysisResult? _analysisResult;
+        private PerimeterPipelineResult? _analysisResult;
 
         public ICommand SelectImportFileCommand => new RelayCommand(() =>
         {
@@ -117,49 +91,43 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 {
                     Mouse.OverrideCursor = Cursors.Wait;
 
-                    // analyze the image and display the results
+                    // Analyze the image and display the results.
                     _editor.State.StatusMessage = $"Analyzing {Path.GetFileName(_imageFileName)}.";
 
-                    // load image analysis pipelines
-                    var files = Directory.EnumerateFiles(imageAnalysisDirectory, "*.xml", SearchOption.AllDirectories).ToList();
+                    // Get the extraction pipeline.
+                    PerimeterPipeline pipeline = _mainViewModel.PerimeterExtractionService.PipelineManager.Get("AnalyzerPipeline1");
 
-                    if (files.Count > 0)
+                    var context = new PerimeterAlgorithmContext
                     {
-                        foreach (var file in files)
-                        {
-                            var extension = Path.GetExtension(file).ToLowerInvariant();
-                            if (extension == ".xml")
-                            {
-                                var definition = _perimeterExtractionService.PipelineLoader.LoadDefinition(file);
-                                var pipeline = new PerimeterPipeline(definition, _perimeterExtractionService.StageRegistry);
-                                _perimeterExtractionService.PipelineManager.Add(pipeline);
-                            }
-                        }
+                        CancellationToken = CancellationToken.None,
+                        OutputDirectory = LandformPerimeterExtractionService.ImageAnalysisDebugDirectory,
+                    };
 
+                    // Run the pipeline.
+                    _analysisResult = PerimeterPipelineRunner.Run(pipeline, _imageBitmap, context);
 
-                    }
-                    else
+                    if (!_analysisResult.Succeeded)
                     {
+                        RealmStudioXLogger.Error(_analysisResult.FailureReason ?? $"Perimeter pipeline '{pipeline.Name}' failed.");
+
+                        MessageDialog dlg = MessageDialogFactory.ErrorDialog("Error Analyzing Import Image",
+                            _analysisResult.FailureReason ?? $"Perimeter pipeline '{pipeline.Name}' failed.");
+
+                        dlg.ShowDialog();
+
                         return;
                     }
 
-
-
-
-
-
-                        _analysisResult = ImageLandformAnalyzer.Analyze(_imageBitmap);
-
+                    // Add candidate regions.
                     foreach (ImportRegion candidate in _analysisResult.ImportRegions)
                     {
-                        // Add to import-region collection.
-
                         ImportRegions.Add(ImportRegion.Clone(candidate));
                     }
 
-                    _editor.State.StatusMessage = $"Found {ImportRegions.Count()} candidate regions.";
+                    _editor.State.StatusMessage = $"Found {ImportRegions.Count} candidate regions.";
 
-                    // add the ImportRegions to the work layer for rendering and accepting/rejecting by the user
+                    // Add the ImportRegions to the work layer for
+                    // rendering and accepting/rejecting by the user.
                     if (_editor.Scene != null && _editor.Scene.Map != null)
                     {
                         MapLayer workLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene.Map, MapBuilder.WORKLAYER);
@@ -173,7 +141,9 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 catch (Exception ex)
                 {
                     RealmStudioXLogger.Exception("Could not analyze import image", ex);
+
                     MessageDialog dlg = MessageDialogFactory.ErrorDialog("Error Analyzing Import Image", ex.Message);
+
                     dlg.ShowDialog();
                 }
                 finally
@@ -185,26 +155,44 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public ICommand ExtractLandformsCommand => new RelayCommand(() =>
         {
-            // generate MobileSAM prompts from accepted import regions
-            // and use MobileSAM with the prompts to extract landform
-            // perimeters, then generate Landform objects and add them
-            // to the Landform layer
-
-            if (_editor.Scene == null || _editor.Scene.Map == null || ImageBitmap == null || ImageBitmap.IsEmpty)
+            if (_editor.Scene == null ||
+                _editor.Scene.Map == null ||
+                ImageBitmap == null ||
+                ImageBitmap.IsEmpty)
             {
                 return;
             }
 
             MapLayer workLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene.Map, MapBuilder.WORKLAYER);
 
-            List<SKPath> perimeters = ImportRegionAnalyzer.ExtractLandforms(ImportRegions, ImageBitmap);
+            PerimeterPipeline pipeline = _mainViewModel.PerimeterExtractionService.PipelineManager.Get("MobileSAM");
 
-            foreach (SKPath landformPerimeter in perimeters)
+            var context = new PerimeterAlgorithmContext
+                {
+                    CancellationToken =
+                        CancellationToken.None,
+
+                    Progress =
+                        null,
+
+                    OutputDirectory =
+                        null
+                };
+
+            PerimeterPipelineResult result =
+                PerimeterPipelineRunner.Run(
+                    pipeline,
+                    ImageBitmap,
+                    ImportRegions,
+                    context);
+
+            if (!result.Succeeded)
             {
-                // create a new Landform object and add it to the Landform layer
-                // if a theme has been selected, use the theme to set the landform's properties
-                // otherwise, use default properties
+                return;
+            }
 
+            foreach (SKPath landformPerimeter in result.RefinedPerimeters)
+            {
                 ImportLandform il = new(landformPerimeter);
 
                 workLayer.Add(il);

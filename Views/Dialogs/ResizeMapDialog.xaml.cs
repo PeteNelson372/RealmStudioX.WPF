@@ -23,9 +23,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         public ResizeMapViewModel ViewModel { get; }
 
-        private ThemeManager? _themeManager;
-        public ThemeManager? ThemeMananger => _themeManager;
-
         public ResizeMapDialog(RealmStudioMap map)
         {
             InitializeComponent();
