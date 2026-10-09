@@ -10,6 +10,7 @@ using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Dialogs;
 using SkiaSharp;
+using System.Diagnostics;
 using System.Windows.Input;
 using Cursors = System.Windows.Input.Cursors;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
@@ -49,7 +50,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             _editor = mainViewModel.Editor;
         }
 
-        private PerimeterPipelineResult? _analysisResult;
+        private PerimeterExtractionResult? _analysisResult;
 
         public ICommand SelectImportFileCommand => new RelayCommand(() =>
         {
@@ -95,7 +96,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     _editor.State.StatusMessage = $"Analyzing {Path.GetFileName(_imageFileName)}.";
 
                     // Get the extraction pipeline.
-                    PerimeterPipeline pipeline = _mainViewModel.PerimeterExtractionService.PipelineManager.Get("AnalyzerPipeline1");
+                    //PerimeterPipeline pipeline = _mainViewModel.PerimeterExtractionService.PipelineManager.Get("AnalyzerPipeline2");
 
                     var context = new PerimeterAlgorithmContext
                     {
@@ -104,18 +105,28 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     };
 
                     // Run the pipeline.
-                    _analysisResult = PerimeterPipelineRunner.Run(pipeline, _imageBitmap, context);
+                    _analysisResult = _mainViewModel.PerimeterExtractionService.RunExtraction(_imageBitmap, context);
 
                     if (!_analysisResult.Succeeded)
                     {
-                        RealmStudioXLogger.Error(_analysisResult.FailureReason ?? $"Perimeter pipeline '{pipeline.Name}' failed.");
+                        RealmStudioXLogger.Error(_analysisResult.FailureReason ?? $"Perimeter pipeline '{_analysisResult.SelectedPipeline}' failed.");
 
                         MessageDialog dlg = MessageDialogFactory.ErrorDialog("Error Analyzing Import Image",
-                            _analysisResult.FailureReason ?? $"Perimeter pipeline '{pipeline.Name}' failed.");
+                            _analysisResult.FailureReason ?? $"Perimeter pipeline '{_analysisResult.SelectedPipeline}' failed.");
 
                         dlg.ShowDialog();
 
                         return;
+                    }
+
+                    // write attempts to debug output
+                    foreach (PerimeterPipelineAttempt attempt in _analysisResult.Attempts)
+                    {
+                        Debug.WriteLine(
+                            $"Pipeline '{attempt.PipelineName}': " +
+                            $"score={attempt.Evaluation.Score:F1}, " +
+                            $"accepted={attempt.Evaluation.Accepted}, " +
+                            $"reason={attempt.Evaluation.Reason}");
                     }
 
                     // Add candidate regions.
