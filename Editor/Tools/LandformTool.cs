@@ -4,6 +4,7 @@ using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor.Services;
+using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.ViewModels.Panels;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
@@ -12,7 +13,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 {
     public sealed class LandformTool(
         CommandManager commands,
-        IAssetProvider assets,
+        MainWindowViewModel mainWindowViewModel,
         PaintService paintService,
         MapLayer targetLayer,
         MapScene scene,
@@ -24,7 +25,8 @@ namespace RealmStudioX.WPF.Editor.Tools
         // -------------------------------------------------
         private readonly CommandManager _commands = commands;
         private readonly MapLayer _layer = targetLayer;
-        private readonly IAssetProvider _assets = assets;
+        private readonly MainWindowViewModel _mainViewModel = mainWindowViewModel;
+        private readonly IAssetProvider _assets = mainWindowViewModel.AssetManager;
         private readonly PaintService _paintService = paintService;
         private readonly MapScene _scene = scene;
         private readonly EditorController _editor = editor;
@@ -33,21 +35,6 @@ namespace RealmStudioX.WPF.Editor.Tools
         private readonly HashSet<Landform> _modifiedLandforms = [];
 
         private Cmd_ModifyLandforms? _activeModifyCommand;
-
-        // -------------------------------------------------
-        // Configuration
-        // -------------------------------------------------
-
-
-        private const float MinimumIslandArea = 400f;   // tune this; this could be made a user-configurable setting in the future.
-                                                        // This is used to prevent tiny "islands" from being created when splitting landforms.
-                                                        // it might also need to be made relative to the map size
-                                                        // (e.g. a percentage of the total map area) rather than an absolute value,
-                                                        // to be more intuitive for users working with different map sizes.
-
-        private const float MinimumIslandWidth = 10f;   // unused for now, but could be used in future to prevent long thin "snakes"
-        private const float MinimumIslandHeight = 10f;  // unused for now, but could be used in future to prevent long thin "snakes"
-
 
         // -------------------------------------------------
         // State
@@ -108,11 +95,9 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                 if (_editor.CurrentDrawingMode == MapDrawingMode.LandPaint && _activeModifyCommand != null && _activeLandform != null)
                 {
-                    //EndPaint();
-
                     _activeLandform.EndStroke();
 
-                    MergeOverlappingLandforms();
+                    LandformPanelViewModel.MergeOverlappingLandforms(_activeLandform, _activeModifyCommand, landLayer);
 
                     _activeLandform.EndInteractive();
 
@@ -125,12 +110,11 @@ namespace RealmStudioX.WPF.Editor.Tools
                     {
                         lf.EndInteractive();
 
-                        var simplified = RealmStudioShapeRenderingLib.Utilities.SimplifyPath(lf.HitPath);
-                        lf.ReplaceGeometry(simplified);
+                        //var simplified = RealmStudioShapeRenderingLib.Utilities.SimplifyPath(lf.HitPath);
+                        //lf.ReplaceGeometry(simplified);
 
                         landLayer.InvalidateTiles(lf.Bounds);
                         landDrawingLayer.InvalidateTiles(lf.Bounds);
-
                     }
 
                     _commands.Execute(_activeModifyCommand);
@@ -143,7 +127,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                         lf.EndInteractive();
 
                         // Process splitting
-                        ProcessPotentialSplit(lf);
+                        _mainViewModel.LandformViewModel.ProcessPotentialSplit(lf, _activeModifyCommand);
 
                         landLayer.InvalidateTiles(lf.Bounds);
                         landDrawingLayer.InvalidateTiles(lf.Bounds);
@@ -181,7 +165,6 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         public void BeginPaint(SKPoint worldPos)
         {
-
             string hatchTextureId = ((AssetManager)_assets).GetByName(AssetType.HatchTexture, "Random Hatch")[0].Id;
             string dashTextureId = ((AssetManager)_assets).GetByName(AssetType.HatchTexture, "Watercolor Dashes")[0].Id;
 
@@ -241,28 +224,6 @@ namespace RealmStudioX.WPF.Editor.Tools
             _activeLandform.AddStrokePoint(worldPos);
         }
 
-        public void EndPaint()
-        {
-            if (!_painting || _activeLandform == null || _activeModifyCommand == null)
-            {
-                return;
-            }
-
-            _activeLandform.EndStroke();
-
-            MergeOverlappingLandforms();
-
-            _activeLandform.EndInteractive();
-
-            MapLayer landLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.LANDFORMLAYER);
-            landLayer.InvalidateAllTiles();
-
-            MapLayer landDrawingLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.LANDDRAWINGLAYER);
-            landDrawingLayer.InvalidateAllTiles();
-
-            _editor.Scene!.MarkLandClipPathModified();
-        }
-
         // -------------------------------------------------
         // Erasing
         // -------------------------------------------------
@@ -314,178 +275,7 @@ namespace RealmStudioX.WPF.Editor.Tools
             }
         }
 
-        // -------------------------------------------------
-        // Merging/splitting landforms
-        // -------------------------------------------------
 
-        private void MergeOverlappingLandforms()
-        {
-            if (_activeLandform == null
-                || _activeLandform.HitPath == null
-                || _activeLandform.HitPath.PointCount == 0
-                || _activeModifyCommand == null)
-            {
-                return;
-            }
-
-            var active = _activeLandform;
-
-            SKPath unionPath = new(active.HitPath)
-            {
-                FillType = SKPathFillType.EvenOdd
-            };
-
-            var toMerge = new List<Landform>();
-
-            foreach (var shape in _layer.Shapes)
-            {
-                if (shape is not Landform existing)
-                    continue;
-
-                if (existing == active)
-                    continue;
-
-                if (!existing.Bounds.IntersectsWith(active.Bounds))
-                    continue;
-
-                using var intersection =
-                    existing.HitPath.Op(active.HitPath, SKPathOp.Intersect);
-
-                if (intersection == null || intersection.IsEmpty)
-                    continue;
-
-                toMerge.Add(existing);
-            }
-
-            foreach (var existing in toMerge)
-            {
-                _activeModifyCommand.CaptureBefore(existing);
-                _activeModifyCommand.RegisterRemovedLandform(existing);
-
-                var newUnion = unionPath.Op(existing.HitPath, SKPathOp.Union);
-
-                unionPath.Dispose();
-                unionPath = newUnion;
-                unionPath.FillType = SKPathFillType.EvenOdd;
-
-            }
-
-            active.RestoreGeometry(unionPath);
-
-            unionPath.Dispose();
-
-            active.InvalidateRenderCache();
-        }
-
-        private void ProcessPotentialSplit(Landform lf)
-        {
-            if (lf.HitPath.IsEmpty)
-            {
-                _activeModifyCommand!.RegisterRemovedLandform(lf);
-                return;
-            }
-
-            var contours = RealmStudioShapeRenderingLib.Utilities.ExtractContours(lf.HitPath);
-
-            if (contours.Count <= 1)
-            {
-                return;
-            }
-
-            const float minArea = MinimumIslandArea;
-            var validContours = new List<SKPath>();
-
-            foreach (var contour in contours)
-            {
-                float area = ComputeArea(contour);
-                if (area >= minArea)
-                {
-                    validContours.Add(contour);
-                }
-            }
-
-            if (validContours.Count == 0)
-            {
-                _activeModifyCommand!.RegisterRemovedLandform(lf);
-                return;
-            }
-
-            if (validContours.Count == 1)
-            {
-                lf.ReplaceGeometry(validContours[0]);
-                return;
-            }
-
-            // TRUE SPLIT
-
-            lf.EndInteractive();
-            _activeModifyCommand!.RegisterRemovedLandform(lf);
-
-            foreach (var contour in validContours)
-            {
-                var newLand = new Landform();
-                newLand.CloneSettingsFrom(lf);
-
-                newLand.ResolveAssets(_assets);
-
-                newLand.ReplaceGeometry(contour);
-                newLand.EndInteractive();
-
-                _activeModifyCommand!.RegisterNewLandform(newLand);
-
-                newLand.InvalidateRenderCache();
-            }
-        }
-
-        private static float ComputeArea(SKPath path)
-        {
-            if (path == null || path.IsEmpty)
-                return 0f;
-
-            float totalArea = 0f;
-
-            using var measure = new SKPathMeasure(path, false);
-
-            const int sampleCount = 64;
-            var points = new SKPoint[sampleCount];
-
-            do
-            {
-                float length = measure.Length;
-
-                if (length <= 0f)
-                    continue;
-
-                for (int i = 0; i < sampleCount; i++)
-                {
-                    float distance = length * i / (sampleCount - 1);
-                    measure.GetPosition(distance, out points[i]);
-                }
-
-                totalArea += Math.Abs(Shoelace(points));
-
-            } while (measure.NextContour());
-
-            return totalArea;
-        }
-
-        private static float Shoelace(ReadOnlySpan<SKPoint> pts)
-        {
-            if (pts.Length < 3)
-                return 0f;
-
-            float area = 0f;
-
-            for (int i = 0; i < pts.Length; i++)
-            {
-                var p1 = pts[i];
-                var p2 = pts[(i + 1) % pts.Length];
-
-                area += (p1.X * p2.Y) - (p2.X * p1.Y);
-            }
-
-            return area * 0.5f;
-        }
 
         // -------------------------------------------------
         // Overlay (lightweight, O(1))

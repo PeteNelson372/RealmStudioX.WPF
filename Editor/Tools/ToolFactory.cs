@@ -39,7 +39,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
                             _editor.SetActiveDrawingLayer(MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LANDFORMLAYER));
 
-                            tool = new LandformTool(_commands, _assets, _paintService,
+                            tool = new LandformTool(_commands, _mainWindowViewModel, _paintService,
                                 MapBuilder.GetMapLayerByIndex(_scene.Map, MapBuilder.LANDFORMLAYER),
                                 _scene, _editor, (ILandformSettings)context);
 

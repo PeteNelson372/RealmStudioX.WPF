@@ -11,7 +11,7 @@
              xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
              xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"
              mc:Ignorable="d"
-             d:DesignHeight="916" d:DesignWidth="226">
+             d:DesignHeight="916" d:DesignWidth="235">
     
     <Grid Visibility="Visible" Background="#FFDFDBD2">
         <Grid.RowDefinitions>

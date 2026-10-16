@@ -1,4 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.Editor.UserInterface;
@@ -19,6 +20,18 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 {
     public class LandformPanelViewModel : ViewModelBase, IPaintToolViewModel, ILandformSettings
     {
+        // -------------------------------------------------
+        // Configuration
+        // -------------------------------------------------
+        private const float MinimumIslandArea = 400f;   // tune this; this could be made a user-configurable setting in the future.
+                                                        // This is used to prevent tiny "islands" from being created when splitting landforms.
+                                                        // it might also need to be made relative to the map size
+                                                        // (e.g. a percentage of the total map area) rather than an absolute value,
+                                                        // to be more intuitive for users working with different map sizes.
+
+        private const float MinimumIslandWidth = 10f;   // unused for now, but could be used in future to prevent long thin "snakes"
+        private const float MinimumIslandHeight = 10f;  // unused for now, but could be used in future to prevent long thin "snakes"
+
         private readonly MainWindowViewModel _mainWindowViewModel;
         public MainWindowViewModel MainViewModel => _mainWindowViewModel;
 
@@ -468,6 +481,182 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 PaintingColor = color;
             }
         });
+
+        // -------------------------------------------------
+        // Merging/splitting landforms
+        // -------------------------------------------------
+
+        public static void MergeOverlappingLandforms(Landform active, Cmd_ModifyLandforms modifyCommand, MapLayer layer)
+        {
+            if (active == null
+                || active.HitPath == null
+                || active.HitPath.PointCount == 0
+                || modifyCommand == null)
+            {
+                return;
+            }
+
+            SKPath unionPath = new(active.HitPath)
+            {
+                FillType = SKPathFillType.EvenOdd
+            };
+
+            var toMerge = new List<Landform>();
+
+            foreach (var shape in layer.Shapes)
+            {
+                if (shape is not Landform existing)
+                    continue;
+
+                if (existing == active)
+                    continue;
+
+                if (!existing.Bounds.IntersectsWith(active.Bounds))
+                    continue;
+
+                using SKPath simplified = Utilities.SimplifyPath(existing.HitPath);
+
+                SKPath intersection =
+                    simplified.Op(active.HitPath, SKPathOp.Intersect);
+
+                if (intersection == null || intersection.IsEmpty)
+                {
+                    continue;
+                }
+
+                toMerge.Add(existing);
+            }
+
+            foreach (var existing in toMerge)
+            {
+                modifyCommand.CaptureBefore(existing);
+                modifyCommand.RegisterRemovedLandform(existing);
+
+                var newUnion = unionPath.Op(existing.HitPath, SKPathOp.Union);
+
+                unionPath.Dispose();
+                unionPath = new(newUnion)
+                {
+                    FillType = SKPathFillType.EvenOdd
+                };
+            }
+
+            active.RestoreGeometry(unionPath);
+
+            unionPath.Dispose();
+
+            active.InvalidateRenderCache();
+        }
+
+        public void ProcessPotentialSplit(Landform lf, Cmd_ModifyLandforms modifyCommand)
+        {
+            if (lf.HitPath.IsEmpty)
+            {
+                modifyCommand.RegisterRemovedLandform(lf);
+                return;
+            }
+
+            var contours = RealmStudioShapeRenderingLib.Utilities.ExtractContours(lf.HitPath);
+
+            if (contours.Count <= 1)
+            {
+                return;
+            }
+
+            const float minArea = MinimumIslandArea;
+            var validContours = new List<SKPath>();
+
+            foreach (var contour in contours)
+            {
+                float area = ComputeArea(contour);
+                if (area >= minArea)
+                {
+                    validContours.Add(contour);
+                }
+            }
+
+            if (validContours.Count == 0)
+            {
+                modifyCommand.RegisterRemovedLandform(lf);
+                return;
+            }
+
+            if (validContours.Count == 1)
+            {
+                lf.ReplaceGeometry(validContours[0]);
+                return;
+            }
+
+            // TRUE SPLIT
+
+            lf.EndInteractive();
+            modifyCommand.RegisterRemovedLandform(lf);
+
+            foreach (var contour in validContours)
+            {
+                var newLand = new Landform();
+                newLand.CloneSettingsFrom(lf);
+
+                newLand.ResolveAssets(_mainWindowViewModel.AssetManager);
+
+                newLand.ReplaceGeometry(contour);
+                newLand.EndInteractive();
+
+                modifyCommand.RegisterNewLandform(newLand);
+
+                newLand.InvalidateRenderCache();
+            }
+        }
+
+        private static float ComputeArea(SKPath path)
+        {
+            if (path == null || path.IsEmpty)
+                return 0f;
+
+            float totalArea = 0f;
+
+            using var measure = new SKPathMeasure(path, false);
+
+            const int sampleCount = 64;
+            var points = new SKPoint[sampleCount];
+
+            do
+            {
+                float length = measure.Length;
+
+                if (length <= 0f)
+                    continue;
+
+                for (int i = 0; i < sampleCount; i++)
+                {
+                    float distance = length * i / (sampleCount - 1);
+                    measure.GetPosition(distance, out points[i]);
+                }
+
+                totalArea += Math.Abs(Shoelace(points));
+
+            } while (measure.NextContour());
+
+            return totalArea;
+        }
+
+        private static float Shoelace(ReadOnlySpan<SKPoint> pts)
+        {
+            if (pts.Length < 3)
+                return 0f;
+
+            float area = 0f;
+
+            for (int i = 0; i < pts.Length; i++)
+            {
+                var p1 = pts[i];
+                var p2 = pts[(i + 1) % pts.Length];
+
+                area += (p1.X * p2.Y) - (p2.X * p1.Y);
+            }
+
+            return area * 0.5f;
+        }
     }
 
     public interface ILandformSettings

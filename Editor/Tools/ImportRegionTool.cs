@@ -49,7 +49,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             if (state.Button == EditorMouseButton.Right)
             {
-                // commit the import region
+                // finalize the import region
                 SKPath regionPath = Utilities.BuildClosedPath(_importRegionPoints);
                 float area = Utilities.CalculatePolygonArea(_importRegionPoints);
                 MapLayer workLayer = MapBuilder.GetMapLayerByIndex(_editor.Scene!.Map, MapBuilder.WORKLAYER);
@@ -62,7 +62,7 @@ namespace RealmStudioX.WPF.Editor.Tools
                     Index = workLayer.Shapes.Count + 1,
                     IsSelected = false,
                     Source = ImportRegionSource.User,
-                    State = ImportRegionState.Preview,
+                    State = ImportRegionState.Proposed,
                 };
 
                 ImportRegion clone = ImportRegion.Clone(_activeImportRegion);

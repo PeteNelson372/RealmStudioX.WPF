@@ -236,7 +236,6 @@ namespace RealmStudioX.WPF
                 }
             };
         }
-
         
         private void WireSkiaInput()
         {
@@ -633,7 +632,6 @@ namespace RealmStudioX.WPF
 
                             if (ViewModel.ImportViewModel.ImageBitmap != null)
                             {
-                                // TODO: render the image bitmap with reduced opacity
                                 canvas.DrawBitmap(ViewModel.ImportViewModel.ImageBitmap, new SKPoint(0, 0), SKSamplingOptions.Default);
                             }
 

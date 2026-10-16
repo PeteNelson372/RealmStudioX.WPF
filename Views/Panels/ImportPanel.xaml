@@ -11,7 +11,7 @@
              xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
              xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"
              mc:Ignorable="d" 
-             d:DesignHeight="916" d:DesignWidth="235">
+             d:DesignHeight="916" d:DesignWidth="265">
 
     <Grid Visibility="Visible" Background="#FFDFDBD2">
         <Grid.RowDefinitions>
@@ -25,113 +25,323 @@
             <ColumnDefinition Width="72"/>
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.Row="1" Grid.Column="1">
+        <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="4" Margin="0,20,0,0">
 
-        <!-- controls -->
-            <controls:ImportControls Visibility="Visible"/>
+            <!-- controls -->
+            <controls:ImportControls Visibility="Visible" />
 
         </Grid>
 
-        <StackPanel
-            Grid.Row="1"
-            Grid.Column="0"
-            Orientation="Vertical"
-            VerticalAlignment="Top"
-            HorizontalAlignment="Left"
-            Width="140"
-            Height="Auto"
-            Margin="15,0,0,0">
+        <GroupBox Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
+                  Height="Auto"
+                  Header="Import Map Image"
+                  Width="184" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5,20,0,0">
 
             <StackPanel
+                Orientation="Vertical"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Left"
+                Width="170"
+                Height="Auto"
+                Margin="0,0,0,0">
+
+                <StackPanel
                         Orientation="Vertical"
                         VerticalAlignment="Top"
                         HorizontalAlignment="Center"
-                        Width="130"
+                        Width="165"
                         Height="Auto"
                         Margin="3,3,3,3">
 
-                <TextBlock Text="Select Import File"
+                    <TextBlock Text="Select Import File"
                             Foreground="#FF45443F"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"
                             Margin="3,3,3,3"/>
-                <Button
+                    <Button
                         Style="{StaticResource FlatToolButton}"
-                        Width="120"
+                        Width="150"
                         Height="50"
                         Margin="3,3,3,3"
                         HorizontalAlignment="Center"
                         ToolTip="Select Import File"
                         Command="{Binding SelectImportFileCommand}">
 
-                    <materialDesign:PackIcon Kind="FileImageAddOutline"
+                        <materialDesign:PackIcon Kind="FileImageAddOutline"
                                     Width="36"
                                     Height="36"
                                     Opacity="0.7"/>
-                </Button>
-            </StackPanel>
+                    </Button>
+                </StackPanel>
 
-            <StackPanel
-                Orientation="Vertical"
-                VerticalAlignment="Top"
-                HorizontalAlignment="Center"
-                Width="130"
-                Height="Auto"
-                Margin="3,20,3,3">
+                <Grid Width="156"
+                    Height="200"
+                    Margin="0,3,0,3"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center">
 
-                <TextBlock Text="Analyze Image File"
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                       Text="Extraction Pipeline"
+                       FontSize="12"
+                       Foreground="#FF45443F"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Center"
+                       Margin="3,3,3,6"/>
+
+                    <ListBox Grid.Row="1"
+                         ItemsSource="{Binding ExtractionPipelines}"
+                         SelectedItem="{Binding SelectedExtractionPipeline, Mode=TwoWay}"
+                         VerticalAlignment="Stretch"
+                         HorizontalContentAlignment="Stretch"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.CanContentScroll="False"
+                         BorderThickness="0">
+
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Margin="0,3,0,0"
+                                    Padding="4">
+
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Row="0"
+                                           Text="{Binding Name}"
+                                           FontSize="10"
+                                           FontWeight="SemiBold"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,3"/>
+
+                                        <TextBlock Grid.Row="1"
+                                           Text="{Binding Description}"
+                                           FontSize="9"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,3"
+                                           Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+
+                                        <StackPanel Grid.Row="2" Margin="0,0,0,3">
+                                            <TextBlock Text="Best For:"
+                                               FontSize="9"
+                                               FontWeight="SemiBold"
+                                               Margin="0,0,0,3"/>
+                                            <TextBlock Text="{Binding BestFor}"
+                                               FontSize="9"
+                                               TextWrapping="Wrap"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="3">
+                                            <TextBlock Text="Limitations:"
+                                               FontSize="9"
+                                               FontWeight="SemiBold"
+                                               Margin="0,0,0,3"/>
+                                            <TextBlock Text="{Binding Limitations}"
+                                               FontSize="9"
+                                               TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                </Grid>
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+                    Width="160"
+                    Height="Auto"
+                    Margin="3,20,3,3">
+
+                    <TextBlock Text="Analyze Image File"
                         Foreground="#FF45443F"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"
                         Margin="3,3,3,3"/>
-                <Button
+                    <Button
                     Style="{StaticResource FlatToolButton}"
-                    Width="120"
+                    Width="150"
                     Height="50"
                     Margin="3,3,3,3"
                     HorizontalAlignment="Center"
                     ToolTip="Select Import File"
                     IsEnabled="{Binding ImageFileName, Converter={StaticResource StringToBooleanConverter}}"
-                    Command="{Binding AnalyzeImportFileCommand}">
+                    Command="{Binding RunExtractionPipelineCommand}">
 
-                    <materialDesign:PackIcon Kind="LandPlots"
+                        <materialDesign:PackIcon Kind="LandPlots"
                                 Width="36"
                                 Height="36"
                                 Opacity="0.7"/>
-                </Button>
-            </StackPanel>
+                    </Button>
+                </StackPanel>
 
-            <StackPanel
-                Orientation="Vertical"
-                VerticalAlignment="Top"
-                HorizontalAlignment="Center"
-                Width="130"
-                Height="Auto"
-                Margin="3,20,3,3">
+                <Separator Margin="0,10,0,10" Width="120" Height="2" Background="#FF45443F"/>
 
-                <TextBlock Text="Extract Landforms"
+                <Grid Width="156"
+                    Height="200"
+                    Margin="0,3,0,3"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center">
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                       Text="Refinement Pipeline"
+                       FontSize="12"
+                       Foreground="#FF45443F"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Center"
+                       Margin="3,3,3,6"/>
+
+                    <ListBox Grid.Row="1"
+                         ItemsSource="{Binding RefinementPipelines}"
+                         SelectedItem="{Binding SelectedRefinementPipeline, Mode=TwoWay}"
+                         VerticalAlignment="Stretch"
+                         HorizontalContentAlignment="Stretch"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.CanContentScroll="False"
+                         BorderThickness="0">
+
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Margin="0,3,0,0"
+                                    Padding="4">
+
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Row="0"
+                                           Text="{Binding Name}"
+                                           FontSize="10"
+                                           FontWeight="SemiBold"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,3"/>
+
+                                        <TextBlock Grid.Row="1"
+                                           Text="{Binding Description}"
+                                           FontSize="9"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,3"
+                                           Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+
+                                        <StackPanel Grid.Row="2" Margin="0,0,0,3">
+                                            <TextBlock Text="Best For:"
+                                               FontSize="9"
+                                               FontWeight="SemiBold"
+                                               Margin="0,0,0,3"/>
+                                            <TextBlock Text="{Binding BestFor}"
+                                               FontSize="9"
+                                               TextWrapping="Wrap"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="3">
+                                            <TextBlock Text="Limitations:"
+                                               FontSize="9"
+                                               FontWeight="SemiBold"
+                                               Margin="0,0,0,3"/>
+                                            <TextBlock Text="{Binding Limitations}"
+                                               FontSize="9"
+                                               TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                </Grid>
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+                    Width="160"
+                    Height="Auto"
+                    Margin="3,20,3,3">
+
+                    <TextBlock Text="Refine Perimeters"
                         Foreground="#FF45443F"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"
                         Margin="3,3,3,3"/>
-                <Button
-                    Style="{StaticResource FlatToolButton}"
-                    Width="120"
-                    Height="50"
-                    Margin="3,3,3,3"
-                    HorizontalAlignment="Center"
-                    ToolTip="Select Import File"
-                    IsEnabled="{Binding ImageFileName, Converter={StaticResource StringToBooleanConverter}}"
-                    Command="{Binding ExtractLandformsCommand}">
+                    <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Width="150"
+                        Height="50"
+                        Margin="3,3,3,3"
+                        HorizontalAlignment="Center"
+                        ToolTip="Select Import File"
+                        IsEnabled="{Binding ImageFileName, Converter={StaticResource StringToBooleanConverter}}"
+                        Command="{Binding RunRefinementPipelineCommand}">
 
-                    <materialDesign:PackIcon Kind="LandPlotsCircleVariant"
+                        <materialDesign:PackIcon Kind="LandPlotsCircleVariant"
                                 Width="36"
                                 Height="36"
                                 Opacity="0.7"/>
-                </Button>
-            </StackPanel>
+                    </Button>
+                </StackPanel>
 
-        </StackPanel>
+                <Separator Margin="0,15,0,10" Width="120" Height="2" Background="#FF45443F"/>
+
+                <StackPanel
+                    Orientation="Vertical"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+                    Width="160"
+                    Height="Auto"
+                    Margin="3,3,3,10">
+
+                    <TextBlock Text="Create Landforms"
+                        Foreground="#FF45443F"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Margin="3,3,3,3"/>
+                    <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Width="150"
+                        Height="50"
+                        Margin="3,3,3,3"
+                        HorizontalAlignment="Center"
+                        ToolTip="Select Import File"
+                        IsEnabled="{Binding ImageFileName, Converter={StaticResource StringToBooleanConverter}}"
+                        Command="{Binding ExtractLandformsCommand}">
+
+                        <materialDesign:PackIcon Kind="MapAdd"
+                                Width="36"
+                                Height="36"
+                                Opacity="0.7"/>
+                    </Button>
+                </StackPanel>
+
+            </StackPanel>
+        </GroupBox>
 
     </Grid>
 </UserControl>
