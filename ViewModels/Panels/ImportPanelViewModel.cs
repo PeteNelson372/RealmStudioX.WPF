@@ -101,7 +101,17 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                         ClearRegions();
                     }
 
-                    ImageBitmap = SKBitmap.Decode(dialog.FileName);
+                    SKBitmap importBitmap = SKBitmap.Decode(dialog.FileName);
+
+                    if (importBitmap.Width != _editor.Scene?.Map?.MapWidth || importBitmap.Height != _editor.Scene?.Map?.MapHeight)
+                    {
+                        importBitmap = importBitmap.Resize(new SKImageInfo(_editor.Scene!.Map!.MapWidth, _editor.Scene.Map.MapHeight), SKSamplingOptions.Default);
+                    }
+
+                    ImageBitmap = importBitmap.Copy();
+
+                    importBitmap.Dispose();
+
                     ImageFileName = dialog.FileName;
                 }
                 catch (Exception ex)
@@ -119,16 +129,17 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public ICommand RunExtractionPipelineCommand => new RelayCommand(() =>
         {
+            if (SelectedExtractionPipeline == null)
+            {
+                MessageDialogFactory.ErrorDialog("No Extraction Pipeline Selected", "Please select an extraction pipeline before running the analysis.").ShowDialog();
+                return;
+            }
+
             if (_imageBitmap != null)
             {
                 try
                 {
                     Mouse.OverrideCursor = Cursors.Wait;
-
-                    if (SelectedExtractionPipeline == null)
-                    {
-                        return;
-                    }
 
                     // Analyze the image and display the results.
                     _editor.State.StatusMessage = $"Analyzing {Path.GetFileName(_imageFileName)}.";
@@ -206,16 +217,17 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public ICommand RunRefinementPipelineCommand => new RelayCommand(() =>
         {
+            if (SelectedRefinementPipeline == null)
+            {
+                MessageDialogFactory.ErrorDialog("No Refinement Pipeline Selected", "Please select a refinement pipeline before running the analysis.").ShowDialog();
+                return;
+            }
+
             if (_imageBitmap != null)
             {
                 try
                 {
                     Mouse.OverrideCursor = Cursors.Wait;
-
-                    if (SelectedRefinementPipeline == null)
-                    {
-                        return;
-                    }
 
                     if (_editor.Scene == null ||
                         _editor.Scene.Map == null ||
@@ -280,6 +292,18 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public ICommand ExtractLandformsCommand => new RelayCommand(() =>
         {
+            if (_editor.Scene == null || _editor.Scene.Map == null)
+            {
+                return;
+            }
+
+            if (!ImportRegions.Any(ir => ir.State == ImportRegionState.Committed))
+            {
+                MessageDialog dlg = MessageDialogFactory.ErrorDialog("No Committed Regions", "There are no committed regions from which to create landforms.");
+                dlg.ShowDialog();
+                return;
+            }
+
             MessageDialog confirmationDialog = MessageDialogFactory.ConfirmationDialog(
                 "Create Landforms",
                 "Landforms will be created from all committed regions. Existing landforms may be merged or modified. Uncommitted regions will be discarded. Proceed?");
@@ -356,13 +380,13 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
                     lf.ResolveAssets(_mainViewModel.AssetManager);
 
-                    lf.ReplaceGeometry(perimeterPath);
+                    var simplifiedPath = Utilities.SimplifyPath(perimeterPath);
+
+                    lf.ReplaceGeometry(simplifiedPath);
 
                     lf.InvalidateRenderCache();
 
                     lf.LocalBounds = new SKRect(0, 0, lf.HitPath.Bounds.Width, lf.HitPath.Bounds.Height);
-
-                    landformLayer.Add(lf);
 
                     _editor.Scene!.MarkLandClipPathModified();
 
@@ -383,7 +407,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 _mainViewModel.ShowImportPanel = false;
 
                 modifyLandformsCommand.Dispose();
-                modifyLandformsCommand = null;
             }
         }
 

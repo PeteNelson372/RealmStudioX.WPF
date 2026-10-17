@@ -10,6 +10,7 @@ using RealmStudioX.WPF.ViewModels.Painting;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -514,15 +515,48 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 if (!existing.Bounds.IntersectsWith(active.Bounds))
                     continue;
 
-                using SKPath simplified = Utilities.SimplifyPath(existing.HitPath);
-
-                SKPath intersection =
-                    simplified.Op(active.HitPath, SKPathOp.Intersect);
-
-                if (intersection == null || intersection.IsEmpty)
+                using SKPath existingInput = new(existing.HitPath)
                 {
-                    continue;
+                    FillType = SKPathFillType.EvenOdd
+                };
+
+                using SKPath activeInput = new(active.HitPath)
+                {
+                    FillType = SKPathFillType.EvenOdd
+                };
+
+                using SKPath intersection = new();
+
+                bool intersectionSucceeded =
+                    existing.HitPath.Op(
+                        active.HitPath,
+                        SKPathOp.Intersect,
+                        intersection);
+
+                bool overlaps;
+
+                if (intersectionSucceeded)
+                {
+                    // A successful, empty intersection means there is no
+                    // filled-area overlap.
+                    overlaps = !intersection.IsEmpty;
                 }
+                else
+                {
+                    // PathOps failed, so use a raster-based overlap test.
+                    overlaps = RasterPathsOverlap(
+                        existing.HitPath,
+                        active.HitPath);
+
+                    Debug.WriteLine(
+                        $"MergeOverlappingLandforms: intersection failed; " +
+                        $"raster fallback reports overlap={overlaps}. " +
+                        $"Existing points={existing.HitPath.PointCount}, " +
+                        $"active points={active.HitPath.PointCount}.");
+                }
+
+                if (!overlaps)
+                    continue;
 
                 toMerge.Add(existing);
             }
@@ -546,6 +580,99 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             unionPath.Dispose();
 
             active.InvalidateRenderCache();
+        }
+
+        private static bool RasterPathsOverlap(
+    SKPath firstPath,
+    SKPath secondPath)
+        {
+            if (firstPath.IsEmpty || secondPath.IsEmpty)
+                return false;
+
+            SKRect firstBounds = firstPath.Bounds;
+            SKRect secondBounds = secondPath.Bounds;
+
+            float overlapLeft =
+                Math.Max(firstBounds.Left, secondBounds.Left);
+
+            float overlapTop =
+                Math.Max(firstBounds.Top, secondBounds.Top);
+
+            float overlapRight =
+                Math.Min(firstBounds.Right, secondBounds.Right);
+
+            float overlapBottom =
+                Math.Min(firstBounds.Bottom, secondBounds.Bottom);
+
+            if (overlapRight <= overlapLeft ||
+                overlapBottom <= overlapTop)
+            {
+                return false;
+            }
+
+            int left = (int)Math.Floor(overlapLeft);
+            int top = (int)Math.Floor(overlapTop);
+            int right = (int)Math.Ceiling(overlapRight);
+            int bottom = (int)Math.Ceiling(overlapBottom);
+
+            int width = right - left;
+            int height = bottom - top;
+
+            if (width <= 0 || height <= 0)
+                return false;
+
+            using SKBitmap firstMask =
+                RasterizePath(firstPath, left, top, width, height);
+
+            using SKBitmap secondMask =
+                RasterizePath(secondPath, left, top, width, height);
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    if (firstMask.GetPixel(x, y).Red > 0 &&
+                        secondMask.GetPixel(x, y).Red > 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static SKBitmap RasterizePath(
+            SKPath path,
+            int left,
+            int top,
+            int width,
+            int height)
+        {
+            SKBitmap bitmap = new(
+                new SKImageInfo(
+                    width,
+                    height,
+                    SKColorType.Gray8,
+                    SKAlphaType.Opaque));
+
+            using (SKCanvas canvas = new(bitmap))
+            using (SKPaint paint = new())
+            {
+                canvas.Clear(SKColors.Black);
+
+                // Convert world coordinates to local mask coordinates.
+                canvas.Translate(-left, -top);
+
+                paint.Color = SKColors.White;
+                paint.Style = SKPaintStyle.Fill;
+                paint.IsAntialias = false;
+
+                canvas.DrawPath(path, paint);
+                canvas.Flush();
+            }
+
+            return bitmap;
         }
 
         public void ProcessPotentialSplit(Landform lf, Cmd_ModifyLandforms modifyCommand)

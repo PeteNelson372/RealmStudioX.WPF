@@ -233,7 +233,11 @@ namespace RealmStudioX.WPF.Editor.Tools
             float r = _landformSettings.LandformEraserSize / 2;
 
             // Precompute eraser circle path once
-            SKPathBuilder erasePathBuilder = new();
+            SKPathBuilder erasePathBuilder = new()
+            {
+                FillType = SKPathFillType.EvenOdd
+            };
+
             erasePathBuilder.AddCircle(worldPos.X, worldPos.Y, r);
 
             var erasePath = erasePathBuilder.Snapshot();
@@ -256,11 +260,11 @@ namespace RealmStudioX.WPF.Editor.Tools
                 if (!expandedBounds.Contains(worldPos))
                     continue;
 
-                // Precise intersection test
-                using var intersection = lf.HitPath.Op(erasePath, SKPathOp.Intersect);
+                // Precise intersection test -- turns out to be not necessary, as the EraseCircle method will handle it internally
+                //using var intersection = lf.HitPath.Op(erasePath, SKPathOp.Intersect);
 
-                if (intersection == null || intersection.IsEmpty)
-                    continue;
+                //if (intersection == null || intersection.IsEmpty)
+                //    continue;
 
                 // Ensure we only capture state once per modified shape
                 if (!_modifiedLandforms.Contains(lf))
