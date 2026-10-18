@@ -103,10 +103,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
                     SKBitmap importBitmap = SKBitmap.Decode(dialog.FileName);
 
-                    if (importBitmap.Width != _editor.Scene?.Map?.MapWidth || importBitmap.Height != _editor.Scene?.Map?.MapHeight)
-                    {
-                        importBitmap = importBitmap.Resize(new SKImageInfo(_editor.Scene!.Map!.MapWidth, _editor.Scene.Map.MapHeight), SKSamplingOptions.Default);
-                    }
+                    importBitmap = importBitmap.Resize(new SKImageInfo(_editor.Scene!.Map!.MapWidth, _editor.Scene.Map.MapHeight), SKSamplingOptions.Default);
 
                     ImageBitmap = importBitmap.Copy();
 
@@ -565,7 +562,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                 if (ir.IsSelected && ir.State != ImportRegionState.Committed)
                 {
                     ir.State = ImportRegionState.Accepted;
-                    ir.IsSelected = false;
+                    //ir.IsSelected = false;
                 }
             }
         });
