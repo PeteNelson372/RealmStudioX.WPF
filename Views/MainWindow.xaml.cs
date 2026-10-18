@@ -632,7 +632,7 @@ namespace RealmStudioX.WPF
 
                             if (ViewModel.ImportViewModel.ImageBitmap != null)
                             {
-                                canvas.DrawBitmap(ViewModel.ImportViewModel.ImageBitmap, new SKPoint(widthOffset, heightOffset), SKSamplingOptions.Default);
+                                canvas.DrawBitmap(ViewModel.ImportViewModel.ImageBitmap, new SKPoint(0, 0), SKSamplingOptions.Default);
                             }
 
                             // render the ImportRegion objects in the worklayer
