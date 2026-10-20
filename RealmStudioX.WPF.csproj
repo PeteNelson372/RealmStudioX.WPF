@@ -276,6 +276,9 @@
     <Compile Update="Views\Controls\CreateOpenDialogTitleBar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Dialogs\ApplicationPreferencesDialog.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Dialogs\HeightMapDXModelViewer.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -360,6 +363,12 @@
     <Compile Update="Views\Panels\ProjectPanel.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assets\**\*.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

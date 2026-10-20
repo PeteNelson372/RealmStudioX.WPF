@@ -112,78 +112,79 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Grid.Row="0">
-                    <GroupBox Height="230" Header="Realm Type" Width="190" HorizontalAlignment="Left" Margin="10,10,0,0">
-                        <ListBox x:Name="RealmTypeList"
-                         SelectedValue="{Binding SelectedRealmType}"
-                         SelectedValuePath="RealmProjectType"                                 
-                         BorderThickness="0"
-                         Background="Transparent"
-                         SelectedIndex="0">
+                        <GroupBox Height="230" Header="Realm Type" Width="190" HorizontalAlignment="Left" Margin="10,10,0,0">
+                            <ListBox x:Name="RealmTypeList"
+                             SelectedValue="{Binding SelectedRealmType}"
+                             SelectedValuePath="RealmProjectType"                                 
+                             BorderThickness="0"
+                             Background="Transparent"
+                             SelectedIndex="0">
 
-                            <ListBox.ItemContainerStyle>
-                                <Style TargetType="ListBoxItem">
-                                    <Setter Property="Margin" Value="2"/>
-                                    <Setter Property="Padding" Value="4"/>
-                                    <Setter Property="Cursor" Value="Hand"/>
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="ListBoxItem">
+                                        <Setter Property="Margin" Value="2"/>
+                                        <Setter Property="Padding" Value="4"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
 
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="ListBoxItem">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="ListBoxItem">
 
-                                                <Border x:Name="Border"
-                                                    Background="#EEE"
-                                                    BorderBrush="#CCC"
-                                                    BorderThickness="1"
-                                                    CornerRadius="4"
-                                                    Padding="6">
+                                                    <Border x:Name="Border"
+                                                        Background="#EEE"
+                                                        BorderBrush="#CCC"
+                                                        BorderThickness="1"
+                                                        CornerRadius="4"
+                                                        Padding="6">
 
-                                                    <StackPanel Orientation="Horizontal"
-                                                        VerticalAlignment="Center">
+                                                        <StackPanel Orientation="Horizontal"
+                                                            VerticalAlignment="Center">
 
-                                                        <!-- Icon -->
-                                                        <materialDesign:PackIcon Kind="{Binding Icon}"
-                                                         Width="20"
-                                                         Height="20"
-                                                         Margin="0,0,8,0"
-                                                         VerticalAlignment="Center"/>
+                                                            <!-- Icon -->
+                                                            <materialDesign:PackIcon Kind="{Binding Icon}"
+                                                             Width="20"
+                                                             Height="20"
+                                                             Margin="0,0,8,0"
+                                                             VerticalAlignment="Center"/>
 
-                                                        <!-- Label -->
-                                                        <TextBlock Text="{Binding Name}"
-                                                           FontSize="14"
-                                                           VerticalAlignment="Center"/>
+                                                            <!-- Label -->
+                                                            <TextBlock Text="{Binding Name}"
+                                                               FontSize="14"
+                                                               VerticalAlignment="Center"/>
 
-                                                    </StackPanel>
+                                                        </StackPanel>
 
-                                                </Border>
+                                                    </Border>
 
-                                                <ControlTemplate.Triggers>
+                                                    <ControlTemplate.Triggers>
 
-                                                    <!-- Selected -->
-                                                    <Trigger Property="IsSelected" Value="True">
-                                                        <Setter TargetName="Border"
-                                                        Property="Background"
-                                                        Value="#99b0a4"/>
-                                                        <Setter Property="Foreground"
-                                                        Value="White"/>
-                                                    </Trigger>
+                                                        <!-- Selected -->
+                                                        <Trigger Property="IsSelected" Value="True">
+                                                            <Setter TargetName="Border"
+                                                            Property="Background"
+                                                            Value="#99b0a4"/>
+                                                            <Setter Property="Foreground"
+                                                            Value="White"/>
+                                                        </Trigger>
 
-                                                    <!-- Hover -->
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="Border"
-                                                        Property="Background"
-                                                        Value="#DDD"/>
-                                                    </Trigger>
+                                                        <!-- Hover -->
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="Border"
+                                                            Property="Background"
+                                                            Value="#DDD"/>
+                                                        </Trigger>
 
-                                                </ControlTemplate.Triggers>
+                                                    </ControlTemplate.Triggers>
 
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </ListBox.ItemContainerStyle>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
 
-                        </ListBox>
-                    </GroupBox>
+                            </ListBox>
+                        </GroupBox>
+                        
                         <GroupBox Height="230" Header="Realm Map Type" Width="190" HorizontalAlignment="Left" Margin="10,10,0,0">
                             <ListBox x:Name="MapTypeList"
                                  SelectedValue="{Binding SelectedMapType}"
@@ -203,11 +204,11 @@
                                                 <ControlTemplate TargetType="ListBoxItem">
 
                                                     <Border x:Name="Border"
-                                                    Background="#EEE"
-                                                    BorderBrush="#CCC"
-                                                    BorderThickness="1"
-                                                    CornerRadius="4"
-                                                    Padding="6">
+                                                        Background="#EEE"
+                                                        BorderBrush="#CCC"
+                                                        BorderThickness="1"
+                                                        CornerRadius="4"
+                                                        Padding="6">
 
                                                         <StackPanel Orientation="Horizontal"
                                                             VerticalAlignment="Center">
@@ -221,8 +222,8 @@
 
                                                             <!-- Label -->
                                                             <TextBlock Text="{Binding Name}"
-                                                           FontSize="14"
-                                                           VerticalAlignment="Center"/>
+                                                               FontSize="14"
+                                                               VerticalAlignment="Center"/>
 
                                                         </StackPanel>
 
@@ -257,6 +258,7 @@
                             </ListBox>
                         </GroupBox>
                     </StackPanel>
+                    
                     <GroupBox Grid.Column="1" Header="Realm Map Size Presets" Margin="10,10,10,0" Width="240" HorizontalAlignment="Left">
                         <GroupBox.Resources>
                             <Style TargetType="RadioButton">
@@ -504,25 +506,14 @@
                                    VerticalAlignment="Center"
                                    Margin="0,0,8,6"/>
 
-                                <ComboBox x:Name="UnitsCombo"
+                                <ComboBox x:Name="MapAreaUnits"
                                   Grid.Column="1"
                                   Width="100"
                                   Margin="0,0,0,6"
                                   Background="#FFDFDBD2"
-                                  SelectedValuePath="Content"
-                                  SelectedValue="{Binding MapAreaUnits, Mode=TwoWay}">
-                                    <!-- Default = Meters -->
-
-                                    <ComboBoxItem Content="Centimeters"/>
-                                    <ComboBoxItem Content="Inches"/>
-                                    <ComboBoxItem Content="Feet"/>
-                                    <ComboBoxItem Content="Yards"/>
-                                    <ComboBoxItem Content="Meters"/>
-                                    <ComboBoxItem Content="Kilometers"/>
-                                    <ComboBoxItem Content="Miles"/>
-                                    <ComboBoxItem Content="Astronomical Units (AU)"/>
-                                    <ComboBoxItem Content="Light Years"/>
-                                    <ComboBoxItem Content="Parsecs"/>
+                                  DisplayMemberPath="Unit"
+                                  SelectedValuePath="Unit"
+                                  SelectedValue="{Binding SelectedMapAreaUnits, Mode=TwoWay}">
 
                                 </ComboBox>
 

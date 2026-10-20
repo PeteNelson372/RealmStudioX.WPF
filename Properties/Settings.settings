@@ -2,16 +2,17 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="RealmStudioX.WPF.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="MeasurementUnits" Type="System.String" Scope="User">
-      <Value Profile="(Default)">U.S. Customary</Value>
+    <Setting Name="MeasurementUnits" Type="System.Collections.Specialized.StringCollection" Scope="User">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+  &lt;string&gt;U.S. Customary&lt;/string&gt;
+  &lt;string&gt;Metric&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
     </Setting>
-    <Setting Name="DefaultMapSize" Type="System.Drawing.Size" Scope="User">
-      <Value Profile="(Default)">1920, 1080</Value>
-    </Setting>
-    <Setting Name="MapAssetDirectory" Type="System.String" Scope="User">
+    <Setting Name="RootAssetDirectory" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="RealmAutosave" Type="System.Boolean" Scope="User">
+    <Setting Name="AutoSaveEnabled" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="AutosaveDirectory" Type="System.String" Scope="User">
@@ -20,16 +21,16 @@
     <Setting Name="AutosaveInterval" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">5</Value>
     </Setting>
-    <Setting Name="PlaySoundOnSave" Type="System.Boolean" Scope="User">
+    <Setting Name="PlaySoundEnabled" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="DefaultExportFormat" Type="System.String" Scope="User">
       <Value Profile="(Default)">png</Value>
     </Setting>
-    <Setting Name="DefaultRealmDirectory" Type="System.String" Scope="User">
+    <Setting Name="RootRealmsDirectory" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="AutoCheckForUpdates" Type="System.Boolean" Scope="User">
+    <Setting Name="CheckUpdatesEnabled" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="EnableWAIntegration" Type="System.Boolean" Scope="User">
@@ -40,6 +41,42 @@
     </Setting>
     <Setting Name="LastFileDirectory" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="RootRealmStudioXDirectory" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="DefaultModelsDirectory" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="DefaultSymbolDirectory" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="SymbolTagsFilePath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="StructureSynonymsFilePath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="TerrainSynonymsFilePath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="VegetationSynonymsFilePath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="DefaultMapWidth" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1920</Value>
+    </Setting>
+    <Setting Name="DefaultMapHeight" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1080</Value>
+    </Setting>
+    <Setting Name="DefaultMeasurementUnits" Type="System.String" Scope="User">
+      <Value Profile="(Default)">U.S. Customary</Value>
+    </Setting>
+    <Setting Name="SelectedSaveSound" Type="System.String" Scope="User">
+      <Value Profile="(Default)">savesound.wav</Value>
+    </Setting>
+    <Setting Name="SelectedMapAreaUnits" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Miles</Value>
     </Setting>
   </Settings>
 </SettingsFile>

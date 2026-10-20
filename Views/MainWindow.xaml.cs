@@ -109,12 +109,9 @@ namespace RealmStudioX.WPF
             {
                 TitleBar.DataContext = ViewModel;
 
-                TitleBar.OpenClicked += (s, e) => OpenHandler();
-                TitleBar.SaveClicked += (s, e) => SaveHandler();
                 TitleBar.MinimizeClicked += (s, e) => MinimizeHandler();
                 TitleBar.MaximizeClicked += (s, e) => MaximizeHandler();
                 TitleBar.ExitClicked += (s, e) => ExitHandler();
-                TitleBar.UpdateAvailableClicked += (s, e) => NewVersionHandler();
 
                 MainTabs.DataContext = ViewModel;
 
@@ -146,6 +143,11 @@ namespace RealmStudioX.WPF
         {
             RealmStudioXLogger.Info($"Autosave completed at {DateTime.Now}");
             _editor!.State.StatusMessage = $"Autosave completed.";
+
+            if (ApplicationPreferences.Current.PlaySoundEnabled)
+            {
+                SoundService.PlaySound("savesound2.wav");
+            }
         }
 
         private void OnDrawingModeChanged(MapDrawingMode previous, MapDrawingMode current)
@@ -790,19 +792,6 @@ namespace RealmStudioX.WPF
         // Main Menu Commands
         //==========================================
 
-        private void OpenHandler()
-        {
-            // open a project
-            ViewModel.ShowCreateOpenDialog();
-
-        }
-
-        private void SaveHandler()
-        {
-            // save the current project
-            ViewModel.SaveRealmProject();
-        }
-
 
         protected override void OnClosing(CancelEventArgs e)
         {
@@ -818,13 +807,6 @@ namespace RealmStudioX.WPF
         private void ExitHandler()
         {
             Close();
-        }
-
-        private static void NewVersionHandler()
-        {
-            // TODO: check for a new version
-            MessageDialog dlg = MessageDialogFactory.InformationDialog("Update Available", "New version available. Please update to the latest version.");
-            dlg.ShowDialog();
         }
 
         //==========================================

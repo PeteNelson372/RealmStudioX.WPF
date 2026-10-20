@@ -120,9 +120,6 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public event Action? RequestOpenNameGeneratorConfig;
 
-        private readonly string autosaveRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "RealmStudioX", "Autosave");
-
         public MainWindowViewModel(MainWindow mainWindow, EditorController editor, AssetManager assetManager, FontManager fontManager, ThemeManager themeManager)
         {
             _mainWindow = mainWindow;
@@ -133,7 +130,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
             CommandService = new(_projectManager.ProjectCommands, _editor.Commands);
 
-            RecoveryService = new RecoveryService(autosaveRoot);
+            RecoveryService = new RecoveryService();
 
             ((App)Application.Current).RecoveryService = RecoveryService;
 
@@ -471,6 +468,12 @@ namespace RealmStudioX.WPF.ViewModels.Main
         // Commands (menu and buttons)
         // -------------------------
 
+        public ICommand CheckForUpdatesCommand => new RelayCommand(() =>
+        {
+            MessageDialog dlg = MessageDialogFactory.InformationDialog("Update Available", "New version available. Please update to the latest version.");
+            dlg.ShowDialog();
+        });
+
         // -------------------------
         // New, Open, Save, Export, Exit Commands
         // -------------------------
@@ -483,6 +486,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
         public void ShowCreateOpenDialog()
         {
             var dialog = new CreateOpenMapDialog();
+            dialog.SetThemeManager(ThemeManager);
+
             var result = dialog.ShowDialog();
 
             if (result != true || dialog.ViewModel.Result == null)
@@ -771,6 +776,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
         {
             ProjectViewModel.OpenProjectPropertiesDialog();
         });
+       
 
         // -------------------------
         // Reload Assets
@@ -791,6 +797,16 @@ namespace RealmStudioX.WPF.ViewModels.Main
         });
 
         // -------------------------
+        // Application Preferences
+        // -------------------------
+
+        public ICommand OpenPreferencesCommand => new RelayCommand(() =>
+        {
+            ApplicationPreferencesDialog preferencesDialog = new(this);
+            preferencesDialog.ShowDialog();
+        });
+
+        // -------------------------
         // Name Generator Config
         // -------------------------
 
@@ -798,6 +814,10 @@ namespace RealmStudioX.WPF.ViewModels.Main
         {
             RequestOpenNameGeneratorConfig?.Invoke();
         });
+
+        // -------------------------
+        // About
+        // -------------------------
 
         public ICommand OpenAboutCommand => new RelayCommand(() =>
         {
@@ -1432,7 +1452,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
                 if (string.IsNullOrEmpty(map.MapPath))
                 {
-                    string mapPath = Path.Join(AssetManager.RootRealmsDirectory, mapFileName);
+                    string mapPath = Path.Join(ApplicationPreferences.Current.RootRealmsDirectory, mapFileName);
                     map.MapPath = mapPath;
                 }
 
@@ -1495,7 +1515,7 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 }
 
                 string projectFileName = currentProject.Metadata!.ProjectName;
-                string mapProjectPath = Path.Join(AssetManager.RootRealmsDirectory, projectFileName + RealmStudioFileFormat.PackageExtension);
+                string mapProjectPath = Path.Join(ApplicationPreferences.Current.RootRealmsDirectory, projectFileName + RealmStudioFileFormat.PackageExtension);
 
                 MapFileMethods.SaveProject(mapProjectPath, currentProject);
 
@@ -1505,6 +1525,11 @@ namespace RealmStudioX.WPF.ViewModels.Main
                 }
 
                 CommandService.MarkSaved();
+
+                if (ApplicationPreferences.Current.PlaySoundEnabled)
+                {
+                    SoundService.PlaySound("savesound2.wav");
+                }
 
                 _editor.State.StatusMessage = $"Project {currentProject.Metadata.ProjectName} saved.";
 

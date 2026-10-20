@@ -60,7 +60,7 @@
             <Button Style="{StaticResource TitleBarButtonStyle}"
                         shell:WindowChrome.IsHitTestVisibleInChrome="True"
                         Margin="40,0,0,0"
-                        Click="OnOpen" Width="32">
+                        Command="{Binding NewOpenCommand}" Width="32">
 
                 <TextBlock Text="&#xE8E5;"
                             FontFamily="Segoe Fluent Icons"
@@ -71,7 +71,7 @@
             <!-- Save -->
             <Button Style="{StaticResource TitleBarButtonStyle}"
                         shell:WindowChrome.IsHitTestVisibleInChrome="True"
-                        Click="OnSave" Width="32">
+                        Command="{Binding SaveCommand}" Width="32">
 
                 <TextBlock Text="&#xE74E;"
                             FontFamily="Segoe Fluent Icons"
@@ -81,7 +81,7 @@
 
             <Button Style="{StaticResource TitleBarButtonStyle}"
                         ToolTip="Update available"
-                        Click="UpdateAvailable_Click"
+                        Command="{Binding CheckForUpdatesCommand}"
                         shell:WindowChrome.IsHitTestVisibleInChrome="True">
 
                 <Grid Width="32" Height="32">

@@ -296,7 +296,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         {
             OpenFileDialog ofd = new()
             {
-                InitialDirectory = AssetManager.RootRealmsDirectory,
+                InitialDirectory = ApplicationPreferences.Current.RootRealmsDirectory,
                 Filter = "RealmStudioX Map|*.rsmx",
                 Title = "Open RealmStudioX Map"
             };
@@ -381,7 +381,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
                     SaveFileDialog saveMapDialog = new()
                     {
-                        InitialDirectory = AssetManager.RootRealmsDirectory,
+                        InitialDirectory = ApplicationPreferences.Current.RootRealmsDirectory,
                         FileName = fileName,
                         Filter = "RealmStudioX Map|*.rsmx",
                         Title = "Save RealmStudioX Map"

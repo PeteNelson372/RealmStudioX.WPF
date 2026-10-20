@@ -12,7 +12,7 @@ namespace RealmStudioX.WPF.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "18.7.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "18.10.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -25,10 +25,12 @@ namespace RealmStudioX.WPF.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("U.S. Customary")]
-        public string MeasurementUnits {
+        [global::System.Configuration.DefaultSettingValueAttribute("<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<ArrayOfString xmlns:xsd=\"http://www.w3." +
+            "org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n  <s" +
+            "tring>U.S. Customary</string>\r\n  <string>Metric</string>\r\n</ArrayOfString>")]
+        public global::System.Collections.Specialized.StringCollection MeasurementUnits {
             get {
-                return ((string)(this["MeasurementUnits"]));
+                return ((global::System.Collections.Specialized.StringCollection)(this["MeasurementUnits"]));
             }
             set {
                 this["MeasurementUnits"] = value;
@@ -37,37 +39,25 @@ namespace RealmStudioX.WPF.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1920, 1080")]
-        public global::System.Drawing.Size DefaultMapSize {
-            get {
-                return ((global::System.Drawing.Size)(this["DefaultMapSize"]));
-            }
-            set {
-                this["DefaultMapSize"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string MapAssetDirectory {
+        public string RootAssetDirectory {
             get {
-                return ((string)(this["MapAssetDirectory"]));
+                return ((string)(this["RootAssetDirectory"]));
             }
             set {
-                this["MapAssetDirectory"] = value;
+                this["RootAssetDirectory"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool RealmAutosave {
+        public bool AutoSaveEnabled {
             get {
-                return ((bool)(this["RealmAutosave"]));
+                return ((bool)(this["AutoSaveEnabled"]));
             }
             set {
-                this["RealmAutosave"] = value;
+                this["AutoSaveEnabled"] = value;
             }
         }
         
@@ -98,12 +88,12 @@ namespace RealmStudioX.WPF.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool PlaySoundOnSave {
+        public bool PlaySoundEnabled {
             get {
-                return ((bool)(this["PlaySoundOnSave"]));
+                return ((bool)(this["PlaySoundEnabled"]));
             }
             set {
-                this["PlaySoundOnSave"] = value;
+                this["PlaySoundEnabled"] = value;
             }
         }
         
@@ -122,24 +112,24 @@ namespace RealmStudioX.WPF.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string DefaultRealmDirectory {
+        public string RootRealmsDirectory {
             get {
-                return ((string)(this["DefaultRealmDirectory"]));
+                return ((string)(this["RootRealmsDirectory"]));
             }
             set {
-                this["DefaultRealmDirectory"] = value;
+                this["RootRealmsDirectory"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool AutoCheckForUpdates {
+        public bool CheckUpdatesEnabled {
             get {
-                return ((bool)(this["AutoCheckForUpdates"]));
+                return ((bool)(this["CheckUpdatesEnabled"]));
             }
             set {
-                this["AutoCheckForUpdates"] = value;
+                this["CheckUpdatesEnabled"] = value;
             }
         }
         
@@ -176,6 +166,150 @@ namespace RealmStudioX.WPF.Properties {
             }
             set {
                 this["LastFileDirectory"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string RootRealmStudioXDirectory {
+            get {
+                return ((string)(this["RootRealmStudioXDirectory"]));
+            }
+            set {
+                this["RootRealmStudioXDirectory"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DefaultModelsDirectory {
+            get {
+                return ((string)(this["DefaultModelsDirectory"]));
+            }
+            set {
+                this["DefaultModelsDirectory"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DefaultSymbolDirectory {
+            get {
+                return ((string)(this["DefaultSymbolDirectory"]));
+            }
+            set {
+                this["DefaultSymbolDirectory"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string SymbolTagsFilePath {
+            get {
+                return ((string)(this["SymbolTagsFilePath"]));
+            }
+            set {
+                this["SymbolTagsFilePath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string StructureSynonymsFilePath {
+            get {
+                return ((string)(this["StructureSynonymsFilePath"]));
+            }
+            set {
+                this["StructureSynonymsFilePath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string TerrainSynonymsFilePath {
+            get {
+                return ((string)(this["TerrainSynonymsFilePath"]));
+            }
+            set {
+                this["TerrainSynonymsFilePath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string VegetationSynonymsFilePath {
+            get {
+                return ((string)(this["VegetationSynonymsFilePath"]));
+            }
+            set {
+                this["VegetationSynonymsFilePath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1920")]
+        public int DefaultMapWidth {
+            get {
+                return ((int)(this["DefaultMapWidth"]));
+            }
+            set {
+                this["DefaultMapWidth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1080")]
+        public int DefaultMapHeight {
+            get {
+                return ((int)(this["DefaultMapHeight"]));
+            }
+            set {
+                this["DefaultMapHeight"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("U.S. Customary")]
+        public string DefaultMeasurementUnits {
+            get {
+                return ((string)(this["DefaultMeasurementUnits"]));
+            }
+            set {
+                this["DefaultMeasurementUnits"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("savesound.wav")]
+        public string SelectedSaveSound {
+            get {
+                return ((string)(this["SelectedSaveSound"]));
+            }
+            set {
+                this["SelectedSaveSound"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Miles")]
+        public string SelectedMapAreaUnits {
+            get {
+                return ((string)(this["SelectedMapAreaUnits"]));
+            }
+            set {
+                this["SelectedMapAreaUnits"] = value;
             }
         }
     }

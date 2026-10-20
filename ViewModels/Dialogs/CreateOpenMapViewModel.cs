@@ -1,5 +1,6 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
+using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Models.Startup;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.Views.Dialogs;
@@ -77,11 +78,18 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             set => SetProperty(ref _areaHeight, value);
         }
 
-        private string _mapAreaUnits = "Miles";
-        public string MapAreaUnits
+        public string SelectedMapAreaUnits
         {
-            get => _mapAreaUnits;
-            set => SetProperty(ref _mapAreaUnits, value);
+            get
+            {
+                return ApplicationPreferences.Current.SelectedMapAreaUnits;
+            }
+
+            set
+            {
+                ApplicationPreferences.Current.SelectedMapAreaUnits = value;
+                ApplicationPreferences.Current.Save();
+            }
         }
 
         private RealmProjectType _selectedRealmType = RealmProjectType.World;
@@ -99,7 +107,6 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             get => _selectedMapType;
             set => _selectedMapType = value;
         }
-
 
         public CreateOpenPackageResult? Result { get; set; }
 
@@ -159,7 +166,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 MapType = SelectedMapType,
                 Width = Width,
                 Height = Height,
-                MapAreaUnits = MapAreaUnits,
+                MapAreaUnits = SelectedMapAreaUnits,
                 MapAreaWidth = AreaWidth,
                 MapAreaHeight = AreaHeight,
                 Theme = SelectedTheme

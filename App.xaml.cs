@@ -134,8 +134,9 @@ namespace RealmStudioX.WPF
 
             await Task.Delay(100); // Allow the loading window to render
 
+            ApplicationPreferences.Initialize(new SettingsBackedPreferences());
+
             var assetManager = new AssetManager();
-            AssetManager.RootRealmStudioXDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX");
 
             var fontManager = new FontManager();
             var themeManager = new ThemeManager(assetManager);

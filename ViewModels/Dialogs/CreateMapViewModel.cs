@@ -1,5 +1,6 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
+using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Models.Startup;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using System.Collections.ObjectModel;
@@ -118,6 +119,20 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         {
             Result = null;
             RequestClose?.Invoke(false);
+        }
+
+        public string SelectedMapAreaUnits
+        {
+            get
+            {
+                return ApplicationPreferences.Current.SelectedMapAreaUnits;
+            }
+
+            set
+            {
+                ApplicationPreferences.Current.SelectedMapAreaUnits = value;
+                ApplicationPreferences.Current.Save();
+            }
         }
     }
 }

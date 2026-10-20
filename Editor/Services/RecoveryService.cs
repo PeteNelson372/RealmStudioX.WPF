@@ -12,21 +12,15 @@ namespace RealmStudioX.WPF.Editor.Services
     {
         private readonly DispatcherTimer _saveTimer = new();
 
-        private readonly string autosaveRoot = string.Empty;
-
         private string autosavePath = string.Empty;
 
         private bool _hasUnsavedChanges = false;
 
-        private readonly int _minimumAutosaveMinutes = 1;
-        private readonly int _maximumAutosaveMinutes = 10;
-
         public event EventHandler? AutosaveCompleted;
 
-        public RecoveryService(string autosaveRootDirectory)
+        public RecoveryService()
         {
-            autosaveRoot = autosaveRootDirectory;
-            _saveTimer.Interval = new TimeSpan(0, _saveInterval, 0);
+            _saveTimer.Interval = new TimeSpan(0, ApplicationPreferences.Current.AutosaveInterval, 0);
             _saveTimer.Tick += SaveTimer_Tick;
         }
 
@@ -50,7 +44,7 @@ namespace RealmStudioX.WPF.Editor.Services
 
             try
             {
-                var files = Directory.EnumerateFiles(autosaveRoot, "*" + RealmStudioFileFormat.MapCrashFileExtension, SearchOption.TopDirectoryOnly).ToList();
+                var files = Directory.EnumerateFiles(ApplicationPreferences.Current.AutosaveDirectory, "*" + RealmStudioFileFormat.MapCrashFileExtension, SearchOption.TopDirectoryOnly).ToList();
 
                 foreach (var file in files)
                 {
@@ -67,7 +61,7 @@ namespace RealmStudioX.WPF.Editor.Services
 
             try
             {
-                var files = Directory.EnumerateFiles(autosaveRoot, "*" + RealmStudioFileFormat.MapRecoveryFileExtension, SearchOption.TopDirectoryOnly).ToList();
+                var files = Directory.EnumerateFiles(ApplicationPreferences.Current.AutosaveDirectory, "*" + RealmStudioFileFormat.MapRecoveryFileExtension, SearchOption.TopDirectoryOnly).ToList();
 
                 foreach (var file in files)
                 {
@@ -92,7 +86,7 @@ namespace RealmStudioX.WPF.Editor.Services
             // get crash packages first
             try
             {
-                var files = Directory.EnumerateFiles(autosaveRoot, "*" + RealmStudioFileFormat.MapCrashFileExtension, SearchOption.TopDirectoryOnly).ToList();
+                var files = Directory.EnumerateFiles(ApplicationPreferences.Current.AutosaveDirectory, "*" + RealmStudioFileFormat.MapCrashFileExtension, SearchOption.TopDirectoryOnly).ToList();
 
                 foreach (var file in files)
                 {
@@ -112,7 +106,7 @@ namespace RealmStudioX.WPF.Editor.Services
             // then get recovery packages
             try
             {
-                var files = Directory.EnumerateFiles(autosaveRoot, "*" + RealmStudioFileFormat.MapRecoveryFileExtension, SearchOption.TopDirectoryOnly).ToList();
+                var files = Directory.EnumerateFiles(ApplicationPreferences.Current.AutosaveDirectory, "*" + RealmStudioFileFormat.MapRecoveryFileExtension, SearchOption.TopDirectoryOnly).ToList();
 
                 foreach (var file in files)
                 {
@@ -134,7 +128,7 @@ namespace RealmStudioX.WPF.Editor.Services
 
         private void SaveTimer_Tick(object? sender, EventArgs e)
         {
-            if (_selectedMap != null && !string.IsNullOrEmpty(autosaveRoot) && _selectedProject != null)
+            if (_selectedMap != null && !string.IsNullOrEmpty(ApplicationPreferences.Current.AutosaveDirectory) && _selectedProject != null)
             {
                 try
                 {
@@ -144,7 +138,7 @@ namespace RealmStudioX.WPF.Editor.Services
 
                         AutosaveCompleted?.Invoke(this, EventArgs.Empty);
 
-                        RealmStudioXLogger.Info($"Realm Project {_selectedProject.Metadata!.ProjectId} Map {_selectedMap.MapId} autosaved at {DateTime.Now.ToString()}");
+                        RealmStudioXLogger.Info($"Realm Project {_selectedProject.Metadata!.ProjectId} Map {_selectedMap.MapId} autosaved at {DateTime.Now}");
                     }
                 }
                 catch (Exception ex)
@@ -156,9 +150,9 @@ namespace RealmStudioX.WPF.Editor.Services
 
         public void WriteRecoveryPackage(RealmStudioProject project, RealmStudioMap map)
         {
-            if (!Path.Exists(autosaveRoot))
+            if (!Path.Exists(ApplicationPreferences.Current.AutosaveDirectory))
             {
-                Directory.CreateDirectory(autosaveRoot);
+                Directory.CreateDirectory(ApplicationPreferences.Current.AutosaveDirectory);
             }
 
             RecoveryPackage package = BuildRecoveryPackage(project, map);
@@ -176,9 +170,9 @@ namespace RealmStudioX.WPF.Editor.Services
         {
             try
             {
-                if (!Path.Exists(autosaveRoot))
+                if (!Path.Exists(ApplicationPreferences.Current.AutosaveDirectory))
                 {
-                    Directory.CreateDirectory(autosaveRoot);
+                    Directory.CreateDirectory(ApplicationPreferences.Current.AutosaveDirectory);
                 }
 
                 if (_selectedProject != null && _selectedMap != null)
@@ -186,7 +180,7 @@ namespace RealmStudioX.WPF.Editor.Services
                     RecoveryPackage package = BuildRecoveryPackage(_selectedProject, _selectedMap);
                     string xml = MapFileMethods.SerializeObject(package);
 
-                    string crashPath = Path.Combine(autosaveRoot, _selectedProject.Metadata!.ProjectId + "_"
+                    string crashPath = Path.Combine(ApplicationPreferences.Current.AutosaveDirectory, _selectedProject.Metadata!.ProjectId + "_"
                         + _selectedMap.MapId
                         + RealmStudioFileFormat.MapCrashFileExtension);
 
@@ -244,11 +238,11 @@ namespace RealmStudioX.WPF.Editor.Services
                 if (value != null && _selectedMap != value && _selectedProject != null)
                 {
                     _selectedMap = value;
-                    autosavePath = Path.Combine(autosaveRoot, _selectedProject.Metadata!.ProjectId + "_"
+                    autosavePath = Path.Combine(ApplicationPreferences.Current.AutosaveDirectory, _selectedProject.Metadata!.ProjectId + "_"
                         + _selectedMap.MapId
                         + RealmStudioFileFormat.MapRecoveryFileExtension);
 
-                    if (_autosaveEnabled)
+                    if (ApplicationPreferences.Current.AutoSaveEnabled)
                     {
                         Stop();
                         Start();
@@ -256,40 +250,40 @@ namespace RealmStudioX.WPF.Editor.Services
                 }
             }
         }
-
-        private int _saveInterval = 2;  // default is 5 minutes between autosaves
-        
+       
         public int SaveInterval
         {
             get
             {
-                return _saveInterval;
+                return ApplicationPreferences.Current.AutosaveInterval;
             }
             set
             {
-                if (_saveInterval != value && value >= _minimumAutosaveMinutes && value <= _maximumAutosaveMinutes)
+                if (ApplicationPreferences.Current.AutosaveInterval != value
+                    && value >= ApplicationPreferences.Current.MinSaveInterval && value <= ApplicationPreferences.Current.MaxSaveInterval)
                 {
-                    _saveInterval = value;
-                    _saveTimer.Interval = new TimeSpan(0, _saveInterval, 0);
+                    ApplicationPreferences.Current.AutosaveInterval = value;
+                    ApplicationPreferences.Current.Save();
+
+                    _saveTimer.Interval = new TimeSpan(0, ApplicationPreferences.Current.AutosaveInterval, 0);
 
                     OnPropertyChanged(nameof(SaveInterval));
                 }
             }
         }
 
-        private bool _autosaveEnabled;
-
         public bool AutoSaveEnabled
         {
             get
             {
-                return _autosaveEnabled;
+                return ApplicationPreferences.Current.AutoSaveEnabled;
             }
             set
             {
-                _autosaveEnabled = value;
+                ApplicationPreferences.Current.AutoSaveEnabled = value;
+                ApplicationPreferences.Current.Save();
 
-                if (_autosaveEnabled && _selectedMap != null)
+                if (ApplicationPreferences.Current.AutoSaveEnabled && _selectedMap != null)
                 {
                     Start();
                 }

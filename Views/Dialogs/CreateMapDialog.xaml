@@ -228,7 +228,6 @@
                             VerticalScrollBarVisibility="Auto"
                             MaxHeight="440">
                             
-
                             <ItemsControl x:Name="PresetList">
 
                                 <ItemsControl.ItemTemplate>
@@ -430,25 +429,14 @@
                                    VerticalAlignment="Center"
                                    Margin="0,0,8,6"/>
 
-                                <ComboBox x:Name="UnitsCombo"
+                                <ComboBox x:Name="MapAreaUnits"
                                   Grid.Column="1"
                                   Width="100"
                                   Margin="0,0,0,6"
                                   Background="#FFDFDBD2"
-                                  SelectedValuePath="Content"
-                                  SelectedValue="{Binding MapAreaUnits, Mode=TwoWay}">
-                                    <!-- Default = Meters -->
-
-                                    <ComboBoxItem Content="Centimeters"/>
-                                    <ComboBoxItem Content="Inches"/>
-                                    <ComboBoxItem Content="Feet"/>
-                                    <ComboBoxItem Content="Yards"/>
-                                    <ComboBoxItem Content="Meters"/>
-                                    <ComboBoxItem Content="Kilometers"/>
-                                    <ComboBoxItem Content="Miles"/>
-                                    <ComboBoxItem Content="Astronomical Units (AU)"/>
-                                    <ComboBoxItem Content="Light Years"/>
-                                    <ComboBoxItem Content="Parsecs"/>
+                                  DisplayMemberPath="Unit"
+                                  SelectedValuePath="Unit"
+                                  SelectedValue="{Binding SelectedMapAreaUnits, Mode=TwoWay}">
 
                                 </ComboBox>
 

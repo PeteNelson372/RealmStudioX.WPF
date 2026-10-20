@@ -377,7 +377,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                             LabelFontItalic = FontStyle.Italic,
                         };
 
-                        string presetPath = Path.Combine(AssetManager.RootAssetDirectory, "LabelPresets", NewLabelPresetName) + RealmStudioFileFormat.RealmStudioLabelPresetExtension;
+                        string presetPath = Path.Combine(ApplicationPreferences.Current.RootAssetDirectory, "LabelPresets", NewLabelPresetName) + RealmStudioFileFormat.RealmStudioLabelPresetExtension;
 
                         try
                         {
@@ -410,7 +410,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
                 if (((MessageDialogViewModel)deleteConfirmationDlg.DataContext).Result == MessageDialogResult.Delete)
                 {
-                    string presetPath = Path.Combine(AssetManager.RootAssetDirectory, "LabelPresets", SelectedLabelPreset.LabelPresetName) + RealmStudioFileFormat.RealmStudioLabelPresetExtension;
+                    string presetPath = Path.Combine(ApplicationPreferences.Current.RootAssetDirectory, "LabelPresets", SelectedLabelPreset.LabelPresetName) + RealmStudioFileFormat.RealmStudioLabelPresetExtension;
 
                     try
                     {

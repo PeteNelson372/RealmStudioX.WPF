@@ -1,7 +1,5 @@
-﻿using MaterialDesignThemes.Wpf;
-using RealmStudioShapeRenderingLib;
+﻿using RealmStudioShapeRenderingLib;
 using RealmStudioShapeRenderingLib.Logging;
-using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.Editor.UserInterface;
@@ -26,11 +24,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
     {
         public override string WindowId { get; } = Guid.NewGuid().ToString();
 
-        private readonly string _themesFolder =
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX", "Assets", "Themes");
-
-        private readonly string _mapsFolder =
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RealmStudioX", "Realms");
+        private readonly string _mapsFolder = ApplicationPreferences.Current.RootRealmsDirectory;
 
         public CreateOpenPackageResult? Result { get; private set; }
 
@@ -72,13 +66,13 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 new() { Name="Interior", Icon="ViewList",     RealmProjectType = RealmProjectType.Interior },
             };
 
-            PresetList.ItemsSource = new List<MapSizePreset>
-            {
+            List<MapSizePreset> presets =
+            [
                 new() { Width = 1024, Height = 768, Display = "1024 x 768 (XGA)" },
                 new() { Width = 1280, Height = 720, Display = "1280 x 720 (720P)" },
                 new() { Width = 1280, Height = 1024, Display = "1280 x 1024 (SXGA)" },
                 new() { Width = 1600, Height = 1200, Display = "1600 x 1200 (UXGA)" },
-                new() { Width = 1920, Height = 1080, Display = "1920 x 1080 (1080P Full HD)", IsSelected = true },
+                new() { Width = 1920, Height = 1080, Display = "1920 x 1080 (1080P Full HD)" },
                 new() { Width = 2560, Height = 1080, Display = "2560 x 1080 (2K)" },
                 new() { Width = 2048, Height = 1024, Display = "2048 x 1024 (Equirectangular 2K)" },
                 new() { Width = 3840, Height = 2160, Display = "3840 x 2160 (4K Ultra HD)" },
@@ -92,7 +86,57 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 new() { Width = 7680, Height = 4320, Display = "7680 x 4320 (8K UHD)" },
                 new() { Width = 8192, Height = 4096, Display = "8192 x 4096 (Equirectangular 8K)" },
                 new() { Width = 10000, Height = 10000, Display = "10000 x 10000 (Maximum)" }
-            };
+            ];
+
+            MapSizePreset? selectedPreset = presets.FirstOrDefault(p =>
+                p.Width == ApplicationPreferences.Current.DefaultMapWidth &&
+                p.Height == ApplicationPreferences.Current.DefaultMapHeight);
+
+            // Fall back to Full HD if the saved dimensions don't match a preset.
+            selectedPreset ??= presets.First(p => p.Width == 1920 && p.Height == 1080);
+
+            foreach (MapSizePreset preset in presets)
+            {
+                preset.IsSelected = preset == selectedPreset;
+            }
+
+            PresetList.ItemsSource = presets;
+
+            WidthBox.Value = selectedPreset.Width;
+            HeightBox.Value = selectedPreset.Height;
+
+            UpdateAspect();
+
+
+            List<MapAreaUnit> mapAreaUnits =
+            [
+                new() { Unit = "Centimeters" },
+                new() { Unit = "Inches" },
+                new() { Unit = "Feet" },
+                new() { Unit = "Yards" },
+                new() { Unit = "Meters" },
+                new() { Unit = "Kilometers" },
+                new() { Unit = "Miles" },
+                new() { Unit = "Astronomical Units (AU)" },
+                new() { Unit = "Light Years" },
+                new() { Unit = "Parsecs" }
+            ];
+
+            MapAreaUnits.ItemsSource = mapAreaUnits;
+
+            string selectedUnit =
+                ApplicationPreferences.Current.DefaultMeasurementUnits == "Metric"
+                    ? "Kilometers"
+                    : "Miles";
+
+            ViewModel.SelectedMapAreaUnits = selectedUnit;
+            MapAreaUnits.SelectedValue = selectedUnit;
+
+            foreach (MapAreaUnit areaUnit in mapAreaUnits)
+            {
+                areaUnit.IsSelected = areaUnit.Unit == selectedUnit;
+            }
+
 
             AreaWidthBox.ValueChanged += AreaWidthBox_ValueChanged;
 
@@ -315,6 +359,12 @@ namespace RealmStudioX.WPF.Views.Dialogs
         public string Name { get; set; } = "";
         public string Icon { get; set; } = "";
         public RealmMapType MapType { get; set; } = RealmMapType.World;
+        public bool IsSelected { get; set; }
+    }
+
+    public class MapAreaUnit
+    {
+        public string Unit { get; set; } = "";
         public bool IsSelected { get; set; }
     }
 
