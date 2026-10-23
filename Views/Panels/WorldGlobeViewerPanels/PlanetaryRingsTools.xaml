@@ -1,0 +1,68 @@
+﻿<UserControl x:Class="RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels.PlanetaryRingsTools"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels"
+             mc:Ignorable="d" 
+             d:DesignHeight="542" d:DesignWidth="300">
+
+    <Grid DockPanel.Dock="Top" Background="#FFDFDBD2">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock
+            Grid.Row="0"
+            Text="Planetary Rings Properties"
+            FontSize="15"
+            FontWeight="SemiBold"
+            Margin="10,4,0,8" />
+
+        <TabControl x:Name="PropertiesTabs" Grid.Row="1" ItemContainerStyle="{StaticResource RoundedTabItemStyle}">
+
+            <!-- Texture properties -->
+            <TabItem Header="Planetary Rings">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+                    <StackPanel Margin="10">
+
+                        <TextBlock
+                            Text="Planetary Rings Settings"
+                            FontWeight="SemiBold"
+                            Margin="0,0,0,6" />
+
+                        <TextBlock
+                            Text="Planetary Rings controls will appear here."
+                            TextWrapping="Wrap"
+                            Foreground="#FF77736D" />
+
+                    </StackPanel>
+
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Animation properties -->
+            <TabItem Header="Animation">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+                    <StackPanel Margin="10">
+
+                        <TextBlock
+                            Text="Animation Settings"
+                            FontWeight="SemiBold"
+                            Margin="0,0,0,6" />
+
+                        <TextBlock
+                            Text="Rotation, orbit, timing, and keyframe settings will appear here."
+                            TextWrapping="Wrap"
+                            Foreground="#FF77736D" />
+
+                    </StackPanel>
+
+                </ScrollViewer>
+            </TabItem>
+
+        </TabControl>
+    </Grid>
+</UserControl>

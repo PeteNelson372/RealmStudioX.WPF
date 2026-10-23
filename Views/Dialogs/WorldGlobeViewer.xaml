@@ -1,0 +1,911 @@
+﻿<ui:ModelessDialog
+    x:Class="RealmStudioX.WPF.Views.Dialogs.WorldGlobeViewer"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:ui="clr-namespace:RealmStudioX.WPF.Editor.UserInterface"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+    xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+    xmlns:threeD="clr-namespace:RealmStudioX._3D.Views.Controls;assembly=RealmStudioX.3D"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:local="clr-namespace:RealmStudioX.WPF.Views.Controls"
+    xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
+    xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
+    xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"    
+    mc:Ignorable="d"
+    Title="World Globe Viewer"
+    Width="1400"
+    Height="900"
+    MinWidth="1000"
+    MinHeight="650"
+    Background="#FF45443F"
+    WindowStyle="None"
+    ShowInTaskbar="True"
+    ResizeMode="CanResize"
+    Icon="pack://application:,,,/Assets/ico/realm_studio_icon.ico">
+
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome
+            CaptionHeight="32"
+            ResizeBorderThickness="5"
+            CornerRadius="0" />
+    </shell:WindowChrome.WindowChrome>
+
+    <Grid Background="#FFDFDBD2">
+
+        <Grid.RowDefinitions>
+            <!-- Custom title bar -->
+            <RowDefinition Height="48" />
+
+            <!-- Main menu -->
+            <RowDefinition Height="32" />
+
+            <!-- Common commands -->
+            <RowDefinition Height="40" />
+
+            <!-- Workspace -->
+            <RowDefinition Height="*" />
+
+            <!-- Status bar -->
+            <RowDefinition Height="28" />
+        </Grid.RowDefinitions>
+
+        <!-- ===================================================== -->
+        <!-- TITLE BAR                                             -->
+        <!-- ===================================================== -->
+
+        <Border
+            Grid.Row="0"
+            Background="#FF45443F">
+
+            <controls:WorldGlobeViewerTitleBar
+                x:Name="WorldGlobeViewerTitleBar" Margin="10,0,10,0" />
+
+        </Border>
+
+        <!-- ===================================================== -->
+        <!-- MENU                                                  -->
+        <!-- ===================================================== -->
+
+        <controls:WorldGlobeViewerMenu
+            x:Name="WorldGlobeViewerMenu"
+            Grid.Row="1"
+            Background="#FFDFDBD2"
+            Foreground="{DynamicResource
+                {x:Static SystemColors.ControlTextBrushKey}}"
+            Height="32" />
+
+        <!-- ===================================================== -->
+        <!-- TOOLBAR                                               -->
+        <!-- ===================================================== -->
+
+        <Border
+            Grid.Row="2"
+            Background="#FFEAE7E1"
+            BorderBrush="#FFCAC6BF"
+            BorderThickness="0,0,0,1"
+            Padding="6,4"
+            Margin="0,0,0,0">
+
+            <DockPanel LastChildFill="True">
+
+                <StackPanel
+                    DockPanel.Dock="Left"
+                    Orientation="Horizontal">
+
+                    <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Background="#FFEAE7E1"
+
+                        Padding="12,4"
+                        Margin="10,0,0,0"
+                        ToolTip="Load a 3D model or scene">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="FileUploadOutline"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Center"
+                                     Margin="0,0,3,0"
+                                     Width="18"
+                                     Height="18"
+                                     Opacity="0.7"/>
+                            
+                            <TextBlock Text="Load..."
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+
+                        </StackPanel>
+                    </Button>
+
+                    <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Background="#FFEAE7E1"
+                        Padding="12,4"
+                        Margin="12,0,8,0"
+                        ToolTip="Save the current scene">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="ContentSaveOutline"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Center"
+                                     Margin="0,0,3,0"
+                                     Width="18"
+                                     Height="18"
+                                     Opacity="0.7"/>
+
+                            <TextBlock Text="Save..."
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+
+                        </StackPanel>
+                    </Button>
+
+                    <Separator
+                        Width="1"
+                        Margin="4,0"
+                        Background="#FFBEBAB3" />
+
+                    <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Command="{Binding ResetCameraCommand}"
+                        Background="#FFEAE7E1"
+                        Padding="12,4"
+                        Margin="12,0,8,0"
+                        ToolTip="Reset the camera position and orientation">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="HomeOutline"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Center"
+                                     Margin="0,0,3,0"
+                                     Width="18"
+                                     Height="18"
+                                     Opacity="0.7"/>
+
+                            <TextBlock Text="Reset Camera"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+
+                        </StackPanel>
+                    </Button>
+
+                    <Button
+                        Command="{Binding ChangeAxisCommand}"
+                        Style="{StaticResource FlatToolButton}"
+                        Background="#FFEAE7E1"
+                        Padding="12,4"
+                        Margin="12,0,8,0"
+                        ToolTip="Change the camera rotation axis">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Axis"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Center"
+                                     Margin="0,0,3,0"
+                                     Width="18"
+                                     Height="18"
+                                     Opacity="0.7"/>
+
+                            <TextBlock Text="Change Axis"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+
+                        </StackPanel>
+                    </Button>
+
+                    <Separator
+                        Width="1"
+                        Margin="8,0"
+                        Background="#FFBEBAB3" />
+
+
+                    <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Background="#FFEAE7E1"
+                        Padding="12,4"
+                        Margin="12,0,8,0"
+                        ToolTip="Capture the current viewport">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="CameraOutline"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Center"
+                                     Margin="0,0,3,0"
+                                     Width="18"
+                                     Height="18"
+                                     Opacity="0.7"/>
+
+                            <TextBlock Text="Capture Image..."
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+
+                        </StackPanel>
+                    </Button>
+
+                </StackPanel>
+
+                <StackPanel
+                    DockPanel.Dock="Right"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+
+                    <StackPanel
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Left"
+                        Width="Auto"
+                        Height="Auto"
+                        Margin="0,0,10,0">
+
+                        <CheckBox x:Name="EnableRotationCheckBox"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            IsChecked="{Binding EnableRotation, Mode=TwoWay}"
+                            Checked="EnableRotation_Checked"
+                            Unchecked="EnableRotation_Unchecked"
+                            Style="{StaticResource ToggleSwitchStyle}"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                        <TextBlock Text="Enable Rotation"
+                            Foreground="#FF45443F"
+                            VerticalAlignment="Center"
+                            Margin="4,0,10,0"/>
+                    </StackPanel>
+
+
+                    <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Background="#FFEAE7E1"
+                        Padding="12,4"
+                        Margin="12,0,8,0"
+                        ToolTip="Show the animation timeline"
+                        Click="ShowHideAnimationTimeline">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="AnimationOutline"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Center"
+                                     Margin="0,0,3,0"
+                                     Width="18"
+                                     Height="18"
+                                     Opacity="0.7"/>
+
+                            <TextBlock Text="Animation"
+                               FontSize="12"
+                               Foreground="#FF45443F"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,3"/>
+
+                        </StackPanel>
+                    </Button>
+
+                    <Button
+                        Style="{StaticResource FlatToolButton}"
+                        Background="#FFEAE7E1"
+                        Padding="12,4"
+                        Margin="12,0,30,0"
+                        ToolTip="Configure and record an animation">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="VideoOutline"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Foreground="Green"
+                                    Margin="0,0,3,0"
+                                    Width="18"
+                                    Height="18"
+                                    Opacity="0.7"/>
+
+                            <TextBlock Text="Record Video"
+                            FontSize="12"
+                            Foreground="#FF45443F"
+                            HorizontalAlignment="Center"
+                            Margin="0,0,0,3"/>
+
+                        </StackPanel>
+                    </Button>
+
+                </StackPanel>
+
+            </DockPanel>
+        </Border>
+
+        <!-- ===================================================== -->
+        <!-- MAIN WORKSPACE                                        -->
+        <!-- ===================================================== -->
+
+        <Grid
+            Grid.Row="3"
+            Margin="8">
+
+            <Grid.ColumnDefinitions>
+                <!-- Scene Explorer -->
+                <ColumnDefinition
+                    Width="220"
+                    MinWidth="170" />
+
+                <!-- Left splitter -->
+                <ColumnDefinition Width="5" />
+
+                <!-- Viewport -->
+                <ColumnDefinition
+                    Width="*"
+                    MinWidth="300" />
+
+                <!-- Right splitter -->
+                <ColumnDefinition Width="5" />
+
+                <!-- Properties -->
+                <ColumnDefinition
+                    Width="300"
+                    MinWidth="230" />
+            </Grid.ColumnDefinitions>
+
+            <!-- ================================================= -->
+            <!-- LEFT: SCENE EXPLORER                              -->
+            <!-- ================================================= -->
+
+            <Border
+                Grid.Column="0"
+                Background="#FFEAE7E1"
+                BorderBrush="#FFC8C4BD"
+                BorderThickness="1"
+                CornerRadius="3"
+                Padding="8">
+
+                <DockPanel>
+
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock
+                            Text="Scene Explorer"
+                            FontSize="15"
+                            FontWeight="SemiBold"
+                            VerticalAlignment="Center" />
+
+                    </Grid>
+
+                    <TreeView x:Name="SceneTree"
+                          Margin="0"
+                          Background="Transparent"
+                          BorderThickness="0"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          SelectedItemChanged="SceneTree_SelectedItemChanged">
+
+                        <TreeView.Resources>
+
+                            <Style TargetType="{x:Type TreeViewItem}">
+
+                                <Setter Property="Margin" Value="2"/>
+                                <Setter Property="Padding" Value="6"/>
+                                <Setter Property="Cursor" Value="Hand"/>
+                                <Setter Property="Foreground" Value="#FF343434"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type TreeViewItem}">
+
+                                            <StackPanel>
+
+                                                <!-- Item header -->
+                                                <Border x:Name="ItemBorder"
+                                                    Background="#FFEEEEEE"
+                                                    BorderBrush="#FFCCCCCC"
+                                                    BorderThickness="1"
+                                                    CornerRadius="4"
+                                                    Padding="{TemplateBinding Padding}"
+                                                    Margin="{TemplateBinding Margin}"
+                                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
+
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <ContentPresenter x:Name="PART_Header"
+                                                          Grid.Column="0"
+                                                          ContentSource="Header"
+                                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                          VerticalAlignment="Center"
+                                                          RecognizesAccessKey="True"/>
+                                                    </Grid>
+                                                </Border>
+
+                                                <!-- Child items -->
+                                                <ItemsPresenter x:Name="ItemsHost" Margin="16,0,0,0"/>
+
+                                            </StackPanel>
+
+                                            <ControlTemplate.Triggers>
+
+                                                <!-- Hover -->
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="ItemBorder"
+                                                    Property="Background"
+                                                    Value="#FFDDDDDD"/>
+                                                </Trigger>
+
+                                                <!-- Selected: keep this after Hover -->
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="ItemBorder"
+                                                        Property="Background"
+                                                        Value="#FF99B0A4"/>
+
+                                                    <Setter TargetName="ItemBorder"
+                                                        Property="BorderBrush"
+                                                        Value="#FF7D9588"/>
+
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                </Trigger>
+
+                                                <!-- Disabled -->
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter Property="Foreground" Value="#FF999999"/>
+                                                </Trigger>
+
+                                            </ControlTemplate.Triggers>
+
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+
+                            </Style>
+
+                        </TreeView.Resources>
+
+                        <TreeViewItem IsExpanded="True" Margin="0,2,0,0" Tag="Starfield">
+                            <TreeViewItem.Header>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                                    <materialDesign:PackIcon
+                                        Kind="Stars"
+                                        Width="18"
+                                        Height="18"
+                                        Margin="0,0,8,0"
+                                        VerticalAlignment="Center"
+                                        Foreground="{Binding Foreground,
+                                            RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+
+                                    <TextBlock Text="Starfield"
+                                            VerticalAlignment="Center"
+                                            Foreground="{Binding Foreground,
+                                                RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+                                </StackPanel>
+                            </TreeViewItem.Header>
+                        </TreeViewItem>
+
+
+                        <TreeViewItem IsExpanded="True" Margin="0,2,0,0" Tag="World">
+                            <TreeViewItem.Header>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                                    <materialDesign:PackIcon
+                                        Kind="World"
+                                        Width="18"
+                                        Height="18"
+                                        Margin="0,0,8,0"
+                                        VerticalAlignment="Center"
+                                        Foreground="{Binding Foreground,
+                                            RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+
+                                    <TextBlock Text="World"
+                                            VerticalAlignment="Center"
+                                            Foreground="{Binding Foreground,
+                                                RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+                                </StackPanel>
+                            </TreeViewItem.Header>
+                            
+                            <!-- world children -->
+
+                            <TreeViewItem IsExpanded="True" Margin="0,2,0,0" Tag="Surface">
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                                        <materialDesign:PackIcon
+                                            Kind="SurfaceArea"
+                                            Width="18"
+                                            Height="18"
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Foreground="{Binding Foreground,
+                                                RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+
+                                        <TextBlock Text="Surface"
+                                            VerticalAlignment="Center"
+                                            Foreground="{Binding Foreground,
+                                                RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+                            </TreeViewItem>
+
+                            <TreeViewItem IsExpanded="True" Margin="0,2,0,0" Tag="Atmosphere">
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                                        <materialDesign:PackIcon
+                                            Kind="Clouds"
+                                            Width="18"
+                                            Height="18"
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Foreground="{Binding Foreground,
+                                                RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+
+                                        <TextBlock Text="Atmosphere"
+                                            VerticalAlignment="Center"
+                                            Foreground="{Binding Foreground,
+                                                RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+                            </TreeViewItem>
+
+                            <TreeViewItem IsExpanded="True" Margin="0,2,0,0" Tag="Rings">
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                                        <materialDesign:PackIcon
+                                            Kind="CircleDouble"
+                                            Width="18"
+                                            Height="18"
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Foreground="{Binding Foreground,
+                                                RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+
+                                        <TextBlock Text="Rings"
+                                            VerticalAlignment="Center"
+                                            Foreground="{Binding Foreground,
+                                                RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+                            </TreeViewItem>
+
+                            <TreeViewItem x:Name="MoonTreeViewItem" IsExpanded="True" Margin="0,2,0,0" Tag="Moons">
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                                        <materialDesign:PackIcon
+                                            Kind="MoonFull"
+                                            Width="18"
+                                            Height="18"
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Foreground="{Binding Foreground,
+                                                RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+
+                                        <TextBlock Text="Moons"
+                                            VerticalAlignment="Center"
+                                            Foreground="{Binding Foreground,
+                                                RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+                            </TreeViewItem>
+
+                        </TreeViewItem>
+
+                        <TreeViewItem IsExpanded="True" Margin="0,2,0,0" Tag="LocalStar">
+                            <TreeViewItem.Header>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                                    <materialDesign:PackIcon
+                                        Kind="StarburstOutline"
+                                        Width="18"
+                                        Height="18"
+                                        Margin="0,0,8,0"
+                                        VerticalAlignment="Center"
+                                        Foreground="{Binding Foreground,
+                                            RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+
+                                    <TextBlock Text="Local Star"
+                                            VerticalAlignment="Center"
+                                            Foreground="{Binding Foreground,
+                                                RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+                                </StackPanel>
+                            </TreeViewItem.Header>
+                        </TreeViewItem>
+
+                        <TreeViewItem IsExpanded="True" Margin="0,2,0,0" Tag="Lighting">
+                            <TreeViewItem.Header>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                                    <materialDesign:PackIcon
+                                        Kind="LightbulbGroup"
+                                        Width="18"
+                                        Height="18"
+                                        Margin="0,0,8,0"
+                                        VerticalAlignment="Center"
+                                        Foreground="{Binding Foreground,
+                                            RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+
+                                    <TextBlock Text="Lighting"
+                                            VerticalAlignment="Center"
+                                            Foreground="{Binding Foreground,
+                                                RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+                                </StackPanel>
+                            </TreeViewItem.Header>
+                        </TreeViewItem>
+
+                        <TreeViewItem IsExpanded="True" Margin="0,2,0,0" Tag="Effects">
+                            <TreeViewItem.Header>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                                    <materialDesign:PackIcon
+                                        Kind="Video"
+                                        Width="18"
+                                        Height="18"
+                                        Margin="0,0,8,0"
+                                        VerticalAlignment="Center"
+                                        Foreground="{Binding Foreground,
+                                            RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+
+                                    <TextBlock Text="Effects"
+                                            VerticalAlignment="Center"
+                                            Foreground="{Binding Foreground,
+                                                RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+                                </StackPanel>
+                            </TreeViewItem.Header>
+                        </TreeViewItem>
+
+                    </TreeView>
+
+                </DockPanel>
+            </Border>
+
+            <!-- ================================================= -->
+            <!-- RESIZABLE LEFT PANEL                              -->
+            <!-- ================================================= -->
+
+            <GridSplitter
+                Grid.Column="1"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                Background="#FFD0CCC5"
+                ShowsPreview="True"
+                ResizeBehavior="PreviousAndNext"
+                ResizeDirection="Columns" />
+
+            <!-- ================================================= -->
+            <!-- CENTER: VIEWPORT AND TIMELINE                     -->
+            <!-- ================================================= -->
+
+            <Grid
+                Grid.Column="2"
+                Margin="5,0">
+
+                <Grid.RowDefinitions>
+                    <!-- Main 3D viewport -->
+                    <RowDefinition Height="*" />
+
+                    <!-- Collapsible animation timeline -->
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                
+                <Border
+                    Grid.Row="0"
+                    Background="#FFF5F3EF"
+                    BorderBrush="#FFC8C4BD"
+                    BorderThickness="1"
+                    Padding="1">
+
+                    <threeD:ModelViewerControl
+                        x:Name="ModelViewer"
+                        Margin="0" />
+
+                </Border>
+
+                <!-- ============================================= -->
+                <!-- ANIMATION TIMELINE                            -->
+                <!-- ============================================= -->
+
+                <Expander
+                    x:Name="AnimationTimelineExpander"
+                    Grid.Row="1"
+                    Header="Animation Timeline"
+                    IsExpanded="False"
+                    MaxHeight="240"
+                    Margin="0,6,0,0"
+                    Background="#FFF5F3EF"
+                    BorderBrush="#FFC8C4BD"
+                    BorderThickness="1">
+
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <!-- Playback controls -->
+                            <StackPanel
+                                Grid.Column="0"
+                                Orientation="Horizontal"
+                                Margin="0,0,0,10">
+
+                                <Button
+                                    Style="{StaticResource FlatToolButton}"
+                                    Background="#FFEAE7E1"
+                                    Padding="12,4"
+                                    Margin="12,0,4,0"
+                                    ToolTip="Go to the start">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="SkipBackwardOutline"
+                                         HorizontalAlignment="Left"
+                                         VerticalAlignment="Center"
+                                         Margin="0,0,3,0"
+                                         Width="24"
+                                         Height="24"
+                                         Opacity="0.7"/>
+
+                                    </StackPanel>
+                                </Button>
+
+                                <Button
+                                    Style="{StaticResource FlatToolButton}"
+                                    Background="#FFEAE7E1"
+                                    Padding="12,4"
+                                    Margin="0,0,4,0"
+                                    ToolTip="Play the animation">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="Play"
+                                         HorizontalAlignment="Left"
+                                         VerticalAlignment="Center"
+                                         Margin="0,0,3,0"
+                                         Width="24"
+                                         Height="24"
+                                         Opacity="0.7"/>
+
+                                    </StackPanel>
+                                </Button>
+
+                                <Button
+                                    Style="{StaticResource FlatToolButton}"
+                                    Background="#FFEAE7E1"
+                                    Padding="12,4"
+                                    Margin="0,0,4,0"
+                                    ToolTip="Stop the animation">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="Stop"
+                                         HorizontalAlignment="Left"
+                                         VerticalAlignment="Center"
+                                         Margin="0,0,3,0"
+                                         Width="24"
+                                         Height="24"
+                                         Opacity="0.7"/>
+
+                                    </StackPanel>
+                                </Button>
+
+                                <TextBlock
+                                    Text="Time:"
+                                    VerticalAlignment="Center"
+                                    Margin="10,0,6,0" />
+
+                                <TextBlock
+                                    Text="00:00.000"
+                                    VerticalAlignment="Center" />
+
+                            </StackPanel>
+                            
+                            <StackPanel
+                                Grid.Column="1"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Margin="10,0,10,10">
+
+                                <TextBlock Text="Frame Rate"
+                                   VerticalAlignment="Center"
+                                   Margin="20,0,8,0"/>
+
+                                <ComboBox x:Name="FrameRateCombo"
+                                      Grid.Column="1"
+                                      Width="100"
+                                      Height="26"
+                                      Margin="4,0,0,0"
+                                      Background="#FFDFDBD2"
+                                      ItemsSource="{Binding SupportedFrameRates}"
+                                      SelectedItem="{Binding SelectedFrameRate, Mode=TwoWay}" />
+
+                            </StackPanel>
+
+                        </Grid>
+
+                        <!-- Future timeline tracks -->
+                        <Border
+                            Grid.Row="1"
+                            MinHeight="70"
+                            Background="#FFEAE7E1"
+                            BorderBrush="#FFD0CCC5"
+                            BorderThickness="1"
+                            Padding="8">
+
+                            <TextBlock
+                                Text="Animation tracks and keyframes will appear here."
+                                Foreground="#FF77736D"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                TextWrapping="Wrap" />
+
+                        </Border>
+
+                    </Grid>
+                </Expander>
+
+            </Grid>
+
+            <!-- ================================================= -->
+            <!-- RESIZABLE RIGHT PANEL                             -->
+            <!-- ================================================= -->
+
+            <GridSplitter
+                Grid.Column="3"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                Background="#FFD0CCC5"
+                ShowsPreview="True"
+                ResizeBehavior="PreviousAndNext"
+                ResizeDirection="Columns" />
+
+            <!-- ================================================= -->
+            <!-- RIGHT: PROPERTIES                                 -->
+            <!-- ================================================= -->
+
+            <Border
+                Grid.Column="4"
+                Background="#FFEAE7E1"
+                BorderBrush="#FFC8C4BD"
+                BorderThickness="1"
+                CornerRadius="3"
+                Padding="8">
+
+                <DockPanel x:Name="ToolsPanel">
+                    <!-- Tool panels -->
+                    <ContentControl x:Name="ToolsPanelHost"
+                        Grid.Row="0"
+                        Background="WhiteSmoke"/>
+
+
+
+                </DockPanel>
+                               
+            </Border>
+
+        </Grid>
+
+        <!-- ===================================================== -->
+        <!-- STATUS BAR                                            -->
+        <!-- ===================================================== -->
+
+        <StatusBar
+            x:Name="ViewerStatusBar"
+            Grid.Row="4"
+            Background="#FF45443F"
+            Foreground="White">
+
+            <StatusBarItem
+                HorizontalAlignment="Stretch"
+                Foreground="WhiteSmoke">
+
+                <TextBlock
+                    Text="{Binding StatusMessage}"
+                    Margin="6,0" />
+
+            </StatusBarItem>
+
+        </StatusBar>
+
+    </Grid>
+
+</ui:ModelessDialog>

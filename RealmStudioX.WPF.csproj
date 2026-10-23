@@ -249,10 +249,16 @@
     <Compile Update="Views\Controls\AlignmentIconBar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Controls\WorldGlobeViewerMenu.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Controls\ThreeDViewerMenu.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Controls\HeightMapDXMenu.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Controls\WorldGlobeViewerTitleBar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Controls\ThreeDXMenu.xaml.cs">
@@ -280,6 +286,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Dialogs\HeightMapDXModelViewer.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Dialogs\WorldGlobeViewer.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Dialogs\ThreeDXModelViewer.xaml.cs">
@@ -361,6 +370,30 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Panels\ProjectPanel.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Panels\WorldGlobeViewerPanels\WorldTools.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Panels\WorldGlobeViewerPanels\PlanetaryMoonsTools.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Panels\WorldGlobeViewerPanels\PlanetaryRingsTools.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Panels\WorldGlobeViewerPanels\LocalStarTools.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Panels\WorldGlobeViewerPanels\LightingTools.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Panels\WorldGlobeViewerPanels\AtmosphereTools.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Panels\WorldGlobeViewerPanels\EffectsTools.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Panels\WorldGlobeViewerPanels\SurfaceTools.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

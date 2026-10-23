@@ -88,6 +88,7 @@
             </Style>
 
         </TabControl.Resources>
+        
         <TabItem Header="Project" FontWeight="Bold" FontSize="16" Height="94" Background="#FFC8C4BC">
             <panels:ProjectPanel DataContext="{Binding ProjectViewModel}"/>
         </TabItem>        

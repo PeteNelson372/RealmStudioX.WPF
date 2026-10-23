@@ -764,7 +764,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
 
         public ICommand DisplayWorldGlobeCommand => new RelayCommand(() =>
         {
-
+            WorldGlobeViewer globeViewer = new(this);
+            globeViewer.Show();
         });
         
 
@@ -2337,20 +2338,6 @@ namespace RealmStudioX.WPF.ViewModels.Main
             }
         }
 
-        public static ImageSource ToImageSource(SKBitmap bitmap)
-        {
-            using var image = SKImage.FromBitmap(bitmap);
-            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-            using var stream = new MemoryStream(data.ToArray());
 
-            var bmp = new BitmapImage();
-            bmp.BeginInit();
-            bmp.CacheOption = BitmapCacheOption.OnLoad;
-            bmp.StreamSource = stream;
-            bmp.EndInit();
-            bmp.Freeze(); // IMPORTANT for performance
-
-            return bmp;
-        }
     }
 }

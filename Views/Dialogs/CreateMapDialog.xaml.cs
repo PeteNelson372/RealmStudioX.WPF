@@ -146,7 +146,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
                 ViewModel.Height = (int)HeightBox.Value;
             };
-
         }
 
         public void SetThemeManager(ThemeManager themeManager)

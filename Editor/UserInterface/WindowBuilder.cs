@@ -20,7 +20,7 @@ namespace RealmStudioX.WPF.Editor.UserInterface
 
             wm.AttachToControl(
                 dialog,
-                app.MainWindow,
+                window,
                 button,
                 new Point(0, button.ActualHeight),
                 0,

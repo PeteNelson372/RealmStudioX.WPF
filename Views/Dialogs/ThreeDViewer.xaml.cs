@@ -1,7 +1,6 @@
 ﻿using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.ViewModels.Dialogs;
 using System.Windows;
-using RealmStudioX.WPF.Views.Controls;
 
 namespace RealmStudioX.WPF.Views.Dialogs
 {

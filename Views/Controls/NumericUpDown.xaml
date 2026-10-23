@@ -22,11 +22,13 @@
 
             <!-- Text -->
             <TextBox x:Name="ValueBox"
+                FontSize="12"
                 BorderThickness="0"
                 Background="Transparent"
                 Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=UserControl}}"
                 HorizontalContentAlignment="Right"
                 VerticalContentAlignment="Center"
+                VerticalAlignment="Center"
                 Padding="2"                     
                 PreviewTextInput="OnPreviewTextInput"
                 LostFocus="OnLostFocus"
