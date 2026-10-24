@@ -32,6 +32,10 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         private readonly ModelViewerControl _modelViewer = globeViewer.ModelViewer;
         public ModelViewerControl ModelViewer => _modelViewer;
 
+        public IReadOnlyList<LocalStarType> LocalStarTypes { get; } = Enum.GetValues<LocalStarType>();
+
+        private LocalStar? _currentLocalStar;
+
         private string starfieldFileName = string.Empty;
         private string planetTextureFileName = string.Empty;
 
@@ -239,6 +243,216 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             }
         }
 
+        #region Local Star Properties
+
+        private bool _enableLocalStar;
+
+        public bool EnableLocalStar
+        {
+            get => _enableLocalStar;
+            set
+            {
+                if (SetProperty(ref _enableLocalStar, value))
+                {
+                    if (_enableLocalStar && _currentLocalStar != null)
+                    {
+                        GlobeViewer.ShowLocalStar(_currentLocalStar);
+                    }
+                    else
+                    {
+                        GlobeViewer.RemoveLocalStar();
+                    }
+                }
+            }
+        }
+
+        private LocalStarType _selectedLocalStarType = LocalStarType.Sun;
+
+        public LocalStarType SelectedLocalStarType
+        {
+            get => _selectedLocalStarType;
+            set
+            {
+                if (SetProperty(ref _selectedLocalStarType, value))
+                {
+                    UpdateCurrentLocalStar();
+                }
+            }
+        }
+
+        private double _localStarSize = 0.09;
+
+        public double LocalStarSize
+        {
+            get => _localStarSize;
+            set
+            {
+                double size = Math.Clamp(value, 0.01, 1.0);
+
+                if (SetProperty(ref _localStarSize, size))
+                {
+                    UpdateCurrentLocalStar();
+                }
+            }
+        }
+
+        private double _localStarDistance = 0.08;
+
+        public double LocalStarDistance
+        {
+            get => _localStarDistance;
+            set
+            {
+                if (SetProperty(ref _localStarDistance, Math.Clamp(value, 0.0, 1.0)))
+                {
+                    UpdateCurrentLocalStar();
+                }
+            }
+        }
+
+        private double _localStarOrbit = 0.0;
+
+        public double LocalStarOrbit
+        {
+            get => _localStarOrbit;
+            set
+            {
+                if (SetProperty(ref _localStarOrbit, Math.Clamp(value, 0.0, 1.0)))
+                {
+                    UpdateCurrentLocalStar();
+                }
+            }
+        }
+
+        private double _localStarPlane = 0.24;
+
+        public double LocalStarPlane
+        {
+            get => _localStarPlane;
+            set
+            {
+                if (SetProperty(ref _localStarPlane, Math.Clamp(value, 0.0, 1.0)))
+                {
+                    UpdateCurrentLocalStar();
+                }
+            }
+        }
+
+        private double _localStarlightIntensity = 0.1;
+
+        public double LocalStarlightIntensity
+        {
+            get => _localStarlightIntensity;
+            set
+            {
+                if (SetProperty(ref _localStarlightIntensity, Math.Clamp(value, 0.0, 1.0)))
+                {
+                    UpdateCurrentLocalStar();
+                }
+            }
+        }
+
+        public ICommand CreateLocalStarCommand => new RelayCommand(() =>
+        {
+            _currentLocalStar = CreateLocalStarFromProperties();
+
+            if (EnableLocalStar)
+            {
+                GlobeViewer.ShowLocalStar(_currentLocalStar);
+            }
+        });
+
+        private const double GlobeRadius = 1.0;
+        private const double MinimumStarGap = 0.15;
+
+        private LocalStar CreateLocalStarFromProperties()
+        {
+            LocalStar star = new();
+            CopyPropertiesToLocalStar(star);
+            return star;
+        }
+
+        private void UpdateCurrentLocalStar()
+        {
+            if (_currentLocalStar is null)
+                return;
+
+            LocalStarType previousType = _currentLocalStar.StarImageType;
+
+            CopyPropertiesToLocalStar(_currentLocalStar);
+
+            // Changing the type may require building a different set
+            // of scene objects. Otherwise, update the existing objects.
+            if (previousType != _currentLocalStar.StarImageType)
+            {
+                GlobeViewer.ShowLocalStar(_currentLocalStar);
+            }
+            else
+            {
+                GlobeViewer.UpdateLocalStar(_currentLocalStar);
+            }
+        }
+
+        private const double LocalStarPositionScale = 6.0;
+
+        private void CopyPropertiesToLocalStar(LocalStar star)
+        {
+            star.StarImageType = SelectedLocalStarType;
+
+            star.Radius = Math.Clamp(LocalStarSize, 0.01, 1.0);
+
+            double distanceFromCenter =
+                GlobeRadius +
+                star.Radius +
+                MinimumStarGap +
+                Math.Clamp(LocalStarDistance, 0.0, 1.0)
+                    * LocalStarPositionScale;
+
+            star.Center = new Point3D(
+                LocalStarOrbit * LocalStarPositionScale,
+                LocalStarPlane * LocalStarPositionScale,
+                distanceFromCenter);
+
+            star.StarColor = StarlightColor;
+
+            star.LightIntensity = Math.Clamp(
+                LocalStarlightIntensity, 0.0, 1.0);
+        }
+
+
+        #region Starlight Color
+
+        private Color _starlightColor = Colors.Yellow;
+
+        public Color StarlightColor
+        {
+            get => _starlightColor;
+            set
+            {
+                if (SetProperty(ref _starlightColor, value))
+                {
+                    SolidColorBrush brush = new(value);
+                    brush.Freeze();
+
+                    StarlightColorBrush = brush;
+
+                    UpdateCurrentLocalStar();
+                }
+            }
+        }
+
+        private Brush _starlightColorBrush = new SolidColorBrush(Colors.Yellow);
+
+        public Brush StarlightColorBrush
+        {
+            get => _starlightColorBrush;
+            private set => SetProperty(ref _starlightColorBrush, value);
+        }
+
+        #endregion
+
+        #endregion
+
         public ICommand ToggleStarfield => new RelayCommand(() =>
         {
             if (EnableStarfield && !string.IsNullOrEmpty(starfieldFileName))
@@ -247,7 +461,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             }
             else
             {
-                ModelViewer.SetBackground(null);
+                ModelViewer.SetBackgroundColor(WorldGlobeViewer.DefaultSpaceColor);
             }
         });
 
@@ -362,7 +576,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
                 SKBitmap texture = SKBitmap.Decode(planetTextureFileName);
 
-                _globeViewer.InitializeWorldGlobe(texture);
+                _globeViewer.InitializeWorldGlobeScene(texture);
             }
         });
 
@@ -490,18 +704,29 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         });
     }
 
-    internal sealed class LocalStar
+    public sealed class LocalStar
     {
-        internal Point3D Center { get; set; } = new Point3D(3, 3, 0);
-        internal double Radius { get; set; } = 0.15;
-        internal LocalStarImageType StarImageType { get; set; } = LocalStarImageType.Sun;
-        internal Color StarColor { get; set; } = Colors.Yellow;
-        internal int LightIntensity { get; set; } = 10;
-        internal Transform3D LocationTransform { get; set; } = Transform3D.Identity;
-        internal Quaternion RotationQuaternion { get; set; } = Quaternion.Identity;
+        public Point3D Center { get; set; } = new(3, 3, 0);
+
+        public double Radius { get; set; } = 0.15;
+
+        public LocalStarType StarImageType { get; set; } = LocalStarType.Sun;
+
+        // Color of the star's light source.
+        public Color StarColor { get; set; } = Colors.Yellow;
+
+        // Normalized light strength: 0.0 to 1.0.
+        public double LightIntensity { get; set; } = 0.1;
+
+        // Distance at which the point light stops affecting the scene.
+        public double LightRange { get; set; } = 10.0;
+
+        public Transform3D LocationTransform { get; set; } = Transform3D.Identity;
+
+        public Quaternion RotationQuaternion { get; set; } = Quaternion.Identity;
     }
 
-    internal sealed class PlanetaryRing
+    public sealed class PlanetaryRing
     {
         internal byte[] RingImage = WorldGlobeAssets.ReadBytes("satturnringcolor2");
         internal double InnerRadius { get; set; } = 1.5;
@@ -512,14 +737,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
     }
 
-    internal sealed class PlanetAtmosphere
-    {
-        internal double AtmosphereRadius { get; set; } = 0.1;
-        internal System.Drawing.Color AtmosphereColor { get; set; } = System.Drawing.Color.FromArgb(255, 103, 137, 175);
-        internal double AtmosphereOpacity { get; set; } = 0.5;
-    }
-
-    internal sealed class Moon
+    public sealed class Moon
     {
         internal SphereVisual3D moonVisual = new();
         internal string MoonName { get; set; } = string.Empty;

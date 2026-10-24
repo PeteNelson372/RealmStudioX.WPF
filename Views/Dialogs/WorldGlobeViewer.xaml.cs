@@ -104,6 +104,19 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         private GeometryModel3D? _atmosphereModel;
 
+        private readonly Model3DGroup _sceneRootModel = new();
+
+        private Model3DGroup? _localStarModelGroup;
+        private Model3DGroup? _localStarPositionGroup;
+
+        private GeometryModel3D? _sunSurfaceModel;
+        private GeometryModel3D? _sunCoronaModel;
+        private PointLight? _sunLight;
+
+        private SolidColorBrush? _sunCoronaBrush;
+
+        public static readonly Color DefaultSpaceColor = Color.FromRgb(5, 8, 18);
+
         private MainWindowViewModel _mainViewModel;
 
         public WorldGlobeViewer(MainWindowViewModel mainViewModel)
@@ -127,6 +140,9 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 WorldGlobeViewerTitleBar.ExitClicked += (s, e) => ExitHandler();
 
                 WorldGlobeViewerMenu.ExitClicked += (s, e) => ExitHandler();
+
+                ModelViewer.SetBackgroundColor(DefaultSpaceColor);
+
                 GlobeTransform.Children.Clear();
 
                 GlobeTransform.Children.Add(new RotateTransform3D(_globeYaw));
@@ -272,11 +288,11 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             if (globeTexture != null)
             {
-                InitializeWorldGlobe(globeTexture);
+                InitializeWorldGlobeScene(globeTexture);
             }
         }
 
-        public void InitializeWorldGlobe(SKBitmap worldTexture)
+        public void InitializeWorldGlobeScene(SKBitmap worldTexture)
         {
             ArgumentNullException.ThrowIfNull(worldTexture);
 
@@ -339,7 +355,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 _globeBody.Children.Clear();
                 _globeBody.Children.Add(_globeTiltGroup);
 
-                ModelViewer.SetModel(_globeBody);
+                _sceneRootModel.Children.Clear();
+                _sceneRootModel.Children.Add(_globeBody);
+
+                ModelViewer.SetModel(_sceneRootModel);
             }
         }
 
@@ -847,6 +866,217 @@ namespace RealmStudioX.WPF.Views.Dialogs
         {
             WindowState = WindowState.Minimized;
         }
+
+        #region Local Star Methods
+
+        private static readonly Lazy<BitmapSource> SunTexture = new(() => WorldGlobeAssets.LoadBitmap("sol-texture.jpg"));
+
+        private static readonly MeshGeometry3D UnitSphereMesh = CreateSphereMesh(1.0, 90, 45);
+
+        public void ShowLocalStar(LocalStar star)
+        {
+            RemoveLocalStar();
+
+            switch (star.StarImageType)
+            {
+                case LocalStarType.Sun:
+                    _localStarModelGroup = CreateSunLocalStar(star);
+                    break;
+
+                default:
+                    // Implement the remaining local-star types separately.
+                    return;
+            }
+
+            _sceneRootModel.Children.Add(_localStarModelGroup);
+
+            // Refresh the generic viewer's model bounds without refitting
+            // the camera. Do this when adding/removing a scene object,
+            // not on every slider change.
+            ModelViewer.SetModel(_sceneRootModel, fitCamera: false);
+        }
+
+        public void RemoveLocalStar()
+        {
+            // Remove the previously displayed local star.
+            if (_localStarModelGroup is not null)
+            {
+                _sceneRootModel.Children.Remove(_localStarModelGroup);
+                _localStarModelGroup = null;
+                _localStarPositionGroup = null;
+                _sunSurfaceModel = null;
+                _sunCoronaModel = null;
+                _sunCoronaBrush = null;
+                _sunLight = null;
+            }
+        }
+
+        private Model3DGroup CreateSunLocalStar(LocalStar star)
+        {
+            // The outer group applies any existing location transform.
+            _localStarModelGroup = new Model3DGroup
+            {
+                Transform = star.LocationTransform
+            };
+
+            // This group positions the star and its light in world space.
+            _localStarPositionGroup = new Model3DGroup
+            {
+                Transform = new TranslateTransform3D(
+                    star.Center.X,
+                    star.Center.Y,
+                    star.Center.Z)
+            };
+
+            _localStarModelGroup.Children.Add(_localStarPositionGroup);
+
+            // The textured, self-illuminated sun.
+            ImageBrush sunBrush = new(SunTexture.Value)
+            {
+                Stretch = Stretch.Fill,
+                Opacity = 1.0
+            };
+
+            sunBrush.Freeze();
+
+            EmissiveMaterial sunMaterial = new(sunBrush)
+            {
+                Color = star.StarColor
+            };
+
+            sunMaterial.Freeze();
+
+            _sunSurfaceModel = new GeometryModel3D
+            {
+                Geometry = UnitSphereMesh,
+                Material = sunMaterial,
+                Transform = CreateStarSurfaceTransform(
+                    star.Radius,
+                    star.RotationQuaternion)
+            };
+            
+            // A subtle colored shell around the sun.
+            // This is a simple visual corona, not a physically accurate glow.
+            _sunCoronaBrush = new SolidColorBrush(star.StarColor)
+            {
+                Opacity = 0.12
+            };
+
+            EmissiveMaterial coronaMaterial = new(_sunCoronaBrush);
+
+            _sunCoronaModel = new GeometryModel3D
+            {
+                Geometry = UnitSphereMesh,
+                Material = coronaMaterial,
+                Transform = CreateStarSurfaceTransform(
+                    star.Radius * 1.12,
+                    star.RotationQuaternion)
+            };
+
+            // The point light is independent of the sun's visible material.
+            _sunLight = new PointLight
+            {
+                Position = new Point3D(0, 0, 0),
+                Color = ScaleLightColor(
+                    star.StarColor,
+                    star.LightIntensity),
+                Range = Math.Max(
+                    star.LightRange,
+                    (star.Center - new Point3D(0, 0, 0)).Length + 2.0),
+                ConstantAttenuation = 1.0,
+                LinearAttenuation = 0.0,
+                QuadraticAttenuation = 0.02
+            };
+
+            // Add the corona first, followed by the sun and its light.
+            _localStarPositionGroup.Children.Add(_sunCoronaModel);
+            _localStarPositionGroup.Children.Add(_sunSurfaceModel);
+            _localStarPositionGroup.Children.Add(_sunLight);
+
+            return _localStarModelGroup;
+        }
+
+        public void UpdateLocalStar(LocalStar star)
+        {
+            switch (star.StarImageType)
+            {
+                case LocalStarType.Sun:
+                    UpdateSunLocalStar(star);
+                    break;
+
+                default:
+                    // Implement the remaining local-star types separately.
+                    return;
+            }
+        }
+
+        public void UpdateSunLocalStar(LocalStar star)
+        {
+            if (_localStarModelGroup is null ||
+                _localStarPositionGroup is null ||
+                _sunSurfaceModel is null ||
+                _sunCoronaModel is null ||
+                _sunCoronaBrush is null ||
+                _sunLight is null)
+            {
+                return;
+            }
+
+            _localStarModelGroup.Transform = star.LocationTransform;
+
+            _localStarPositionGroup.Transform =
+                new TranslateTransform3D(
+                    star.Center.X,
+                    star.Center.Y,
+                    star.Center.Z);
+
+            _sunSurfaceModel.Transform =
+                CreateStarSurfaceTransform(
+                    star.Radius,
+                    star.RotationQuaternion);
+
+            _sunCoronaModel.Transform =
+                CreateStarSurfaceTransform(
+                    star.Radius * 1.12,
+                    star.RotationQuaternion);
+
+            _sunCoronaBrush.Color = star.StarColor;
+
+            _sunLight.Color = ScaleLightColor(
+                star.StarColor,
+                star.LightIntensity);
+
+            _sunLight.Range = Math.Max(
+                star.LightRange,
+                (star.Center - new Point3D(0, 0, 0)).Length + 2.0);
+        }
+
+        private static Transform3D CreateStarSurfaceTransform(double radius, Quaternion rotation)
+        {
+            Transform3DGroup transform = new();
+
+            transform.Children.Add(
+                new ScaleTransform3D(radius, radius, radius));
+
+            transform.Children.Add(
+                new RotateTransform3D(
+                    new QuaternionRotation3D(rotation)));
+
+            return transform;
+        }
+
+        private static Color ScaleLightColor(Color color, double intensity)
+        {
+            intensity = Math.Clamp(intensity, 0.0, 1.0);
+
+            return Color.FromRgb(
+                (byte)Math.Round(color.R * intensity),
+                (byte)Math.Round(color.G * intensity),
+                (byte)Math.Round(color.B * intensity));
+        }
+
+
+        #endregion
 
     }
 }
