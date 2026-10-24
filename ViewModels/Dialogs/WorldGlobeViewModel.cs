@@ -1,7 +1,11 @@
-﻿using RealmStudioShapeRenderingLib;
+﻿using HelixToolkit.Wpf;
+using RealmStudioShapeRenderingLib;
+using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX._3D.Views.Controls;
 using RealmStudioX.Infrastructure;
+using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
+using RealmStudioX.WPF.Properties;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Dialogs;
@@ -10,6 +14,7 @@ using System.IO;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
@@ -30,11 +35,33 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         private string starfieldFileName = string.Empty;
         private string planetTextureFileName = string.Empty;
 
+        private string? _customCloudTexturePath;
+
         private bool _enableStarfield = true;
         public bool EnableStarfield
         {
             get => _enableStarfield;
             set => _enableStarfield = value;
+        }
+
+        private bool _enableAtmosphere = false;
+        public bool EnableAtmosphere
+        {
+            get => _enableAtmosphere;
+            set => _enableAtmosphere = value;
+        }
+
+        private bool _enableClouds = true;
+        public bool EnableClouds
+        {
+            get => _enableClouds;
+            set
+            {
+                if (SetProperty(ref _enableClouds, value))
+                {
+                    GlobeViewer.RefreshCloudLayer();
+                }
+            }
         }
 
         private double _rotationRate = 1.0;
@@ -87,6 +114,11 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             set => _rotationDirection = value;
         }
 
+        public ICommand ToggleAtmosphere => new RelayCommand(() =>
+        {
+            GlobeViewer.RefreshAtmosphere();
+        });
+
         private Color _atmosphereColor = Colors.Transparent;
         public Color AtmosphereColor
         {
@@ -96,12 +128,73 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 if (SetProperty(ref _atmosphereColor, value))
                 {
                     _atmosphereColorBrush.Color = value;
+                    GlobeViewer.RefreshAtmosphere();
                 }
             }
         }
 
-        private SolidColorBrush _atmosphereColorBrush = new(Colors.Transparent);
+        private readonly SolidColorBrush _atmosphereColorBrush = new(Colors.Transparent);
         public Brush AtmosphereColorBrush => _atmosphereColorBrush;
+
+        private double _atmosphereDensity = 0.01;
+
+        public double AtmosphereDensity
+        {
+            get => _atmosphereDensity * 100.0;
+            set
+            {
+                double density = Math.Clamp(value, 0.0, 100.0) / 100.0;
+
+                if (SetProperty(ref _atmosphereDensity, density))
+                {
+                    GlobeViewer.RefreshAtmosphere();
+                }
+            }
+        }
+
+        private double _atmosphereAltitude = 0.001;
+        public double AtmosphereAltitude
+        {
+            get => _atmosphereAltitude * 1000.0;
+            set
+            {
+                double altitude = value / 1000.0;
+                if (SetProperty(ref _atmosphereAltitude, altitude))
+                {
+                    GlobeViewer.RefreshAtmosphere();
+                }
+            }
+        }
+
+        private bool _useDefaultCloudTexture = false;
+
+        public bool UseDefaultCloudTexture
+        {
+            get => _useDefaultCloudTexture;
+            set
+            {
+                if (SetProperty(ref _useDefaultCloudTexture, value) && value)
+                {
+                    _globeViewer.LoadDefaultCloudTexture();
+                    GlobeViewer.RefreshCloudLayer();
+                }
+            }
+        }
+
+        private bool _useCustomCloudTexture;
+
+        public bool UseCustomCloudTexture
+        {
+            get => _useCustomCloudTexture;
+            set
+            {
+                if (SetProperty(ref _useCustomCloudTexture, value) && value)
+                {
+                    LoadCustomCloudTexture();
+                    GlobeViewer.RefreshCloudLayer();
+                }
+            }
+        }
 
         private Color _cloudColor = Colors.Transparent;
         public Color CloudColor
@@ -112,12 +205,39 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 if (SetProperty(ref _cloudColor, value))
                 {
                     _cloudColorBrush.Color = value;
+                    GlobeViewer.RefreshCloudLayer();
                 }
             }
         }
 
-        private SolidColorBrush _cloudColorBrush = new(Colors.Transparent);
+        private readonly SolidColorBrush _cloudColorBrush = new(Colors.Transparent);
         public Brush CloudColorBrush => _cloudColorBrush;
+
+        private double _cloudOpacity = 0.4;
+        public double CloudOpacity
+        {
+            get => _cloudOpacity;
+            set
+            {
+                if (SetProperty(ref _cloudOpacity, value))
+                {
+                    GlobeViewer.RefreshCloudLayer();
+                }
+            }
+        }
+
+        private double _cloudRotationRate = 1.0;
+        public double CloudRotationRate
+        {
+            get => _cloudRotationRate;
+            set
+            {
+                if (SetProperty(ref _cloudRotationRate, value))
+                {
+                    GlobeViewer.RefreshCloudLayer();
+                }
+            }
+        }
 
         public ICommand ToggleStarfield => new RelayCommand(() =>
         {
@@ -128,6 +248,52 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             else
             {
                 ModelViewer.SetBackground(null);
+            }
+        });
+
+        private void LoadCustomCloudTexture()
+        {
+            if (!string.IsNullOrWhiteSpace(_customCloudTexturePath) && File.Exists(_customCloudTexturePath))
+            {
+                GlobeViewer.LoadCloudTexture(_customCloudTexturePath);
+            }
+        }
+
+        public ICommand SelectCloudTextureCommand => new RelayCommand(() =>
+        {
+            string cloudsDirectory = Path.Combine(ApplicationPreferences.Current.RootAssetDirectory, "Textures", "Clouds");
+
+            OpenFileDialog dialog = new()
+            {
+                Title = "Select Cloud Layer Image File",
+                Filter = UserInterfaceUtilities.GetCommonImageFilter(),
+                Multiselect = false,
+                InitialDirectory = cloudsDirectory,
+                CheckFileExists = true
+            };
+
+            if (dialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            try
+            {
+                _customCloudTexturePath = dialog.FileName;
+                UseCustomCloudTexture = true;
+
+                string? directory = Path.GetDirectoryName(dialog.FileName);
+
+                if (!string.IsNullOrEmpty(directory))
+                {
+                    Settings.Default.LastFileDirectory = directory;
+                }
+            }
+            catch (Exception ex)
+            {
+                RealmStudioXLogger.Exception("Error loading cloud texture", ex);
+                MessageDialog dlg = MessageDialogFactory.ErrorDialog("Cloud Texture", $"Unable to load the cloud texture.\n\n{ex.Message}");
+                dlg.ShowDialog();
             }
         });
 
@@ -322,5 +488,49 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         {
             _modelViewer.SetCameraView(ModelViewDirection.Bottom);
         });
+    }
+
+    internal sealed class LocalStar
+    {
+        internal Point3D Center { get; set; } = new Point3D(3, 3, 0);
+        internal double Radius { get; set; } = 0.15;
+        internal LocalStarImageType StarImageType { get; set; } = LocalStarImageType.Sun;
+        internal Color StarColor { get; set; } = Colors.Yellow;
+        internal int LightIntensity { get; set; } = 10;
+        internal Transform3D LocationTransform { get; set; } = Transform3D.Identity;
+        internal Quaternion RotationQuaternion { get; set; } = Quaternion.Identity;
+    }
+
+    internal sealed class PlanetaryRing
+    {
+        internal byte[] RingImage = WorldGlobeAssets.ReadBytes("satturnringcolor2");
+        internal double InnerRadius { get; set; } = 1.5;
+        internal double OuterRadius { get; set; } = 2.5;
+        internal System.Drawing.Color RingColor { get; set; } = System.Drawing.Color.White;
+        internal double RingTiltAngle { get; set; }
+        internal double RingBrushOpacity { get; set; } = 100;
+
+    }
+
+    internal sealed class PlanetAtmosphere
+    {
+        internal double AtmosphereRadius { get; set; } = 0.1;
+        internal System.Drawing.Color AtmosphereColor { get; set; } = System.Drawing.Color.FromArgb(255, 103, 137, 175);
+        internal double AtmosphereOpacity { get; set; } = 0.5;
+    }
+
+    internal sealed class Moon
+    {
+        internal SphereVisual3D moonVisual = new();
+        internal string MoonName { get; set; } = string.Empty;
+        internal Point3D MoonCenter { get; set; } = new Point3D(2, 2, 0);
+        internal double MoonRadius { get; set; } = 0.1;
+        internal string MoonTextureName { get; set; } = "Moon";
+        internal string MoonTexturePath { get; set; } = string.Empty;
+        internal Color MoonColor { get; set; } = Colors.White;
+        internal int MoonDistance { get; set; } = 250;
+        internal double MoonOrbitRotation { get; set; }
+        internal double MoonPlaneRotation { get; set; }
+        internal double MoonAxisRotation { get; set; }
     }
 }

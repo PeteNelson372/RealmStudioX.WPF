@@ -103,6 +103,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Assets\world_globe\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="Assets\fonts\Aladin-Regular.ttf" />
     <EmbeddedResource Include="Assets\fonts\BarlowCondensed-Regular.ttf" />
     <EmbeddedResource Include="Assets\fonts\Bilbo-Regular.ttf" />

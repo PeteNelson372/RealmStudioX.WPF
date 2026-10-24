@@ -5,12 +5,14 @@ using RealmStudioX.WPF.ViewModels.Dialogs;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels;
 using SkiaSharp;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
+using Color = System.Windows.Media.Color;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 using Point = System.Windows.Point;
 using UserControl = System.Windows.Controls.UserControl;
@@ -79,7 +81,28 @@ namespace RealmStudioX.WPF.Views.Dialogs
         private readonly Transform3DGroup _globeTransform = new();
         public Transform3DGroup GlobeTransform => _globeTransform;
 
-        private readonly Transform3DGroup _globeOrientationTransform = new();
+        private const double CloudSphereRadius = 1.003;
+
+        // Original bitmap and its processed version.
+        private BitmapSource? _cloudSourceTexture;
+        private BitmapSource? _tintedCloudTexture;
+        private Color? _tintedCloudColor;
+
+        // Cloud sphere and its texture brush.
+        private GeometryModel3D? _cloudSurfaceModel;
+        private ImageBrush? _cloudTextureBrush;
+
+        // Independent cloud rotation.
+        private double _cloudSpinAngle;
+
+        private static readonly QuaternionRotation3D _cloudSpinRotation = new(Quaternion.Identity);
+
+        private readonly Model3DGroup _cloudSpinGroup = new()
+        {
+            Transform = new RotateTransform3D(_cloudSpinRotation)
+        };
+
+        private GeometryModel3D? _atmosphereModel;
 
         private MainWindowViewModel _mainViewModel;
 
@@ -120,6 +143,13 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 ModelViewer.LostMouseCapture += ModelViewer_LostMouseCapture;
 
                 CreateGlobe();
+
+                if (ViewModel.EnableClouds)
+                {
+                    ViewModel.UseDefaultCloudTexture = true;
+                    RefreshCloudLayer();
+                }
+
 
                 FrameRateCombo.ItemsSource = SupportedFrameRates;
 
@@ -512,6 +542,23 @@ namespace RealmStudioX.WPF.Views.Dialogs
             _globeSpinAngle %= 360.0;
 
             _globeSpinRotation.Quaternion = new Quaternion(new Vector3D(0, 1, 0), _globeSpinAngle);
+
+            double cloudRate = Math.Clamp(ViewModel.CloudRotationRate, 0.0, 10.0);
+
+            if (ViewModel.EnableClouds && cloudRate > 0.0)
+            {
+                double cloudDegreesPerSecond =
+                    degreesPerSecond * cloudRate;
+
+                _cloudSpinAngle +=
+                    direction * cloudDegreesPerSecond * elapsedSeconds;
+
+                _cloudSpinAngle %= 360.0;
+
+                _cloudSpinRotation.Quaternion = new Quaternion(
+                    new Vector3D(0, 1, 0),
+                    _cloudSpinAngle);
+            }
         }
 
         public void UpdateGlobeTilt(double tiltAngle)
@@ -571,6 +618,217 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             // Reset camera position and orientation.
             ModelViewer.ResetCamera();
+        }
+
+        public void UpdateAtmosphere(bool enabled, double height, double density, System.Windows.Media.Color color)
+        {
+            // Clamp incoming settings to their valid ranges.
+            height = Math.Max(0.0, height);
+            density = Math.Clamp(density, 0.0, 1.0);
+
+            // Create the atmosphere model only once.
+            if (_atmosphereModel is null)
+            {
+                _atmosphereModel = new GeometryModel3D
+                {
+                    Geometry = CreateSphereMesh(),
+                };
+            }
+
+            // The atmosphere must sit outside the globe surface.
+            // A small minimum offset avoids coincident surfaces.
+            double atmosphereRadius = 1.0 + Math.Max(height, 0.001);
+
+            _atmosphereModel.Transform = new ScaleTransform3D(
+                atmosphereRadius,
+                atmosphereRadius,
+                atmosphereRadius);
+
+            // Use density as the opacity for this initial implementation.
+            SolidColorBrush atmosphereBrush = new(color)
+            {
+                Opacity = density
+            };
+
+            atmosphereBrush.Freeze();
+
+            Material atmosphereMaterial = new DiffuseMaterial(atmosphereBrush);
+            atmosphereMaterial.Freeze();
+
+            _atmosphereModel.Material = atmosphereMaterial;
+            _atmosphereModel.BackMaterial = atmosphereMaterial;
+
+            // Add or remove the atmosphere from the scene.
+            bool isInScene =
+                _globeTiltGroup.Children.Contains(_atmosphereModel);
+
+            if (enabled)
+            {
+                if (!isInScene)
+                {
+                    _globeTiltGroup.Children.Add(_atmosphereModel);
+                }
+            }
+            else if (isInScene)
+            {
+                _globeTiltGroup.Children.Remove(_atmosphereModel);
+            }
+        }
+
+        public void RefreshAtmosphere()
+        {
+            UpdateAtmosphere(
+                ViewModel.EnableAtmosphere,
+                ViewModel.AtmosphereAltitude / 1000.0,
+                ViewModel.AtmosphereDensity / 100.0,
+                ViewModel.AtmosphereColor);
+        }
+
+        public void LoadCloudTexture(string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath) ||
+                !File.Exists(filePath))
+            {
+                throw new FileNotFoundException("Cloud texture file not found.", filePath);
+            }
+
+            BitmapImage bitmap = new();
+
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.UriSource = new Uri(filePath, UriKind.Absolute);
+            bitmap.EndInit();
+            bitmap.Freeze();
+
+            SetCloudTexture(bitmap);
+        }
+        
+        private void SetCloudTexture(BitmapSource source)
+        {
+            _cloudSourceTexture = source;
+
+            // Force regeneration when the input image changes.
+            _tintedCloudTexture = null;
+            _tintedCloudColor = null;
+
+            RefreshCloudLayer();
+        }
+
+        public void LoadDefaultCloudTexture()
+        {
+            string path = WorldGlobeAssets.GetPath("cloud_combined_2048.jpg");
+            LoadCloudTexture(path);
+        }
+
+        public void RefreshCloudLayer()
+        {
+            if (_cloudSourceTexture is null)
+                return;
+
+            Color cloudColor = ViewModel.CloudColor;
+
+            if (_tintedCloudTexture is null ||
+                _tintedCloudColor != cloudColor)
+            {
+                _tintedCloudTexture = CreateTintedCloudTexture(_cloudSourceTexture, cloudColor);
+
+                _tintedCloudColor = cloudColor;
+            }
+
+            EnsureCloudSurfaceModel();
+
+            _cloudTextureBrush!.ImageSource = _tintedCloudTexture;
+
+            _cloudTextureBrush.Opacity = Math.Clamp(ViewModel.CloudOpacity, 0.0, 1.0);
+
+            bool enabled = ViewModel.EnableClouds;
+            bool inScene = _globeTiltGroup.Children.Contains(_cloudSpinGroup);
+
+            if (enabled && !inScene)
+            {
+                _globeTiltGroup.Children.Add(_cloudSpinGroup);
+            }
+            else if (!enabled && inScene)
+            {
+                _globeTiltGroup.Children.Remove(_cloudSpinGroup);
+            }
+        }
+
+        private void EnsureCloudSurfaceModel()
+        {
+            if (_cloudSurfaceModel is not null)
+                return;
+
+            // The brush must remain mutable because its image and
+            // opacity will change as the user adjusts the settings.
+            _cloudTextureBrush = new ImageBrush
+            {
+                Stretch = Stretch.Fill,
+                Opacity = 1.0
+            };
+
+            DiffuseMaterial cloudMaterial = new(_cloudTextureBrush);
+
+            _cloudSurfaceModel = new GeometryModel3D
+            {
+                Geometry = CreateSphereMesh(CloudSphereRadius),
+                Material = cloudMaterial
+            };
+
+            // The cloud sphere rotates independently of the globe.
+            _cloudSpinGroup.Children.Add(_cloudSurfaceModel);
+        }
+
+        private static BitmapSource CreateTintedCloudTexture(BitmapSource source, Color tint)
+        {
+            BitmapSource converted = new FormatConvertedBitmap(
+                source,
+                PixelFormats.Bgra32,
+                null,
+                0);
+
+            int width = converted.PixelWidth;
+            int height = converted.PixelHeight;
+            int stride = width * 4;
+
+            byte[] pixels = new byte[stride * height];
+            converted.CopyPixels(pixels, stride, 0);
+
+            for (int i = 0; i < pixels.Length; i += 4)
+            {
+                double blue = pixels[i];
+                double green = pixels[i + 1];
+                double red = pixels[i + 2];
+                double sourceAlpha = pixels[i + 3] / 255.0;
+
+                // Treat brightness as the cloud mask:
+                // black = transparent, white = fully present.
+                double brightness =
+                    (0.2126 * red +
+                     0.7152 * green +
+                     0.0722 * blue) / 255.0;
+
+                byte alpha = (byte)Math.Round(
+                    sourceAlpha * brightness * 255.0);
+
+                pixels[i] = tint.B;
+                pixels[i + 1] = tint.G;
+                pixels[i + 2] = tint.R;
+                pixels[i + 3] = alpha;
+            }
+
+            BitmapSource result = BitmapSource.Create(
+                width,
+                height,
+                96,
+                96,
+                PixelFormats.Bgra32,
+                null,
+                pixels,
+                stride);
+
+            result.Freeze();
+            return result;
         }
 
         private void ExitHandler()

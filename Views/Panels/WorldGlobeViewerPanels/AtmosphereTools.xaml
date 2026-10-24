@@ -102,12 +102,15 @@
 
                                     <Slider x:Name="AtmosphereAltitudeSlider"
                                         Grid.Row="1"
-                                        Grid.Column="1"                                             
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
                                         Style="{StaticResource ModernSlider}"
-                                        behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
-                                        Width="160"
+                                        behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                                        Width="120"
                                         Minimum="0"
                                         Maximum="150"
+                                        AutoToolTipPlacement="TopLeft"
+                                        ToolTip="{Binding AtmosphereDensity, StringFormat={}{0:F1}}"                                            
                                         Value="{Binding AtmosphereAltitude}"/>
 
                                     <TextBlock
@@ -121,11 +124,14 @@
                                     <Slider x:Name="AtmosphereDensitySlider"
                                         Grid.Row="2"
                                         Grid.Column="1"
+                                        HorizontalAlignment="Left"
                                         Style="{StaticResource ModernSlider}"
-                                        behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
-                                        Width="160"
+                                        behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
+                                        Width="120"
                                         Minimum="0"
-                                        Maximum="150"
+                                        Maximum="100"
+                                        AutoToolTipPlacement="TopLeft"
+                                        ToolTip="{Binding AtmosphereDensity, StringFormat={}{0:F1}}"
                                         Value="{Binding AtmosphereDensity}"/>
 
                             </Grid>
@@ -150,8 +156,7 @@
                             <CheckBox x:Name="EnableCloudsCheckBox"
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center"
-                                  Command="{Binding ToggleAtmosphere}"
-                                  IsChecked="{Binding EnableAtmosphere, Mode=TwoWay}"
+                                  IsChecked="{Binding EnableClouds, Mode=TwoWay}"
                                   Style="{StaticResource ToggleSwitchStyle}"
                                   shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
@@ -161,7 +166,7 @@
                                 Margin="4,0,10,0"/>
                         </StackPanel>
 
-                        <GroupBox Header="Clouds" Height="Auto"  HorizontalAlignment="Stretch" Margin="0,10,0,0">
+                        <GroupBox Header="Clouds" Height="Auto"  HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,0,0,10">
                             <Grid>
 
                                 <Grid.ColumnDefinitions>
@@ -213,10 +218,14 @@
                                         Grid.Column="1"                                             
                                         Style="{StaticResource ModernSlider}"
                                         behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
-                                        Width="160"
+                                        Width="120"
+                                        HorizontalAlignment="Left"
                                         Minimum="0"
-                                        Maximum="150"
-                                        Value="{Binding AtmosphereAltitude}"/>
+                                        Maximum="1.0"                                        
+                                        TickFrequency="0.01"
+                                        IsSnapToTickEnabled="True"
+                                        SmallChange="0.01"
+                                        Value="{Binding CloudOpacity}"/>
                                 
                                 <TextBlock
                                        Grid.Row="2"
@@ -227,30 +236,34 @@
                                        Margin="10,10,0,0"/>
 
                                 <StackPanel Orientation="Vertical" Grid.Row="2" Grid.Column="1" Margin="0,10,0,10">
-                                    <RadioButton Content="Default (NASA Blue Marble)"
+                                    <StackPanel Orientation="Vertical">
+                                        <RadioButton Content="Default"
                                              Margin="6,2,0,0"
                                              GroupName="CloudTexture"
-                                             IsChecked="{Binding RotationDirection, Mode=TwoWay,
-                                                Converter={StaticResource EnumToBooleanConverter},
-                                             ConverterParameter={x:Static rendering:WorldRotationDirection.Prograde}}"/>
+                                             IsChecked="{Binding UseDefaultCloudTexture, Mode=TwoWay}"/>
+                                        <TextBlock
+                                            Grid.Row="2"
+                                            Grid.Column="0"                                       
+                                            Text="(NASA Blue Marble)"
+                                            VerticalAlignment="Top"
+                                            HorizontalAlignment="Left"
+                                            Margin="25,0,0,0"/>
+                                    </StackPanel>
 
                                     <StackPanel Orientation="Horizontal">
                                         <RadioButton Content="Custom"
-                                                 Margin="6,4,0,0"
+                                                 Margin="6,8,0,0"
                                                  GroupName="CloudTexture"
-                                                 IsChecked="{Binding RotationDirection, Mode=TwoWay,
-                                                    Converter={StaticResource EnumToBooleanConverter},
-                                                 ConverterParameter={x:Static rendering:WorldRotationDirection.Retrograde}}"/>
+                                                 IsChecked="{Binding UseCustomCloudTexture, Mode=TwoWay}"/>
 
                                         <Button                                       
                                             Style="{StaticResource FlatToolButton}"
                                             Width="24"
                                             Height="24"
-                                            Margin="2,0,0,0"
+                                            Margin="2,4,0,0"
                                             Padding="0,0,0,0"
                                             ToolTip="Select Cloud Texture"
-                                            PreviewMouseLeftButtonUp="CloudColor_LeftClick"
-                                            PreviewMouseRightButtonUp="CloudColor_RightClick">
+                                            Command="{Binding SelectCloudTextureCommand}">
 
                                             <materialDesign:PackIcon Kind="FileImageAddOutline"
                                                 Width="15"
@@ -268,15 +281,15 @@
                                            VerticalAlignment="Center"
                                            Margin="10,0,8,6"/>
 
-                                <controls:NumericUpDown x:Name="RotationRateBox"
+                                <controls:NumericUpDown x:Name="CloudRotationRateBox"
                                              Grid.Row="3" Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding RotationRate}"
+                                             Value="{Binding CloudRotationRate}"
                                              Minimum="0.1"
                                              Maximum="10.0"
                                              Increment="0.1"
                                              DecimalPlaces="2"
-                                             Margin="10,0,0,10"
+                                             Margin="0,0,0,0"
                                              Width="100" />
                             </Grid>
                         </GroupBox>
