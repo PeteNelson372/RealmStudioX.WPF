@@ -233,7 +233,6 @@
                                         SmallChange="0.01"
                                         Value="{Binding LocalStarlightIntensity}"/>
 
-
                                 <TextBlock
                                         Grid.Row="7"
                                         Grid.Column="0"
@@ -272,18 +271,173 @@
 
                     <StackPanel Margin="10">
 
-                        <TextBlock
-                            Text="Animation Settings"
-                            FontWeight="SemiBold"
-                            Margin="0,0,0,6" />
+                        <GroupBox Header="Local Star Animation" Height="Auto"  HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,0,0,10">
+                            <Grid>
 
-                        <TextBlock
-                            Text="Rotation, orbit, timing, and keyframe settings will appear here."
-                            TextWrapping="Wrap"
-                            Foreground="#FF77736D" />
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock
+                                       Grid.Row="0"
+                                       Grid.Column="0"                                       
+                                       Text="Rotation Direction"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <StackPanel Orientation="Vertical" Grid.Row="0" Grid.Column="1" Margin="0,10,0,10">
+                                    <RadioButton Content="Prograde"
+                                             Margin="0,4"
+                                             GroupName="Rotation"
+                                             IsChecked="{Binding LocalStarRotationDirection, Mode=TwoWay,
+                                                Converter={StaticResource EnumToBooleanConverter},
+                                             ConverterParameter={x:Static rendering:WorldRotationDirection.Prograde}}"/>
+
+                                    <RadioButton Content="Retrograde"
+                                             Margin="0,4"
+                                             GroupName="Rotation"
+                                             IsChecked="{Binding LocalStarRotationDirection, Mode=TwoWay,
+                                                Converter={StaticResource EnumToBooleanConverter},
+                                             ConverterParameter={x:Static rendering:WorldRotationDirection.Retrograde}}"/>
+
+                                </StackPanel>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                           Text="Rotation Rate"
+                                           VerticalAlignment="Center"
+                                           Margin="10,0,8,6"/>
+
+                                <controls:NumericUpDown x:Name="RotationRateBox"
+                                             Grid.Row="1"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding LocalStarRotationRate}"
+                                             Minimum="0.1"
+                                             Maximum="10.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="2"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+                            </Grid>
+                        </GroupBox>
 
                     </StackPanel>
 
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Sun">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+                    <StackPanel Margin="10">
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Nebula">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+                    <StackPanel Margin="10">
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Gas Giant">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+                    <StackPanel Margin="10">
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Corona">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+                    <StackPanel Margin="10">
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Black Hole">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+                    <StackPanel Margin="10">
+
+                        <GroupBox Header="Plasma Jets" Height="Auto"  HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,10,0,10">
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                    Text="Enable Plasma Jets"
+                                    Foreground="#FF45443F"
+                                    VerticalAlignment="Center"
+                                    Margin="10,0,10,0"/>
+
+                                <CheckBox x:Name="EnableBlackHoleJetsCheckBox"
+                                  Grid.Row="0" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  IsChecked="{Binding EnableLocalStar, Mode=TwoWay}"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                           Text="Jet Pulse Rate"
+                                           VerticalAlignment="Center"
+                                           Margin="10,0,8,6"/>
+
+                                <controls:NumericUpDown x:Name="JetPulseRateBox"
+                                             Grid.Row="1"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding LocalStarJetPulseRate}"
+                                             Minimum="0.0"
+                                             Maximum="1.0"
+                                             Increment="0.001"
+                                             DecimalPlaces="3"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+                            </Grid>
+                        </GroupBox>
+
+                        <GroupBox Header="Accretion Disk" Height="Auto"  HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,10,0,10">
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+
+                            </Grid>
+                        </GroupBox>
+
+                    </StackPanel>
                 </ScrollViewer>
             </TabItem>
 

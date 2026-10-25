@@ -9,6 +9,7 @@ using RealmStudioX.WPF.Properties;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Dialogs;
+using RealmStudioX.WPF.WorldGlobe;
 using SkiaSharp;
 using System.IO;
 using System.Windows.Input;
@@ -65,6 +66,22 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 {
                     GlobeViewer.RefreshCloudLayer();
                 }
+            }
+        }
+
+        private bool _enableAnimation;
+
+        public bool EnableAnimation
+        {
+            get => _enableAnimation;
+            set
+            {
+                if (!SetProperty(ref _enableAnimation, value))
+                {
+                    return;
+                }
+
+                GlobeViewer?.SetAnimationEnabled(value);
             }
         }
 
@@ -338,6 +355,37 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             }
         }
 
+        private WorldRotationDirection _localStarRotationDirection =
+            WorldRotationDirection.Prograde;
+
+        public WorldRotationDirection LocalStarRotationDirection
+        {
+            get => _localStarRotationDirection;
+            set
+            {
+                if (SetProperty(ref _localStarRotationDirection, value))
+                {
+                    UpdateCurrentLocalStar();
+                }
+            }
+        }
+
+        private double _localStarRotationRate = 1.0;
+
+        public double LocalStarRotationRate
+        {
+            get => _localStarRotationRate;
+            set
+            {
+                value = double.IsFinite(value) ? Math.Clamp(value, 0.0, 10.0) : 1.0;
+
+                if (SetProperty(ref _localStarRotationRate, value))
+                {
+                    UpdateCurrentLocalStar();
+                }
+            }
+        }
+
         private double _localStarlightIntensity = 0.1;
 
         public double LocalStarlightIntensity
@@ -415,8 +463,11 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
             star.StarColor = StarlightColor;
 
-            star.LightIntensity = Math.Clamp(
-                LocalStarlightIntensity, 0.0, 1.0);
+            star.LightIntensity = Math.Clamp(LocalStarlightIntensity, 0.0, 1.0);
+
+            star.RotationRate = LocalStarRotationRate;
+            star.RotationDirection = LocalStarRotationDirection;
+            star.JetPulseRate = LocalStarJetPulseRate;
         }
 
 
@@ -447,6 +498,24 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         {
             get => _starlightColorBrush;
             private set => SetProperty(ref _starlightColorBrush, value);
+        }
+
+        private double _localStarJetPulseRate = 0.325;
+
+        public double LocalStarJetPulseRate
+        {
+            get => _localStarJetPulseRate;
+            set
+            {
+                value = double.IsFinite(value)
+                    ? Math.Clamp(value, 0.0, 2.0)
+                    : 0.325;
+
+                if (SetProperty(ref _localStarJetPulseRate, value))
+                {
+                    UpdateCurrentLocalStar();
+                }
+            }
         }
 
         #endregion
@@ -704,51 +773,4 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         });
     }
 
-    public sealed class LocalStar
-    {
-        public Point3D Center { get; set; } = new(3, 3, 0);
-
-        public double Radius { get; set; } = 0.15;
-
-        public LocalStarType StarImageType { get; set; } = LocalStarType.Sun;
-
-        // Color of the star's light source.
-        public Color StarColor { get; set; } = Colors.Yellow;
-
-        // Normalized light strength: 0.0 to 1.0.
-        public double LightIntensity { get; set; } = 0.1;
-
-        // Distance at which the point light stops affecting the scene.
-        public double LightRange { get; set; } = 10.0;
-
-        public Transform3D LocationTransform { get; set; } = Transform3D.Identity;
-
-        public Quaternion RotationQuaternion { get; set; } = Quaternion.Identity;
-    }
-
-    public sealed class PlanetaryRing
-    {
-        internal byte[] RingImage = WorldGlobeAssets.ReadBytes("satturnringcolor2");
-        internal double InnerRadius { get; set; } = 1.5;
-        internal double OuterRadius { get; set; } = 2.5;
-        internal System.Drawing.Color RingColor { get; set; } = System.Drawing.Color.White;
-        internal double RingTiltAngle { get; set; }
-        internal double RingBrushOpacity { get; set; } = 100;
-
-    }
-
-    public sealed class Moon
-    {
-        internal SphereVisual3D moonVisual = new();
-        internal string MoonName { get; set; } = string.Empty;
-        internal Point3D MoonCenter { get; set; } = new Point3D(2, 2, 0);
-        internal double MoonRadius { get; set; } = 0.1;
-        internal string MoonTextureName { get; set; } = "Moon";
-        internal string MoonTexturePath { get; set; } = string.Empty;
-        internal Color MoonColor { get; set; } = Colors.White;
-        internal int MoonDistance { get; set; } = 250;
-        internal double MoonOrbitRotation { get; set; }
-        internal double MoonPlaneRotation { get; set; }
-        internal double MoonAxisRotation { get; set; }
-    }
 }

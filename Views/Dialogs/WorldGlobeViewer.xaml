@@ -243,16 +243,14 @@
                         Height="Auto"
                         Margin="0,0,10,0">
 
-                        <CheckBox x:Name="EnableRotationCheckBox"
+                        <CheckBox x:Name="EnableAnimationCheckBox"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
-                            IsChecked="{Binding EnableRotation, Mode=TwoWay}"
-                            Checked="EnableRotation_Checked"
-                            Unchecked="EnableRotation_Unchecked"
+                            IsChecked="{Binding EnableAnimation, Mode=TwoWay}"
                             Style="{StaticResource ToggleSwitchStyle}"
                             shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
-                        <TextBlock Text="Enable Rotation"
+                        <TextBlock Text="Enable Animation"
                             Foreground="#FF45443F"
                             VerticalAlignment="Center"
                             Margin="4,0,10,0"/>

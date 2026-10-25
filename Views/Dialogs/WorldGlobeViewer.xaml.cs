@@ -4,6 +4,7 @@ using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Dialogs;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels;
+using RealmStudioX.WPF.WorldGlobe;
 using SkiaSharp;
 using System.IO;
 using System.Windows;
@@ -22,7 +23,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
     /// <summary>
     /// Interaction logic for WorldGlobeViewer.xaml
     /// </summary>
-    public partial class WorldGlobeViewer :  ModelessDialog
+    public partial class WorldGlobeViewer :  ModelessDialog, IWorldGlobeAnimatedObject
     {
         public override string WindowId { get; } = Guid.NewGuid().ToString();
 
@@ -102,18 +103,15 @@ namespace RealmStudioX.WPF.Views.Dialogs
             Transform = new RotateTransform3D(_cloudSpinRotation)
         };
 
+        private readonly WorldGlobeAnimationController _animationController = new();
+
+        private bool _isRenderingSubscribed;
+
         private GeometryModel3D? _atmosphereModel;
 
         private readonly Model3DGroup _sceneRootModel = new();
 
-        private Model3DGroup? _localStarModelGroup;
-        private Model3DGroup? _localStarPositionGroup;
-
-        private GeometryModel3D? _sunSurfaceModel;
-        private GeometryModel3D? _sunCoronaModel;
-        private PointLight? _sunLight;
-
-        private SolidColorBrush? _sunCoronaBrush;
+        private ILocalStarSceneObject? _localStarSceneObject;
 
         public static readonly Color DefaultSpaceColor = Color.FromRgb(5, 8, 18);
 
@@ -140,6 +138,11 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 WorldGlobeViewerTitleBar.ExitClicked += (s, e) => ExitHandler();
 
                 WorldGlobeViewerMenu.ExitClicked += (s, e) => ExitHandler();
+
+                _animationController.Register(this);
+
+                Loaded += WorldGlobeViewer_Loaded;
+                Unloaded += WorldGlobeViewer_Unloaded;
 
                 ModelViewer.SetBackgroundColor(DefaultSpaceColor);
 
@@ -168,12 +171,129 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
 
                 FrameRateCombo.ItemsSource = SupportedFrameRates;
-
-                if (EnableRotationCheckBox.IsChecked == true)
-                {
-                    StartGlobeRotation();
-                }
             };
+        }
+
+        private void WorldGlobeViewer_Loaded(object sender, RoutedEventArgs e)
+        {
+            SetAnimationEnabled(ViewModel.EnableAnimation);
+        }
+
+        private void WorldGlobeViewer_Unloaded(object sender, RoutedEventArgs e)
+        {
+            StopRendering();
+            _animationController.ResetClock();
+        }
+
+        public void SetAnimationEnabled(bool enabled)
+        {
+            _animationController.IsEnabled = enabled;
+            _animationController.ResetClock();
+
+            if (enabled && IsLoaded)
+            {
+                StartRendering();
+            }
+            else if (!enabled)
+            {
+                StopRendering();
+            }
+        }
+
+        private void StartRendering()
+        {
+            if (_isRenderingSubscribed)
+                return;
+
+            CompositionTarget.Rendering += GlobeRendering;
+            _isRenderingSubscribed = true;
+        }
+
+        private void StopRendering()
+        {
+            if (!_isRenderingSubscribed)
+                return;
+
+            CompositionTarget.Rendering -= GlobeRendering;
+            _isRenderingSubscribed = false;
+        }
+
+        private void GlobeRendering(object? sender, EventArgs e)
+        {
+            if (e is not RenderingEventArgs renderingArgs)
+            {
+                return;
+            }
+
+            _animationController.Advance(renderingArgs.RenderingTime);
+        }
+
+        void IWorldGlobeAnimatedObject.AdvanceAnimation(WorldGlobeAnimationFrame frame)
+        {
+            if (frame.DeltaSeconds <= 0.0)
+                return;
+
+            double direction =
+                ViewModel.RotationDirection == WorldRotationDirection.Prograde
+                    ? 1.0
+                    : -1.0;
+
+            double rotationRate = Math.Clamp(
+                ViewModel.RotationRate,
+                0.1,
+                10.0);
+
+            double degreesPerSecond =
+                360.0 / SecondsPerRevolution * rotationRate;
+
+            _globeSpinAngle +=
+                direction * degreesPerSecond * frame.DeltaSeconds;
+
+            _globeSpinAngle %= 360.0;
+
+            if (_globeSpinAngle < 0.0)
+                _globeSpinAngle += 360.0;
+
+            _globeSpinRotation.Quaternion = new Quaternion(
+                new Vector3D(0, 1, 0),
+                _globeSpinAngle);
+
+            // Animate the cloud layer independently of the globe surface.
+            if (_cloudSpinRotation is not null && ViewModel.EnableClouds)
+            {
+                double cloudRotationRate = Math.Clamp(
+                    ViewModel.CloudRotationRate,
+                    0.1,
+                    10.0);
+
+                double cloudDegreesPerSecond =
+                    360.0 / SecondsPerRevolution * cloudRotationRate;
+
+                _cloudSpinAngle +=
+                    direction * cloudDegreesPerSecond * frame.DeltaSeconds;
+
+                _cloudSpinAngle %= 360.0;
+
+                if (_cloudSpinAngle < 0.0)
+                    _cloudSpinAngle += 360.0;
+
+                _cloudSpinRotation.Quaternion = new Quaternion(
+                    new Vector3D(0, 1, 0),
+                    _cloudSpinAngle);
+            }
+        }
+
+        void IWorldGlobeAnimatedObject.ResetAnimation()
+        {
+            _globeSpinAngle = 0.0;
+            _globeSpinRotation.Quaternion = Quaternion.Identity;
+
+            _cloudSpinAngle = 0.0;
+
+            if (_cloudSpinRotation is not null)
+            {
+                _cloudSpinRotation.Quaternion = Quaternion.Identity;
+            }
         }
 
         private void ShowHideAnimationTimeline(object sender, RoutedEventArgs e)
@@ -270,16 +390,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
         private void ModelViewer_LostMouseCapture(object sender, MouseEventArgs e)
         {
             _isRotatingGlobe = false;
-        }
-
-        private void EnableRotation_Checked(object sender, RoutedEventArgs e)
-        {
-            StartGlobeRotation();
-        }
-
-        private void EnableRotation_Unchecked(object sender, RoutedEventArgs e)
-        {
-            StopGlobeRotation();
         }
 
         public void CreateGlobe()
@@ -500,85 +610,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
         private double _globeSpinAngle;
         private TimeSpan? _lastRenderingTime;
 
-        private void StartGlobeRotation()
-        {
-            if (GlobeBody is null || _isGlobeRotationAnimating)
-            {
-                return;
-            }
-
-            _lastRenderingTime = null;
-            CompositionTarget.Rendering += GlobeRendering;
-            _isGlobeRotationAnimating = true;
-        }
-
-        private void StopGlobeRotation()
-        {
-            if (!_isGlobeRotationAnimating)
-                return;
-
-            CompositionTarget.Rendering -= GlobeRendering;
-
-            _lastRenderingTime = null;
-            _isGlobeRotationAnimating = false;
-        }
-
-        private void GlobeRendering(object? sender, EventArgs e)
-        {
-            if (e is not RenderingEventArgs renderingArgs)
-                return;
-
-            TimeSpan currentTime = renderingArgs.RenderingTime;
-
-            if (_lastRenderingTime is null)
-            {
-                _lastRenderingTime = currentTime;
-                return;
-            }
-
-            double elapsedSeconds =
-                (currentTime - _lastRenderingTime.Value).TotalSeconds;
-
-            _lastRenderingTime = currentTime;
-
-            if (elapsedSeconds <= 0)
-            {
-                return;
-            }
-
-            // Avoid a large jump if rendering was temporarily interrupted.
-            elapsedSeconds = Math.Min(elapsedSeconds, 0.1);
-
-            double direction = ViewModel.RotationDirection == WorldRotationDirection.Prograde ? 1.0 : -1.0;
-
-            double rotationRate = Math.Clamp(ViewModel.RotationRate, 0.1f, 10.0f);
-
-            double degreesPerSecond = (360.0 / SecondsPerRevolution) * rotationRate;
-
-            _globeSpinAngle += direction * degreesPerSecond * elapsedSeconds;
-
-            // Keep the angle bounded during extended sessions.
-            _globeSpinAngle %= 360.0;
-
-            _globeSpinRotation.Quaternion = new Quaternion(new Vector3D(0, 1, 0), _globeSpinAngle);
-
-            double cloudRate = Math.Clamp(ViewModel.CloudRotationRate, 0.0, 10.0);
-
-            if (ViewModel.EnableClouds && cloudRate > 0.0)
-            {
-                double cloudDegreesPerSecond =
-                    degreesPerSecond * cloudRate;
-
-                _cloudSpinAngle +=
-                    direction * cloudDegreesPerSecond * elapsedSeconds;
-
-                _cloudSpinAngle %= 360.0;
-
-                _cloudSpinRotation.Quaternion = new Quaternion(
-                    new Vector3D(0, 1, 0),
-                    _cloudSpinAngle);
-            }
-        }
 
         public void UpdateGlobeTilt(double tiltAngle)
         {
@@ -869,8 +900,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         #region Local Star Methods
 
-        private static readonly Lazy<BitmapSource> SunTexture = new(() => WorldGlobeAssets.LoadBitmap("sol-texture.jpg"));
-
         private static readonly MeshGeometry3D UnitSphereMesh = CreateSphereMesh(1.0, 90, 45);
 
         public void ShowLocalStar(LocalStar star)
@@ -880,201 +909,60 @@ namespace RealmStudioX.WPF.Views.Dialogs
             switch (star.StarImageType)
             {
                 case LocalStarType.Sun:
-                    _localStarModelGroup = CreateSunLocalStar(star);
+                    _localStarSceneObject = new SunLocalStarSceneObject(star, UnitSphereMesh);
                     break;
 
+                case LocalStarType.BlackHole:
+                    _localStarSceneObject = new BlackHoleLocalStarSceneObject(star, UnitSphereMesh);
+                    break;
+
+                // Add the other scene-object implementations here
+                // as they are migrated.
                 default:
-                    // Implement the remaining local-star types separately.
                     return;
             }
 
-            _sceneRootModel.Children.Add(_localStarModelGroup);
-
-            // Refresh the generic viewer's model bounds without refitting
-            // the camera. Do this when adding/removing a scene object,
-            // not on every slider change.
-            ModelViewer.SetModel(_sceneRootModel, fitCamera: false);
-        }
-
-        public void RemoveLocalStar()
-        {
-            // Remove the previously displayed local star.
-            if (_localStarModelGroup is not null)
+            if (_localStarSceneObject is IWorldGlobeAnimatedObject animatedObject)
             {
-                _sceneRootModel.Children.Remove(_localStarModelGroup);
-                _localStarModelGroup = null;
-                _localStarPositionGroup = null;
-                _sunSurfaceModel = null;
-                _sunCoronaModel = null;
-                _sunCoronaBrush = null;
-                _sunLight = null;
+                _animationController.Register(animatedObject);
             }
-        }
 
-        private Model3DGroup CreateSunLocalStar(LocalStar star)
-        {
-            // The outer group applies any existing location transform.
-            _localStarModelGroup = new Model3DGroup
-            {
-                Transform = star.LocationTransform
-            };
+            _sceneRootModel.Children.Add(_localStarSceneObject.Root);
 
-            // This group positions the star and its light in world space.
-            _localStarPositionGroup = new Model3DGroup
-            {
-                Transform = new TranslateTransform3D(
-                    star.Center.X,
-                    star.Center.Y,
-                    star.Center.Z)
-            };
-
-            _localStarModelGroup.Children.Add(_localStarPositionGroup);
-
-            // The textured, self-illuminated sun.
-            ImageBrush sunBrush = new(SunTexture.Value)
-            {
-                Stretch = Stretch.Fill,
-                Opacity = 1.0
-            };
-
-            sunBrush.Freeze();
-
-            EmissiveMaterial sunMaterial = new(sunBrush)
-            {
-                Color = star.StarColor
-            };
-
-            sunMaterial.Freeze();
-
-            _sunSurfaceModel = new GeometryModel3D
-            {
-                Geometry = UnitSphereMesh,
-                Material = sunMaterial,
-                Transform = CreateStarSurfaceTransform(
-                    star.Radius,
-                    star.RotationQuaternion)
-            };
-            
-            // A subtle colored shell around the sun.
-            // This is a simple visual corona, not a physically accurate glow.
-            _sunCoronaBrush = new SolidColorBrush(star.StarColor)
-            {
-                Opacity = 0.12
-            };
-
-            EmissiveMaterial coronaMaterial = new(_sunCoronaBrush);
-
-            _sunCoronaModel = new GeometryModel3D
-            {
-                Geometry = UnitSphereMesh,
-                Material = coronaMaterial,
-                Transform = CreateStarSurfaceTransform(
-                    star.Radius * 1.12,
-                    star.RotationQuaternion)
-            };
-
-            // The point light is independent of the sun's visible material.
-            _sunLight = new PointLight
-            {
-                Position = new Point3D(0, 0, 0),
-                Color = ScaleLightColor(
-                    star.StarColor,
-                    star.LightIntensity),
-                Range = Math.Max(
-                    star.LightRange,
-                    (star.Center - new Point3D(0, 0, 0)).Length + 2.0),
-                ConstantAttenuation = 1.0,
-                LinearAttenuation = 0.0,
-                QuadraticAttenuation = 0.02
-            };
-
-            // Add the corona first, followed by the sun and its light.
-            _localStarPositionGroup.Children.Add(_sunCoronaModel);
-            _localStarPositionGroup.Children.Add(_sunSurfaceModel);
-            _localStarPositionGroup.Children.Add(_sunLight);
-
-            return _localStarModelGroup;
+            ModelViewer.SetModel(_sceneRootModel, fitCamera: false);
         }
 
         public void UpdateLocalStar(LocalStar star)
         {
-            switch (star.StarImageType)
+            if (_localStarSceneObject is null)
             {
-                case LocalStarType.Sun:
-                    UpdateSunLocalStar(star);
-                    break;
-
-                default:
-                    // Implement the remaining local-star types separately.
-                    return;
+                ShowLocalStar(star);
+                return;
             }
+
+            // Rebuild when the selected type changes.
+            // The interface can expose Type if you want to detect this
+            // explicitly rather than rebuilding for every type change.
+            _localStarSceneObject.Update(star);
         }
 
-        public void UpdateSunLocalStar(LocalStar star)
+        public void RemoveLocalStar()
         {
-            if (_localStarModelGroup is null ||
-                _localStarPositionGroup is null ||
-                _sunSurfaceModel is null ||
-                _sunCoronaModel is null ||
-                _sunCoronaBrush is null ||
-                _sunLight is null)
+            if (_localStarSceneObject is null)
             {
                 return;
             }
 
-            _localStarModelGroup.Transform = star.LocationTransform;
+            if (_localStarSceneObject is IWorldGlobeAnimatedObject animatedObject)
+            {
+                _animationController.Unregister(animatedObject);
+            }
 
-            _localStarPositionGroup.Transform =
-                new TranslateTransform3D(
-                    star.Center.X,
-                    star.Center.Y,
-                    star.Center.Z);
+            _sceneRootModel.Children.Remove(_localStarSceneObject.Root);
+            _localStarSceneObject = null;
 
-            _sunSurfaceModel.Transform =
-                CreateStarSurfaceTransform(
-                    star.Radius,
-                    star.RotationQuaternion);
-
-            _sunCoronaModel.Transform =
-                CreateStarSurfaceTransform(
-                    star.Radius * 1.12,
-                    star.RotationQuaternion);
-
-            _sunCoronaBrush.Color = star.StarColor;
-
-            _sunLight.Color = ScaleLightColor(
-                star.StarColor,
-                star.LightIntensity);
-
-            _sunLight.Range = Math.Max(
-                star.LightRange,
-                (star.Center - new Point3D(0, 0, 0)).Length + 2.0);
+            ModelViewer.SetModel(_sceneRootModel, fitCamera: false);
         }
-
-        private static Transform3D CreateStarSurfaceTransform(double radius, Quaternion rotation)
-        {
-            Transform3DGroup transform = new();
-
-            transform.Children.Add(
-                new ScaleTransform3D(radius, radius, radius));
-
-            transform.Children.Add(
-                new RotateTransform3D(
-                    new QuaternionRotation3D(rotation)));
-
-            return transform;
-        }
-
-        private static Color ScaleLightColor(Color color, double intensity)
-        {
-            intensity = Math.Clamp(intensity, 0.0, 1.0);
-
-            return Color.FromRgb(
-                (byte)Math.Round(color.R * intensity),
-                (byte)Math.Round(color.G * intensity),
-                (byte)Math.Round(color.B * intensity));
-        }
-
 
         #endregion
 

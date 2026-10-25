@@ -25,7 +25,7 @@
             FontWeight="SemiBold"
             Margin="10,4,0,8" />
 
-        <TabControl x:Name="PropertiesTabs" Grid.Row="1"  ItemContainerStyle="{StaticResource RoundedTabItemStyle}"   Background="#FFDFDBD2">
+        <TabControl x:Name="PropertiesTabs" Grid.Row="1"  ItemContainerStyle="{StaticResource RoundedTabItemStyle}" Background="#FFDFDBD2">
 
             <TabItem Header="Atmosphere">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -53,7 +53,7 @@
                                 Margin="4,0,10,0"/>
                         </StackPanel>
 
-                        <GroupBox Header="Atmosphere" Height="Auto"  HorizontalAlignment="Stretch" Margin="0,10,0,0">
+                        <GroupBox Header="Atmosphere" Height="Auto"  HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,10,0,10">
                             <Grid>
                                 
                                 <Grid.ColumnDefinitions>
@@ -178,7 +178,6 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 <TextBlock
                                         Grid.Row="0"
@@ -276,21 +275,6 @@
 
                                 </StackPanel>
 
-                                <TextBlock Grid.Row="3" Grid.Column="0"
-                                           Text="Rotation Rate"
-                                           VerticalAlignment="Center"
-                                           Margin="10,0,8,6"/>
-
-                                <controls:NumericUpDown x:Name="CloudRotationRateBox"
-                                             Grid.Row="3" Grid.Column="1"
-                                             HorizontalAlignment="Left"
-                                             Value="{Binding CloudRotationRate}"
-                                             Minimum="0.1"
-                                             Maximum="10.0"
-                                             Increment="0.1"
-                                             DecimalPlaces="2"
-                                             Margin="0,0,0,0"
-                                             Width="100" />
                             </Grid>
                         </GroupBox>
                     </StackPanel>
@@ -304,15 +288,35 @@
 
                     <StackPanel Margin="10">
 
-                        <TextBlock
-                            Text="Animation Settings"
-                            FontWeight="SemiBold"
-                            Margin="0,0,0,6" />
+                        <GroupBox Header="Clouds" Height="Auto"  HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,10,0,10">
+                            <Grid>
 
-                        <TextBlock
-                            Text="Rotation, orbit, timing, and keyframe settings will appear here."
-                            TextWrapping="Wrap"
-                            Foreground="#FF77736D" />
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="90"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                           Text="Rotation Rate"
+                                           VerticalAlignment="Center"
+                                           Margin="10,0,8,6"/>
+
+                                <controls:NumericUpDown x:Name="CloudRotationRateBox"
+                                             Grid.Row="0" Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CloudRotationRate}"
+                                             Minimum="0.1"
+                                             Maximum="10.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="2"
+                                             Margin="0,0,0,0"
+                                             Width="100" />
+                            </Grid>
+                        </GroupBox>
 
                     </StackPanel>
 
