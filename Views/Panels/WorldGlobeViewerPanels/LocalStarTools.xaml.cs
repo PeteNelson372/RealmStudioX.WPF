@@ -20,16 +20,16 @@ namespace RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels
 
         private void StarlightColor_LeftClick(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (DataContext is not WorldGlobeViewModel vm)
+            if (DataContext is not WorldGlobeSceneViewModel vm)
                 return;
 
-            ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.StarlightColor, Window.GetWindow(this));
+            ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.StarViewModel.StarlightColor, Window.GetWindow(this));
 
             WindowManager wm = ((App)Application.Current).WindowManager;
 
             dialog.ColorSelected += color =>
             {
-                vm.StarlightColor = color;
+                vm.StarViewModel.StarlightColor = color;
             };
 
             dialog.ShowDialog();
@@ -37,10 +37,10 @@ namespace RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels
 
         private void StarlightColor_RightClick(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (DataContext is not WorldGlobeViewModel vm)
+            if (DataContext is not WorldGlobeSceneViewModel vm)
                 return;
 
-            ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.StarlightColor, Window.GetWindow(this), (Button)sender);
+            ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.StarViewModel.StarlightColor, Window.GetWindow(this), (Button)sender);
 
             WindowManager wm = ((App)Application.Current).WindowManager;
 
@@ -49,7 +49,7 @@ namespace RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels
             {
                 if (dialog.ColorWasSelected)
                 {
-                    vm.StarlightColor = dialog.SelectedColor;
+                    vm.StarViewModel.StarlightColor = dialog.SelectedColor;
                 }
             };
 

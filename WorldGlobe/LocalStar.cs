@@ -25,14 +25,13 @@ namespace RealmStudioX.WPF.WorldGlobe
         // rotation rate
         public double RotationRate = 0.0;
 
-        // black hole jet pulse rate
-        public double JetPulseRate = 0.325;
-
         // rotation direction
         public WorldRotationDirection RotationDirection = WorldRotationDirection.Prograde;
 
         public Transform3D LocationTransform { get; set; } = Transform3D.Identity;
 
         public Quaternion RotationQuaternion { get; set; } = Quaternion.Identity;
+
+        public ILocalStarDetailSettings? LocalStarDetailSettings { get; set; }
     }
 }

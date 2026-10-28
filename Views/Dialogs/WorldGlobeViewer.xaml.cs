@@ -27,7 +27,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
     {
         public override string WindowId { get; } = Guid.NewGuid().ToString();
 
-        public WorldGlobeViewModel ViewModel { get; private set; }
+        public WorldGlobeSceneViewModel ViewModel { get; private set; }
 
         private readonly Dictionary<string, UserControl> _toolPanels = new()
         {
@@ -123,7 +123,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             _mainViewModel = mainViewModel;
 
-            ViewModel = new WorldGlobeViewModel(mainViewModel, this);
+            ViewModel = new WorldGlobeSceneViewModel(mainViewModel, this);
 
             DataContext = ViewModel;
 
@@ -163,9 +163,9 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
                 CreateGlobe();
 
-                if (ViewModel.EnableClouds)
+                if (ViewModel.AtmosphereModel.EnableClouds)
                 {
-                    ViewModel.UseDefaultCloudTexture = true;
+                    ViewModel.AtmosphereModel.UseDefaultCloudTexture = true;
                     RefreshCloudLayer();
                 }
 
@@ -234,12 +234,12 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 return;
 
             double direction =
-                ViewModel.RotationDirection == WorldRotationDirection.Prograde
+                ViewModel.WorldGlobeModel.RotationDirection == WorldRotationDirection.Prograde
                     ? 1.0
                     : -1.0;
 
             double rotationRate = Math.Clamp(
-                ViewModel.RotationRate,
+                ViewModel.WorldGlobeModel.RotationRate,
                 0.1,
                 10.0);
 
@@ -259,10 +259,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 _globeSpinAngle);
 
             // Animate the cloud layer independently of the globe surface.
-            if (_cloudSpinRotation is not null && ViewModel.EnableClouds)
+            if (_cloudSpinRotation is not null && ViewModel.AtmosphereModel.EnableClouds)
             {
                 double cloudRotationRate = Math.Clamp(
-                    ViewModel.CloudRotationRate,
+                    ViewModel.AtmosphereModel.CloudRotationRate,
                     0.1,
                     10.0);
 
@@ -366,7 +366,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             double actualTilt = GetCurrentAxialTilt();
 
-            ViewModel.UpdateCurrentTiltAngle(actualTilt);
+            ViewModel.WorldGlobeModel.UpdateCurrentTiltAngle(actualTilt);
 
             _lastGlobeDragPoint = currentPosition;
 
@@ -652,7 +652,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             _globePitch.Angle = 0;
 
             // Reset the configured axial tilt.
-            ViewModel.WorldTiltAngle = 0;
+            ViewModel.WorldGlobeModel.WorldTiltAngle = 0;
             _globeTiltRotation.Angle = 0;
 
             // Reset the automatic spin.
@@ -664,7 +664,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             _lastRenderingTime = null;
 
             // Update the displayed tilt readout.
-            ViewModel.UpdateCurrentTiltAngle(0);
+            ViewModel.WorldGlobeModel.UpdateCurrentTiltAngle(0);
 
             // Reset camera position and orientation.
             ModelViewer.ResetCamera();
@@ -728,10 +728,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
         public void RefreshAtmosphere()
         {
             UpdateAtmosphere(
-                ViewModel.EnableAtmosphere,
-                ViewModel.AtmosphereAltitude / 1000.0,
-                ViewModel.AtmosphereDensity / 100.0,
-                ViewModel.AtmosphereColor);
+                ViewModel.AtmosphereModel.EnableAtmosphere,
+                ViewModel.AtmosphereModel.AtmosphereAltitude / 1000.0,
+                ViewModel.AtmosphereModel.AtmosphereDensity / 100.0,
+                ViewModel.AtmosphereModel.AtmosphereColor);
         }
 
         public void LoadCloudTexture(string filePath)
@@ -775,7 +775,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             if (_cloudSourceTexture is null)
                 return;
 
-            Color cloudColor = ViewModel.CloudColor;
+            Color cloudColor = ViewModel.AtmosphereModel.CloudColor;
 
             if (_tintedCloudTexture is null ||
                 _tintedCloudColor != cloudColor)
@@ -789,9 +789,9 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             _cloudTextureBrush!.ImageSource = _tintedCloudTexture;
 
-            _cloudTextureBrush.Opacity = Math.Clamp(ViewModel.CloudOpacity, 0.0, 1.0);
+            _cloudTextureBrush.Opacity = Math.Clamp(ViewModel.AtmosphereModel.CloudOpacity, 0.0, 1.0);
 
-            bool enabled = ViewModel.EnableClouds;
+            bool enabled = ViewModel.AtmosphereModel.EnableClouds;
             bool inScene = _globeTiltGroup.Children.Contains(_cloudSpinGroup);
 
             if (enabled && !inScene)

@@ -20,16 +20,16 @@ namespace RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels
 
         private void AtmosphereColor_LeftClick(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (DataContext is not WorldGlobeViewModel vm)
+            if (DataContext is not WorldGlobeSceneViewModel vm)
                 return;
 
-            ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.AtmosphereColor, Window.GetWindow(this));
+            ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.AtmosphereModel.AtmosphereColor, Window.GetWindow(this));
 
             WindowManager wm = ((App)Application.Current).WindowManager;
 
             dialog.ColorSelected += color =>
             {
-                vm.AtmosphereColor = color;
+                vm.AtmosphereModel.AtmosphereColor = color;
             };
 
             dialog.ShowDialog();
@@ -37,10 +37,10 @@ namespace RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels
 
         private void AtmosphereColor_RightClick(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (DataContext is not WorldGlobeViewModel vm)
+            if (DataContext is not WorldGlobeSceneViewModel vm)
                 return;
 
-            ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.AtmosphereColor, Window.GetWindow(this), (Button)sender);
+            ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.AtmosphereModel.AtmosphereColor, Window.GetWindow(this), (Button)sender);
 
             WindowManager wm = ((App)Application.Current).WindowManager;
 
@@ -49,7 +49,7 @@ namespace RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels
             {
                 if (dialog.ColorWasSelected)
                 {
-                    vm.AtmosphereColor = dialog.SelectedColor;
+                    vm.AtmosphereModel.AtmosphereColor = dialog.SelectedColor;
                 }
             };
 
@@ -59,16 +59,16 @@ namespace RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels
 
         private void CloudColor_LeftClick(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (DataContext is not WorldGlobeViewModel vm)
+            if (DataContext is not WorldGlobeSceneViewModel vm)
                 return;
 
-            ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.CloudColor, Window.GetWindow(this));
+            ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.AtmosphereModel.CloudColor, Window.GetWindow(this));
 
             WindowManager wm = ((App)Application.Current).WindowManager;
 
             dialog.ColorSelected += color =>
             {
-                vm.CloudColor = color;
+                vm.AtmosphereModel.CloudColor = color;
             };
 
             dialog.ShowDialog();
@@ -76,10 +76,10 @@ namespace RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels
 
         private void CloudColor_RightClick(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (DataContext is not WorldGlobeViewModel vm)
+            if (DataContext is not WorldGlobeSceneViewModel vm)
                 return;
 
-            ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.CloudColor, Window.GetWindow(this), (Button)sender);
+            ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.AtmosphereModel.CloudColor, Window.GetWindow(this), (Button)sender);
 
             WindowManager wm = ((App)Application.Current).WindowManager;
 
@@ -88,7 +88,7 @@ namespace RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels
             {
                 if (dialog.ColorWasSelected)
                 {
-                    vm.CloudColor = dialog.SelectedColor;
+                    vm.AtmosphereModel.CloudColor = dialog.SelectedColor;
                 }
             };
 

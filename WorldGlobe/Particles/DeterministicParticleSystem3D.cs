@@ -1,15 +1,14 @@
-﻿using System.Windows.Media;
+﻿using System;
+using System.Windows.Media;
 using System.Windows.Media.Media3D;
-using Color = System.Windows.Media.Color;
 
 namespace RealmStudioX.WPF.WorldGlobe.Particles;
 
 internal sealed class DeterministicParticleSystem3D
 {
-    private static readonly MeshGeometry3D ParticleMesh =
-        CreateParticleMesh();
+    private static readonly MeshGeometry3D ParticleMesh = CreateParticleMesh();
 
-    private readonly ParticleEmitterSettings _settings;
+    private ParticleEmitterSettings _settings;
     private readonly IDeterministicParticleBehavior _behavior;
     private readonly ParticleVisual[] _visuals;
 
@@ -24,7 +23,6 @@ internal sealed class DeterministicParticleSystem3D
 
         _settings = settings;
         _behavior = behavior;
-
         _visuals = new ParticleVisual[settings.MaxParticles];
 
         for (int i = 0; i < _visuals.Length; i++)
@@ -34,16 +32,42 @@ internal sealed class DeterministicParticleSystem3D
         }
     }
 
+    /// <summary>Updates emission parameters without rebuilding the visual pool.</summary>
+    public void UpdateSettings(ParticleEmitterSettings settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+
+        if (settings.MaxParticles != _visuals.Length)
+        {
+            throw new ArgumentException(
+                "MaxParticles cannot change after the particle system has been created.",
+                nameof(settings));
+        }
+
+        // Avoid replacing equivalent settings on every common-property update.
+        if (_settings.EmissionRate == settings.EmissionRate &&
+            _settings.LifetimeSeconds == settings.LifetimeSeconds &&
+            _settings.Seed == settings.Seed &&
+            _settings.EmissionJitterFraction == settings.EmissionJitterFraction &&
+            _settings.LifetimeVariation == settings.LifetimeVariation)
+        {
+            return;
+        }
+
+        _settings = settings;
+    }
+
     /// <summary>
-    /// Evaluates the complete particle system at an absolute animation
-    /// time. The result does not depend on the order of previous calls.
+    /// Evaluates particles at an absolute animation timestamp. The result is
+    /// independent of the order of prior calls to AdvanceTo.
     /// </summary>
     public void AdvanceTo(double timeSeconds)
     {
         if (!double.IsFinite(timeSeconds) || timeSeconds < 0.0)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(timeSeconds));
+                nameof(timeSeconds),
+                "Particle time must be finite and non-negative.");
         }
 
         if (_settings.EmissionRate <= 0.0)
@@ -53,25 +77,20 @@ internal sealed class DeterministicParticleSystem3D
         }
 
         double interval = 1.0 / _settings.EmissionRate;
-        double latestIndexValue =
-            Math.Floor(timeSeconds * _settings.EmissionRate);
+        double latestIndexValue = Math.Floor(timeSeconds * _settings.EmissionRate);
 
         if (latestIndexValue > long.MaxValue)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(timeSeconds),
-                "The particle emission index is too large.");
+                nameof(timeSeconds), "The particle emission index is too large.");
         }
 
         long latestIndex = (long)latestIndexValue;
-
-        double maximumLifetime =
-            _settings.LifetimeSeconds *
+        double maximumLifetime = _settings.LifetimeSeconds *
             (1.0 + _settings.LifetimeVariation);
 
         double earliestIndexValue =
-            Math.Floor(
-                (timeSeconds - maximumLifetime) / interval) - 1.0;
+            Math.Floor((timeSeconds - maximumLifetime) / interval) - 1.0;
 
         long earliestIndex = earliestIndexValue <= 0.0
             ? 0
@@ -79,42 +98,29 @@ internal sealed class DeterministicParticleSystem3D
 
         int visualIndex = 0;
 
-        // Search newest particles first. If the configured pool is
-        // exhausted, the most recently emitted living particles win.
+        // Prefer the most recently emitted particles when the fixed pool is full.
         for (long index = latestIndex;
              index >= earliestIndex && visualIndex < _visuals.Length;
              index--)
         {
-            double emissionTime =
-                index * interval
+            double emissionTime = index * interval
                 + ParticleRandom.Sample(_settings.Seed, index, 0)
-                * _settings.EmissionJitterFraction
-                * interval;
+                * _settings.EmissionJitterFraction * interval;
 
-            // Positive emission jitter can put this emission in
-            // the future even though its nominal interval has begun.
             if (emissionTime > timeSeconds)
                 continue;
 
-            double lifetimeRandom = ParticleRandom.Sample(
-                _settings.Seed, index, 1);
-
+            double lifetimeRandom = ParticleRandom.Sample(_settings.Seed, index, 1);
             double lifetime = _settings.LifetimeSeconds *
-                (1.0 + (2.0 * lifetimeRandom - 1.0)
-                    * _settings.LifetimeVariation);
+                (1.0 + (2.0 * lifetimeRandom - 1.0) * _settings.LifetimeVariation);
 
             double age = timeSeconds - emissionTime;
-
             if (age < 0.0 || age >= lifetime)
                 continue;
 
             if (!_behavior.TryEvaluate(
-                    index,
-                    emissionTime,
-                    age,
-                    lifetime,
-                    _settings.Seed,
-                    out ParticleState state))
+                index, emissionTime, age, lifetime, _settings.Seed,
+                out ParticleState state))
             {
                 continue;
             }
@@ -125,15 +131,11 @@ internal sealed class DeterministicParticleSystem3D
             visualIndex++;
         }
 
-        // Return the remaining slots to the invisible pool.
         for (int i = visualIndex; i < _visuals.Length; i++)
             _visuals[i].Hide();
     }
 
-    public void Reset()
-    {
-        HideAll();
-    }
+    public void Reset() => HideAll();
 
     private void HideAll()
     {
@@ -150,17 +152,13 @@ internal sealed class DeterministicParticleSystem3D
 
         public ParticleVisual(MeshGeometry3D geometry)
         {
-            _brush = new SolidColorBrush(Colors.White)
-            {
-                Opacity = 0.0
-            };
+            _brush = new SolidColorBrush(Colors.White) { Opacity = 0.0 };
 
             var material = new MaterialGroup();
             material.Children.Add(new DiffuseMaterial(_brush));
             material.Children.Add(new EmissiveMaterial(_brush));
 
             _transform = new MatrixTransform3D();
-
             Model = new GeometryModel3D
             {
                 Geometry = geometry,
@@ -172,11 +170,10 @@ internal sealed class DeterministicParticleSystem3D
 
         public bool SetState(ParticleState state)
         {
-            if (!IsFinite(state.Position.X) ||
-                !IsFinite(state.Position.Y) ||
-                !IsFinite(state.Position.Z) ||
-                !double.IsFinite(state.Size) ||
-                state.Size <= 0.0 ||
+            if (!double.IsFinite(state.Position.X) ||
+                !double.IsFinite(state.Position.Y) ||
+                !double.IsFinite(state.Position.Z) ||
+                !double.IsFinite(state.Size) || state.Size <= 0.0 ||
                 !double.IsFinite(state.Opacity))
             {
                 Hide();
@@ -184,44 +181,28 @@ internal sealed class DeterministicParticleSystem3D
             }
 
             double opacity = Math.Clamp(state.Opacity, 0.0, 1.0);
-
             if (opacity <= 0.001)
             {
                 Hide();
                 return false;
             }
 
-            _brush.Color = Color.FromRgb(
-                state.Color.R,
-                state.Color.G,
-                state.Color.B);
-
+            _brush.Color = state.Color;
             _brush.Opacity = opacity;
 
-            double size = state.Size;
-
             Matrix3D matrix = Matrix3D.Identity;
-
-            matrix.M11 = size;
-            matrix.M22 = size;
-            matrix.M33 = size;
-
+            matrix.M11 = state.Size;
+            matrix.M22 = state.Size;
+            matrix.M33 = state.Size;
             matrix.OffsetX = state.Position.X;
             matrix.OffsetY = state.Position.Y;
             matrix.OffsetZ = state.Position.Z;
 
             _transform.Matrix = matrix;
-
             return true;
         }
 
-        public void Hide()
-        {
-            _brush.Opacity = 0.0;
-        }
-
-        private static bool IsFinite(double value) =>
-            double.IsFinite(value);
+        public void Hide() => _brush.Opacity = 0.0;
     }
 
     private static MeshGeometry3D CreateParticleMesh()
@@ -230,43 +211,32 @@ internal sealed class DeterministicParticleSystem3D
         const int latitudeSegments = 6;
 
         var mesh = new MeshGeometry3D();
-
         int stride = longitudeSegments + 1;
 
-        for (int latitude = 0;
-             latitude <= latitudeSegments;
-             latitude++)
+        for (int latitude = 0; latitude <= latitudeSegments; latitude++)
         {
             double phi = Math.PI * latitude / latitudeSegments;
-
             double sinPhi = Math.Sin(phi);
             double cosPhi = Math.Cos(phi);
 
-            for (int longitude = 0;
-                 longitude <= longitudeSegments;
-                 longitude++)
+            for (int longitude = 0; longitude <= longitudeSegments; longitude++)
             {
-                double theta =
-                    2.0 * Math.PI * longitude / longitudeSegments;
-
+                double theta = 2.0 * Math.PI * longitude / longitudeSegments;
                 double x = sinPhi * Math.Cos(theta);
                 double y = cosPhi;
                 double z = sinPhi * Math.Sin(theta);
 
                 mesh.Positions.Add(new Point3D(x, y, z));
                 mesh.Normals.Add(new Vector3D(x, y, z));
-
-                mesh.TextureCoordinates.Add(new System.Windows.Point(longitude / (double)longitudeSegments, latitude / (double)latitudeSegments));
+                mesh.TextureCoordinates.Add(new System.Windows.Point(
+                    longitude / (double)longitudeSegments,
+                    latitude / (double)latitudeSegments));
             }
         }
 
-        for (int latitude = 0;
-             latitude < latitudeSegments;
-             latitude++)
+        for (int latitude = 0; latitude < latitudeSegments; latitude++)
         {
-            for (int longitude = 0;
-                 longitude < longitudeSegments;
-                 longitude++)
+            for (int longitude = 0; longitude < longitudeSegments; longitude++)
             {
                 int a = latitude * stride + longitude;
                 int b = a + stride;
@@ -276,7 +246,6 @@ internal sealed class DeterministicParticleSystem3D
                 mesh.TriangleIndices.Add(a);
                 mesh.TriangleIndices.Add(b);
                 mesh.TriangleIndices.Add(c);
-
                 mesh.TriangleIndices.Add(c);
                 mesh.TriangleIndices.Add(b);
                 mesh.TriangleIndices.Add(d);

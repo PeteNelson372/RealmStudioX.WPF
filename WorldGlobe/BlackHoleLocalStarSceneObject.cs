@@ -1,7 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.WPF.WorldGlobe.Particles;
-using System;
-using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
@@ -11,9 +9,7 @@ using Point = System.Windows.Point;
 
 namespace RealmStudioX.WPF.WorldGlobe;
 
-internal sealed class BlackHoleLocalStarSceneObject :
-    ILocalStarSceneObject,
-    IWorldGlobeAnimatedObject
+internal sealed class BlackHoleLocalStarSceneObject : ILocalStarSceneObject, IWorldGlobeAnimatedObject
 {
     private const int DiskAngularSegments = 384;
     private const int DiskRadialSegments = 64;
@@ -30,6 +26,12 @@ internal sealed class BlackHoleLocalStarSceneObject :
     private readonly Model3DGroup _diskSpinGroup;
     private readonly Model3DGroup _diskGroup;
     private readonly Model3DGroup _jetGroup;
+    private readonly Model3DGroup _jetSurfaceGroup;
+
+    private GeometryModel3D? _northOuterJetModel;
+    private GeometryModel3D? _northCoreJetModel;
+    private GeometryModel3D? _southOuterJetModel;
+    private GeometryModel3D? _southCoreJetModel;
 
     private readonly TranslateTransform3D _translation;
     private readonly QuaternionRotation3D _orientationRotation;
@@ -56,8 +58,15 @@ internal sealed class BlackHoleLocalStarSceneObject :
     private double _diskSpinAngle;
     private double _rotationRate;
     private double _jetPulseRateHz = DefaultJetPulseRate;
-
     private WorldRotationDirection _rotationDirection = WorldRotationDirection.Prograde;
+
+    private double _configuredJetLength = 8.4;
+    private bool _enableJets = true;
+    private bool _enableJetParticles = true;
+    private bool _enableDiskParticles = true;
+
+    private const int JetParticlePoolSize = 110;
+    private const int DiskParticlePoolSize = 30;
 
     private readonly JetParticleBehavior _northJetBehavior;
     private readonly JetParticleBehavior _southJetBehavior;
@@ -80,17 +89,18 @@ internal sealed class BlackHoleLocalStarSceneObject :
         ArgumentNullException.ThrowIfNull(star);
         ArgumentNullException.ThrowIfNull(unitSphereMesh);
 
+        BlackHoleSettings settings = GetSettings(star);
+        _configuredJetLength = ClampSetting(settings.JetLength, 8.4, 0.1, 30.0);
+
         // -------------------------------------------------------------
         // Scene transforms
         // -------------------------------------------------------------
 
         _translation = new TranslateTransform3D();
 
-        _orientationRotation = new QuaternionRotation3D(
-            Quaternion.Identity);
+        _orientationRotation = new QuaternionRotation3D(Quaternion.Identity);
 
-        _diskSpinRotation = new QuaternionRotation3D(
-            Quaternion.Identity);
+        _diskSpinRotation = new QuaternionRotation3D(Quaternion.Identity);
 
         _blackHoleScale = new ScaleTransform3D(1, 1, 1);
         _diskScale = new ScaleTransform3D(1, 1, 1);
@@ -125,6 +135,9 @@ internal sealed class BlackHoleLocalStarSceneObject :
         {
             Transform = _jetScale
         };
+
+        // Separates the visible jet meshes from their independent particle emitters.
+        _jetSurfaceGroup = new Model3DGroup();
 
         _root.Children.Add(_positionGroup);
         _positionGroup.Children.Add(_orientationGroup);
@@ -191,6 +204,7 @@ internal sealed class BlackHoleLocalStarSceneObject :
         _diskGroup.Children.Add(accretionDiskModel);
         _diskSpinGroup.Children.Add(_diskGroup);
 
+
         // -------------------------------------------------------------
         // Plasma jet textures
         // -------------------------------------------------------------
@@ -209,14 +223,14 @@ internal sealed class BlackHoleLocalStarSceneObject :
             Opacity = 0.82
         };
 
-        Material outerJetMaterial =
-            CreateEmissiveMaterial(_jetOuterBrush);
+        Material outerJetMaterial = CreateEmissiveMaterial(_jetOuterBrush);
 
-        Material coreJetMaterial =
-            CreateEmissiveMaterial(_jetCoreBrush);
+        Material coreJetMaterial = CreateEmissiveMaterial(_jetCoreBrush);
 
-        AddJet(true, outerJetMaterial, coreJetMaterial);
-        AddJet(false, outerJetMaterial, coreJetMaterial);
+        // Build both jet meshes once. Update() controls whether the surface
+        // group is attached to the scene and rebuilds geometry only if length changes.
+        AddJet(true, outerJetMaterial, coreJetMaterial, _configuredJetLength);
+        AddJet(false, outerJetMaterial, coreJetMaterial, _configuredJetLength);
 
         // -------------------------------------------------------------
         // Deterministic jet particles
@@ -224,57 +238,46 @@ internal sealed class BlackHoleLocalStarSceneObject :
 
         _northJetBehavior = new JetParticleBehavior(
             north: true,
-            jetLength: 8.4,
-            speed: 2.625);
+            jetLength: _configuredJetLength,
+            speed: ClampSetting(settings.JetParticleSpeed, 2.625, 0.0, 20.0),
+            dispersion: ClampSetting(settings.JetParticleDispersion, 1.0, 0.0, 4.0));
 
         _northJetParticles = new DeterministicParticleSystem3D(
-            new ParticleEmitterSettings(
-                emissionRate: 22.0,
-                lifetimeSeconds: 3.2,
-                maxParticles: 88,
-                seed: 1101,
-                emissionJitterFraction: 0.30,
-                lifetimeVariation: 0.18),
+            CreateJetParticleEmitterSettings(settings, 1101),
             _northJetBehavior);
 
         _southJetBehavior = new JetParticleBehavior(
             north: false,
-            jetLength: 8.4,
-            speed: 2.625);
+            jetLength: _configuredJetLength,
+            speed: ClampSetting(settings.JetParticleSpeed, 2.625, 0.0, 20.0),
+            dispersion: ClampSetting(settings.JetParticleDispersion, 1.0, 0.0, 4.0));
 
         _southJetParticles = new DeterministicParticleSystem3D(
-            new ParticleEmitterSettings(
-                emissionRate: 22.0,
-                lifetimeSeconds: 3.2,
-                maxParticles: 88,
-                seed: 2202,
-                emissionJitterFraction: 0.30,
-                lifetimeVariation: 0.18),
+            CreateJetParticleEmitterSettings(settings, 2202),
             _southJetBehavior);
 
-        // The jet group already scales to the black hole's radius.
+        // The jet group scales all jet geometry and particles with the star.
         _jetGroup.Children.Add(_northJetParticles.Root);
         _jetGroup.Children.Add(_southJetParticles.Root);
+
 
         // -------------------------------------------------------------
         // Deterministic accretion-disk particles
         // -------------------------------------------------------------
 
-        _diskParticleBehavior = new AccretionDiskParticleBehavior();
+        _diskParticleBehavior = new AccretionDiskParticleBehavior
+        {
+            OutflowSpeed = ClampSetting(
+                settings.DiskParticleOutflowSpeed, 1.0, 0.0, 5.0)
+        };
 
         _diskParticles = new DeterministicParticleSystem3D(
-            new ParticleEmitterSettings(
-                emissionRate: 6.0,
-                lifetimeSeconds: 2.5,
-                maxParticles: 24,
-                seed: 3303,
-                emissionJitterFraction: 0.35,
-                lifetimeVariation: 0.20),
+            CreateDiskParticleEmitterSettings(settings),
             _diskParticleBehavior);
 
-        // Disk particles have their own scale group. Unlike the disk mesh,
-        // they must not be children of the disk-spin group: their behavior
-        // calculates their orbital positions directly from animation time.
+        // Disk particles have their own scale group and are not children
+        // of the disk-spin group. Their behavior calculates outward-streaming
+        // positions directly from the shared animation timestamp.
         _diskParticleScale = new ScaleTransform3D(1, 1, 1);
 
         _diskParticleScaleGroup = new Model3DGroup
@@ -315,6 +318,8 @@ internal sealed class BlackHoleLocalStarSceneObject :
     {
         ArgumentNullException.ThrowIfNull(star);
 
+        BlackHoleSettings settings = GetSettings(star);
+
         double radius = Math.Max(0.001, star.Radius);
 
         _root.Transform = star.LocationTransform;
@@ -341,13 +346,10 @@ internal sealed class BlackHoleLocalStarSceneObject :
         _diskParticleScale.ScaleY = radius;
         _diskParticleScale.ScaleZ = radius;
 
-        _rotationRate = double.IsFinite(star.RotationRate)
-            ? Math.Clamp(star.RotationRate, 0.0, 10.0)
-            : 0.0;
+        _rotationRate = ClampSetting(star.RotationRate, 0.0, 0.0, 10.0);
+        _rotationDirection = star.RotationDirection;
 
-        _jetPulseRateHz = double.IsFinite(star.JetPulseRate)
-            ? Math.Clamp(star.JetPulseRate, 0.0, 2.0)
-            : DefaultJetPulseRate;
+        ApplySettings(settings);
 
         UpdatePhotonRingBrush(star.StarColor);
 
@@ -365,19 +367,126 @@ internal sealed class BlackHoleLocalStarSceneObject :
             _lastDiskDirection = star.RotationDirection;
         }
 
-        _light.Color = ScaleLightColor(
-            Colors.White,
-            star.LightIntensity);
+        _light.Color = ScaleLightColor(Colors.White, star.LightIntensity);
 
-        double distanceFromOrigin =
-            (star.Center - new Point3D(0, 0, 0)).Length;
+        double distanceFromOrigin = (star.Center - new Point3D(0, 0, 0)).Length;
 
-        double effectiveRange = Math.Max(
-            Math.Max(0.1, star.LightRange),
-            distanceFromOrigin + 2.0);
+        double effectiveRange = Math.Max(Math.Max(0.1, star.LightRange), distanceFromOrigin + 2.0);
 
-        _light.QuadraticAttenuation =
-            1.0 / (effectiveRange * effectiveRange);
+        _light.QuadraticAttenuation = 1.0 / (effectiveRange * effectiveRange);
+    }
+
+    // Apply every type-specific setting without rebuilding the black-hole scene.
+    private void ApplySettings(BlackHoleSettings settings)
+    {
+        _enableJets = settings.EnableJets;
+        _enableJetParticles = settings.EnableJets && settings.EnableJetParticles;
+        _enableDiskParticles = settings.EnableDiskParticles;
+
+        _jetPulseRateHz = ClampSetting(
+            settings.JetPulseRate, DefaultJetPulseRate, 0.0, 2.0);
+
+        double jetLength = ClampSetting(settings.JetLength, 8.4, 0.1, 30.0);
+        if (Math.Abs(jetLength - _configuredJetLength) > 0.0001)
+        {
+            _configuredJetLength = jetLength;
+
+            if (_northOuterJetModel is not null)
+                _northOuterJetModel.Geometry = CreateJetMesh(true, 1.0, jetLength);
+            if (_northCoreJetModel is not null)
+                _northCoreJetModel.Geometry = CreateJetMesh(true, 0.30, jetLength);
+            if (_southOuterJetModel is not null)
+                _southOuterJetModel.Geometry = CreateJetMesh(false, 1.0, jetLength);
+            if (_southCoreJetModel is not null)
+                _southCoreJetModel.Geometry = CreateJetMesh(false, 0.30, jetLength);
+        }
+
+        double jetSpeed = ClampSetting(settings.JetParticleSpeed, 2.625, 0.0, 20.0);
+        double jetDispersion = ClampSetting(settings.JetParticleDispersion, 1.0, 0.0, 4.0);
+
+        _northJetBehavior.JetLength = jetLength;
+        _northJetBehavior.Speed = jetSpeed;
+        _northJetBehavior.Dispersion = jetDispersion;
+
+        _southJetBehavior.JetLength = jetLength;
+        _southJetBehavior.Speed = jetSpeed;
+        _southJetBehavior.Dispersion = jetDispersion;
+
+        _northJetParticles.UpdateSettings(CreateJetParticleEmitterSettings(settings, 1101));
+        _southJetParticles.UpdateSettings(CreateJetParticleEmitterSettings(settings, 2202));
+
+        _diskParticleBehavior.OutflowSpeed = ClampSetting(
+            settings.DiskParticleOutflowSpeed, 1.0, 0.0, 5.0);
+
+        _diskParticles.UpdateSettings(CreateDiskParticleEmitterSettings(settings));
+
+        // The primary jet switch controls the plume meshes and acts as a master
+        // switch for jet particles. Particles can be disabled independently.
+        SetChildEnabled(_jetGroup, _jetSurfaceGroup, _enableJets);
+        SetChildEnabled(_jetGroup, _northJetParticles.Root, _enableJetParticles);
+        SetChildEnabled(_jetGroup, _southJetParticles.Root, _enableJetParticles);
+        SetChildEnabled(
+            _diskParticleScaleGroup,
+            _diskParticles.Root,
+            _enableDiskParticles);
+
+        if (!_enableJetParticles)
+        {
+            _northJetParticles.Reset();
+            _southJetParticles.Reset();
+        }
+
+        if (!_enableDiskParticles)
+            _diskParticles.Reset();
+    }
+
+    private static BlackHoleSettings GetSettings(LocalStar star) =>
+        star.LocalStarDetailSettings as BlackHoleSettings ?? new BlackHoleSettings();
+
+    private static ParticleEmitterSettings CreateJetParticleEmitterSettings(BlackHoleSettings settings, int seed)
+    {
+        return new ParticleEmitterSettings(
+            emissionRate: ClampSetting(settings.JetParticleEmissionRate, 22.0, 0.0, 60.0),
+            lifetimeSeconds: ClampSetting(settings.JetParticleLifetime, 3.2, 0.1, 20.0),
+            maxParticles: JetParticlePoolSize,
+            seed: seed,
+            emissionJitterFraction: 0.30,
+            lifetimeVariation: 0.18);
+    }
+
+    private static ParticleEmitterSettings CreateDiskParticleEmitterSettings(BlackHoleSettings settings)
+    {
+        return new ParticleEmitterSettings(
+            emissionRate: ClampSetting(settings.DiskParticleEmissionRate, 6.0, 0.0, 40.0),
+            lifetimeSeconds: ClampSetting(settings.DiskParticleLifetime, 2.5, 0.1, 20.0),
+            maxParticles: DiskParticlePoolSize,
+            seed: 3303,
+            emissionJitterFraction: 0.35,
+            lifetimeVariation: 0.20);
+    }
+
+    private static double ClampSetting(
+        double value,
+        double fallback,
+        double minimum,
+        double maximum)
+    {
+        return double.IsFinite(value)
+            ? Math.Clamp(value, minimum, maximum)
+            : fallback;
+    }
+
+    private static void SetChildEnabled(
+        Model3DGroup parent,
+        Model3D child,
+        bool enabled)
+    {
+        bool isPresent = parent.Children.Contains(child);
+
+        if (enabled && !isPresent)
+            parent.Children.Add(child);
+        else if (!enabled && isPresent)
+            parent.Children.Remove(child);
     }
 
     // =================================================================
@@ -386,10 +495,7 @@ internal sealed class BlackHoleLocalStarSceneObject :
 
     public void AdvanceAnimation(WorldGlobeAnimationFrame frame)
     {
-        if (frame.DeltaSeconds <= 0.0)
-            return;
-
-        if (_rotationRate > 0.0)
+        if (frame.DeltaSeconds > 0.0 && _rotationRate > 0.0)
         {
             double direction =
                 _rotationDirection == WorldRotationDirection.Prograde
@@ -448,13 +554,22 @@ internal sealed class BlackHoleLocalStarSceneObject :
             pulse = 0.5 + 0.5 * Math.Sin(phase);
         }
 
-        _jetOuterBrush.Opacity = 0.58 + 0.22 * pulse;
-        _jetCoreBrush.Opacity = 0.72 + 0.20 * pulse;
+        if (_enableJets)
+        {
+            _jetOuterBrush.Opacity = 0.58 + 0.22 * pulse;
+            _jetCoreBrush.Opacity = 0.72 + 0.20 * pulse;
+        }
 
-        // Evaluate every particle system at the same absolute time.
-        _northJetParticles.AdvanceTo(frame.TimeSeconds);
-        _southJetParticles.AdvanceTo(frame.TimeSeconds);
-        _diskParticles.AdvanceTo(frame.TimeSeconds);
+        // Each enabled particle system derives its state from the same absolute
+        // timestamp. Disabled systems are detached and have their pools hidden.
+        if (_enableJetParticles)
+        {
+            _northJetParticles.AdvanceTo(frame.TimeSeconds);
+            _southJetParticles.AdvanceTo(frame.TimeSeconds);
+        }
+
+        if (_enableDiskParticles)
+            _diskParticles.AdvanceTo(frame.TimeSeconds);
     }
 
     public void ResetAnimation()
@@ -474,33 +589,50 @@ internal sealed class BlackHoleLocalStarSceneObject :
     // Plasma jets
     // =================================================================
 
-    private void AddJet(bool north, Material outerMaterial, Material coreMaterial)
+    private void AddJet(
+        bool north,
+        Material outerMaterial,
+        Material coreMaterial,
+        double jetLength)
     {
         var outerJet = new GeometryModel3D
         {
-            Geometry = CreateJetMesh(north, 1.0),
+            Geometry = CreateJetMesh(north, 1.0, jetLength),
             Material = outerMaterial,
             BackMaterial = outerMaterial
         };
 
         var coreJet = new GeometryModel3D
         {
-            Geometry = CreateJetMesh(north, 0.30),
+            Geometry = CreateJetMesh(north, 0.30, jetLength),
             Material = coreMaterial,
             BackMaterial = coreMaterial
         };
 
-        _jetGroup.Children.Add(outerJet);
-        _jetGroup.Children.Add(coreJet);
+        if (north)
+        {
+            _northOuterJetModel = outerJet;
+            _northCoreJetModel = coreJet;
+        }
+        else
+        {
+            _southOuterJetModel = outerJet;
+            _southCoreJetModel = coreJet;
+        }
+
+        _jetSurfaceGroup.Children.Add(outerJet);
+        _jetSurfaceGroup.Children.Add(coreJet);
     }
 
-    private static MeshGeometry3D CreateJetMesh(bool north, double radialScale)
+    private static MeshGeometry3D CreateJetMesh(
+        bool north,
+        double radialScale,
+        double jetLength)
     {
         const int axialSegments = 80;
         const int angularSegments = 40;
 
         const double startY = 0.80;
-        const double jetLength = 8.40;
 
         var mesh = new MeshGeometry3D();
         int stride = angularSegments + 1;

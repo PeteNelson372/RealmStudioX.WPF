@@ -11,7 +11,7 @@
              xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
              xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"               
              mc:Ignorable="d" 
-             d:DesignHeight="542" d:DesignWidth="300">
+             d:DesignHeight="642" d:DesignWidth="300">
 
     <UserControl.Resources>
         <conv:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
@@ -20,6 +20,45 @@
             <TextBlock
             Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
         </DataTemplate>
+
+        <Style x:Key="FixedOrderTabControl" TargetType="{x:Type TabControl}">
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TabControl}">
+                        <Grid KeyboardNavigation.TabNavigation="Local"
+                      SnapsToDevicePixels="True">
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Headers remain in item order. -->
+                            <WrapPanel Grid.Row="0"
+                               IsItemsHost="True"
+                               Orientation="Horizontal"
+                               Margin="2,2,2,0"
+                               Panel.ZIndex="1" />
+
+                            <!-- Selected tab content. -->
+                            <Border Grid.Row="1"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Padding="{TemplateBinding Padding}">
+
+                                <ContentPresenter
+                            x:Name="PART_SelectedContentHost"
+                            ContentSource="SelectedContent"
+                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </Border>
+
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <Grid DockPanel.Dock="Top" Background="#FFDFDBD2">
@@ -35,7 +74,7 @@
             Margin="10,4,0,8" />
 
 
-        <TabControl x:Name="PropertiesTabs" Grid.Row="1" ItemContainerStyle="{StaticResource RoundedTabItemStyle}" Background="#FFDFDBD2">
+        <TabControl x:Name="PropertiesTabs" Grid.Row="1" ItemContainerStyle="{StaticResource RoundedTabItemStyle}"  Style="{StaticResource FixedOrderTabControl}" Background="#FFDFDBD2">
 
             <!-- local star properties -->
             <TabItem Header="Local Star">
@@ -53,7 +92,7 @@
                             <CheckBox x:Name="EnableLocalStarCheckBox"
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center"
-                                  IsChecked="{Binding EnableLocalStar, Mode=TwoWay}"
+                                  IsChecked="{Binding StarViewModel.EnableLocalStar, Mode=TwoWay}"
                                   Style="{StaticResource ToggleSwitchStyle}"
                                   shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
@@ -95,8 +134,8 @@
                                       Width="120"
                                       Height="26"
                                       Background="#FFDFDBD2"
-                                      ItemsSource="{Binding LocalStarTypes}"
-                                      SelectedItem="{Binding SelectedLocalStarType, Mode=TwoWay}"
+                                      ItemsSource="{Binding StarViewModel.LocalStarTypes}"
+                                      SelectedItem="{Binding StarViewModel.SelectedLocalStarType, Mode=TwoWay}"
                                       ItemTemplate="{StaticResource EnumDescriptionTemplate}" />
 
                                 <TextBlock Text="Size"
@@ -114,12 +153,12 @@
                                         Width="120"
                                         HorizontalAlignment="Left"
                                         Margin="0,10,0,0"
-                                        Minimum="0"
+                                        Minimum="0.01"
                                         Maximum="1.0"                                        
                                         TickFrequency="0.01"
                                         IsSnapToTickEnabled="True"
                                         SmallChange="0.01"
-                                        Value="{Binding LocalStarSize}"/>
+                                        Value="{Binding StarViewModel.LocalStarSize}"/>
 
 
                                 <TextBlock Text="Distance"
@@ -141,7 +180,7 @@
                                         TickFrequency="0.01"
                                         IsSnapToTickEnabled="True"
                                         SmallChange="0.01"
-                                        Value="{Binding LocalStarDistance}"/>
+                                        Value="{Binding StarViewModel.LocalStarDistance}"/>
 
                                 <TextBlock Text="Orbit"
                                         Grid.Row="3"
@@ -162,7 +201,7 @@
                                         TickFrequency="0.01"
                                         IsSnapToTickEnabled="True"
                                         SmallChange="0.01"
-                                        Value="{Binding LocalStarOrbit}"/>
+                                        Value="{Binding StarViewModel.LocalStarOrbit}"/>
 
                                 <TextBlock Text="Plane"
                                         Grid.Row="4"
@@ -183,7 +222,7 @@
                                         TickFrequency="0.01"
                                         IsSnapToTickEnabled="True"
                                         SmallChange="0.01"
-                                        Value="{Binding LocalStarPlane}"/>
+                                        Value="{Binding StarViewModel.LocalStarPlane}"/>
 
                                 <TextBlock
                                         Grid.Row="5"
@@ -200,7 +239,7 @@
                                         Height="50"
                                         HorizontalAlignment="Left"
                                         Margin="3,3,3,3"
-                                        Background="{Binding StarlightColorBrush}"
+                                        Background="{Binding StarViewModel.StarlightColorBrush}"
                                         ToolTip="Select Starlight Color"
                                         PreviewMouseLeftButtonUp="StarlightColor_LeftClick"
                                         PreviewMouseRightButtonUp="StarlightColor_RightClick">
@@ -231,7 +270,7 @@
                                         TickFrequency="0.01"
                                         IsSnapToTickEnabled="True"
                                         SmallChange="0.01"
-                                        Value="{Binding LocalStarlightIntensity}"/>
+                                        Value="{Binding StarViewModel.LocalStarlightIntensity}"/>
 
                                 <TextBlock
                                         Grid.Row="7"
@@ -249,7 +288,7 @@
                                         HorizontalAlignment="Left"
                                         Margin="3,3,3,3"
                                         ToolTip="Create Local Star"
-                                        Command="{Binding CreateLocalStarCommand}">
+                                        Command="{Binding StarViewModel.CreateLocalStarCommand}">
 
                                     <materialDesign:PackIcon Kind="StarAddOutline"
                                             Width="36"
@@ -296,14 +335,14 @@
                                     <RadioButton Content="Prograde"
                                              Margin="0,4"
                                              GroupName="Rotation"
-                                             IsChecked="{Binding LocalStarRotationDirection, Mode=TwoWay,
+                                             IsChecked="{Binding StarViewModel.LocalStarRotationDirection, Mode=TwoWay,
                                                 Converter={StaticResource EnumToBooleanConverter},
                                              ConverterParameter={x:Static rendering:WorldRotationDirection.Prograde}}"/>
 
                                     <RadioButton Content="Retrograde"
                                              Margin="0,4"
                                              GroupName="Rotation"
-                                             IsChecked="{Binding LocalStarRotationDirection, Mode=TwoWay,
+                                             IsChecked="{Binding StarViewModel.LocalStarRotationDirection, Mode=TwoWay,
                                                 Converter={StaticResource EnumToBooleanConverter},
                                              ConverterParameter={x:Static rendering:WorldRotationDirection.Retrograde}}"/>
 
@@ -318,7 +357,7 @@
                                              Grid.Row="1"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding LocalStarRotationRate}"
+                                             Value="{Binding StarViewModel.LocalStarRotationRate}"
                                              Minimum="0.1"
                                              Maximum="10.0"
                                              Increment="0.1"
@@ -331,14 +370,6 @@
 
                     </StackPanel>
 
-                </ScrollViewer>
-            </TabItem>
-
-            <TabItem Header="Sun">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-
-                    <StackPanel Margin="10">
-                    </StackPanel>
                 </ScrollViewer>
             </TabItem>
 
@@ -375,11 +406,16 @@
                             <Grid>
 
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="140"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
@@ -389,31 +425,132 @@
                                     Text="Enable Plasma Jets"
                                     Foreground="#FF45443F"
                                     VerticalAlignment="Center"
-                                    Margin="10,0,10,0"/>
+                                    Margin="10,0,0,0"/>
 
-                                <CheckBox x:Name="EnableBlackHoleJetsCheckBox"
+                                <CheckBox x:Name="EnableJetsCheckBox"
                                   Grid.Row="0" Grid.Column="1"
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center"
-                                  IsChecked="{Binding EnableLocalStar, Mode=TwoWay}"
+                                  IsChecked="{Binding BlackHoleModel.EnableJets, Mode=TwoWay}"
                                   Style="{StaticResource ToggleSwitchStyle}"
                                   shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
                                 <TextBlock Grid.Row="1" Grid.Column="0"
-                                           Text="Jet Pulse Rate"
+                                           Text="Jet Length"
                                            VerticalAlignment="Center"
-                                           Margin="10,0,8,6"/>
+                                           Margin="10,10,0,0"/>
 
-                                <controls:NumericUpDown x:Name="JetPulseRateBox"
+                                <controls:NumericUpDown x:Name="JetLengthBox"
                                              Grid.Row="1"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding LocalStarJetPulseRate}"
+                                             Value="{Binding BlackHoleModel.JetLength, Mode=TwoWay}"
+                                             Minimum="0.1"
+                                             Maximum="30.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="2"
+                                             Margin="0,10,0,0"
+                                             Width="100" />
+
+
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                           Text="Jet Pulse Rate"
+                                           VerticalAlignment="Center"
+                                           Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="JetPulseRateBox"
+                                             Grid.Row="2"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding BlackHoleModel.JetPulseRate, Mode=TwoWay}"
                                              Minimum="0.0"
-                                             Maximum="1.0"
+                                             Maximum="2.0"
                                              Increment="0.001"
                                              DecimalPlaces="3"
-                                             Margin="0,0,6,6"
+                                             Margin="0,10,0,0"
+                                             Width="100" />
+
+                                <TextBlock Grid.Row="3" Grid.Column="0"
+                                    Text="Enable Jet Particles"
+                                    Foreground="#FF45443F"
+                                    VerticalAlignment="Center"
+                                    Margin="10,10,0,0"/>
+
+                                <CheckBox x:Name="EnableJetParticlesCheckBox"
+                                  Grid.Row="3" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Margin="0,10,0,0"
+                                  IsChecked="{Binding BlackHoleModel.EnableJetParticles, Mode=TwoWay}"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="4" Grid.Column="0"
+                                           Text="Particle Emission Rate"
+                                           VerticalAlignment="Center"
+                                           Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="JetParticleEmissionRateBox"
+                                             Grid.Row="4"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding BlackHoleModel.JetParticleEmissionRate, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="60.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="2"
+                                             Margin="0,10,0,0"
+                                             Width="100" />
+
+                                <TextBlock Grid.Row="5" Grid.Column="0"
+                                           Text="Particle Lifetime"
+                                           VerticalAlignment="Center"
+                                           Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="JetParticleLifetimeBox"
+                                             Grid.Row="5"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding BlackHoleModel.JetParticleLifetime, Mode=TwoWay}"
+                                             Minimum="0.1"
+                                             Maximum="20.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="2"
+                                             Margin="0,10,0,0"
+                                             Width="100" />
+
+                                <TextBlock Grid.Row="6" Grid.Column="0"
+                                           Text="Particle Dispersion"
+                                           VerticalAlignment="Center"
+                                           Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="JetParticleDispersionBox"
+                                             Grid.Row="6"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding BlackHoleModel.JetParticleDispersion, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="4.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="2"
+                                             Margin="0,10,0,0"
+                                             Width="100" />
+
+                                <TextBlock Grid.Row="7" Grid.Column="0"
+                                           Text="Particle Speed"
+                                           VerticalAlignment="Center"
+                                           Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="JetParticleSpeedBox"
+                                             Grid.Row="7"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding BlackHoleModel.JetParticleSpeed, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="20.0"
+                                             Increment="0.005"
+                                             DecimalPlaces="3"
+                                             Margin="0,10,0,0"
                                              Width="100" />
 
                             </Grid>
@@ -423,7 +560,7 @@
                             <Grid>
 
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="140"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
@@ -431,9 +568,75 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
 
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                    Text="Enable Disk Particles"
+                                    Foreground="#FF45443F"
+                                    VerticalAlignment="Center"
+                                    Margin="10,10,0,0"/>
+
+                                <CheckBox x:Name="EnableDiskParticlesCheckBox"
+                                  Grid.Row="0" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Margin="0,10,0,0"
+                                  IsChecked="{Binding BlackHoleModel.EnableDiskParticles, Mode=TwoWay}"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                           Text="Particle Emission Rate"
+                                           VerticalAlignment="Center"
+                                           Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="DiskParticleEmissionRateBox"
+                                             Grid.Row="1"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding BlackHoleModel.DiskParticleEmissionRate, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="40.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="2"
+                                             Margin="0,10,0,0"
+                                             Width="100" />
+
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                           Text="Particle Lifetime"
+                                           VerticalAlignment="Center"
+                                           Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="DiskParticleLifetimeBox"
+                                             Grid.Row="2"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding BlackHoleModel.DiskParticleLifetime, Mode=TwoWay}"
+                                             Minimum="0.1"
+                                             Maximum="20.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="2"
+                                             Margin="0,10,0,0"
+                                             Width="100" />
+
+                                <TextBlock Grid.Row="3" Grid.Column="0"
+                                           Text="Particle Outflow Speed"
+                                           VerticalAlignment="Center"
+                                           Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="DiskParticleSpeedBox"
+                                             Grid.Row="3"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding BlackHoleModel.DiskParticleOutflowSpeed, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="5.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="2"
+                                             Margin="0,10,0,0"
+                                             Width="100" />
                             </Grid>
                         </GroupBox>
 

@@ -43,7 +43,7 @@
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center"
                                   Command="{Binding ToggleAtmosphere}"
-                                  IsChecked="{Binding EnableAtmosphere, Mode=TwoWay}"
+                                  IsChecked="{Binding AtmosphereModel.EnableAtmosphere, Mode=TwoWay}"
                                   Style="{StaticResource ToggleSwitchStyle}"
                                   shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
@@ -81,7 +81,7 @@
                                         Width="120"
                                         Height="50"
                                         Margin="3,3,3,3"
-                                        Background="{Binding AtmosphereColorBrush}"
+                                        Background="{Binding AtmosphereModel.AtmosphereColorBrush}"
                                         ToolTip="Select Fill Color"
                                         PreviewMouseLeftButtonUp="AtmosphereColor_LeftClick"
                                         PreviewMouseRightButtonUp="AtmosphereColor_RightClick">
@@ -110,8 +110,8 @@
                                         Minimum="0"
                                         Maximum="150"
                                         AutoToolTipPlacement="TopLeft"
-                                        ToolTip="{Binding AtmosphereDensity, StringFormat={}{0:F1}}"                                            
-                                        Value="{Binding AtmosphereAltitude}"/>
+                                        ToolTip="{Binding AtmosphereModel.AtmosphereDensity, StringFormat={}{0:F1}}"                                            
+                                        Value="{Binding AtmosphereModel.AtmosphereAltitude}"/>
 
                                     <TextBlock
                                         Grid.Row="2"
@@ -131,8 +131,8 @@
                                         Minimum="0"
                                         Maximum="100"
                                         AutoToolTipPlacement="TopLeft"
-                                        ToolTip="{Binding AtmosphereDensity, StringFormat={}{0:F1}}"
-                                        Value="{Binding AtmosphereDensity}"/>
+                                        ToolTip="{Binding AtmosphereModel.AtmosphereDensity, StringFormat={}{0:F1}}"
+                                        Value="{Binding AtmosphereModel.AtmosphereDensity}"/>
 
                             </Grid>
                         </GroupBox>
@@ -156,7 +156,7 @@
                             <CheckBox x:Name="EnableCloudsCheckBox"
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center"
-                                  IsChecked="{Binding EnableClouds, Mode=TwoWay}"
+                                  IsChecked="{Binding AtmosphereModel.EnableClouds, Mode=TwoWay}"
                                   Style="{StaticResource ToggleSwitchStyle}"
                                   shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
@@ -193,7 +193,7 @@
                                         Width="120"
                                         Height="50"
                                         Margin="3,3,3,3"
-                                        Background="{Binding CloudColorBrush}"
+                                        Background="{Binding AtmosphereModel.CloudColorBrush}"
                                         ToolTip="Select Cloud Color"
                                         PreviewMouseLeftButtonUp="CloudColor_LeftClick"
                                         PreviewMouseRightButtonUp="CloudColor_RightClick">
@@ -220,11 +220,11 @@
                                         Width="120"
                                         HorizontalAlignment="Left"
                                         Minimum="0"
-                                        Maximum="1.0"                                        
+                                        Maximum="1.0"
                                         TickFrequency="0.01"
                                         IsSnapToTickEnabled="True"
                                         SmallChange="0.01"
-                                        Value="{Binding CloudOpacity}"/>
+                                        Value="{Binding AtmosphereModel.CloudOpacity}"/>
                                 
                                 <TextBlock
                                        Grid.Row="2"
@@ -239,7 +239,7 @@
                                         <RadioButton Content="Default"
                                              Margin="6,2,0,0"
                                              GroupName="CloudTexture"
-                                             IsChecked="{Binding UseDefaultCloudTexture, Mode=TwoWay}"/>
+                                             IsChecked="{Binding AtmosphereModel.UseDefaultCloudTexture, Mode=TwoWay}"/>
                                         <TextBlock
                                             Grid.Row="2"
                                             Grid.Column="0"                                       
@@ -253,7 +253,7 @@
                                         <RadioButton Content="Custom"
                                                  Margin="6,8,0,0"
                                                  GroupName="CloudTexture"
-                                                 IsChecked="{Binding UseCustomCloudTexture, Mode=TwoWay}"/>
+                                                 IsChecked="{Binding AtmosphereModel.UseCustomCloudTexture, Mode=TwoWay}"/>
 
                                         <Button                                       
                                             Style="{StaticResource FlatToolButton}"
@@ -262,7 +262,7 @@
                                             Margin="2,4,0,0"
                                             Padding="0,0,0,0"
                                             ToolTip="Select Cloud Texture"
-                                            Command="{Binding SelectCloudTextureCommand}">
+                                            Command="{Binding AtmosphereModel.SelectCloudTextureCommand}">
 
                                             <materialDesign:PackIcon Kind="FileImageAddOutline"
                                                 Width="15"
@@ -308,7 +308,7 @@
                                 <controls:NumericUpDown x:Name="CloudRotationRateBox"
                                              Grid.Row="0" Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding CloudRotationRate}"
+                                             Value="{Binding AtmosphereModel.CloudRotationRate}"
                                              Minimum="0.1"
                                              Maximum="10.0"
                                              Increment="0.1"

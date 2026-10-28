@@ -61,7 +61,7 @@
                                     <controls:NumericUpDown x:Name="TiltAngleBox"
                                             Grid.Row="0"
                                             Grid.Column="1"
-                                            Value="{Binding WorldTiltAngle}"
+                                            Value="{Binding WorldGlobeModel.WorldTiltAngle}"
                                             HorizontalAlignment="Left"
                                             Minimum="0.0"
                                             Maximum="90.0"
@@ -79,7 +79,7 @@
                                     <TextBlock
                                        Grid.Row="1"
                                        Grid.Column="1"                                       
-                                       Text="{Binding CurrentTiltAngle, StringFormat={}{0:F1}°}"
+                                       Text="{Binding WorldGlobeModel.CurrentTiltAngle, StringFormat={}{0:F1}°}"
                                        VerticalAlignment="Center"
                                        Margin="10,0,8,6"/>
                                     
@@ -124,14 +124,14 @@
                                         <RadioButton Content="Prograde (Earth)"
                                              Margin="0,4"
                                              GroupName="Rotation"
-                                             IsChecked="{Binding RotationDirection, Mode=TwoWay,
+                                             IsChecked="{Binding WorldGlobeModel.RotationDirection, Mode=TwoWay,
                                                 Converter={StaticResource EnumToBooleanConverter},
                                              ConverterParameter={x:Static rendering:WorldRotationDirection.Prograde}}"/>
 
                                         <RadioButton Content="Retrograde"
                                              Margin="0,4"
                                              GroupName="Rotation"
-                                             IsChecked="{Binding RotationDirection, Mode=TwoWay,
+                                             IsChecked="{Binding WorldGlobeModel.RotationDirection, Mode=TwoWay,
                                                 Converter={StaticResource EnumToBooleanConverter},
                                              ConverterParameter={x:Static rendering:WorldRotationDirection.Retrograde}}"/>
 
@@ -145,7 +145,7 @@
                                     <controls:NumericUpDown x:Name="RotationRateBox"
                                              Grid.Row="1" Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding RotationRate}"
+                                             Value="{Binding WorldGlobeModel.RotationRate}"
                                              Minimum="0.1"
                                              Maximum="10.0"
                                              Increment="0.1"
