@@ -162,8 +162,7 @@ internal sealed class BlackHoleLocalStarSceneObject : ILocalStarSceneObject, IWo
 
         _photonRingBrush = CreatePhotonRingBrush(star.StarColor);
 
-        Material photonRingMaterial =
-            CreateEmissiveMaterial(_photonRingBrush);
+        Material photonRingMaterial = CreateEmissiveMaterial(_photonRingBrush);
 
         _photonRingModel = new GeometryModel3D
         {

@@ -377,6 +377,209 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
 
                     <StackPanel Margin="10">
+                        <GroupBox Header="Nebula" Height="Auto"  HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,10,0,10">
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock
+                                       Grid.Row="0"
+                                       Grid.Column="0"                                       
+                                       Text="Layer Count"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="LayerCountBox"
+                                             Grid.Row="0"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding NebulaModel.LayerCount, Mode=TwoWay}"
+                                             Minimum="1"
+                                             Maximum="7"
+                                             Increment="1"
+                                             DecimalPlaces="0"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+                                <TextBlock
+                                       Grid.Row="1"
+                                       Grid.Column="0"                                       
+                                       Text="Width"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="WidthBox"
+                                             Grid.Row="1"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding NebulaModel.Width, Mode=TwoWay}"
+                                             Minimum="1"
+                                             Maximum="60"
+                                             Increment="1"
+                                             DecimalPlaces="0"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+                                <TextBlock
+                                       Grid.Row="2"
+                                       Grid.Column="0"                                       
+                                       Text="Height"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="HeightBox"
+                                             Grid.Row="2"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding NebulaModel.Height, Mode=TwoWay}"
+                                             Minimum="1"
+                                             Maximum="60"
+                                             Increment="1"
+                                             DecimalPlaces="0"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+                                <TextBlock
+                                       Grid.Row="3"
+                                       Grid.Column="0"                                       
+                                       Text="Depth"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="NebulaDepthBox"
+                                             Grid.Row="3"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding NebulaModel.Depth, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="20.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="1"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+                                <TextBlock
+                                       Grid.Row="4"
+                                       Grid.Column="0"                                       
+                                       Text="Opacity"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="NebulaOpacityBox"
+                                             Grid.Row="4"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding NebulaModel.Opacity, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="1.0"
+                                             Increment="0.01"
+                                             DecimalPlaces="2"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+                                <TextBlock
+                                       Grid.Row="5"
+                                       Grid.Column="0"                                       
+                                       Text="Brightness"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="NebulaBrightnessBox"
+                                             Grid.Row="5"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding NebulaModel.Brightness, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="3.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="1"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+                                <TextBlock
+                                       Grid.Row="6"
+                                       Grid.Column="0"                                       
+                                       Text="Detail Intensity"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="NebulaDetailIntensityBox"
+                                             Grid.Row="6"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding NebulaModel.DetailIntensity, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="2.0"
+                                             Increment="0.01"
+                                             DecimalPlaces="2"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+                                <TextBlock
+                                       Grid.Row="7"
+                                       Grid.Column="0"                                       
+                                       Text="Drift Speed"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="NebulaDriftSpeedBox"
+                                             Grid.Row="7"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding NebulaModel.DriftSpeed, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="0.5"
+                                             Increment="0.001"
+                                             DecimalPlaces="3"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+                                
+                                <TextBlock
+                                       Grid.Row="8"
+                                       Grid.Column="0"                                       
+                                       Text="Rotation Speed"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="NebulaRotationSpeedBox"
+                                             Grid.Row="8"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding NebulaModel.RotationSpeed, Mode=TwoWay}"
+                                             Minimum="-2.0"
+                                             Maximum="2.0"
+                                             Increment="0.01"
+                                             DecimalPlaces="2"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+
+                            </Grid>
+                        </GroupBox>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

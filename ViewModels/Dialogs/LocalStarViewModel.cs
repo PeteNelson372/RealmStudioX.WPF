@@ -11,11 +11,13 @@ using Color = System.Windows.Media.Color;
 
 namespace RealmStudioX.WPF.ViewModels.Dialogs
 {
-    public class LocalStarViewModel(WorldGlobeViewer globeViewer, BlackHoleViewModel blackHoleModel) : ViewModelBase
+    public class LocalStarViewModel(WorldGlobeViewer globeViewer, BlackHoleViewModel blackHoleModel, NebulaViewModel nebulaModel) : ViewModelBase
     {
         private WorldGlobeViewer _globeViewer = globeViewer;
 
         private BlackHoleViewModel _blackHoleModel = blackHoleModel;
+
+        private NebulaViewModel _nebulaModel = nebulaModel;
 
         public IReadOnlyList<LocalStarType> LocalStarTypes { get; } = Enum.GetValues<LocalStarType>();
 
@@ -275,6 +277,23 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
                 star.LocalStarDetailSettings = detailSettings;
             }
+            else if (star.StarImageType == LocalStarType.Nebula)
+            {
+                star.LocalStarDetailSettings = new NebulaSettings
+                {
+                    LayerCount = _nebulaModel.LayerCount,
+                    Width = _nebulaModel.Width,
+                    Height = _nebulaModel.Height,
+                    Depth = _nebulaModel.Depth,
+                    Opacity = _nebulaModel.Opacity,
+                    Brightness = _nebulaModel.Brightness,
+                    DetailIntensity = _nebulaModel.DetailIntensity,
+                    RotationSpeed = _nebulaModel.RotationSpeed,
+                    DriftSpeed = _nebulaModel.DriftSpeed
+                };
+
+            }
+
         }
     }
 }

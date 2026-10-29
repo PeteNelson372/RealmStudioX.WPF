@@ -912,6 +912,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
                     _localStarSceneObject = new SunLocalStarSceneObject(star, UnitSphereMesh);
                     break;
 
+                case LocalStarType.Nebula:
+                    _localStarSceneObject = new NebulaLocalStarSceneObject(star, UnitSphereMesh);
+                    break;
+
                 case LocalStarType.BlackHole:
                     _localStarSceneObject = new BlackHoleLocalStarSceneObject(star, UnitSphereMesh);
                     break;
