@@ -71,7 +71,7 @@
                                 <TextBlock
                                     Grid.Row="0"
                                     Grid.Column="0"
-                                    Text="Starfield File"
+                                    Text="Texture"
                                     Foreground="#FF45443F"
                                     VerticalAlignment="Center"
                                     HorizontalAlignment="Left"
@@ -85,7 +85,7 @@
                                     Height="Auto"
                                     Margin="3,3,3,3"
                                     HorizontalAlignment="Center"
-                                    ToolTip="Select Import File"
+                                    ToolTip="Select Starfield Texture File"
                                     Command="{Binding SelectBackgroundFileCommand}">
 
                                     <materialDesign:PackIcon Kind="FileImageAddOutline"
@@ -96,6 +96,7 @@
                             </Grid>
 
                         </GroupBox>
+                        
                     </StackPanel>
 
 

@@ -2,13 +2,31 @@
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Dialogs;
+using RealmStudioX.WPF.WorldGlobe;
 
 namespace RealmStudioX.WPF.ViewModels.Dialogs
 {
-    public class WorldGlobeViewModel(MainWindowViewModel mainViewModel, WorldGlobeViewer globeViewer) : ViewModelBase
+    public class WorldGlobeViewModel : ViewModelBase
     {
-        private MainWindowViewModel _mainViewModel = mainViewModel;
-        private WorldGlobeViewer _globeViewer = globeViewer;
+        private readonly MainWindowViewModel _mainViewModel;
+        private readonly WorldGlobeViewer _globeViewer;
+        private readonly PlanetaryRingSettings _ringSettings = new();
+
+        public PlanetaryRingViewModel Rings { get; }
+
+        public WorldGlobeViewModel(MainWindowViewModel mainViewModel, WorldGlobeViewer globeViewer)
+        {
+            _mainViewModel = mainViewModel;
+            _globeViewer = globeViewer;
+
+            Rings = new PlanetaryRingViewModel(_ringSettings, UpdateRingSettings);
+        }
+
+        private void UpdateRingSettings()
+        {
+            _globeViewer.UpdateWorldGlobeRings(_ringSettings);
+        }
+
 
         private double _rotationRate = 1.0;
         public double RotationRate

@@ -87,6 +87,114 @@
 
                             </StackPanel>
                         </GroupBox>
+
+                        <GroupBox Header="Planetary Rings"
+                              HorizontalAlignment="Stretch"
+                              Margin="0,10,0,0">
+                            <StackPanel Margin="5">
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="140"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="0"
+                                    Text="Texture"
+                                    Foreground="#FF45443F"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Left"
+                                    Margin="10,10,0,0"/>
+
+                                    <Button
+                                    Grid.Row="0"
+                                    Grid.Column="1"
+                                    Style="{StaticResource FlatToolButton}"
+                                    Width="Auto"
+                                    Height="Auto"
+                                    Margin="3,3,3,3"
+                                    HorizontalAlignment="Center"
+                                    ToolTip="Select Rings Texture File"
+                                    Command="{Binding WorldGlobeModel.Rings.SelectTextureFileCommand}">
+
+                                        <materialDesign:PackIcon Kind="FileImageAddOutline"
+                                            Width="36"
+                                            Height="36"
+                                            Opacity="0.7"/>
+                                        
+                                    </Button>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0"
+                                           Text="Enable Rings"
+                                           VerticalAlignment="Center"
+                                           Margin="10,10,0,0"/>
+
+                                    <CheckBox Grid.Row="1" Grid.Column="1"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center"
+                                      Margin="0,10,0,0"
+                                      IsChecked="{Binding WorldGlobeModel.Rings.Enabled, Mode=TwoWay}"
+                                      Style="{StaticResource ToggleSwitchStyle}"
+                                      shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0"
+                                       Text="Inner Radius"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                    <controls:NumericUpDown Grid.Row="2" Grid.Column="1"
+                                        Value="{Binding WorldGlobeModel.Rings.InnerRadiusScale}"
+                                        Minimum="1.01"
+                                        Maximum="9.99"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"/>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0"
+                                       Text="Outer Radius"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                    <controls:NumericUpDown Grid.Row="3" Grid.Column="1"
+                                        Value="{Binding WorldGlobeModel.Rings.OuterRadiusScale}"
+                                        Minimum="1.02"
+                                        Maximum="10.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"/>
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0"
+                                       Text="Inclination"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                    <controls:NumericUpDown Grid.Row="4" Grid.Column="1"
+                                        Value="{Binding WorldGlobeModel.Rings.Inclination}"
+                                        Minimum="-90"
+                                        Maximum="90"
+                                        Increment="0.1"
+                                        DecimalPlaces="1"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"/>
+                                </Grid>
+
+                            </StackPanel>
+                        </GroupBox>
                     </StackPanel>
 
                 </ScrollViewer>
@@ -153,6 +261,126 @@
                                              Margin="0,0,6,6"
                                              Width="100" />
 
+                                </Grid>
+
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="Planetary Rings Animation"
+                              HorizontalAlignment="Stretch"
+                              Margin="0,10,0,0">
+                            
+                            <StackPanel Margin="5">
+
+                                <Grid Margin="0,3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="140"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0"
+                                       Text="Enable Rotation"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                    <CheckBox Grid.Row="0" Grid.Column="1"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center"
+                                      Margin="0,10,0,0"
+                                      IsChecked="{Binding WorldGlobeModel.Rings.EnableRotation, Mode=TwoWay}"
+                                      Style="{StaticResource ToggleSwitchStyle}"
+                                      shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0"
+                                       Text="Rotation Rate"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                    <controls:NumericUpDown Grid.Row="1" Grid.Column="1"
+                                        Value="{Binding WorldGlobeModel.Rings.RotationRate}"
+                                        Minimum="0"
+                                        Maximum="10"
+                                        Increment="0.1"
+                                        DecimalPlaces="2"
+                                        Width="100"
+                                        Margin="0,10,0,0"
+                                        HorizontalAlignment="Left"/>
+
+                                    <TextBlock
+                                       Grid.Row="2"
+                                       Grid.Column="0"                                       
+                                       Text="Rotation Direction"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                    <StackPanel Orientation="Vertical" Grid.Row="2" Grid.Column="1" Margin="0,10,0,10">
+                                        <RadioButton Content="Prograde"
+                                             Margin="0,4"
+                                             GroupName="Rotation"
+                                             IsChecked="{Binding WorldGlobeModel.Rings.RotationDirection, Mode=TwoWay,
+                                                Converter={StaticResource EnumToBooleanConverter},
+                                             ConverterParameter={x:Static rendering:WorldRotationDirection.Prograde}}"/>
+
+                                        <RadioButton Content="Retrograde"
+                                             Margin="0,4"
+                                             GroupName="Rotation"
+                                             IsChecked="{Binding WorldGlobeModel.Rings.RotationDirection, Mode=TwoWay,
+                                                Converter={StaticResource EnumToBooleanConverter},
+                                             ConverterParameter={x:Static rendering:WorldRotationDirection.Retrograde}}"/>
+
+                                    </StackPanel>
+                                </Grid>
+
+                                <Separator Margin="10,10,10,10"/>
+
+                                <Grid Margin="0,3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="140"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0"
+                                       Text="Enable Turbulence"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                    <CheckBox Grid.Row="0" Grid.Column="1"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center"
+                                      Margin="0,10,0,0"
+                                      IsChecked="{Binding WorldGlobeModel.Rings.EnableTurbulence, Mode=TwoWay}"
+                                      Style="{StaticResource ToggleSwitchStyle}"
+                                      shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0"
+                                       Text="Intensity"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                    <controls:NumericUpDown Grid.Row="1" Grid.Column="1"
+                                        Value="{Binding WorldGlobeModel.Rings.TurbulenceIntensity}"
+                                        Minimum="0"
+                                        Maximum="1"
+                                        Increment="0.05"
+                                        DecimalPlaces="2"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"/>
                                 </Grid>
 
                             </StackPanel>

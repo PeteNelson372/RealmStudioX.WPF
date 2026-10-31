@@ -39,6 +39,15 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         private NebulaViewModel _nebulaModel;
         public NebulaViewModel NebulaModel => _nebulaModel;
 
+        private CoronaViewModel _coronaModel;
+        public CoronaViewModel CoronaModel => _coronaModel;
+
+        private SunViewModel _sunModel;
+        public SunViewModel SunModel => _sunModel;
+
+        private GasGiantViewModel _gasGiantModel;
+        public GasGiantViewModel GasGiantModel => _gasGiantModel;
+
         public WorldGlobeSceneViewModel(MainWindowViewModel mainViewModel, WorldGlobeViewer globeViewer)
         {
             _mainViewModel = mainViewModel;
@@ -50,11 +59,14 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
             _blackHoleModel = new(this);
             _nebulaModel = new(this);
+            _coronaModel = new(this);
+            _sunModel = new(this);
+            _gasGiantModel = new(this);
 
             // create the view models for sun types before the local star view model,
             // then pass the sun type view models into the local star view model
 
-            _localStarViewModel = new(_globeViewer, _blackHoleModel, _nebulaModel);
+            _localStarViewModel = new(_globeViewer, _blackHoleModel, _nebulaModel, _coronaModel, _sunModel, _gasGiantModel);
         }
 
         private string starfieldFileName = string.Empty;

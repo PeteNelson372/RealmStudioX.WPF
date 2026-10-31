@@ -373,6 +373,177 @@
                 </ScrollViewer>
             </TabItem>
 
+            <TabItem Header="Sun">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+                    <StackPanel Margin="10">
+                        <GroupBox Header="Solar Activity" HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,10,0,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                   Text="Enable Corona"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="0" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Margin="0,10,0,0"
+                                  IsChecked="{Binding SunModel.EnableCorona, Mode=TwoWay}"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                   Text="Corona Opacity"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="SunCoronaOpacityBox"
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Value="{Binding SunModel.CoronaOpacity, Mode=TwoWay}"
+                                        Minimum="0.05"
+                                        Maximum="0.30"
+                                        Increment="0.005"
+                                        DecimalPlaces="3"
+                                        Margin="0,10,0,0"
+                                        Width="100"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                   Text="Corona Rotation Speed"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="SunCoronaRotationSpeedBox"
+                                        Grid.Row="2"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Value="{Binding SunModel.CoronaRotationSpeed, Mode=TwoWay}"
+                                        Minimum="0.0"
+                                        Maximum="25.0"
+                                        Increment="0.1"
+                                        DecimalPlaces="1"
+                                        Margin="0,10,0,0"
+                                        Width="100"/>
+
+                                <TextBlock Grid.Row="3" Grid.Column="0"
+                                   Text="Prominence Loops"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="3" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Margin="0,10,0,0"
+                                  IsChecked="{Binding SunModel.EnableProminences, Mode=TwoWay}"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="4" Grid.Column="0"
+                                   Text="Solar Flares"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="4" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Margin="0,10,0,0"
+                                  IsChecked="{Binding SunModel.EnableFlares, Mode=TwoWay}"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="5" Grid.Column="0"
+                                   Text="Intensity"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="SunActivityIntensityBox"
+                                        Grid.Row="5"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Value="{Binding SunModel.ActivityIntensity, Mode=TwoWay}"
+                                        Minimum="0.0"
+                                        Maximum="2.0"
+                                        Increment="0.1"
+                                        DecimalPlaces="1"
+                                        Margin="0,10,0,0"
+                                        Width="100"/>
+
+                                <TextBlock Grid.Row="6" Grid.Column="0"
+                                   Text="Frequency (per min)"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="SunActivityFrequencyBox"
+                                    Grid.Row="6"
+                                    Grid.Column="1"
+                                    HorizontalAlignment="Left"
+                                    Value="{Binding SunModel.ActivityFrequency, Mode=TwoWay}"
+                                    Minimum="0.0"
+                                    Maximum="30.0"
+                                    Increment="1.0"
+                                    DecimalPlaces="0"
+                                    Margin="0,10,0,0"
+                                    Width="100"/>
+
+                                <TextBlock Grid.Row="7" Grid.Column="0"
+                                   Text="Geometry Scale"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="SunActivityGeometryScaleBox"
+                                        Grid.Row="7"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        Value="{Binding SunModel.ActivityGeometryScale, Mode=TwoWay}"
+                                        Minimum="0.1"
+                                        Maximum="1.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Margin="0,10,0,0"
+                                        Width="100"/>
+
+                                <TextBlock Grid.Row="8" Grid.Column="0"
+                                   Text="Thickness Scale"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="SunActivityThicknessScaleBox"
+                                        Grid.Row="8"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        Value="{Binding SunModel.ActivityThicknessScale, Mode=TwoWay}"
+                                        Minimum="0.5"
+                                        Maximum="2.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Margin="0,10,0,0"
+                                        Width="100"/>
+                            </Grid>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
             <TabItem Header="Nebula">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
 
@@ -588,6 +759,83 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
 
                     <StackPanel Margin="10">
+
+                        <GroupBox Header="Gas Giant" Height="Auto"  HorizontalAlignment="Stretch" Margin="0,10,0,0"  Padding="0,10,0,10">
+
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="0"
+                                    Text="Texture"
+                                    Foreground="#FF45443F"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Left"
+                                    Margin="10,10,0,0"/>
+
+                                <Button
+                                    Grid.Row="0"
+                                    Grid.Column="1"
+                                    Style="{StaticResource FlatToolButton}"
+                                    Width="Auto"
+                                    Height="Auto"
+                                    Margin="3,3,3,3"
+                                    HorizontalAlignment="Center"
+                                    ToolTip="Select Gas Giant Texture File"
+                                    Command="{Binding GasGiantModel.SelectTextureFileCommand}">
+
+                                    <materialDesign:PackIcon Kind="FileImageAddOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Opacity="0.7"/>
+                                </Button>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                   Text="Enable Turbulence"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="1" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Margin="0,10,0,0"
+                                  IsChecked="{Binding GasGiantModel.EnableAtmosphericTurbulence, Mode=TwoWay}"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                   Text="Turbulence Intensity"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="TurbulenceIntensityBox"
+                                        Grid.Row="2"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Value="{Binding GasGiantModel.TurbulenceIntensity, Mode=TwoWay}"
+                                        Minimum="0.0"
+                                        Maximum="1.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Margin="0,10,0,0"
+                                        Width="100"/>
+
+                            </Grid>
+
+                        </GroupBox>
+
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -596,6 +844,119 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
 
                     <StackPanel Margin="10">
+
+                        <GroupBox Header="Corona Solar Activity" HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,10,0,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                   Text="Prominence Loops"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+                                
+                                <CheckBox Grid.Row="0" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Margin="0,10,0,0"
+                                  IsChecked="{Binding CoronaModel.EnableProminences, Mode=TwoWay}"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                   Text="Solar Flares"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+                                
+                                <CheckBox Grid.Row="1" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Margin="0,10,0,0"
+                                  IsChecked="{Binding CoronaModel.EnableFlares, Mode=TwoWay}"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                   Text="Intensity"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+                                
+                                <controls:NumericUpDown x:Name="CoronaActivityIntensityBox"
+                                        Grid.Row="2"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Value="{Binding CoronaModel.ActivityIntensity, Mode=TwoWay}"
+                                        Minimum="0.0"
+                                        Maximum="2.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Margin="0,10,0,0"
+                                        Width="100"/>
+                                
+                                <TextBlock Grid.Row="3" Grid.Column="0"
+                                   Text="Frequency (per min)"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+                                
+                                <controls:NumericUpDown x:Name="CoronaActivityFrequencyBox"
+                                    Grid.Row="3"
+                                    Grid.Column="1"
+                                    HorizontalAlignment="Left"
+                                    Value="{Binding CoronaModel.ActivityFrequency, Mode=TwoWay}"
+                                    Minimum="0.0"
+                                    Maximum="30.0"
+                                    Increment="0.5"
+                                    DecimalPlaces="1"
+                                    Margin="0,10,0,0"
+                                    Width="100"/>
+
+                                <TextBlock Grid.Row="4" Grid.Column="0"
+                                   Text="Geometry Scale"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="CoronaActivityGeometryScaleBox"
+                                        Grid.Row="4"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        Value="{Binding CoronaModel.ActivityGeometryScale, Mode=TwoWay}"
+                                        Minimum="0.1"
+                                        Maximum="1.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Margin="0,10,0,0"
+                                        Width="100"/>
+
+                                <TextBlock Grid.Row="5" Grid.Column="0"
+                                   Text="Thickness Scale"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="CoronaActivityThicknessScaleBox"
+                                        Grid.Row="5"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        Value="{Binding CoronaModel.ActivityThicknessScale, Mode=TwoWay}"
+                                        Minimum="0.5"
+                                        Maximum="2.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Margin="0,10,0,0"
+                                        Width="100"/>
+                            </Grid>
+                        </GroupBox>
+
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

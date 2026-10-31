@@ -50,7 +50,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 new() { Name="World",               Icon="Earth",        MapType = RealmMapType.World },
                 new() { Name="Region",              Icon="Map",          MapType = RealmMapType.Region },
                 new() { Name="City",                Icon="City",         MapType = RealmMapType.City },
-                new() { Name="Interior Floor",      Icon="HomeCity",     MapType = RealmMapType.InteriorFloor },
+                new() { Name="Interior Floor",      Icon="FloorPlan",    MapType = RealmMapType.InteriorFloor },
                 new() { Name="Dungeon Level",       Icon="Layers",       MapType = RealmMapType.DungeonLevel },
                 new() { Name="Ship Deck",           Icon="Ferry",        MapType = RealmMapType.ShipDeck },
                 new() { Name="Solar System Body",   Icon="Orbit",        MapType = RealmMapType.SolarSystemBody },
@@ -58,12 +58,13 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             RealmTypeList.ItemsSource = new List<RealmTypeOption>
             {
-                new() { Name="World",    Icon="Earth",        RealmProjectType = RealmProjectType.World },
-                new() { Name="Region",   Icon="Map",          RealmProjectType = RealmProjectType.Region  },
-                new() { Name="City",     Icon="City",         RealmProjectType = RealmProjectType.City  },
-                new() { Name="Dungeon",  Icon="ViewList",     RealmProjectType = RealmProjectType.Dungeon },
-                new() { Name="Ship",     Icon="ViewList",     RealmProjectType = RealmProjectType.Ship  },
-                new() { Name="Interior", Icon="ViewList",     RealmProjectType = RealmProjectType.Interior },
+                new() { Name="World",       Icon="Earth",                   RealmProjectType = RealmProjectType.World },
+                new() { Name="Region",      Icon="Map",                     RealmProjectType = RealmProjectType.Region  },
+                new() { Name="City",        Icon="City",                    RealmProjectType = RealmProjectType.City  },
+                new() { Name="Dungeon",     Icon="TreasureChestOutline",    RealmProjectType = RealmProjectType.Dungeon },
+                new() { Name="Solar System",Icon="AtomVariant",             RealmProjectType = RealmProjectType.SolarSystem },
+                new() { Name="Ship",        Icon="SpaceStation",            RealmProjectType = RealmProjectType.Ship  },
+                new() { Name="Interior",    Icon="OfficeBuildingOutline",   RealmProjectType = RealmProjectType.Interior },
             };
 
             List<MapSizePreset> presets =

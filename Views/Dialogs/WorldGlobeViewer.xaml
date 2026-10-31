@@ -546,27 +546,6 @@
                                 </TreeViewItem.Header>
                             </TreeViewItem>
 
-                            <TreeViewItem IsExpanded="True" Margin="0,2,0,0" Tag="Rings">
-                                <TreeViewItem.Header>
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-
-                                        <materialDesign:PackIcon
-                                            Kind="CircleDouble"
-                                            Width="18"
-                                            Height="18"
-                                            Margin="0,0,8,0"
-                                            VerticalAlignment="Center"
-                                            Foreground="{Binding Foreground,
-                                                RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
-
-                                        <TextBlock Text="Rings"
-                                            VerticalAlignment="Center"
-                                            Foreground="{Binding Foreground,
-                                                RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
-                                    </StackPanel>
-                                </TreeViewItem.Header>
-                            </TreeViewItem>
-
                             <TreeViewItem x:Name="MoonTreeViewItem" IsExpanded="True" Margin="0,2,0,0" Tag="Moons">
                                 <TreeViewItem.Header>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">

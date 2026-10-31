@@ -1,4 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Dialogs;
@@ -37,7 +38,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
             ["Atmosphere"] = new AtmosphereTools(),
             ["Lighting"] = new LightingTools(),
             ["LocalStar"] = new LocalStarTools(),
-            ["Rings"] = new PlanetaryRingsTools(),
             ["Moons"] = new PlanetaryMoonsTools(),
             ["Effects"] = new EffectsTools(),            
         };
@@ -58,11 +58,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         private const double GlobeRotationSensitivity = 0.5;
 
-        private readonly AxisAngleRotation3D _globeAutoRotation = new(new Vector3D(0, 1, 0), 0);
-
         private const double SecondsPerRevolution = 60.0;
-
-        private bool _isGlobeRotationAnimating;
 
         private static readonly QuaternionRotation3D _globeSpinRotation = new(Quaternion.Identity);
 
@@ -103,6 +99,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
             Transform = new RotateTransform3D(_cloudSpinRotation)
         };
 
+        private PlanetaryRingSystem3D? _planetaryRingSystem;
+
         private readonly WorldGlobeAnimationController _animationController = new();
 
         private bool _isRenderingSubscribed;
@@ -114,6 +112,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
         private ILocalStarSceneObject? _localStarSceneObject;
 
         public static readonly Color DefaultSpaceColor = Color.FromRgb(5, 8, 18);
+
 
         private MainWindowViewModel _mainViewModel;
 
@@ -190,11 +189,14 @@ namespace RealmStudioX.WPF.Views.Dialogs
             _animationController.IsEnabled = enabled;
             _animationController.ResetClock();
 
-            if (enabled && IsLoaded)
+            // Camera-facing effects still need updates when animation is paused.
+            bool needsRendering = enabled || _localStarSceneObject is ICameraFacingSceneObject;
+
+            if (needsRendering && IsLoaded)
             {
                 StartRendering();
             }
-            else if (!enabled)
+            else
             {
                 StopRendering();
             }
@@ -226,12 +228,26 @@ namespace RealmStudioX.WPF.Views.Dialogs
             }
 
             _animationController.Advance(renderingArgs.RenderingTime);
+
+            // Keep camera-facing effects oriented toward the viewer.
+            UpdateCameraFacingLocalStar();
+        }
+
+        private void UpdateCameraFacingLocalStar()
+        {
+            if (_localStarSceneObject is ICameraFacingSceneObject cameraFacing)
+            {
+                Camera? camera = ModelViewer.Camera;
+                cameraFacing.UpdateCamera(camera);
+            }
         }
 
         void IWorldGlobeAnimatedObject.AdvanceAnimation(WorldGlobeAnimationFrame frame)
         {
             if (frame.DeltaSeconds <= 0.0)
                 return;
+
+            _planetaryRingSystem?.AdvanceAnimation(frame);
 
             double direction =
                 ViewModel.WorldGlobeModel.RotationDirection == WorldRotationDirection.Prograde
@@ -294,6 +310,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
             {
                 _cloudSpinRotation.Quaternion = Quaternion.Identity;
             }
+
+            _planetaryRingSystem?.ResetAnimation();
         }
 
         private void ShowHideAnimationTimeline(object sender, RoutedEventArgs e)
@@ -470,6 +488,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
                 ModelViewer.SetModel(_sceneRootModel);
             }
+
+            InitializeWorldGlobeRings();
         }
 
         private static MeshGeometry3D CreateSphereMesh(double radius = 1.0, int longitudeSegments = 128, int latitudeSegments = 64)
@@ -881,6 +901,84 @@ namespace RealmStudioX.WPF.Views.Dialogs
             return result;
         }
 
+        private void InitializeWorldGlobeRings()
+        {
+            if (_planetaryRingSystem is not null)
+                return;
+
+            PlanetaryRingSettings settings = new()
+            {
+                Enabled = false,
+                TexturePath = string.Empty
+            };
+
+            if (settings.Enabled)
+            {
+                _planetaryRingSystem = new PlanetaryRingSystem3D(
+                    LoadRingTexture(settings.TexturePath),
+                    settings);
+
+                _globeTiltGroup.Children.Add(_planetaryRingSystem.Root);
+            }
+        }
+
+        private static BitmapSource LoadRingTexture(string? texturePath)
+        {
+            BitmapImage bitmap = new();
+
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+
+            if (!string.IsNullOrWhiteSpace(texturePath) && File.Exists(texturePath))
+            {
+                bitmap.UriSource = new Uri(texturePath, UriKind.Absolute);
+            }
+            else
+            {
+                bitmap.UriSource = new Uri(
+                    "pack://application:,,,/Assets/world_globe/saturnringcolor2.jpg",
+                    UriKind.Absolute);
+            }
+
+            bitmap.EndInit();
+            bitmap.Freeze();
+
+            return bitmap;
+        }
+
+        public void UpdateWorldGlobeRings(PlanetaryRingSettings settings)
+        {
+            if (_planetaryRingSystem is null)
+            {
+                if (!settings.Enabled)
+                    return;
+
+                _planetaryRingSystem = new PlanetaryRingSystem3D(
+                    LoadRingTexture(settings.TexturePath),
+                    settings);
+
+                _globeTiltGroup.Children.Add(_planetaryRingSystem.Root);
+                return;
+            }
+
+            BitmapSource? texture = null;
+
+            if (_planetaryRingSystem.IsTextureChanged(settings.TexturePath))
+                texture = LoadRingTexture(settings.TexturePath);
+
+            _planetaryRingSystem.UpdateSettings(settings, texture);
+
+            if (settings.Enabled)
+            {
+                if (!_globeTiltGroup.Children.Contains(_planetaryRingSystem.Root))
+                    _globeTiltGroup.Children.Add(_planetaryRingSystem.Root);
+            }
+            else
+            {
+                _globeTiltGroup.Children.Remove(_planetaryRingSystem.Root);
+            }
+        }
+
         private void ExitHandler()
         {
             Close();
@@ -911,13 +1009,17 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 case LocalStarType.Sun:
                     _localStarSceneObject = new SunLocalStarSceneObject(star, UnitSphereMesh);
                     break;
-
                 case LocalStarType.Nebula:
                     _localStarSceneObject = new NebulaLocalStarSceneObject(star, UnitSphereMesh);
                     break;
-
                 case LocalStarType.BlackHole:
                     _localStarSceneObject = new BlackHoleLocalStarSceneObject(star, UnitSphereMesh);
+                    break;
+                case LocalStarType.Corona:
+                    _localStarSceneObject = new CoronaLocalStarSceneObject(star, UnitSphereMesh);
+                    break;
+                case LocalStarType.GasGiant:
+                    _localStarSceneObject = new GasGiantLocalStarSceneObject(star, UnitSphereMesh);
                     break;
 
                 // Add the other scene-object implementations here
@@ -934,6 +1036,13 @@ namespace RealmStudioX.WPF.Views.Dialogs
             _sceneRootModel.Children.Add(_localStarSceneObject.Root);
 
             ModelViewer.SetModel(_sceneRootModel, fitCamera: false);
+
+            UpdateCameraFacingLocalStar();
+
+            if (!ViewModel.EnableAnimation && _localStarSceneObject is ICameraFacingSceneObject)
+            {
+                StartRendering();
+            }
         }
 
         public void UpdateLocalStar(LocalStar star)
@@ -964,6 +1073,11 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             _sceneRootModel.Children.Remove(_localStarSceneObject.Root);
             _localStarSceneObject = null;
+
+            if (!ViewModel.EnableAnimation)
+            {
+                StopRendering();
+            }
 
             ModelViewer.SetModel(_sceneRootModel, fitCamera: false);
         }

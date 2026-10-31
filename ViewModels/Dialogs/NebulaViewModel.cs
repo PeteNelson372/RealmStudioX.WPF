@@ -4,8 +4,7 @@ using RealmStudioX.WPF.ViewModels.Infrastructure;
 
 namespace RealmStudioX.WPF.ViewModels.Dialogs
 {
-    public class NebulaViewModel(
-        WorldGlobeSceneViewModel globeSceneViewModel) : ViewModelBase
+    public class NebulaViewModel(WorldGlobeSceneViewModel globeSceneViewModel) : ViewModelBase
     {
         private readonly WorldGlobeSceneViewModel _globeSceneViewModel = globeSceneViewModel
             ?? throw new ArgumentNullException(nameof(globeSceneViewModel));

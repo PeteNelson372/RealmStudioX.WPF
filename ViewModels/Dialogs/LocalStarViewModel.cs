@@ -1,6 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
-using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Dialogs;
 using RealmStudioX.WPF.WorldGlobe;
 using System.Windows.Input;
@@ -11,13 +10,24 @@ using Color = System.Windows.Media.Color;
 
 namespace RealmStudioX.WPF.ViewModels.Dialogs
 {
-    public class LocalStarViewModel(WorldGlobeViewer globeViewer, BlackHoleViewModel blackHoleModel, NebulaViewModel nebulaModel) : ViewModelBase
+    public class LocalStarViewModel(WorldGlobeViewer globeViewer,
+        BlackHoleViewModel blackHoleModel,
+        NebulaViewModel nebulaModel,
+        CoronaViewModel coronaModel,
+        SunViewModel sunModel,
+        GasGiantViewModel gasGiantModel) : ViewModelBase
     {
         private WorldGlobeViewer _globeViewer = globeViewer;
 
         private BlackHoleViewModel _blackHoleModel = blackHoleModel;
 
         private NebulaViewModel _nebulaModel = nebulaModel;
+
+        private CoronaViewModel _coronaModel = coronaModel;
+
+        private SunViewModel _sunModel = sunModel;
+
+        private GasGiantViewModel _gasGiantModel = gasGiantModel;
 
         public IReadOnlyList<LocalStarType> LocalStarTypes { get; } = Enum.GetValues<LocalStarType>();
 
@@ -292,6 +302,43 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                     DriftSpeed = _nebulaModel.DriftSpeed
                 };
 
+            }
+            else if (star.StarImageType == LocalStarType.Corona)
+            {
+                star.LocalStarDetailSettings = new CoronaSettings
+                {
+                    ActivityIntensity = _coronaModel.ActivityIntensity,
+                    EnableFlares = _coronaModel.EnableFlares,
+                    EnableProminences = _coronaModel.EnableProminences,
+                    ActivityGeometryScale = _coronaModel.ActivityGeometryScale,
+                    ActivityThicknessScale = _coronaModel.ActivityThicknessScale,
+                };
+            }
+            else if (star.StarImageType == LocalStarType.Sun)
+            {
+                star.LocalStarDetailSettings = new SunSettings
+                {
+                    EnableCorona = _sunModel.EnableCorona,
+                    CoronaOpacity = _sunModel.CoronaOpacity,
+                    CoronaRotationSpeed = _sunModel.CoronaRotationSpeed,
+
+                    EnableProminences = _sunModel.EnableProminences,
+                    EnableFlares = _sunModel.EnableFlares,
+                    ActivityIntensity = _sunModel.ActivityIntensity,
+                    ActivityFrequency = _sunModel.ActivityFrequency,
+                    ActivityGeometryScale = _sunModel.ActivityGeometryScale,
+                    ActivityThicknessScale = _sunModel.ActivityThicknessScale,
+                };
+            }
+            else if (star.StarImageType == LocalStarType.GasGiant)
+            {
+                star.LocalStarDetailSettings = new GasGiantSettings
+                {
+                    TexturePath = _gasGiantModel.TexturePath,
+                    EnableAtmosphericTurbulence = _gasGiantModel.EnableAtmosphericTurbulence,
+                    TurbulenceIntensity = _gasGiantModel.TurbulenceIntensity,
+                    RingSettings = _gasGiantModel.Rings.Settings.Clone()
+                };
             }
 
         }
