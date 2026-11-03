@@ -1,6 +1,7 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
+using RealmStudioX.WPF.Views.Celestial;
 using RealmStudioX.WPF.Views.Dialogs;
 using RealmStudioX.WPF.WorldGlobe;
 
@@ -14,17 +15,35 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
         public PlanetaryRingViewModel Rings { get; }
 
+        private readonly CelestialBodyAnimation _ringRotationAnimation = new()
+        {
+            AnimationType = CelestialBodyAnimationType.BasicRotation,
+            Enabled = true,
+            Settings = new BasicRotationSettings()
+        };
+
+        private readonly CelestialBodyAnimation _ringTurbulenceAnimation = new()
+        {
+            AnimationType = CelestialBodyAnimationType.RingTurbulenceActivity,
+            Enabled = false,
+            Settings = new RingTurbulenceSettings()
+        };
+
         public WorldGlobeViewModel(MainWindowViewModel mainViewModel, WorldGlobeViewer globeViewer)
         {
             _mainViewModel = mainViewModel;
             _globeViewer = globeViewer;
 
-            Rings = new PlanetaryRingViewModel(_ringSettings, UpdateRingSettings);
+            Rings = new PlanetaryRingViewModel(
+                _ringSettings,
+                _ringRotationAnimation,
+                _ringTurbulenceAnimation,
+                UpdateRingSettings);
         }
 
         private void UpdateRingSettings()
         {
-            _globeViewer.UpdateWorldGlobeRings(_ringSettings);
+            _globeViewer.UpdateWorldGlobeRings(_ringSettings, _ringRotationAnimation, _ringTurbulenceAnimation);
         }
 
 

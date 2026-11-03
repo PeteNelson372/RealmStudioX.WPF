@@ -193,6 +193,9 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 _customCloudTexturePath = dialog.FileName;
                 UseCustomCloudTexture = true;
 
+                LoadCustomCloudTexture();
+                _globeViewer.RefreshCloudLayer();
+
                 string? directory = Path.GetDirectoryName(dialog.FileName);
 
                 if (!string.IsNullOrEmpty(directory))

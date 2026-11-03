@@ -179,7 +179,10 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
         public ICommand ClearTextureCommand => new RelayCommand(() =>
         {
-            _modelViewer.ClearModel();
+            // reset the world globe to the default texture
+            // created from the selected map
+
+            _globeViewer.CreateGlobe();
         });
 
         public ICommand ResetCameraCommand => new RelayCommand(() =>

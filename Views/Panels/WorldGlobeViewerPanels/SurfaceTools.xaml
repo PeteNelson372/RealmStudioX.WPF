@@ -103,27 +103,6 @@
                 </ScrollViewer>
             </TabItem>
 
-            <!-- Animation properties -->
-            <TabItem Header="Animation">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-
-                    <StackPanel Margin="10">
-
-                        <TextBlock
-                            Text="Animation Settings"
-                            FontWeight="SemiBold"
-                            Margin="0,0,0,6" />
-
-                        <TextBlock
-                            Text="Rotation, orbit, timing, and keyframe settings will appear here."
-                            TextWrapping="Wrap"
-                            Foreground="#FF77736D" />
-
-                    </StackPanel>
-
-                </ScrollViewer>
-            </TabItem>
-
         </TabControl>
     </Grid>
 </UserControl>

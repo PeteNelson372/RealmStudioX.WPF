@@ -34,6 +34,10 @@ internal sealed class GasGiantLocalStarSceneObject : ILocalStarSceneObject, IWor
 
     private readonly GasGiantAtmosphereEffect3D _atmosphereEffect;
 
+    //private PlanetaryRingSystem3D? _planetaryRingSystem;
+
+    private PlanetaryRingSettings _ringSettings = new();
+
     public Model3DGroup Root { get; } = new();
 
     public LocalStarType Type => LocalStarType.GasGiant;
@@ -62,8 +66,6 @@ internal sealed class GasGiantLocalStarSceneObject : ILocalStarSceneObject, IWor
                 star.Radius,
                 star.RotationQuaternion)
         };
-
-        _positionGroup.Children.Add(_gasGiantSurface);
 
         _atmosphereEffect = new GasGiantAtmosphereEffect3D(
             _unitSphereMesh,
@@ -109,9 +111,14 @@ internal sealed class GasGiantLocalStarSceneObject : ILocalStarSceneObject, IWor
             settings.EnableAtmosphericTurbulence,
             settings.TurbulenceIntensity);
 
-        ApplySurfaceTransform();
-
         UpdateSurfaceTexture(settings.TexturePath, star.StarColor);
+
+        PlanetaryRingSettings ringSettings = settings.RingSettings.Clone();
+
+        //ringSettings.RotationRate = _rotationRate;
+        //ringSettings.RotationDirection = _rotationDirection;
+
+        UpdatePlanetaryRings(star, ringSettings);
 
         ApplySurfaceTransform();
     }
@@ -183,6 +190,76 @@ internal sealed class GasGiantLocalStarSceneObject : ILocalStarSceneObject, IWor
         _surfaceMaterial.Brush = surfaceBrush;
     }
 
+    private void UpdatePlanetaryRings(LocalStar star, PlanetaryRingSettings settings)
+    {
+        /*
+        if (_planetaryRingSystem is null)
+        {
+            if (!settings.Enabled)
+                return;
+
+            _planetaryRingSystem = new PlanetaryRingSystem3D(
+                LoadRingTexture(settings.TexturePath),
+                settings,
+                star.Radius);
+
+            _positionGroup.Children.Add(_planetaryRingSystem.Root);
+            _ringSettings = settings.Clone();
+
+            return;
+        }
+
+        BitmapSource? texture = null;
+
+        if (!string.Equals(
+            _ringSettings.TexturePath,
+            settings.TexturePath,
+            StringComparison.OrdinalIgnoreCase))
+        {
+            texture = LoadRingTexture(settings.TexturePath);
+        }
+
+        _planetaryRingSystem.UpdateSettings(settings, texture, star.Radius);
+
+        _ringSettings = settings.Clone();
+
+        if (settings.Enabled)
+        {
+            if (!_positionGroup.Children.Contains(_planetaryRingSystem.Root))
+                _positionGroup.Children.Add(_planetaryRingSystem.Root);
+        }
+        else
+        {
+            _positionGroup.Children.Remove(_planetaryRingSystem.Root);
+        }
+        */
+    }
+
+    private static BitmapSource LoadRingTexture(string? texturePath)
+    {
+        BitmapImage bitmap = new();
+
+        bitmap.BeginInit();
+        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+
+        if (!string.IsNullOrWhiteSpace(texturePath) &&
+            File.Exists(texturePath))
+        {
+            bitmap.UriSource = new Uri(texturePath, UriKind.Absolute);
+        }
+        else
+        {
+            bitmap.UriSource = new Uri(
+                "pack://application:,,,/Assets/world_globe/saturnringcolor2.jpg",
+                UriKind.Absolute);
+        }
+
+        bitmap.EndInit();
+        bitmap.Freeze();
+
+        return bitmap;
+    }
+
     private static Brush CreateFallbackBrush(Color color)
     {
         SolidColorBrush brush = new(color);
@@ -244,6 +321,8 @@ internal sealed class GasGiantLocalStarSceneObject : ILocalStarSceneObject, IWor
 
         // The atmosphere has its own animation, independent of surface speed.
         _atmosphereEffect.AdvanceAnimation(frame);
+
+        //_planetaryRingSystem?.AdvanceAnimation(frame);
     }
 
     public void ResetAnimation()
@@ -253,5 +332,7 @@ internal sealed class GasGiantLocalStarSceneObject : ILocalStarSceneObject, IWor
         ApplySurfaceTransform();
 
         _atmosphereEffect.ResetAnimation();
+
+        //_planetaryRingSystem?.ResetAnimation();
     }
 }

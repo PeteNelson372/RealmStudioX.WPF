@@ -1,7 +1,9 @@
-﻿using RealmStudioShapeRenderingLib;
+﻿
+using RealmStudioShapeRenderingLib;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
+using RealmStudioX.WPF.Views.Celestial;
 using RealmStudioX.WPF.WorldGlobe;
 using System.IO;
 using System.Windows.Input;
@@ -15,9 +17,49 @@ public sealed class PlanetaryRingViewModel : ViewModelBase
 
     public PlanetaryRingSettings Settings { get; }
 
-    public PlanetaryRingViewModel(PlanetaryRingSettings settings, Action? settingsChanged = null)
+    public CelestialBodyAnimation RotationAnimation { get; }
+
+    public CelestialBodyAnimation TurbulenceAnimation { get; }
+
+    private BasicRotationSettings RotationSettings =>
+        (BasicRotationSettings)RotationAnimation.Settings!;
+
+    private RingTurbulenceSettings TurbulenceSettings =>
+        (RingTurbulenceSettings)TurbulenceAnimation.Settings!;
+
+    public PlanetaryRingViewModel(
+        PlanetaryRingSettings settings,
+        CelestialBodyAnimation rotationAnimation,
+        CelestialBodyAnimation turbulenceAnimation,
+        Action? settingsChanged = null)
     {
         Settings = settings ?? throw new ArgumentNullException(nameof(settings));
+
+        RotationAnimation = rotationAnimation
+            ?? throw new ArgumentNullException(nameof(rotationAnimation));
+
+        TurbulenceAnimation = turbulenceAnimation
+            ?? throw new ArgumentNullException(nameof(turbulenceAnimation));
+
+        if (RotationAnimation.AnimationType != CelestialBodyAnimationType.BasicRotation)
+            throw new ArgumentException(
+                "The rotation animation must be BasicRotation.",
+                nameof(rotationAnimation));
+
+        if (TurbulenceAnimation.AnimationType != CelestialBodyAnimationType.RingTurbulenceActivity)
+            throw new ArgumentException(
+                "The turbulence animation must be RingTurbulenceActivity.",
+                nameof(turbulenceAnimation));
+
+        RotationAnimation.Settings ??= new BasicRotationSettings();
+        TurbulenceAnimation.Settings ??= new RingTurbulenceSettings();
+
+        if (RotationAnimation.Settings is not BasicRotationSettings ||
+            TurbulenceAnimation.Settings is not RingTurbulenceSettings)
+        {
+            throw new ArgumentException("The supplied animation settings have incompatible types.");
+        }
+
         _settingsChanged = settingsChanged;
     }
 
@@ -64,7 +106,8 @@ public sealed class PlanetaryRingViewModel : ViewModelBase
 
     public ICommand SelectTextureFileCommand => new RelayCommand(() =>
     {
-        string textureDirectory = Path.Combine(ApplicationPreferences.Current.RootAssetDirectory,
+        string textureDirectory = Path.Combine(
+            ApplicationPreferences.Current.RootAssetDirectory,
             "Textures",
             "Planet");
 
@@ -80,9 +123,7 @@ public sealed class PlanetaryRingViewModel : ViewModelBase
         };
 
         if (dialog.ShowDialog() == true)
-        {
             TexturePath = dialog.FileName;
-        }
     });
 
     public ICommand ClearTextureCommand => new RelayCommand(() =>
@@ -170,13 +211,13 @@ public sealed class PlanetaryRingViewModel : ViewModelBase
 
     public bool EnableRotation
     {
-        get => Settings.EnableRotation;
+        get => RotationAnimation.Enabled;
         set
         {
-            if (Settings.EnableRotation == value)
+            if (RotationAnimation.Enabled == value)
                 return;
 
-            Settings.EnableRotation = value;
+            RotationAnimation.Enabled = value;
             OnPropertyChanged();
             NotifySettingsChanged();
         }
@@ -187,20 +228,17 @@ public sealed class PlanetaryRingViewModel : ViewModelBase
 
     public double RotationRate
     {
-        get => Settings.RotationRate;
+        get => RotationSettings.RotationRate;
         set
         {
             value = double.IsFinite(value)
-                ? Math.Clamp(
-                    value,
-                    MinimumRotationRate,
-                    MaximumRotationRate)
+                ? Math.Clamp(value, MinimumRotationRate, MaximumRotationRate)
                 : 1.0;
 
-            if (Settings.RotationRate == value)
+            if (RotationSettings.RotationRate == value)
                 return;
 
-            Settings.RotationRate = value;
+            RotationSettings.RotationRate = value;
             OnPropertyChanged();
             NotifySettingsChanged();
         }
@@ -208,13 +246,13 @@ public sealed class PlanetaryRingViewModel : ViewModelBase
 
     public WorldRotationDirection RotationDirection
     {
-        get => Settings.RotationDirection;
+        get => RotationSettings.RotationDirection;
         set
         {
-            if (Settings.RotationDirection == value)
+            if (RotationSettings.RotationDirection == value)
                 return;
 
-            Settings.RotationDirection = value;
+            RotationSettings.RotationDirection = value;
             OnPropertyChanged();
             NotifySettingsChanged();
         }
@@ -226,13 +264,13 @@ public sealed class PlanetaryRingViewModel : ViewModelBase
 
     public bool EnableTurbulence
     {
-        get => Settings.EnableTurbulence;
+        get => TurbulenceAnimation.Enabled;
         set
         {
-            if (Settings.EnableTurbulence == value)
+            if (TurbulenceAnimation.Enabled == value)
                 return;
 
-            Settings.EnableTurbulence = value;
+            TurbulenceAnimation.Enabled = value;
             OnPropertyChanged();
             NotifySettingsChanged();
         }
@@ -243,7 +281,7 @@ public sealed class PlanetaryRingViewModel : ViewModelBase
 
     public double TurbulenceIntensity
     {
-        get => Settings.TurbulenceIntensity;
+        get => TurbulenceSettings.Intensity;
         set
         {
             value = double.IsFinite(value)
@@ -253,10 +291,10 @@ public sealed class PlanetaryRingViewModel : ViewModelBase
                     MaximumTurbulenceIntensity)
                 : 0.2;
 
-            if (Settings.TurbulenceIntensity == value)
+            if (TurbulenceSettings.Intensity == value)
                 return;
 
-            Settings.TurbulenceIntensity = value;
+            TurbulenceSettings.Intensity = value;
             OnPropertyChanged();
             NotifySettingsChanged();
         }

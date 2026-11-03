@@ -1,9 +1,9 @@
 ﻿using RealmStudioShapeRenderingLib;
-using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Dialogs;
 using RealmStudioX.WPF.ViewModels.Main;
+using RealmStudioX.WPF.Views.Celestial;
 using RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels;
 using RealmStudioX.WPF.WorldGlobe;
 using SkiaSharp;
@@ -24,7 +24,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
     /// <summary>
     /// Interaction logic for WorldGlobeViewer.xaml
     /// </summary>
-    public partial class WorldGlobeViewer :  ModelessDialog, IWorldGlobeAnimatedObject
+    public partial class WorldGlobeViewer : ModelessDialog, IWorldGlobeAnimatedObject
     {
         public override string WindowId { get; } = Guid.NewGuid().ToString();
 
@@ -39,7 +39,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             ["Lighting"] = new LightingTools(),
             ["LocalStar"] = new LocalStarTools(),
             ["Moons"] = new PlanetaryMoonsTools(),
-            ["Effects"] = new EffectsTools(),            
+            ["Effects"] = new EffectsTools(),
         };
 
         public static readonly int[] SupportedFrameRates =
@@ -58,18 +58,13 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         private const double GlobeRotationSensitivity = 0.5;
 
-        private const double SecondsPerRevolution = 60.0;
 
-        private static readonly QuaternionRotation3D _globeSpinRotation = new(Quaternion.Identity);
-
-        private readonly Model3DGroup _globeSpinGroup = new()
-        {
-            Transform = new RotateTransform3D(_globeSpinRotation)
-        };
+        // Retained as a scene-graph grouping node. Surface rotation is
+        // now handled by PlanetCelestialBodyRenderer.
+        private readonly Model3DGroup _globeSpinGroup = new();
 
         private Model3DGroup? _globeBody;
         public Model3DGroup? GlobeBody => _globeBody;
-        private GeometryModel3D? _globeSurfaceModel;
 
         private readonly AxisAngleRotation3D _globeTiltRotation = new(new Vector3D(1, 0, 0), 0);
 
@@ -78,28 +73,16 @@ namespace RealmStudioX.WPF.Views.Dialogs
         private readonly Transform3DGroup _globeTransform = new();
         public Transform3DGroup GlobeTransform => _globeTransform;
 
-        private const double CloudSphereRadius = 1.003;
-
-        // Original bitmap and its processed version.
+        // Cloud texture processing remains in the viewer; the actual cloud
+        // geometry and animation belong to the celestial-body attachment.
         private BitmapSource? _cloudSourceTexture;
         private BitmapSource? _tintedCloudTexture;
         private Color? _tintedCloudColor;
-
-        // Cloud sphere and its texture brush.
-        private GeometryModel3D? _cloudSurfaceModel;
-        private ImageBrush? _cloudTextureBrush;
-
-        // Independent cloud rotation.
-        private double _cloudSpinAngle;
-
-        private static readonly QuaternionRotation3D _cloudSpinRotation = new(Quaternion.Identity);
-
-        private readonly Model3DGroup _cloudSpinGroup = new()
-        {
-            Transform = new RotateTransform3D(_cloudSpinRotation)
-        };
-
-        private PlanetaryRingSystem3D? _planetaryRingSystem;
+        private double? _tintedCloudOpacity;
+        private CelestialBodyAttachment? _cloudLayerAttachment;
+        private CelestialBodyAttachment? _planetaryRingsAttachment;
+        private BitmapSource? _planetaryRingTexture;
+        private string? _loadedPlanetaryRingTexturePath;
 
         private readonly WorldGlobeAnimationController _animationController = new();
 
@@ -110,6 +93,12 @@ namespace RealmStudioX.WPF.Views.Dialogs
         private readonly Model3DGroup _sceneRootModel = new();
 
         private ILocalStarSceneObject? _localStarSceneObject;
+
+        private CelestialSystem? _celestialSystem;
+        private CelestialSystemRenderer? _celestialSystemRenderer;
+        private CelestialBody? _worldBody;
+
+        private BitmapSource? _worldTextureSource;
 
         public static readonly Color DefaultSpaceColor = Color.FromRgb(5, 8, 18);
 
@@ -242,76 +231,43 @@ namespace RealmStudioX.WPF.Views.Dialogs
             }
         }
 
-        void IWorldGlobeAnimatedObject.AdvanceAnimation(WorldGlobeAnimationFrame frame)
+        void IWorldGlobeAnimatedObject.AdvanceAnimation(
+            WorldGlobeAnimationFrame frame)
         {
             if (frame.DeltaSeconds <= 0.0)
                 return;
 
-            _planetaryRingSystem?.AdvanceAnimation(frame);
+            CelestialBodyAnimation? rotationAnimation =
+                _worldBody?.Animations.FirstOrDefault(animation =>
+                    animation.AnimationType ==
+                    CelestialBodyAnimationType.BasicRotation);
 
-            double direction =
-                ViewModel.WorldGlobeModel.RotationDirection == WorldRotationDirection.Prograde
-                    ? 1.0
-                    : -1.0;
-
-            double rotationRate = Math.Clamp(
-                ViewModel.WorldGlobeModel.RotationRate,
-                0.1,
-                10.0);
-
-            double degreesPerSecond =
-                360.0 / SecondsPerRevolution * rotationRate;
-
-            _globeSpinAngle +=
-                direction * degreesPerSecond * frame.DeltaSeconds;
-
-            _globeSpinAngle %= 360.0;
-
-            if (_globeSpinAngle < 0.0)
-                _globeSpinAngle += 360.0;
-
-            _globeSpinRotation.Quaternion = new Quaternion(
-                new Vector3D(0, 1, 0),
-                _globeSpinAngle);
-
-            // Animate the cloud layer independently of the globe surface.
-            if (_cloudSpinRotation is not null && ViewModel.AtmosphereModel.EnableClouds)
+            if (rotationAnimation?.Settings is BasicRotationSettings settings)
             {
-                double cloudRotationRate = Math.Clamp(
-                    ViewModel.AtmosphereModel.CloudRotationRate,
-                    0.1,
-                    10.0);
+                settings.RotationRate =
+                    ViewModel.WorldGlobeModel.RotationRate;
 
-                double cloudDegreesPerSecond =
-                    360.0 / SecondsPerRevolution * cloudRotationRate;
-
-                _cloudSpinAngle +=
-                    direction * cloudDegreesPerSecond * frame.DeltaSeconds;
-
-                _cloudSpinAngle %= 360.0;
-
-                if (_cloudSpinAngle < 0.0)
-                    _cloudSpinAngle += 360.0;
-
-                _cloudSpinRotation.Quaternion = new Quaternion(
-                    new Vector3D(0, 1, 0),
-                    _cloudSpinAngle);
+                settings.RotationDirection =
+                    ViewModel.WorldGlobeModel.RotationDirection;
             }
+
+            CelestialBodyAnimation? cloudRotationAnimation =
+                _cloudLayerAttachment?.Animations.FirstOrDefault(
+                    animation => animation.AnimationType ==
+                                 CelestialBodyAnimationType.BasicRotation);
+
+            if (cloudRotationAnimation?.Settings is BasicRotationSettings cloudSettings)
+            {
+                cloudSettings.RotationDirection =
+                    ViewModel.WorldGlobeModel.RotationDirection;
+            }
+
+            _celestialSystemRenderer?.AdvanceAnimation(frame);
         }
 
         void IWorldGlobeAnimatedObject.ResetAnimation()
         {
-            _globeSpinAngle = 0.0;
-            _globeSpinRotation.Quaternion = Quaternion.Identity;
-
-            _cloudSpinAngle = 0.0;
-
-            if (_cloudSpinRotation is not null)
-            {
-                _cloudSpinRotation.Quaternion = Quaternion.Identity;
-            }
-
-            _planetaryRingSystem?.ResetAnimation();
+            _celestialSystemRenderer?.ResetAnimation();
         }
 
         private void ShowHideAnimationTimeline(object sender, RoutedEventArgs e)
@@ -425,71 +381,103 @@ namespace RealmStudioX.WPF.Views.Dialogs
             ArgumentNullException.ThrowIfNull(worldTexture);
 
             if (worldTexture.ToImageSource() is not BitmapSource bitmapSource)
-            {
                 return;
-            }
 
-            ImageBrush textureBrush = new(bitmapSource)
+            _worldTextureSource = bitmapSource;
+
+            // Create the celestial system only once.
+            if (_celestialSystem is null)
             {
-                Stretch = Stretch.Fill
-            };
-
-            textureBrush.Freeze();
-
-            DiffuseMaterial material = new(textureBrush);
-            material.Freeze();
-
-            if (_globeSurfaceModel is null)
-            {
-                _globeSurfaceModel = new GeometryModel3D
+                // create the world globe and its basic rotation animation
+                _worldBody = new CelestialBody
                 {
-                    Geometry = CreateSphereMesh(),
-                    Material = material,
-                    BackMaterial = material
+                    Name = "World",
+                    Description = "The world represented by this globe.",
+                    Radius = 1.0,
+                    BaseColor = Colors.White,
+                    RendererType = CelestialBodyRendererType.Planet,
+                    TextureSource = new CelestialTextureSource
+                    {
+                        SourceType = CelestialTextureSourceType.RealmMap
+                    }
                 };
 
-                // Attach the surface to the independently rotating group.
-                _globeSpinGroup.Children.Add(_globeSurfaceModel);
+                _worldBody.Animations.Add(new CelestialBodyAnimation
+                {
+                    AnimationType = CelestialBodyAnimationType.BasicRotation,
+                    Enabled = true,
+                    Settings = new BasicRotationSettings
+                    {
+                        RotationRate = ViewModel.WorldGlobeModel.RotationRate,
+                        RotationDirection = ViewModel.WorldGlobeModel.RotationDirection
+                    }
+                });
+
+                // create the celestial system and add the world body to it
+
+                _celestialSystem = new CelestialSystem
+                {
+                    Name = "World",
+                    Description = "World Globe"
+                };
+
+                _celestialSystem.Bodies.Add(new CelestialBodyNode
+                    {
+                        Body = _worldBody
+                    });
+
+                // The cloud attachment is initialized from the body's current
+                // rotation settings, then maintains its own independent values.
+                EnsureCloudLayerAttachment();
+
+                _celestialSystemRenderer = new CelestialSystemRenderer(
+                    body => _worldTextureSource,
+                    attachment => attachment.Type switch
+                    {
+                        CelestialBodyAttachmentType.CloudLayer => _tintedCloudTexture,
+                        CelestialBodyAttachmentType.PlanetaryRings => _planetaryRingTexture,
+                        _ => null
+                    });
+            }
+
+            // Build the celestial scene using the current map texture.
+            Model3DGroup celestialScene =
+                _celestialSystemRenderer!.BuildScene(_celestialSystem);
+
+            // The celestial scene replaces the surface geometry inside
+            // the grouping node. Surface rotation is handled by its renderer.
+            _globeSpinGroup.Children.Clear();
+            _globeSpinGroup.Children.Add(celestialScene);
+
+            // Preserve the existing globe transform hierarchy.
+            if (_globeBody is null)
+            {
+                _globeBody = new Model3DGroup
+                {
+                    Transform = GlobeTransform
+                };
+
+                _globeTiltGroup.Transform =
+                    new RotateTransform3D(_globeTiltRotation);
+
+                _globeTiltGroup.Children.Clear();
+                _globeTiltGroup.Children.Add(_globeSpinGroup);
+
+                _globeBody.Children.Add(_globeTiltGroup);
+
+                _sceneRootModel.Children.Clear();
+                _sceneRootModel.Children.Add(_globeBody);
 
                 ModelViewer.ShowGrid(false);
                 ModelViewer.ShowBoundingBox(false);
                 ModelViewer.ShowWireframe(false);
                 ModelViewer.ShowViewCube(false);
                 ModelViewer.ShowCoordinateSystem(false);
-            }
-            else
-            {
-                // Replace the texture without rebuilding the sphere.
-                _globeSurfaceModel.Material = material;
-                _globeSurfaceModel.BackMaterial = material;
-            }
-
-            if (_globeBody is null)
-            {
-                // The parent controls manual orientation.
-                _globeBody = new Model3DGroup
-                {
-                    Transform = GlobeTransform
-                };
-
-                // The child controls automatic rotation.
-                _globeBody.Children.Add(_globeSpinGroup);
-
-                _globeTiltGroup.Transform = new RotateTransform3D(_globeTiltRotation);
-
-                _globeTiltGroup.Children.Clear();
-                _globeTiltGroup.Children.Add(_globeSpinGroup);
-
-                _globeBody.Children.Clear();
-                _globeBody.Children.Add(_globeTiltGroup);
-
-                _sceneRootModel.Children.Clear();
-                _sceneRootModel.Children.Add(_globeBody);
 
                 ModelViewer.SetModel(_sceneRootModel);
             }
 
-            InitializeWorldGlobeRings();
+            _celestialSystemRenderer.RefreshAttachments();
         }
 
         private static MeshGeometry3D CreateSphereMesh(double radius = 1.0, int longitudeSegments = 128, int latitudeSegments = 64)
@@ -627,7 +615,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
             }
         }
 
-        private double _globeSpinAngle;
         private TimeSpan? _lastRenderingTime;
 
 
@@ -646,8 +633,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
             // The globe's north axis in its local coordinate system.
             Vector3D northAxis = new(0, 1, 0);
 
-            // Apply the transforms from the globe surface outward.
-            northAxis = _globeSpinGroup.Transform.Transform(northAxis);
+            // Surface spin is around the local Y axis and therefore
+            // does not change the direction of the north axis.
             northAxis = _globeTiltGroup.Transform.Transform(northAxis);
             northAxis = GlobeTransform.Transform(northAxis);
 
@@ -675,9 +662,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
             ViewModel.WorldGlobeModel.WorldTiltAngle = 0;
             _globeTiltRotation.Angle = 0;
 
-            // Reset the automatic spin.
-            _globeSpinAngle = 0;
-            _globeSpinRotation.Quaternion = Quaternion.Identity;
+            // Reset the world's body rotation.
+            _celestialSystemRenderer?.ResetAnimation();
 
             // Restart the rendering time baseline so the next frame
             // doesn't apply an unexpectedly large time delta.
@@ -772,7 +758,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             SetCloudTexture(bitmap);
         }
-        
+
         private void SetCloudTexture(BitmapSource source)
         {
             _cloudSourceTexture = source;
@@ -780,6 +766,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             // Force regeneration when the input image changes.
             _tintedCloudTexture = null;
             _tintedCloudColor = null;
+            _tintedCloudOpacity = null;
 
             RefreshCloudLayer();
         }
@@ -790,66 +777,88 @@ namespace RealmStudioX.WPF.Views.Dialogs
             LoadCloudTexture(path);
         }
 
+        private void EnsureCloudLayerAttachment()
+        {
+            if (_worldBody is null)
+                return;
+
+            _cloudLayerAttachment = _worldBody.Attachments.FirstOrDefault(
+                attachment => attachment.Type == CelestialBodyAttachmentType.CloudLayer);
+
+            if (_cloudLayerAttachment is not null)
+                return;
+
+            _cloudLayerAttachment = new CelestialBodyAttachment
+            {
+                Name = "Cloud Layer",
+                Description = "A rotating cloud layer surrounding the world.",
+                Type = CelestialBodyAttachmentType.CloudLayer,
+                Enabled = ViewModel.AtmosphereModel.EnableClouds
+            };
+
+            _cloudLayerAttachment.Animations.Add(new CelestialBodyAnimation
+            {
+                AnimationType = CelestialBodyAnimationType.BasicRotation,
+                Enabled = true,
+                Settings = new BasicRotationSettings
+                {
+                    RotationRate = Math.Clamp(
+                        ViewModel.AtmosphereModel.CloudRotationRate, 0.0, 10.0),
+                    RotationDirection = WorldRotationDirection.Prograde
+                }
+            });
+
+            _worldBody.Attachments.Add(_cloudLayerAttachment);
+        }
+
         public void RefreshCloudLayer()
         {
-            if (_cloudSourceTexture is null)
+            EnsureCloudLayerAttachment();
+
+            if (_cloudLayerAttachment is null)
                 return;
 
-            Color cloudColor = ViewModel.AtmosphereModel.CloudColor;
+            _cloudLayerAttachment.Enabled =
+                ViewModel.AtmosphereModel.EnableClouds;
 
-            if (_tintedCloudTexture is null ||
-                _tintedCloudColor != cloudColor)
+            double cloudOpacity = Math.Clamp(
+                ViewModel.AtmosphereModel.CloudOpacity, 0.0, 1.0);
+
+            CelestialBodyAnimation? rotationAnimation =
+                _cloudLayerAttachment.Animations.FirstOrDefault(
+                    animation =>
+                        animation.AnimationType ==
+                        CelestialBodyAnimationType.BasicRotation);
+
+            if (rotationAnimation?.Settings is BasicRotationSettings rotationSettings)
             {
-                _tintedCloudTexture = CreateTintedCloudTexture(_cloudSourceTexture, cloudColor);
-
-                _tintedCloudColor = cloudColor;
+                rotationSettings.RotationRate = Math.Clamp(
+                    ViewModel.AtmosphereModel.CloudRotationRate, 0.0, 10.0);
             }
 
-            EnsureCloudSurfaceModel();
-
-            _cloudTextureBrush!.ImageSource = _tintedCloudTexture;
-
-            _cloudTextureBrush.Opacity = Math.Clamp(ViewModel.AtmosphereModel.CloudOpacity, 0.0, 1.0);
-
-            bool enabled = ViewModel.AtmosphereModel.EnableClouds;
-            bool inScene = _globeTiltGroup.Children.Contains(_cloudSpinGroup);
-
-            if (enabled && !inScene)
+            if (_cloudSourceTexture is not null)
             {
-                _globeTiltGroup.Children.Add(_cloudSpinGroup);
+                Color cloudColor = ViewModel.AtmosphereModel.CloudColor;
+
+                if (_tintedCloudTexture is null ||
+                    _tintedCloudColor != cloudColor ||
+                    _tintedCloudOpacity != cloudOpacity)
+                {
+                    _tintedCloudTexture = CreateTintedCloudTexture(
+                        _cloudSourceTexture, cloudColor, cloudOpacity);
+
+                    _tintedCloudColor = cloudColor;
+                    _tintedCloudOpacity = cloudOpacity;
+                }
             }
-            else if (!enabled && inScene)
-            {
-                _globeTiltGroup.Children.Remove(_cloudSpinGroup);
-            }
+
+            _celestialSystemRenderer?.RefreshAttachments();
         }
 
-        private void EnsureCloudSurfaceModel()
-        {
-            if (_cloudSurfaceModel is not null)
-                return;
-
-            // The brush must remain mutable because its image and
-            // opacity will change as the user adjusts the settings.
-            _cloudTextureBrush = new ImageBrush
-            {
-                Stretch = Stretch.Fill,
-                Opacity = 1.0
-            };
-
-            DiffuseMaterial cloudMaterial = new(_cloudTextureBrush);
-
-            _cloudSurfaceModel = new GeometryModel3D
-            {
-                Geometry = CreateSphereMesh(CloudSphereRadius),
-                Material = cloudMaterial
-            };
-
-            // The cloud sphere rotates independently of the globe.
-            _cloudSpinGroup.Children.Add(_cloudSurfaceModel);
-        }
-
-        private static BitmapSource CreateTintedCloudTexture(BitmapSource source, Color tint)
+        private static BitmapSource CreateTintedCloudTexture(
+            BitmapSource source,
+            Color tint,
+            double opacity)
         {
             BitmapSource converted = new FormatConvertedBitmap(
                 source,
@@ -879,7 +888,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
                      0.0722 * blue) / 255.0;
 
                 byte alpha = (byte)Math.Round(
-                    sourceAlpha * brightness * 255.0);
+                    sourceAlpha * brightness * opacity * 255.0);
 
                 pixels[i] = tint.B;
                 pixels[i + 1] = tint.G;
@@ -901,83 +910,127 @@ namespace RealmStudioX.WPF.Views.Dialogs
             return result;
         }
 
-        private void InitializeWorldGlobeRings()
+        private const string DefaultRingTextureUri =
+            "pack://application:,,,/Assets/world_globe/saturnringcolor2.jpg";
+
+        private static string GetRingTexturePath(string? texturePath)
         {
-            if (_planetaryRingSystem is not null)
-                return;
-
-            PlanetaryRingSettings settings = new()
+            if (!string.IsNullOrWhiteSpace(texturePath) &&
+                File.Exists(texturePath))
             {
-                Enabled = false,
-                TexturePath = string.Empty
-            };
-
-            if (settings.Enabled)
-            {
-                _planetaryRingSystem = new PlanetaryRingSystem3D(
-                    LoadRingTexture(settings.TexturePath),
-                    settings);
-
-                _globeTiltGroup.Children.Add(_planetaryRingSystem.Root);
+                return Path.GetFullPath(texturePath);
             }
+
+            return DefaultRingTextureUri;
         }
 
         private static BitmapSource LoadRingTexture(string? texturePath)
         {
-            BitmapImage bitmap = new();
+            string resolvedPath = GetRingTexturePath(texturePath);
 
+            BitmapImage bitmap = new();
             bitmap.BeginInit();
             bitmap.CacheOption = BitmapCacheOption.OnLoad;
-
-            if (!string.IsNullOrWhiteSpace(texturePath) && File.Exists(texturePath))
-            {
-                bitmap.UriSource = new Uri(texturePath, UriKind.Absolute);
-            }
-            else
-            {
-                bitmap.UriSource = new Uri(
-                    "pack://application:,,,/Assets/world_globe/saturnringcolor2.jpg",
-                    UriKind.Absolute);
-            }
-
+            bitmap.UriSource = new Uri(resolvedPath, UriKind.Absolute);
             bitmap.EndInit();
             bitmap.Freeze();
 
             return bitmap;
         }
 
-        public void UpdateWorldGlobeRings(PlanetaryRingSettings settings)
+        private void EnsurePlanetaryRingsAttachment()
         {
-            if (_planetaryRingSystem is null)
-            {
-                if (!settings.Enabled)
-                    return;
-
-                _planetaryRingSystem = new PlanetaryRingSystem3D(
-                    LoadRingTexture(settings.TexturePath),
-                    settings);
-
-                _globeTiltGroup.Children.Add(_planetaryRingSystem.Root);
+            if (_worldBody is null)
                 return;
+
+            _planetaryRingsAttachment = _worldBody.Attachments.FirstOrDefault(
+                attachment => attachment.Type == CelestialBodyAttachmentType.PlanetaryRings);
+
+            if (_planetaryRingsAttachment is not null)
+                return;
+
+            _planetaryRingsAttachment = new CelestialBodyAttachment
+            {
+                Name = "Planetary Rings",
+                Description = "A textured ring system surrounding the world.",
+                Type = CelestialBodyAttachmentType.PlanetaryRings,
+                Enabled = false,
+                AttachmentSettings = new PlanetaryRingSettings
+                {
+                    Enabled = false,
+                    TexturePath = string.Empty
+                }
+            };
+
+            _worldBody.Attachments.Add(_planetaryRingsAttachment);
+        }
+
+
+        public void UpdateWorldGlobeRings(
+            PlanetaryRingSettings settings,
+            CelestialBodyAnimation rotationAnimation,
+            CelestialBodyAnimation turbulenceAnimation)
+        {
+            ArgumentNullException.ThrowIfNull(settings);
+            ArgumentNullException.ThrowIfNull(rotationAnimation);
+            ArgumentNullException.ThrowIfNull(turbulenceAnimation);
+
+            EnsurePlanetaryRingsAttachment();
+
+            if (_planetaryRingsAttachment is null)
+                return;
+
+            if (rotationAnimation.AnimationType != CelestialBodyAnimationType.BasicRotation)
+                throw new ArgumentException(
+                    "Expected a BasicRotation animation.",
+                    nameof(rotationAnimation));
+
+            if (turbulenceAnimation.AnimationType != CelestialBodyAnimationType.RingTurbulenceActivity)
+                throw new ArgumentException(
+                    "Expected a RingTurbulenceActivity animation.",
+                    nameof(turbulenceAnimation));
+
+            // Keep a separate settings instance for ring geometry and appearance.
+            _planetaryRingsAttachment.AttachmentSettings = settings.Clone();
+            _planetaryRingsAttachment.Enabled = settings.Enabled;
+
+            // Keep the attachment's animation collection synchronized with the
+            // animation objects owned by the view model.
+            SyncAttachmentAnimation(rotationAnimation);
+            SyncAttachmentAnimation(turbulenceAnimation);
+
+            string requestedTexturePath = GetRingTexturePath(settings.TexturePath);
+
+            if (_planetaryRingTexture is null ||
+                !string.Equals(
+                    _loadedPlanetaryRingTexturePath,
+                    requestedTexturePath,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                _planetaryRingTexture = LoadRingTexture(settings.TexturePath);
+                _loadedPlanetaryRingTexturePath = requestedTexturePath;
             }
 
-            BitmapSource? texture = null;
+            _celestialSystemRenderer?.RefreshAttachments();
+        }
 
-            if (_planetaryRingSystem.IsTextureChanged(settings.TexturePath))
-                texture = LoadRingTexture(settings.TexturePath);
+        private void SyncAttachmentAnimation(CelestialBodyAnimation animation)
+        {
+            CelestialBodyAnimation? existing =
+                _planetaryRingsAttachment!.Animations.FirstOrDefault(
+                    item => item.AnimationType == animation.AnimationType);
 
-            _planetaryRingSystem.UpdateSettings(settings, texture);
-
-            if (settings.Enabled)
+            if (existing is null)
             {
-                if (!_globeTiltGroup.Children.Contains(_planetaryRingSystem.Root))
-                    _globeTiltGroup.Children.Add(_planetaryRingSystem.Root);
+                _planetaryRingsAttachment.Animations.Add(animation);
             }
-            else
+            else if (!ReferenceEquals(existing, animation))
             {
-                _globeTiltGroup.Children.Remove(_planetaryRingSystem.Root);
+                int index = _planetaryRingsAttachment.Animations.IndexOf(existing);
+                _planetaryRingsAttachment.Animations[index] = animation;
             }
         }
+
 
         private void ExitHandler()
         {
@@ -1047,15 +1100,13 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         public void UpdateLocalStar(LocalStar star)
         {
-            if (_localStarSceneObject is null)
+            if (_localStarSceneObject is null ||
+                _localStarSceneObject.Type != star.StarImageType)
             {
                 ShowLocalStar(star);
                 return;
             }
 
-            // Rebuild when the selected type changes.
-            // The interface can expose Type if you want to detect this
-            // explicitly rather than rebuilding for every type change.
             _localStarSceneObject.Update(star);
         }
 

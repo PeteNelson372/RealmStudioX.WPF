@@ -1,6 +1,6 @@
 ﻿namespace RealmStudioX.WPF.WorldGlobe;
 
-internal interface IWorldGlobeAnimatedObject
+public interface IWorldGlobeAnimatedObject
 {
     void AdvanceAnimation(WorldGlobeAnimationFrame frame);
 

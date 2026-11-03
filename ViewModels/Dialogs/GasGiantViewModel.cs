@@ -21,7 +21,7 @@ public class GasGiantViewModel : ViewModelBase
     {
         _globeSceneViewModel = globeSceneViewModel ?? throw new ArgumentNullException(nameof(globeSceneViewModel));
 
-        Rings = new PlanetaryRingViewModel(_ringSettings, UpdateActiveGasGiant);
+        //Rings = new PlanetaryRingViewModel(_ringSettings, UpdateActiveGasGiant);
     }
 
     private string _texturePath = string.Empty;
