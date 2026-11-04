@@ -1,10 +1,13 @@
 ﻿using System.Collections.ObjectModel;
+using System.Windows.Media.Media3D;
 
 namespace RealmStudioX.WPF.Views.Celestial
 {
     public sealed class CelestialBodyNode
     {
         public CelestialBody Body { get; set; } = new();
+
+        public Point3D Center { get; set; } = new(0, 0, 0);
 
         public ObservableCollection<CelestialBodyNode> Children { get; } = [];
 

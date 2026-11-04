@@ -42,7 +42,6 @@
                             <CheckBox x:Name="EnableAtmosphereCheckBox"
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center"
-                                  Command="{Binding ToggleAtmosphere}"
                                   IsChecked="{Binding AtmosphereModel.EnableAtmosphere, Mode=TwoWay}"
                                   Style="{StaticResource ToggleSwitchStyle}"
                                   shell:WindowChrome.IsHitTestVisibleInChrome="True"/>

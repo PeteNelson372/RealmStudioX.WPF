@@ -1,26 +1,18 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.WPF.Views.Celestial;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using Color = System.Windows.Media.Color;
 
 namespace RealmStudioX.WPF.WorldGlobe;
 
-/// <summary>
-/// Identifies a scene object whose presentation must be aligned to the current
-/// viewport camera. The viewer should call UpdateCamera when the camera changes
-/// (and during its render tick if the camera can move continuously).
-/// </summary>
-internal interface ICameraFacingSceneObject
-{
-    void UpdateCamera(Camera? camera);
-}
 
 /// <summary>
 /// A round, opaque black sphere with a camera-facing eclipse corona and randomly
 /// emitted prominences/flares around the apparent limb.
 /// </summary>
 internal sealed class CoronaLocalStarSceneObject :
-    ILocalStarSceneObject, IWorldGlobeAnimatedObject, ICameraFacingSceneObject
+    ILocalStarSceneObject, IWorldGlobeAnimatedObject, ICameraFacingCelestialObject
 {
     private readonly Model3DGroup _root = new();
     private readonly Model3DGroup _positionGroup = new();

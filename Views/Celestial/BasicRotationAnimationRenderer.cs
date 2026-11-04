@@ -7,7 +7,7 @@ namespace RealmStudioX.WPF.Views.Celestial;
 internal sealed class BasicRotationAnimationRenderer
     : ICelestialBodyAnimationRenderer
 {
-    private const double SecondsPerRevolution = 240.0;
+    private const double SecondsPerRevolution = 60.0;
 
     private readonly AxisAngleRotation3D _rotation =
         new(new Vector3D(0, 1, 0), 0);

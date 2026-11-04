@@ -1,7 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.WPF.WorldGlobe;
-using System;
-using System.Collections.Generic;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
@@ -12,12 +10,13 @@ internal sealed class CelestialSystemRenderer : IWorldGlobeAnimatedObject
 {
     private readonly Func<CelestialBody, ImageSource?> _textureResolver;
 
-    private readonly Func<CelestialBodyAttachment, BitmapSource?>
-        _attachmentTextureResolver;
+    private readonly Func<CelestialBodyAttachment, BitmapSource?> _attachmentTextureResolver;
 
     private readonly List<IWorldGlobeAnimatedObject> _animatedRenderers = [];
 
     private readonly List<IAttachmentContainer> _attachmentContainers = [];
+
+    private readonly List<ICameraFacingCelestialObject> _cameraFacingRenderers = [];
 
     public CelestialSystemRenderer(
         Func<CelestialBody, ImageSource?> textureResolver,
@@ -36,18 +35,19 @@ internal sealed class CelestialSystemRenderer : IWorldGlobeAnimatedObject
         // Clear previously registered renderers in case the scene is rebuilt.
         _animatedRenderers.Clear();
         _attachmentContainers.Clear();
+        _cameraFacingRenderers.Clear();
 
         Model3DGroup root = new();
 
         foreach (CelestialBodyNode bodyNode in system.Bodies)
         {
-            root.Children.Add(BuildBodyNode(bodyNode, isRoot: true));
+            root.Children.Add(BuildBodyNode(bodyNode));
         }
 
         return root;
     }
 
-    private Model3DGroup BuildBodyNode(CelestialBodyNode node, bool isRoot)
+    private Model3DGroup BuildBodyNode(CelestialBodyNode node)
     {
         CelestialBody body = node.Body;
 
@@ -62,6 +62,11 @@ internal sealed class CelestialSystemRenderer : IWorldGlobeAnimatedObject
             _animatedRenderers.Add(animatedRenderer);
         }
 
+        if (renderer is ICameraFacingCelestialObject cameraFacing)
+        {
+            _cameraFacingRenderers.Add(cameraFacing);
+        }
+
         // Register and initialize any attachment container.
         if (renderer is IAttachmentContainer attachmentContainer)
         {
@@ -72,35 +77,18 @@ internal sealed class CelestialSystemRenderer : IWorldGlobeAnimatedObject
 
         Model3DGroup nodeRoot = new();
 
-        if (!isRoot)
-        {
-            Transform3DGroup orbitalTransform = new();
+        TranslateTransform3D centerTransform = new(
+            node.Center.X,
+            node.Center.Y,
+            node.Center.Z);
 
-            orbitalTransform.Children.Add(new RotateTransform3D(
-                new AxisAngleRotation3D(
-                    new Vector3D(0, 0, 1),
-                    node.OrbitalInclination)));
-
-            orbitalTransform.Children.Add(new RotateTransform3D(
-                new AxisAngleRotation3D(
-                    new Vector3D(0, 1, 0),
-                    node.OrbitalAngle)));
-
-            orbitalTransform.Children.Add(
-                new TranslateTransform3D(
-                    node.OrbitalDistance,
-                    0,
-                    0));
-
-            nodeRoot.Transform = orbitalTransform;
-        }
+        nodeRoot.Transform = centerTransform;
 
         nodeRoot.Children.Add(renderer.Root);
 
         foreach (CelestialBodyNode child in node.Children)
         {
-            nodeRoot.Children.Add(
-                BuildBodyNode(child, isRoot: false));
+            nodeRoot.Children.Add(BuildBodyNode(child));
         }
 
         return nodeRoot;
@@ -138,8 +126,19 @@ internal sealed class CelestialSystemRenderer : IWorldGlobeAnimatedObject
             CelestialBodyRendererType.Planet =>
                 new PlanetCelestialBodyRenderer(),
 
+            CelestialBodyRendererType.Sun =>
+                new SunCelestialBodyRenderer(),
+
             _ => throw new NotSupportedException(
                 $"Renderer type '{body.RendererType}' is not supported.")
         };
+    }
+
+    public void UpdateCamera(Camera? camera)
+    {
+        foreach (ICameraFacingCelestialObject renderer in _cameraFacingRenderers)
+        {
+            renderer.UpdateCamera(camera);
+        }
     }
 }

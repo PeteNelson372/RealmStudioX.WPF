@@ -3,7 +3,6 @@ using RealmStudioX.WPF.WorldGlobe;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
 using Point = System.Windows.Point;
 
 namespace RealmStudioX.WPF.Views.Celestial;

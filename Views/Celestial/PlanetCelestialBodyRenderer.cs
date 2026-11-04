@@ -13,10 +13,7 @@ internal sealed class PlanetCelestialBodyRenderer :
     ICelestialBodyAnimationTarget,
     IWorldGlobeAnimatedObject
 {
-    public CelestialBodyRendererType Type =>
-        CelestialBodyRendererType.Planet;
-
-    private const double SecondsPerRevolution = 60.0;
+    public CelestialBodyRendererType Type => CelestialBodyRendererType.Planet;
 
     private static readonly MeshGeometry3D SphereMesh =
         CreateSphereMesh(radius: 1.0, thetaDiv: 128, phiDiv: 64);
@@ -28,8 +25,6 @@ internal sealed class PlanetCelestialBodyRenderer :
     private readonly GeometryModel3D _surfaceModel = new();
 
     private readonly ScaleTransform3D _scaleTransform = new(1.0, 1.0, 1.0);
-
-    private readonly AxisAngleRotation3D _spinRotation = new(new Vector3D(0, 1, 0), 0.0);
 
     private readonly Transform3DGroup _animationTransform = new();
 

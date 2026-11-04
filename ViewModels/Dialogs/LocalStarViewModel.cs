@@ -1,7 +1,7 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
+using RealmStudioX.WPF.Views.Celestial;
 using RealmStudioX.WPF.Views.Dialogs;
-using RealmStudioX.WPF.WorldGlobe;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
@@ -31,7 +31,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
         public IReadOnlyList<LocalStarType> LocalStarTypes { get; } = Enum.GetValues<LocalStarType>();
 
-        private LocalStar? _currentLocalStar;
+        private CelestialBody? _currentLocalStar;
 
         private bool _enableLocalStar;
 
@@ -44,7 +44,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 {
                     if (_enableLocalStar && _currentLocalStar != null)
                     {
-                        _globeViewer.ShowLocalStar(_currentLocalStar);
+                        _globeViewer.ShowLocalStar(_currentLocalStar, CalculateWorldPosition());
                     }
                     else
                     {
@@ -176,7 +176,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
             if (EnableLocalStar)
             {
-                _globeViewer.ShowLocalStar(_currentLocalStar);
+                _globeViewer.ShowLocalStar(_currentLocalStar, CalculateWorldPosition());
             }
         });
 
@@ -207,13 +207,30 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             private set => SetProperty(ref _starlightColorBrush, value);
         }
 
+        private Point3D CalculateWorldPosition()
+        {
+            double radius = Math.Clamp(LocalStarSize, 0.01, 1.0);
+
+            double distanceFromCenter =
+                GlobeRadius +
+                radius +
+                MinimumStarGap +
+                Math.Clamp(LocalStarDistance, 0.0, 1.0)
+                    * LocalStarPositionScale;
+
+            return new Point3D(
+                -LocalStarOrbit * LocalStarPositionScale,
+                -LocalStarPlane * LocalStarPositionScale,
+                -distanceFromCenter);
+        }
+
         private const double GlobeRadius = 1.0;
         private const double MinimumStarGap = 0.15;
 
-        private LocalStar CreateLocalStarFromProperties()
+        private CelestialBody CreateLocalStarFromProperties()
         {
-            LocalStar star = new();
-            CopyPropertiesToLocalStar(star);
+            CelestialBody star = new();
+            CopyPropertiesToCelestialBody(star);
             return star;
         }
 
@@ -222,125 +239,96 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             if (_currentLocalStar is null)
                 return;
 
-            LocalStarType previousType = _currentLocalStar.StarImageType;
+            CelestialBodyRendererType previousType = _currentLocalStar.RendererType;
 
-            CopyPropertiesToLocalStar(_currentLocalStar);
+            CopyPropertiesToCelestialBody(_currentLocalStar);
 
-            // Changing the type may require building a different set
-            // of scene objects. Otherwise, update the existing objects.
-            if (previousType != _currentLocalStar.StarImageType)
+            Point3D worldPosition = CalculateWorldPosition();
+
+            if (previousType != _currentLocalStar.RendererType)
             {
-                _globeViewer.ShowLocalStar(_currentLocalStar);
+                _globeViewer.ShowLocalStar(_currentLocalStar, worldPosition);
             }
             else
             {
-                _globeViewer.UpdateLocalStar(_currentLocalStar);
+                _globeViewer.UpdateLocalStar(_currentLocalStar, worldPosition);
             }
         }
 
         private const double LocalStarPositionScale = 6.0;
 
-        private void CopyPropertiesToLocalStar(LocalStar star)
+        private void CopyPropertiesToCelestialBody(CelestialBody star)
         {
-            star.StarImageType = SelectedLocalStarType;
-
+            star.Name = SelectedLocalStarType.ToString();
+            star.Description = $"Local star of type {SelectedLocalStarType}.";
             star.Radius = Math.Clamp(LocalStarSize, 0.01, 1.0);
+            star.BaseColor = StarlightColor;
 
-            double distanceFromCenter =
-                GlobeRadius +
-                star.Radius +
-                MinimumStarGap +
-                Math.Clamp(LocalStarDistance, 0.0, 1.0)
-                    * LocalStarPositionScale;
+            star.Animations.Clear();
 
-            star.Center = new Point3D(
-                LocalStarOrbit * LocalStarPositionScale,
-                LocalStarPlane * LocalStarPositionScale,
-                distanceFromCenter);
-
-            star.StarColor = StarlightColor;
-
-            star.LightIntensity = Math.Clamp(LocalStarlightIntensity, 0.0, 1.0);
-
-            star.RotationRate = LocalStarRotationRate;
-            star.RotationDirection = LocalStarRotationDirection;
-
-            if (star.StarImageType == LocalStarType.BlackHole)
+            switch (SelectedLocalStarType)
             {
-                BlackHoleSettings detailSettings = new()
-                {
-                    EnableJets = _blackHoleModel.EnableJets,
-                    JetLength = _blackHoleModel.JetLength,
-                    EnableJetParticles = _blackHoleModel.EnableJetParticles,
+                case LocalStarType.Sun:
+                    {
+                        star.RendererType = CelestialBodyRendererType.Sun;
+                        star.Animations.Clear();
 
-                    JetParticleSpeed = _blackHoleModel.JetParticleSpeed,
-                    JetParticleLifetime = _blackHoleModel.JetParticleLifetime,
-                    JetParticleEmissionRate = _blackHoleModel.JetParticleEmissionRate,
-                    JetPulseRate = _blackHoleModel.JetPulseRate,
-                    JetParticleDispersion = _blackHoleModel.JetParticleDispersion,
+                        star.Animations.Add(new CelestialBodyAnimation
+                        {
+                            AnimationType = CelestialBodyAnimationType.BasicRotation,
+                            Enabled = true,
+                            Settings = new BasicRotationSettings
+                            {
+                                RotationRate = LocalStarRotationRate,
+                                RotationDirection = LocalStarRotationDirection
+                            }
+                        });
 
-                    EnableDiskParticles = _blackHoleModel.EnableDiskParticles,
-                    DiskParticleOutflowSpeed = _blackHoleModel.DiskParticleOutflowSpeed,
-                    DiskParticleLifetime = _blackHoleModel.DiskParticleLifetime,
-                    DiskParticleEmissionRate = _blackHoleModel.DiskParticleEmissionRate
-                };
+                        SunViewModel sunViewModel = _sunModel;
 
-                star.LocalStarDetailSettings = detailSettings;
+                        star.Animations.Add(new CelestialBodyAnimation
+                        {
+                            AnimationType = CelestialBodyAnimationType.SolarActivity,
+                            Enabled = true,
+                            Settings = new SunAnimationSettings
+                            {
+                                EnableProminences = sunViewModel.EnableProminences,
+                                EnableFlares = sunViewModel.EnableFlares,
+                                EnableCorona = sunViewModel.EnableCorona,
+                                CoronaOpacity = sunViewModel.CoronaOpacity,
+                                CoronaRotationSpeed = sunViewModel.CoronaRotationSpeed,
+                                ActivityIntensity = sunViewModel.ActivityIntensity,
+                                ActivityFrequency = sunViewModel.ActivityFrequency,
+                                ActivityGeometryScale = sunViewModel.ActivityGeometryScale,
+                                ActivityThicknessScale = sunViewModel.ActivityThicknessScale
+                            }
+                        });
+
+                        break;
+                    }
+
+                case LocalStarType.Corona:
+                    star.RendererType = CelestialBodyRendererType.Corona;
+                    break;
+
+                case LocalStarType.BlackHole:
+                    star.RendererType = CelestialBodyRendererType.BlackHole;
+                    break;
+
+                case LocalStarType.Nebula:
+                    star.RendererType = CelestialBodyRendererType.Nebula;
+                    break;
+
+                case LocalStarType.GasGiant:
+                    // Register a dedicated GasGiant renderer type before
+                    // enabling this case.
+                    throw new NotSupportedException(
+                        "The Gas Giant celestial-body renderer has not yet been migrated.");
+
+                default:
+                    throw new NotSupportedException(
+                        $"Local Star type '{SelectedLocalStarType}' is not supported.");
             }
-            else if (star.StarImageType == LocalStarType.Nebula)
-            {
-                star.LocalStarDetailSettings = new NebulaSettings
-                {
-                    LayerCount = _nebulaModel.LayerCount,
-                    Width = _nebulaModel.Width,
-                    Height = _nebulaModel.Height,
-                    Depth = _nebulaModel.Depth,
-                    Opacity = _nebulaModel.Opacity,
-                    Brightness = _nebulaModel.Brightness,
-                    DetailIntensity = _nebulaModel.DetailIntensity,
-                    RotationSpeed = _nebulaModel.RotationSpeed,
-                    DriftSpeed = _nebulaModel.DriftSpeed
-                };
-
-            }
-            else if (star.StarImageType == LocalStarType.Corona)
-            {
-                star.LocalStarDetailSettings = new CoronaSettings
-                {
-                    ActivityIntensity = _coronaModel.ActivityIntensity,
-                    EnableFlares = _coronaModel.EnableFlares,
-                    EnableProminences = _coronaModel.EnableProminences,
-                    ActivityGeometryScale = _coronaModel.ActivityGeometryScale,
-                    ActivityThicknessScale = _coronaModel.ActivityThicknessScale,
-                };
-            }
-            else if (star.StarImageType == LocalStarType.Sun)
-            {
-                star.LocalStarDetailSettings = new SunSettings
-                {
-                    EnableCorona = _sunModel.EnableCorona,
-                    CoronaOpacity = _sunModel.CoronaOpacity,
-                    CoronaRotationSpeed = _sunModel.CoronaRotationSpeed,
-
-                    EnableProminences = _sunModel.EnableProminences,
-                    EnableFlares = _sunModel.EnableFlares,
-                    ActivityIntensity = _sunModel.ActivityIntensity,
-                    ActivityFrequency = _sunModel.ActivityFrequency,
-                    ActivityGeometryScale = _sunModel.ActivityGeometryScale,
-                    ActivityThicknessScale = _sunModel.ActivityThicknessScale,
-                };
-            }
-            else if (star.StarImageType == LocalStarType.GasGiant)
-            {
-                star.LocalStarDetailSettings = new GasGiantSettings
-                {
-                    TexturePath = _gasGiantModel.TexturePath,
-                    EnableAtmosphericTurbulence = _gasGiantModel.EnableAtmosphericTurbulence,
-                    TurbulenceIntensity = _gasGiantModel.TurbulenceIntensity,
-                    RingSettings = _gasGiantModel.Rings.Settings.Clone()
-                };
-            }
-
         }
     }
 }

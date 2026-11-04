@@ -28,7 +28,10 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             get => _enableAtmosphere;
             set
             {
-                SetProperty(ref _enableAtmosphere, value);
+                if (SetProperty(ref _enableAtmosphere, value))
+                {
+                    _globeViewer.RefreshAtmosphere();
+                }
             }
         }
 
@@ -44,11 +47,6 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 }
             }
         }
-
-        public ICommand ToggleAtmosphere => new RelayCommand(() =>
-        {
-            _globeViewer.RefreshAtmosphere();
-        });
 
         private Color _atmosphereColor = Colors.Transparent;
         public Color AtmosphereColor

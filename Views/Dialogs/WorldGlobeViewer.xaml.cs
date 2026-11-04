@@ -89,6 +89,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
         private bool _isRenderingSubscribed;
 
         private GeometryModel3D? _atmosphereModel;
+        private readonly TranslateTransform3D _atmosphereTranslation = new();
 
         private readonly Model3DGroup _sceneRootModel = new();
 
@@ -96,12 +97,16 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         private CelestialSystem? _celestialSystem;
         private CelestialSystemRenderer? _celestialSystemRenderer;
+        
         private CelestialBody? _worldBody;
+
+        private CelestialBodyNode? _worldNode;
+
+        private CelestialBodyNode? _localStarNode;
 
         private BitmapSource? _worldTextureSource;
 
         public static readonly Color DefaultSpaceColor = Color.FromRgb(5, 8, 18);
-
 
         private MainWindowViewModel _mainViewModel;
 
@@ -179,7 +184,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             _animationController.ResetClock();
 
             // Camera-facing effects still need updates when animation is paused.
-            bool needsRendering = enabled || _localStarSceneObject is ICameraFacingSceneObject;
+            bool needsRendering = enabled || _localStarSceneObject is ICameraFacingCelestialObject;
 
             if (needsRendering && IsLoaded)
             {
@@ -224,11 +229,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         private void UpdateCameraFacingLocalStar()
         {
-            if (_localStarSceneObject is ICameraFacingSceneObject cameraFacing)
-            {
-                Camera? camera = ModelViewer.Camera;
-                cameraFacing.UpdateCamera(camera);
-            }
+            Camera? camera = ModelViewer.Camera;
+            _celestialSystemRenderer?.UpdateCamera(camera);
         }
 
         void IWorldGlobeAnimatedObject.AdvanceAnimation(
@@ -421,10 +423,13 @@ namespace RealmStudioX.WPF.Views.Dialogs
                     Description = "World Globe"
                 };
 
-                _celestialSystem.Bodies.Add(new CelestialBodyNode
-                    {
-                        Body = _worldBody
-                    });
+                _worldNode = new CelestialBodyNode
+                {
+                    Body = _worldBody,
+                    Center = new Point3D(0, 0, 0)
+                };
+
+                _celestialSystem.Bodies.Add(_worldNode);
 
                 // The cloud attachment is initialized from the body's current
                 // rotation settings, then maintains its own independent values.
@@ -695,10 +700,17 @@ namespace RealmStudioX.WPF.Views.Dialogs
             // A small minimum offset avoids coincident surfaces.
             double atmosphereRadius = 1.0 + Math.Max(height, 0.001);
 
-            _atmosphereModel.Transform = new ScaleTransform3D(
-                atmosphereRadius,
-                atmosphereRadius,
-                atmosphereRadius);
+            _atmosphereModel.Transform = new Transform3DGroup
+            {
+                Children =
+                    {
+                        new ScaleTransform3D(
+                            atmosphereRadius,
+                            atmosphereRadius,
+                            atmosphereRadius),
+                        _atmosphereTranslation
+                    }
+            };
 
             // Use density as the opacity for this initial implementation.
             SolidColorBrush atmosphereBrush = new(color)
@@ -1051,86 +1063,109 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         #region Local Star Methods
 
-        private static readonly MeshGeometry3D UnitSphereMesh = CreateSphereMesh(1.0, 90, 45);
-
-        public void ShowLocalStar(LocalStar star)
+        public void ShowLocalStar(CelestialBody star, Point3D worldPosition)
         {
-            RemoveLocalStar();
+            ArgumentNullException.ThrowIfNull(star);
 
-            switch (star.StarImageType)
+            if (_celestialSystem is null || _worldNode is null)
+                return;
+
+            if (_localStarNode is not null)
             {
-                case LocalStarType.Sun:
-                    _localStarSceneObject = new SunLocalStarSceneObject(star, UnitSphereMesh);
-                    break;
-                case LocalStarType.Nebula:
-                    _localStarSceneObject = new NebulaLocalStarSceneObject(star, UnitSphereMesh);
-                    break;
-                case LocalStarType.BlackHole:
-                    _localStarSceneObject = new BlackHoleLocalStarSceneObject(star, UnitSphereMesh);
-                    break;
-                case LocalStarType.Corona:
-                    _localStarSceneObject = new CoronaLocalStarSceneObject(star, UnitSphereMesh);
-                    break;
-                case LocalStarType.GasGiant:
-                    _localStarSceneObject = new GasGiantLocalStarSceneObject(star, UnitSphereMesh);
-                    break;
-
-                // Add the other scene-object implementations here
-                // as they are migrated.
-                default:
-                    return;
+                _celestialSystem.Bodies.Remove(_localStarNode);
+                _localStarNode = null;
             }
 
-            if (_localStarSceneObject is IWorldGlobeAnimatedObject animatedObject)
+            _celestialSystem.Bodies.Remove(_worldNode);
+
+            _localStarNode = new CelestialBodyNode
             {
-                _animationController.Register(animatedObject);
-            }
+                Body = star,
+                Center = new Point3D(0, 0, 0)
+            };
 
-            _sceneRootModel.Children.Add(_localStarSceneObject.Root);
+            _localStarNode.Children.Add(_worldNode);
 
-            ModelViewer.SetModel(_sceneRootModel, fitCamera: false);
+            UpdateWorldPosition(worldPosition);
 
-            UpdateCameraFacingLocalStar();
+            _celestialSystem.Bodies.Add(_localStarNode);
 
-            if (!ViewModel.EnableAnimation && _localStarSceneObject is ICameraFacingSceneObject)
-            {
-                StartRendering();
-            }
+            RebuildCelestialScene();
         }
 
-        public void UpdateLocalStar(LocalStar star)
+        public void UpdateLocalStar(CelestialBody star, Point3D worldPosition)
         {
-            if (_localStarSceneObject is null ||
-                _localStarSceneObject.Type != star.StarImageType)
+            ArgumentNullException.ThrowIfNull(star);
+
+            if (_localStarNode is null || _worldNode is null)
             {
-                ShowLocalStar(star);
+                ShowLocalStar(star, worldPosition);
                 return;
             }
 
-            _localStarSceneObject.Update(star);
+            _localStarNode.Body = star;
+
+            UpdateWorldPosition(worldPosition);
+
+            RebuildCelestialScene();
         }
 
         public void RemoveLocalStar()
         {
-            if (_localStarSceneObject is null)
+            if (_celestialSystem is null ||
+                _worldNode is null ||
+                _localStarNode is null)
             {
                 return;
             }
 
-            if (_localStarSceneObject is IWorldGlobeAnimatedObject animatedObject)
+            _localStarNode.Children.Remove(_worldNode);
+            _celestialSystem.Bodies.Remove(_localStarNode);
+
+            UpdateWorldPosition(new Point3D(0, 0, 0));
+
+            _celestialSystem.Bodies.Add(_worldNode);
+
+            _localStarNode = null;
+
+            RebuildCelestialScene();
+        }
+
+        private void UpdateWorldPosition(Point3D newPosition)
+        {
+            if (_worldNode is null)
+                return;
+
+            Vector3D delta = newPosition - _worldNode.Center;
+
+            // Move the camera by exactly the same amount as the globe.
+            ModelViewer.TranslateCamera(delta);
+
+            // Then update the globe's position relative to the star.
+            _worldNode.Center = newPosition;
+
+            _atmosphereTranslation.OffsetX = newPosition.X;
+            _atmosphereTranslation.OffsetY = newPosition.Y;
+            _atmosphereTranslation.OffsetZ = newPosition.Z;
+        }
+
+        private void RebuildCelestialScene()
+        {
+            if (_celestialSystemRenderer is null ||
+                _celestialSystem is null)
             {
-                _animationController.Unregister(animatedObject);
+                return;
             }
 
-            _sceneRootModel.Children.Remove(_localStarSceneObject.Root);
-            _localStarSceneObject = null;
+            Model3DGroup celestialScene =
+                _celestialSystemRenderer.BuildScene(_celestialSystem);
 
-            if (!ViewModel.EnableAnimation)
-            {
-                StopRendering();
-            }
+            _globeSpinGroup.Children.Clear();
+            _globeSpinGroup.Children.Add(celestialScene);
 
-            ModelViewer.SetModel(_sceneRootModel, fitCamera: false);
+            _celestialSystemRenderer.RefreshAttachments();
+
+            UpdateCameraFacingLocalStar();
         }
 
         #endregion

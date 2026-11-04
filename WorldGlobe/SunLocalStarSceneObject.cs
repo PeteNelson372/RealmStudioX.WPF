@@ -1,5 +1,6 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.WPF.EditorUtilities;
+using RealmStudioX.WPF.Views.Celestial;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
@@ -7,7 +8,7 @@ using Color = System.Windows.Media.Color;
 
 namespace RealmStudioX.WPF.WorldGlobe;
 
-internal sealed class SunLocalStarSceneObject : ILocalStarSceneObject, IWorldGlobeAnimatedObject, ICameraFacingSceneObject
+internal sealed class SunLocalStarSceneObject : ILocalStarSceneObject, IWorldGlobeAnimatedObject, ICameraFacingCelestialObject
 {
     private static readonly Lazy<BitmapSource> SunTexture = new(() => WorldGlobeAssets.LoadBitmap("sol-texture.jpg"));
 
