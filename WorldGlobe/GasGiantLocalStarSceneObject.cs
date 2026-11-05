@@ -32,7 +32,7 @@ internal sealed class GasGiantLocalStarSceneObject : ILocalStarSceneObject, IWor
 
     private const double SurfaceSecondsPerRevolution = 60.0;
 
-    private readonly GasGiantAtmosphereEffect3D _atmosphereEffect;
+    private readonly AtmosphereTurbulenceEffect3D _atmosphereEffect;
 
     //private PlanetaryRingSystem3D? _planetaryRingSystem;
 
@@ -67,7 +67,7 @@ internal sealed class GasGiantLocalStarSceneObject : ILocalStarSceneObject, IWor
                 star.RotationQuaternion)
         };
 
-        _atmosphereEffect = new GasGiantAtmosphereEffect3D(
+        _atmosphereEffect = new AtmosphereTurbulenceEffect3D(
             _unitSphereMesh,
             star.StarColor,
             star.Radius,

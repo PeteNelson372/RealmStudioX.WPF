@@ -6,7 +6,7 @@ using Color = System.Windows.Media.Color;
 
 namespace RealmStudioX.WPF.WorldGlobe;
 
-internal sealed class GasGiantAtmosphereEffect3D : IWorldGlobeAnimatedObject
+internal sealed class AtmosphereTurbulenceEffect3D : IWorldGlobeAnimatedObject
 {
     private const int TextureWidth = 512;
     private const int TextureHeight = 256;
@@ -46,7 +46,7 @@ internal sealed class GasGiantAtmosphereEffect3D : IWorldGlobeAnimatedObject
 
     public Model3DGroup Root { get; } = new();
 
-    public GasGiantAtmosphereEffect3D(
+    public AtmosphereTurbulenceEffect3D(
         MeshGeometry3D unitSphereMesh,
         Color baseColor,
         double radius,

@@ -135,6 +135,31 @@ internal sealed class SolarActivityEffect3D
             activityThicknessScale: _activityThicknessScale);
     }
 
+    private static MeshGeometry3D CreateDebugSquareMesh(double halfSize)
+    {
+        MeshGeometry3D mesh = new()
+        {
+            Positions =
+            [
+                new Point3D(-halfSize, -halfSize, 0),
+            new Point3D( halfSize, -halfSize, 0),
+            new Point3D( halfSize,  halfSize, 0),
+            new Point3D(-halfSize,  halfSize, 0)
+            ],
+            TriangleIndices = [0, 1, 2, 0, 2, 3],
+            Normals =
+            [
+                new Vector3D(0, 0, 1),
+            new Vector3D(0, 0, 1),
+            new Vector3D(0, 0, 1),
+            new Vector3D(0, 0, 1)
+            ]
+        };
+
+        mesh.Freeze();
+        return mesh;
+    }
+
     public void Update(
         Color starColor,
         bool enableProminences,

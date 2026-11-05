@@ -1,7 +1,9 @@
-﻿using RealmStudioShapeRenderingLib;
+﻿
+using RealmStudioShapeRenderingLib;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
+using RealmStudioX.WPF.Views.Celestial;
 using RealmStudioX.WPF.WorldGlobe;
 using System.IO;
 using System.Windows.Input;
@@ -15,13 +17,40 @@ public class GasGiantViewModel : ViewModelBase
 
     private readonly PlanetaryRingSettings _ringSettings = new();
 
+    private readonly CelestialBodyAnimation _ringRotationAnimation = new()
+    {
+        AnimationType = CelestialBodyAnimationType.BasicRotation,
+        Enabled = true,
+        Settings = new BasicRotationSettings
+        {
+            RotationRate = 1.0,
+            RotationDirection = WorldRotationDirection.Prograde
+        }
+    };
+
+    private readonly CelestialBodyAnimation _ringTurbulenceAnimation = new()
+    {
+        AnimationType = CelestialBodyAnimationType.RingTurbulenceActivity,
+        Enabled = false,
+        Settings = new RingTurbulenceSettings
+        {
+            Intensity = 0.2
+        }
+    };
+
     public PlanetaryRingViewModel Rings { get; }
 
-    public GasGiantViewModel(WorldGlobeSceneViewModel globeSceneViewModel)
+    public GasGiantViewModel(
+        WorldGlobeSceneViewModel globeSceneViewModel)
     {
-        _globeSceneViewModel = globeSceneViewModel ?? throw new ArgumentNullException(nameof(globeSceneViewModel));
+        _globeSceneViewModel = globeSceneViewModel
+            ?? throw new ArgumentNullException(nameof(globeSceneViewModel));
 
-        //Rings = new PlanetaryRingViewModel(_ringSettings, UpdateActiveGasGiant);
+        Rings = new PlanetaryRingViewModel(
+            _ringSettings,
+            _ringRotationAnimation,
+            _ringTurbulenceAnimation,
+            UpdateActiveGasGiant);
     }
 
     private string _texturePath = string.Empty;
@@ -60,7 +89,10 @@ public class GasGiantViewModel : ViewModelBase
         set
         {
             value = double.IsFinite(value)
-                ? Math.Clamp(value, MinimumTurbulenceIntensity, MaximumTurbulenceIntensity)
+                ? Math.Clamp(
+                    value,
+                    MinimumTurbulenceIntensity,
+                    MaximumTurbulenceIntensity)
                 : DefaultTurbulenceIntensity;
 
             if (SetProperty(ref _turbulenceIntensity, value))
@@ -70,20 +102,23 @@ public class GasGiantViewModel : ViewModelBase
 
     public ICommand SelectTextureFileCommand => new RelayCommand(() =>
     {
-        string textureDirectory = Path.Combine(ApplicationPreferences.Current.RootAssetDirectory, "Textures", "Planet");
+        string textureDirectory = Path.Combine(
+            ApplicationPreferences.Current.RootAssetDirectory,
+            "Textures",
+            "Planet");
 
         OpenFileDialog dialog = new()
         {
             Title = "Select Gas Giant Texture",
             Filter = UserInterfaceUtilities.GetCommonImageFilter(),
             Multiselect = false,
-            InitialDirectory = Directory.Exists(textureDirectory) ? textureDirectory : ApplicationPreferences.Current.RootAssetDirectory,
+            InitialDirectory = Directory.Exists(textureDirectory)
+                ? textureDirectory
+                : ApplicationPreferences.Current.RootAssetDirectory,
             CheckFileExists = true
         };
 
-        bool? result = dialog.ShowDialog();
-
-        if (result == true)
+        if (dialog.ShowDialog() == true)
         {
             TexturePath = dialog.FileName;
         }
@@ -91,7 +126,8 @@ public class GasGiantViewModel : ViewModelBase
 
     private void UpdateActiveGasGiant()
     {
-        if (_globeSceneViewModel.StarViewModel.SelectedLocalStarType == LocalStarType.GasGiant)
+        if (_globeSceneViewModel.StarViewModel.SelectedLocalStarType ==
+            LocalStarType.GasGiant)
         {
             _globeSceneViewModel.StarViewModel.UpdateCurrentLocalStar();
         }

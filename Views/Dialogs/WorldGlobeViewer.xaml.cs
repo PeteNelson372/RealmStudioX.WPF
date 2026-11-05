@@ -1,4 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX._3D.Views.Controls;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Dialogs;
@@ -73,6 +74,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
         private readonly Transform3DGroup _globeTransform = new();
         public Transform3DGroup GlobeTransform => _globeTransform;
 
+        private readonly Transform3DGroup _worldVisualTransform = new();
+
         // Cloud texture processing remains in the viewer; the actual cloud
         // geometry and animation belong to the celestial-body attachment.
         private BitmapSource? _cloudSourceTexture;
@@ -81,15 +84,14 @@ namespace RealmStudioX.WPF.Views.Dialogs
         private double? _tintedCloudOpacity;
         private CelestialBodyAttachment? _cloudLayerAttachment;
         private CelestialBodyAttachment? _planetaryRingsAttachment;
-        private BitmapSource? _planetaryRingTexture;
-        private string? _loadedPlanetaryRingTexturePath;
+
+        private readonly Dictionary<string, BitmapSource> _textureCache = new(StringComparer.OrdinalIgnoreCase);
 
         private readonly WorldGlobeAnimationController _animationController = new();
 
         private bool _isRenderingSubscribed;
 
         private GeometryModel3D? _atmosphereModel;
-        private readonly TranslateTransform3D _atmosphereTranslation = new();
 
         private readonly Model3DGroup _sceneRootModel = new();
 
@@ -97,7 +99,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         private CelestialSystem? _celestialSystem;
         private CelestialSystemRenderer? _celestialSystemRenderer;
-        
+
         private CelestialBody? _worldBody;
 
         private CelestialBodyNode? _worldNode;
@@ -139,11 +141,16 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
                 ModelViewer.SetBackgroundColor(DefaultSpaceColor);
 
-                GlobeTransform.Children.Clear();
+                _worldVisualTransform.Children.Clear();
 
-                GlobeTransform.Children.Add(new RotateTransform3D(_globeYaw));
+                //_worldVisualTransform.Children.Add(
+                //    new RotateTransform3D(_globeTiltRotation));
 
-                GlobeTransform.Children.Add(new RotateTransform3D(_globePitch));
+                _worldVisualTransform.Children.Add(
+                    new RotateTransform3D(_globeYaw));
+
+                _worldVisualTransform.Children.Add(
+                    new RotateTransform3D(_globePitch));
 
                 // Use HelixToolkit for left-drag panning,
                 // but not for right-drag camera rotation.
@@ -183,8 +190,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
             _animationController.IsEnabled = enabled;
             _animationController.ResetClock();
 
-            // Camera-facing effects still need updates when animation is paused.
-            bool needsRendering = enabled || _localStarSceneObject is ICameraFacingCelestialObject;
+            // Camera-facing effects need continuous updates even when
+            // animation is disabled.
+            bool needsRendering =
+                enabled || _celestialSystemRenderer is not null;
 
             if (needsRendering && IsLoaded)
             {
@@ -233,8 +242,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             _celestialSystemRenderer?.UpdateCamera(camera);
         }
 
-        void IWorldGlobeAnimatedObject.AdvanceAnimation(
-            WorldGlobeAnimationFrame frame)
+        void IWorldGlobeAnimatedObject.AdvanceAnimation(WorldGlobeAnimationFrame frame)
         {
             if (frame.DeltaSeconds <= 0.0)
                 return;
@@ -440,19 +448,15 @@ namespace RealmStudioX.WPF.Views.Dialogs
                     attachment => attachment.Type switch
                     {
                         CelestialBodyAttachmentType.CloudLayer => _tintedCloudTexture,
-                        CelestialBodyAttachmentType.PlanetaryRings => _planetaryRingTexture,
+                        CelestialBodyAttachmentType.PlanetaryRings => ResolvePlanetaryRingTexture(),
                         _ => null
                     });
             }
 
-            // Build the celestial scene using the current map texture.
-            Model3DGroup celestialScene =
-                _celestialSystemRenderer!.BuildScene(_celestialSystem);
-
-            // The celestial scene replaces the surface geometry inside
-            // the grouping node. Surface rotation is handled by its renderer.
-            _globeSpinGroup.Children.Clear();
-            _globeSpinGroup.Children.Add(celestialScene);
+            // Build the celestial scene and apply the World Globe's visual
+            // transform. This same method is used when the celestial
+            // hierarchy is rebuilt after adding or removing a Local Star.
+            RebuildCelestialScene();
 
             // Preserve the existing globe transform hierarchy.
             if (_globeBody is null)
@@ -482,7 +486,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 ModelViewer.SetModel(_sceneRootModel);
             }
 
-            _celestialSystemRenderer.RefreshAttachments();
+            _celestialSystemRenderer?.RefreshAttachments();
         }
 
         private static MeshGeometry3D CreateSphereMesh(double radius = 1.0, int longitudeSegments = 128, int latitudeSegments = 64)
@@ -635,20 +639,21 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         public double GetCurrentAxialTilt()
         {
-            // The globe's north axis in its local coordinate system.
             Vector3D northAxis = new(0, 1, 0);
 
-            // Surface spin is around the local Y axis and therefore
-            // does not change the direction of the north axis.
+            // Apply the configured axial tilt.
             northAxis = _globeTiltGroup.Transform.Transform(northAxis);
-            northAxis = GlobeTransform.Transform(northAxis);
+
+            // Apply each manual visual transform in sequence.
+            foreach (Transform3D transform in _worldVisualTransform.Children)
+            {
+                northAxis = transform.Transform(northAxis);
+            }
 
             northAxis.Normalize();
 
             Vector3D worldUp = new(0, 1, 0);
 
-            // Treat the axis as an undirected line, so the reported
-            // inclination remains between 0 and 90 degrees.
             double cosine = Math.Abs(
                 Vector3D.DotProduct(northAxis, worldUp));
 
@@ -700,17 +705,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
             // A small minimum offset avoids coincident surfaces.
             double atmosphereRadius = 1.0 + Math.Max(height, 0.001);
 
-            _atmosphereModel.Transform = new Transform3DGroup
-            {
-                Children =
-                    {
-                        new ScaleTransform3D(
-                            atmosphereRadius,
-                            atmosphereRadius,
-                            atmosphereRadius),
-                        _atmosphereTranslation
-                    }
-            };
+            _atmosphereModel.Transform = new ScaleTransform3D(
+                atmosphereRadius,
+                atmosphereRadius,
+                atmosphereRadius);
 
             // Use density as the opacity for this initial implementation.
             SolidColorBrush atmosphereBrush = new(color)
@@ -726,20 +724,22 @@ namespace RealmStudioX.WPF.Views.Dialogs
             _atmosphereModel.Material = atmosphereMaterial;
             _atmosphereModel.BackMaterial = atmosphereMaterial;
 
-            // Add or remove the atmosphere from the scene.
-            bool isInScene =
-                _globeTiltGroup.Children.Contains(_atmosphereModel);
-
-            if (enabled)
+            // The atmosphere belongs to the World Globe's visual root,
+            // so it follows the globe's position and manual rotation.
+            if (_worldBody is not null && _celestialSystemRenderer is not null)
             {
-                if (!isInScene)
+                if (enabled)
                 {
-                    _globeTiltGroup.Children.Add(_atmosphereModel);
+                    _celestialSystemRenderer.AddBodyVisual(
+                        _worldBody,
+                        _atmosphereModel);
                 }
-            }
-            else if (isInScene)
-            {
-                _globeTiltGroup.Children.Remove(_atmosphereModel);
+                else
+                {
+                    _celestialSystemRenderer.RemoveBodyVisual(
+                        _worldBody,
+                        _atmosphereModel);
+                }
             }
         }
 
@@ -950,6 +950,21 @@ namespace RealmStudioX.WPF.Views.Dialogs
             return bitmap;
         }
 
+        private BitmapSource? ResolvePlanetaryRingTexture()
+        {
+            if (_planetaryRingsAttachment?.AttachmentSettings
+                is not PlanetaryRingSettings settings)
+            {
+                return null;
+            }
+
+            string texturePath = GetRingTexturePath(settings.TexturePath);
+
+            return _textureCache.TryGetValue(texturePath, out BitmapSource? texture)
+                ? texture
+                : null;
+        }
+
         private void EnsurePlanetaryRingsAttachment()
         {
             if (_worldBody is null)
@@ -976,7 +991,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             _worldBody.Attachments.Add(_planetaryRingsAttachment);
         }
-
 
         public void UpdateWorldGlobeRings(
             PlanetaryRingSettings settings,
@@ -1013,14 +1027,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             string requestedTexturePath = GetRingTexturePath(settings.TexturePath);
 
-            if (_planetaryRingTexture is null ||
-                !string.Equals(
-                    _loadedPlanetaryRingTexturePath,
-                    requestedTexturePath,
-                    StringComparison.OrdinalIgnoreCase))
+            if (!_textureCache.ContainsKey(requestedTexturePath))
             {
-                _planetaryRingTexture = LoadRingTexture(settings.TexturePath);
-                _loadedPlanetaryRingTexturePath = requestedTexturePath;
+                _textureCache[requestedTexturePath] =
+                    LoadRingTexture(settings.TexturePath);
             }
 
             _celestialSystemRenderer?.RefreshAttachments();
@@ -1107,7 +1117,15 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             UpdateWorldPosition(worldPosition);
 
-            RebuildCelestialScene();
+            _celestialSystemRenderer!.UpdateBody(
+                star,
+                new Point3D(0, 0, 0));
+
+            _celestialSystemRenderer.UpdateBodyPosition(
+                _worldNode.Body,
+                worldPosition);
+
+            UpdateCameraFacingLocalStar();
         }
 
         public void RemoveLocalStar()
@@ -1142,17 +1160,16 @@ namespace RealmStudioX.WPF.Views.Dialogs
             ModelViewer.TranslateCamera(delta);
 
             // Then update the globe's position relative to the star.
+            // Its surface, attachments, and atmosphere all inherit this
+            // node translation through the World Globe visual hierarchy.
             _worldNode.Center = newPosition;
-
-            _atmosphereTranslation.OffsetX = newPosition.X;
-            _atmosphereTranslation.OffsetY = newPosition.Y;
-            _atmosphereTranslation.OffsetZ = newPosition.Z;
         }
 
         private void RebuildCelestialScene()
         {
             if (_celestialSystemRenderer is null ||
-                _celestialSystem is null)
+                _celestialSystem is null ||
+                _worldBody is null)
             {
                 return;
             }
@@ -1160,10 +1177,27 @@ namespace RealmStudioX.WPF.Views.Dialogs
             Model3DGroup celestialScene =
                 _celestialSystemRenderer.BuildScene(_celestialSystem);
 
+            // BuildScene creates new BodyRendererEntry and VisualRoot
+            // instances. Reapply the World Globe's manual orientation
+            // transform to the newly-created visual root every time.
+            _celestialSystemRenderer.SetBodyVisualTransform(
+                _worldBody,
+                _worldVisualTransform);
+
             _globeSpinGroup.Children.Clear();
             _globeSpinGroup.Children.Add(celestialScene);
 
-            _celestialSystemRenderer.RefreshAttachments();
+            _celestialSystemRenderer?.RefreshAttachments();
+
+            // Atmosphere is an additional World Globe visual, rather than
+            // a child of the outer tilt group. Restore it after rebuilding.
+            if (_atmosphereModel is not null &&
+                ViewModel.AtmosphereModel.EnableAtmosphere)
+            {
+                _celestialSystemRenderer?.AddBodyVisual(
+                    _worldBody,
+                    _atmosphereModel);
+            }
 
             UpdateCameraFacingLocalStar();
         }

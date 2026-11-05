@@ -1,15 +1,13 @@
-﻿using RealmStudioShapeRenderingLib;
+﻿
+using RealmStudioShapeRenderingLib;
 using RealmStudioX.WPF.WorldGlobe;
-using System.Windows.Media;
 using System.Windows.Media.Media3D;
 
 namespace RealmStudioX.WPF.Views.Celestial;
 
-internal sealed class SolarActivityAnimationRenderer :
-    ICelestialBodyAnimationRenderer,
-    ICameraFacingCelestialObject
+internal sealed class SolarActivityAnimationRenderer : ICelestialBodyAnimationRenderer, ICameraFacingCelestialObject
 {
-    private readonly SolarActivityEffect3D _effect;
+    private SolarActivityEffect3D? _effect;
 
     private readonly Model3DGroup _billboardGroup = new();
 
@@ -19,23 +17,13 @@ internal sealed class SolarActivityAnimationRenderer :
     private ICelestialBodyVisualTarget? _target;
 
     private bool _enabled;
+    private bool _includeCoronaGlow;
 
     public CelestialBodyAnimationType AnimationType => CelestialBodyAnimationType.SolarActivity;
 
     public SolarActivityAnimationRenderer()
     {
-        Transform3DGroup billboardTransform = new();
-
-        billboardTransform.Children.Add(
-            new RotateTransform3D(_billboardRotation));
-
-        _billboardGroup.Transform = billboardTransform;
-
-        _effect = new SolarActivityEffect3D(
-            Colors.White,
-            includeCoronaGlow: false);
-
-        _billboardGroup.Children.Add(_effect.Root);
+        _billboardGroup.Transform = new RotateTransform3D(_billboardRotation);
     }
 
     public void Update(
@@ -51,66 +39,90 @@ internal sealed class SolarActivityAnimationRenderer :
                 "SolarActivity requires a celestial body visual target.");
         }
 
+        bool includeCoronaGlow;
+        bool enableProminences;
+        bool enableFlares;
+        double activityIntensity;
+        double activityFrequency;
+        double activityGeometryScale;
+        double activityThicknessScale;
+
+        switch (animation.Settings)
+        {
+            case SunAnimationSettings settings:
+                includeCoronaGlow = false;
+                enableProminences = settings.EnableProminences;
+                enableFlares = settings.EnableFlares;
+                activityIntensity = settings.ActivityIntensity;
+                activityFrequency = settings.ActivityFrequency;
+                activityGeometryScale = settings.ActivityGeometryScale;
+                activityThicknessScale = settings.ActivityThicknessScale;
+                break;
+
+            case CoronaAnimationSettings settings:
+                includeCoronaGlow = true;
+                enableProminences = settings.EnableProminences;
+                enableFlares = settings.EnableFlares;
+                activityIntensity = settings.ActivityIntensity;
+                activityFrequency = settings.ActivityFrequency;
+                activityGeometryScale = settings.ActivityGeometryScale;
+                activityThicknessScale = settings.ActivityThicknessScale;
+                break;
+
+            default:
+                throw new InvalidOperationException(
+                    "SolarActivity requires either SunAnimationSettings " +
+                    "or CoronaAnimationSettings.");
+        }
+
         if (_target is not null &&
             !ReferenceEquals(_target, visualTarget))
         {
-            _target.BodyVisualRoot.Children.Remove(_billboardGroup);
+            _target.ActivityVisualRoot.Children.Remove(_billboardGroup);
         }
 
         _target = visualTarget;
 
-        if (!_target.BodyVisualRoot.Children.Contains(_billboardGroup))
+        if (!_target.ActivityVisualRoot.Children.Contains(_billboardGroup))
         {
-            _target.BodyVisualRoot.Children.Add(_billboardGroup);
+            _target.ActivityVisualRoot.Children.Add(_billboardGroup);
         }
 
-        SunAnimationSettings settings =
-            animation.Settings as SunAnimationSettings
-            ?? throw new InvalidOperationException(
-                "SolarActivity requires SunAnimationSettings.");
+        // The effect's construction mode determines whether it contains
+        // the corona glow, central occlusion disk, and bright limb.
+        if (_effect is null || _includeCoronaGlow != includeCoronaGlow)
+        {
+            _effect?.ResetAnimation();
+
+            _billboardGroup.Children.Clear();
+
+            _includeCoronaGlow = includeCoronaGlow;
+
+            _effect = new SolarActivityEffect3D(
+                visualTarget.BodyColor,
+                includeCoronaGlow: includeCoronaGlow);
+
+            _billboardGroup.Children.Add(_effect.Root);
+        }
 
         _enabled = animation.Enabled;
 
         _effect.Update(
             visualTarget.BodyColor,
-            settings.EnableProminences && _enabled,
-            settings.EnableFlares && _enabled,
-            settings.ActivityIntensity,
-            settings.ActivityFrequency,
-            settings.ActivityGeometryScale,
-            settings.ActivityThicknessScale);
+            enableProminences && _enabled,
+            enableFlares && _enabled,
+            activityIntensity,
+            activityFrequency,
+            activityGeometryScale,
+            activityThicknessScale);
     }
 
     public void UpdateCamera(Camera? camera)
     {
-        if (camera is not ProjectionCamera projectionCamera ||
-            _target is null)
-        {
+        if (camera is not ProjectionCamera projectionCamera)
             return;
-        }
 
         Point3D cameraPosition = projectionCamera.Position;
-
-        if (projectionCamera.Transform is Transform3D cameraTransform)
-        {
-            cameraPosition = cameraTransform.Transform(cameraPosition);
-        }
-
-        // Convert the camera position into BodyVisualRoot's local
-        // coordinate system, compensating for the star's scale
-        // and animation transforms.
-        Transform3D? bodyTransform = _target.BodyVisualRoot.Transform;
-
-        if (bodyTransform is not null)
-        {
-            Matrix3D inverse = bodyTransform.Value;
-
-            if (inverse.HasInverse)
-            {
-                inverse.Invert();
-                cameraPosition = inverse.Transform(cameraPosition);
-            }
-        }
 
         Vector3D directionToCamera =
             cameraPosition - new Point3D(0, 0, 0);
@@ -154,11 +166,11 @@ internal sealed class SolarActivityAnimationRenderer :
         if (!_enabled || frame.DeltaSeconds <= 0.0)
             return;
 
-        _effect.AdvanceAnimation(frame);
+        _effect?.AdvanceAnimation(frame);
     }
 
     public void ResetAnimation()
     {
-        _effect.ResetAnimation();
+        _effect?.ResetAnimation();
     }
 }

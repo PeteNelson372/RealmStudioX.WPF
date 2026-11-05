@@ -21,5 +21,8 @@ namespace RealmStudioX.WPF.Views.Celestial
         public double OrbitalSpeed { get; set; } = 0.0;
 
         public bool EnableOrbitAnimation { get; set; } = false;
+
+        // local transform for the body, if any. This is used to apply additional transformations to the body, such as rotation or scaling.
+        public Transform3D? LocalTransform { get; set; }
     }
 }

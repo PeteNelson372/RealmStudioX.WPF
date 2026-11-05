@@ -20,6 +20,12 @@ internal static class AnimationRendererFactory
             CelestialBodyAnimationType.SolarActivity =>
                 new SolarActivityAnimationRenderer(),
 
+            CelestialBodyAnimationType.BlackHoleActivity =>
+                new BlackHoleActivityAnimationRenderer(),
+
+            CelestialBodyAnimationType.AtmosphereTurbulenceActivity =>
+                new AtmosphereTurbulenceRenderer(),
+
             _ => throw new NotSupportedException(
                 $"Animation type '{animation.AnimationType}' is not supported.")
         };

@@ -1,8 +1,10 @@
-﻿using RealmStudioShapeRenderingLib;
+﻿
+using RealmStudioShapeRenderingLib;
 using RealmStudioX.WPF.WorldGlobe;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
+using Color = System.Windows.Media.Color;
 using Point = System.Windows.Point;
 
 namespace RealmStudioX.WPF.Views.Celestial;
@@ -10,7 +12,7 @@ namespace RealmStudioX.WPF.Views.Celestial;
 internal sealed class PlanetCelestialBodyRenderer :
     ICelestialBodyRenderer,
     IAttachmentContainer,
-    ICelestialBodyAnimationTarget,
+    ICelestialBodyVisualTarget,
     IWorldGlobeAnimatedObject
 {
     public CelestialBodyRendererType Type => CelestialBodyRendererType.Planet;
@@ -20,17 +22,18 @@ internal sealed class PlanetCelestialBodyRenderer :
 
     private readonly Model3DGroup _root = new();
     private readonly Model3DGroup _surfaceGroup = new();
+    private readonly Model3DGroup _activityGroup = new();
     private readonly Model3DGroup _attachmentRoot = new();
 
     private readonly GeometryModel3D _surfaceModel = new();
 
-    private readonly ScaleTransform3D _scaleTransform = new(1.0, 1.0, 1.0);
+    private readonly ScaleTransform3D _scaleTransform =
+        new(1.0, 1.0, 1.0);
+
+    private readonly ScaleTransform3D _activityScaleTransform =
+        new(1.0, 1.0, 1.0);
 
     private readonly Transform3DGroup _animationTransform = new();
-
-    public Transform3DGroup AnimationTransform => _animationTransform;
-
-    private double _rotationAngle;
 
     private CelestialBody? _body;
 
@@ -38,25 +41,37 @@ internal sealed class PlanetCelestialBodyRenderer :
 
     private readonly Dictionary<string, ICelestialBodyAnimationRenderer> _animationRenderers = [];
 
+    // ICelestialBodyAnimationTarget
+    public Transform3DGroup AnimationTransform => _animationTransform;
 
+    // ICelestialBodyVisualTarget
+    public Model3DGroup BodyVisualRoot => _surfaceGroup;
+
+    public Model3DGroup ActivityVisualRoot => _activityGroup;
+
+    public Color BodyColor => _body?.BaseColor ?? Colors.White;
 
     public PlanetCelestialBodyRenderer()
     {
-        Transform3DGroup transform = new();
+        Transform3DGroup surfaceTransform = new();
 
-        transform.Children.Add(_scaleTransform);
-        transform.Children.Add(_animationTransform);
+        surfaceTransform.Children.Add(_scaleTransform);
+        surfaceTransform.Children.Add(_animationTransform);
 
-        _surfaceGroup.Transform = transform;
+        _surfaceGroup.Transform = surfaceTransform;
+
+        // Activity visuals receive body-radius scaling,
+        // but do not inherit the surface animation transform.
+        _activityGroup.Transform = _activityScaleTransform;
 
         _surfaceModel.Geometry = SphereMesh;
 
         _surfaceGroup.Children.Add(_surfaceModel);
 
-        // The planet surface and its attachments are siblings.
-        // This prevents the planet's surface rotation and scaling
-        // from being applied a second time to the attachments.
+        // The planet surface, activity visuals, and attachments
+        // are siblings with independent transform responsibilities.
         _root.Children.Add(_surfaceGroup);
+        _root.Children.Add(_activityGroup);
         _root.Children.Add(_attachmentRoot);
     }
 
@@ -71,6 +86,10 @@ internal sealed class PlanetCelestialBodyRenderer :
         _scaleTransform.ScaleX = body.Radius;
         _scaleTransform.ScaleY = body.Radius;
         _scaleTransform.ScaleZ = body.Radius;
+
+        _activityScaleTransform.ScaleX = body.Radius;
+        _activityScaleTransform.ScaleY = body.Radius;
+        _activityScaleTransform.ScaleZ = body.Radius;
 
         Material material;
 
@@ -125,14 +144,12 @@ internal sealed class PlanetCelestialBodyRenderer :
         if (_body is null)
             return;
 
-        // Keep track of the attachment IDs that are still present.
         HashSet<string> currentAttachmentIds = [];
 
         foreach (CelestialBodyAttachment attachment in _body.Attachments)
         {
             currentAttachmentIds.Add(attachment.Id);
 
-            // Find or create the appropriate renderer.
             if (!_attachmentRenderers.TryGetValue(
                     attachment.Id,
                     out IAttachmentRenderer? renderer))
@@ -143,8 +160,6 @@ internal sealed class PlanetCelestialBodyRenderer :
             }
             else if (renderer.AttachmentType != attachment.Type)
             {
-                // The attachment type changed, so the existing renderer
-                // is no longer appropriate.
                 _attachmentRoot.Children.Remove(renderer.Root);
 
                 renderer.ResetAnimation();
@@ -154,12 +169,10 @@ internal sealed class PlanetCelestialBodyRenderer :
                 _attachmentRenderers[attachment.Id] = renderer;
             }
 
-            // Resolve the attachment texture and update its renderer.
             BitmapSource? texture = textureResolver(attachment);
 
             renderer.Update(attachment, texture, _body.Radius);
 
-            // Synchronize the scene graph with the renderer's enabled state.
             bool isInScene =
                 _attachmentRoot.Children.Contains(renderer.Root);
 
@@ -173,7 +186,6 @@ internal sealed class PlanetCelestialBodyRenderer :
             }
         }
 
-        // Remove renderers belonging to attachments that no longer exist.
         string[] removedAttachmentIds = _attachmentRenderers.Keys
             .Where(id => !currentAttachmentIds.Contains(id))
             .ToArray();

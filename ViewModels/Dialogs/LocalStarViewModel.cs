@@ -264,70 +264,294 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             star.Radius = Math.Clamp(LocalStarSize, 0.01, 1.0);
             star.BaseColor = StarlightColor;
 
-            star.Animations.Clear();
+            star.TextureSource = new CelestialTextureSource();
+
+            if (SelectedLocalStarType != LocalStarType.GasGiant)
+            {
+                for (int i = star.Attachments.Count - 1; i >= 0; i--)
+                {
+                    if (star.Attachments[i].Type ==
+                        CelestialBodyAttachmentType.PlanetaryRings)
+                    {
+                        star.Attachments.RemoveAt(i);
+                    }
+                }
+            }
 
             switch (SelectedLocalStarType)
             {
                 case LocalStarType.Sun:
+                    star.RendererType = CelestialBodyRendererType.Sun;
+
+                    CelestialBodyAnimation rotation =
+                        GetOrCreateAnimation(
+                            star,
+                            CelestialBodyAnimationType.BasicRotation);
+
+                    rotation.Enabled = true;
+                    rotation.Settings = new BasicRotationSettings
                     {
-                        star.RendererType = CelestialBodyRendererType.Sun;
-                        star.Animations.Clear();
+                        RotationRate = LocalStarRotationRate,
+                        RotationDirection = LocalStarRotationDirection
+                    };
 
-                        star.Animations.Add(new CelestialBodyAnimation
-                        {
-                            AnimationType = CelestialBodyAnimationType.BasicRotation,
-                            Enabled = true,
-                            Settings = new BasicRotationSettings
-                            {
-                                RotationRate = LocalStarRotationRate,
-                                RotationDirection = LocalStarRotationDirection
-                            }
-                        });
+                    CelestialBodyAnimation solarActivity =
+                        GetOrCreateAnimation(
+                            star,
+                            CelestialBodyAnimationType.SolarActivity);
 
-                        SunViewModel sunViewModel = _sunModel;
+                    solarActivity.Enabled = true;
+                    solarActivity.Settings = new SunAnimationSettings
+                    {
+                        EnableProminences = _sunModel.EnableProminences,
+                        EnableFlares = _sunModel.EnableFlares,
+                        ActivityIntensity = _sunModel.ActivityIntensity,
+                        ActivityFrequency = _sunModel.ActivityFrequency,
+                        ActivityGeometryScale = _sunModel.ActivityGeometryScale,
+                        ActivityThicknessScale = _sunModel.ActivityThicknessScale,
+                        EnableCorona = _sunModel.EnableCorona,
+                        CoronaOpacity = _sunModel.CoronaOpacity,
+                        CoronaRotationSpeed = _sunModel.CoronaRotationSpeed
+                    };
 
-                        star.Animations.Add(new CelestialBodyAnimation
-                        {
-                            AnimationType = CelestialBodyAnimationType.SolarActivity,
-                            Enabled = true,
-                            Settings = new SunAnimationSettings
-                            {
-                                EnableProminences = sunViewModel.EnableProminences,
-                                EnableFlares = sunViewModel.EnableFlares,
-                                EnableCorona = sunViewModel.EnableCorona,
-                                CoronaOpacity = sunViewModel.CoronaOpacity,
-                                CoronaRotationSpeed = sunViewModel.CoronaRotationSpeed,
-                                ActivityIntensity = sunViewModel.ActivityIntensity,
-                                ActivityFrequency = sunViewModel.ActivityFrequency,
-                                ActivityGeometryScale = sunViewModel.ActivityGeometryScale,
-                                ActivityThicknessScale = sunViewModel.ActivityThicknessScale
-                            }
-                        });
+                    RemoveUnusedAnimations(
+                        star,
+                        CelestialBodyAnimationType.BasicRotation,
+                        CelestialBodyAnimationType.SolarActivity);
 
-                        break;
-                    }
+                    break;
 
                 case LocalStarType.Corona:
                     star.RendererType = CelestialBodyRendererType.Corona;
+
+                    CelestialBodyAnimation coronaActivity =
+                        GetOrCreateAnimation(
+                            star,
+                            CelestialBodyAnimationType.SolarActivity);
+
+                    coronaActivity.Enabled = true;
+                    coronaActivity.Settings = new CoronaAnimationSettings
+                    {
+                        EnableProminences = _coronaModel.EnableProminences,
+                        EnableFlares = _coronaModel.EnableFlares,
+                        ActivityIntensity = _coronaModel.ActivityIntensity,
+                        ActivityFrequency = _coronaModel.ActivityFrequency,
+                        ActivityGeometryScale = _coronaModel.ActivityGeometryScale,
+                        ActivityThicknessScale = _coronaModel.ActivityThicknessScale
+                    };
+
+                    RemoveUnusedAnimations(
+                        star,
+                        CelestialBodyAnimationType.SolarActivity);
+
                     break;
 
                 case LocalStarType.BlackHole:
                     star.RendererType = CelestialBodyRendererType.BlackHole;
+
+                    CelestialBodyAnimation blackHoleRotation =
+                        GetOrCreateAnimation(
+                            star,
+                            CelestialBodyAnimationType.BasicRotation);
+
+                    blackHoleRotation.Enabled = true;
+                    blackHoleRotation.Settings = new BasicRotationSettings
+                    {
+                        RotationRate = LocalStarRotationRate,
+                        RotationDirection = LocalStarRotationDirection
+                    };
+
+                    CelestialBodyAnimation blackHoleActivity =
+                        GetOrCreateAnimation(
+                            star,
+                            CelestialBodyAnimationType.BlackHoleActivity);
+
+                    blackHoleActivity.Enabled = true;
+                    blackHoleActivity.Settings = new BlackHoleAnimationSettings
+                    {
+                        EnableJets = _blackHoleModel.EnableJets,
+                        JetLength = _blackHoleModel.JetLength,
+                        JetPulseRate = _blackHoleModel.JetPulseRate,
+                        EnableJetParticles = _blackHoleModel.EnableJetParticles,
+                        JetParticleSpeed = _blackHoleModel.JetParticleSpeed,
+                        JetParticleEmissionRate = _blackHoleModel.JetParticleEmissionRate,
+                        JetParticleLifetime = _blackHoleModel.JetParticleLifetime,
+                        JetParticleDispersion = _blackHoleModel.JetParticleDispersion,
+                        EnableDiskParticles = _blackHoleModel.EnableDiskParticles,
+                        DiskParticleEmissionRate = _blackHoleModel.DiskParticleEmissionRate,
+                        DiskParticleLifetime = _blackHoleModel.DiskParticleLifetime,
+                        DiskParticleOutflowSpeed = _blackHoleModel.DiskParticleOutflowSpeed
+                    };
+
+                    RemoveUnusedAnimations(
+                        star,
+                        CelestialBodyAnimationType.BasicRotation,
+                        CelestialBodyAnimationType.BlackHoleActivity);
+
                     break;
 
                 case LocalStarType.Nebula:
                     star.RendererType = CelestialBodyRendererType.Nebula;
+
+                    star.Animations.Add(new CelestialBodyAnimation
+                    {
+                        AnimationType = CelestialBodyAnimationType.NebulaActivity,
+                        Enabled = true,
+                        Settings = new NebulaAnimationSettings
+                        {
+                            LayerCount = _nebulaModel.LayerCount,
+                            Width = _nebulaModel.Width,
+                            Height = _nebulaModel.Height,
+                            Depth = _nebulaModel.Depth,
+                            Opacity = _nebulaModel.Opacity,
+                            Brightness = _nebulaModel.Brightness,
+                            DetailIntensity = _nebulaModel.DetailIntensity,
+                            RotationSpeed = _nebulaModel.RotationSpeed,
+                            DriftSpeed = _nebulaModel.DriftSpeed
+                        }
+                    });
                     break;
 
+
                 case LocalStarType.GasGiant:
-                    // Register a dedicated GasGiant renderer type before
-                    // enabling this case.
-                    throw new NotSupportedException(
-                        "The Gas Giant celestial-body renderer has not yet been migrated.");
+                    star.RendererType = CelestialBodyRendererType.Planet;
+
+                    star.TextureSource = new CelestialTextureSource
+                    {
+                        SourceType = CelestialTextureSourceType.BitmapFile,
+                        FilePath = _gasGiantModel.TexturePath
+                    };
+
+                    CelestialBodyAnimation gasGiantRotation =
+                        GetOrCreateAnimation(
+                            star,
+                            CelestialBodyAnimationType.BasicRotation);
+
+                    gasGiantRotation.Enabled = true;
+                    gasGiantRotation.Settings = new BasicRotationSettings
+                    {
+                        RotationRate = LocalStarRotationRate,
+                        RotationDirection = LocalStarRotationDirection
+                    };
+
+                    CelestialBodyAnimation atmosphereActivity =
+                        GetOrCreateAnimation(
+                            star,
+                            CelestialBodyAnimationType.AtmosphereTurbulenceActivity);
+
+                    atmosphereActivity.Enabled = true;
+                    atmosphereActivity.Settings = new GasGiantAnimationSettings
+                    {
+                        EnableAtmosphericTurbulence =
+                            _gasGiantModel.EnableAtmosphericTurbulence,
+
+                        TurbulenceIntensity =
+                            _gasGiantModel.TurbulenceIntensity
+                    };
+
+                    RemoveUnusedAnimations(
+                        star,
+                        CelestialBodyAnimationType.BasicRotation,
+                        CelestialBodyAnimationType.AtmosphereTurbulenceActivity);
+
+                    UpdateGasGiantRingAttachment(star);
+
+                    break;
+
 
                 default:
                     throw new NotSupportedException(
                         $"Local Star type '{SelectedLocalStarType}' is not supported.");
+            }
+        }
+
+
+        private void UpdateGasGiantRingAttachment(CelestialBody star)
+        {
+            PlanetaryRingViewModel rings = _gasGiantModel.Rings;
+
+            CelestialBodyAttachment? attachment =
+                star.Attachments.FirstOrDefault(
+                    item => item.Type == CelestialBodyAttachmentType.PlanetaryRings);
+
+            if (attachment is null)
+            {
+                attachment = new CelestialBodyAttachment
+                {
+                    Name = "Planetary Rings",
+                    Description = "A textured ring system surrounding the gas giant.",
+                    Type = CelestialBodyAttachmentType.PlanetaryRings
+                };
+
+                star.Attachments.Add(attachment);
+            }
+
+            attachment.Enabled = rings.Enabled;
+
+            // The attachment owns its own settings instance.
+            attachment.AttachmentSettings = rings.Settings.Clone();
+
+            SyncAttachmentAnimation(
+                attachment,
+                rings.RotationAnimation);
+
+            SyncAttachmentAnimation(
+                attachment,
+                rings.TurbulenceAnimation);
+        }
+
+        private static void SyncAttachmentAnimation(
+            CelestialBodyAttachment attachment,
+            CelestialBodyAnimation animation)
+        {
+            CelestialBodyAnimation? existing =
+                attachment.Animations.FirstOrDefault(
+                    item => item.AnimationType == animation.AnimationType);
+
+            if (existing is null)
+            {
+                attachment.Animations.Add(animation);
+            }
+            else if (!ReferenceEquals(existing, animation))
+            {
+                int index = attachment.Animations.IndexOf(existing);
+                attachment.Animations[index] = animation;
+            }
+        }
+
+
+        private static CelestialBodyAnimation GetOrCreateAnimation(
+            CelestialBody body,
+            CelestialBodyAnimationType animationType)
+        {
+            CelestialBodyAnimation? animation =
+                body.Animations.FirstOrDefault(
+                    a => a.AnimationType == animationType);
+
+            if (animation is not null)
+                return animation;
+
+            animation = new CelestialBodyAnimation
+            {
+                AnimationType = animationType,
+                Enabled = true
+            };
+
+            body.Animations.Add(animation);
+
+            return animation;
+        }
+
+        private static void RemoveUnusedAnimations(
+            CelestialBody body,
+            params CelestialBodyAnimationType[] retainedTypes)
+        {
+            HashSet<CelestialBodyAnimationType> retained = [.. retainedTypes];
+
+            for (int i = body.Animations.Count - 1; i >= 0; i--)
+            {
+                if (!retained.Contains(body.Animations[i].AnimationType))
+                    body.Animations.RemoveAt(i);
             }
         }
     }

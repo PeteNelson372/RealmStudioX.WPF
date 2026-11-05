@@ -34,6 +34,12 @@ internal abstract class LocalStarCelestialBodyRenderer :
 
     private CelestialBody? _body;
 
+    private readonly Model3DGroup _activityVisualRoot = new();
+
+    public Model3DGroup ActivityVisualRoot => _activityVisualRoot;
+
+    private readonly ScaleTransform3D _activityScaleTransform = new(1.0, 1.0, 1.0);
+
     protected LocalStarCelestialBodyRenderer()
     {
         // The body visual receives the body's radius scaling and
@@ -45,10 +51,16 @@ internal abstract class LocalStarCelestialBodyRenderer :
 
         _bodyVisualRoot.Transform = bodyTransform;
 
+        // Solar activity receives the same radius scaling as the body,
+        // but deliberately does not inherit its animation transforms.
+        _activityVisualRoot.Transform = _activityScaleTransform;
+
+        _root.Children.Add(_bodyVisualRoot);
+        _root.Children.Add(_activityVisualRoot);
+
         // Attachments are deliberately kept outside the body visual
         // transform. Each attachment receives the host radius when
         // its own renderer is updated.
-        _root.Children.Add(_bodyVisualRoot);
         _root.Children.Add(_attachmentRoot);
 
         // The light remains at the Local Star's origin and is not
@@ -91,6 +103,10 @@ internal abstract class LocalStarCelestialBodyRenderer :
         _scaleTransform.ScaleX = body.Radius;
         _scaleTransform.ScaleY = body.Radius;
         _scaleTransform.ScaleZ = body.Radius;
+
+        _activityScaleTransform.ScaleX = body.Radius;
+        _activityScaleTransform.ScaleY = body.Radius;
+        _activityScaleTransform.ScaleZ = body.Radius;
 
         UpdateLight();
 

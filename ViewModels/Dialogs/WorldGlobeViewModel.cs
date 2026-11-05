@@ -39,6 +39,15 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 _ringRotationAnimation,
                 _ringTurbulenceAnimation,
                 UpdateRingSettings);
+
+            PropertyChanged += (sender, e) =>
+            {
+                if (e.PropertyName == nameof(CurrentTiltAngle))
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"CurrentTiltAngle PropertyChanged: {CurrentTiltAngle:F1}");
+                }
+            };
         }
 
         private void UpdateRingSettings()
@@ -87,6 +96,8 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         public void UpdateCurrentTiltAngle(double angle)
         {
             CurrentTiltAngle = Math.Clamp(angle, 0.0, 90.0);
+
+            System.Diagnostics.Debug.WriteLine($"CurrentTiltAngle UpdateCurrentTiltAngle: {CurrentTiltAngle:F1}");
         }
 
         private WorldRotationDirection _rotationDirection = WorldRotationDirection.Prograde;
@@ -94,7 +105,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         public WorldRotationDirection RotationDirection
         {
             get => _rotationDirection;
-            set => _rotationDirection = value;
+            set => SetProperty(ref _rotationDirection, value);
         }
     }
 }
