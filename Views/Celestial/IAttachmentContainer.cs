@@ -4,7 +4,6 @@ namespace RealmStudioX.WPF.Views.Celestial
 {
     internal interface IAttachmentContainer
     {
-        void RefreshAttachments(
-            Func<CelestialBodyAttachment, BitmapSource?> textureResolver);
+        void RefreshAttachments(Func<CelestialBodyAttachment, BitmapSource?> textureResolver);
     }
 }

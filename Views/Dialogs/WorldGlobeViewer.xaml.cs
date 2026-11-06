@@ -1,12 +1,10 @@
 ﻿using RealmStudioShapeRenderingLib;
-using RealmStudioX._3D.Views.Controls;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Dialogs;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Celestial;
 using RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels;
-using RealmStudioX.WPF.WorldGlobe;
 using SkiaSharp;
 using System.IO;
 using System.Windows;
@@ -25,7 +23,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
     /// <summary>
     /// Interaction logic for WorldGlobeViewer.xaml
     /// </summary>
-    public partial class WorldGlobeViewer : ModelessDialog, IWorldGlobeAnimatedObject
+    public partial class WorldGlobeViewer : ModelessDialog, ICelestialAnimatedObject
     {
         public override string WindowId { get; } = Guid.NewGuid().ToString();
 
@@ -87,7 +85,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         private readonly Dictionary<string, BitmapSource> _textureCache = new(StringComparer.OrdinalIgnoreCase);
 
-        private readonly WorldGlobeAnimationController _animationController = new();
+        private readonly CelestialAnimationController _animationController = new();
 
         private bool _isRenderingSubscribed;
 
@@ -239,7 +237,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             _celestialSystemRenderer?.UpdateCamera(camera);
         }
 
-        void IWorldGlobeAnimatedObject.AdvanceAnimation(WorldGlobeAnimationFrame frame)
+        void ICelestialAnimatedObject.AdvanceAnimation(CelestialAnimationFrame frame)
         {
             if (frame.DeltaSeconds <= 0.0)
                 return;
@@ -272,7 +270,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             _celestialSystemRenderer?.AdvanceAnimation(frame);
         }
 
-        void IWorldGlobeAnimatedObject.ResetAnimation()
+        void ICelestialAnimatedObject.ResetAnimation()
         {
             _celestialSystemRenderer?.ResetAnimation();
         }

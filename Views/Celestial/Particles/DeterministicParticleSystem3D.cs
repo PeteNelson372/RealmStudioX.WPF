@@ -1,8 +1,7 @@
-﻿using System;
-using System.Windows.Media;
+﻿using System.Windows.Media;
 using System.Windows.Media.Media3D;
 
-namespace RealmStudioX.WPF.WorldGlobe.Particles;
+namespace RealmStudioX.WPF.Views.Celestial.Particles;
 
 internal sealed class DeterministicParticleSystem3D
 {

@@ -1,340 +1,340 @@
 ﻿
 using RealmStudioShapeRenderingLib;
-using RealmStudioX.WPF.WorldGlobe;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using Color = System.Windows.Media.Color;
 using Point = System.Windows.Point;
 
-namespace RealmStudioX.WPF.Views.Celestial;
-
-internal sealed class PlanetCelestialBodyRenderer :
-    ICelestialBodyRenderer,
-    IAttachmentContainer,
-    ICelestialBodyVisualTarget,
-    IWorldGlobeAnimatedObject
+namespace RealmStudioX.WPF.Views.Celestial
 {
-    public CelestialBodyRendererType Type => CelestialBodyRendererType.Planet;
-
-    private static readonly MeshGeometry3D SphereMesh =
-        CreateSphereMesh(radius: 1.0, thetaDiv: 128, phiDiv: 64);
-
-    private readonly Model3DGroup _root = new();
-    private readonly Model3DGroup _tiltGroup = new();
-    private readonly Model3DGroup _surfaceGroup = new();
-    private readonly Model3DGroup _activityGroup = new();
-    private readonly Model3DGroup _attachmentRoot = new();
-
-    private readonly GeometryModel3D _surfaceModel = new();
-
-    private readonly ScaleTransform3D _scaleTransform =
-        new(1.0, 1.0, 1.0);
-
-    private readonly ScaleTransform3D _activityScaleTransform =
-        new(1.0, 1.0, 1.0);
-
-    private readonly Transform3DGroup _animationTransform = new();
-
-    // Axial tilt is applied to the entire planetary system.
-    private readonly AxisAngleRotation3D _axialTiltRotation =
-        new(new Vector3D(1.0, 0.0, 0.0), 0.0);
-
-    private CelestialBody? _body;
-
-    private readonly Dictionary<string, IAttachmentRenderer> _attachmentRenderers = [];
-
-    private readonly Dictionary<string, ICelestialBodyAnimationRenderer> _animationRenderers = [];
-
-    // ICelestialBodyAnimationTarget
-    public Transform3DGroup AnimationTransform => _animationTransform;
-
-    // ICelestialBodyVisualTarget
-    public Model3DGroup BodyVisualRoot => _surfaceGroup;
-
-    public Model3DGroup ActivityVisualRoot => _activityGroup;
-
-    public Color BodyColor => _body?.BaseColor ?? Colors.White;
-
-    public PlanetCelestialBodyRenderer()
+    internal sealed class PlanetCelestialBodyRenderer :
+        ICelestialBodyRenderer,
+        IAttachmentContainer,
+        ICelestialBodyVisualTarget,
+        ICelestialAnimatedObject
     {
-        // The tilt group applies axial tilt to the entire planetary system.
-        _tiltGroup.Transform = new RotateTransform3D(_axialTiltRotation);
+        public CelestialBodyRendererType Type => CelestialBodyRendererType.Planet;
 
-        Transform3DGroup surfaceTransform = new();
+        private static readonly MeshGeometry3D SphereMesh =
+            CreateSphereMesh(radius: 1.0, thetaDiv: 128, phiDiv: 64);
 
-        surfaceTransform.Children.Add(_scaleTransform);
-        surfaceTransform.Children.Add(_animationTransform);
+        private readonly Model3DGroup _root = new();
+        private readonly Model3DGroup _tiltGroup = new();
+        private readonly Model3DGroup _surfaceGroup = new();
+        private readonly Model3DGroup _activityGroup = new();
+        private readonly Model3DGroup _attachmentRoot = new();
 
-        _surfaceGroup.Transform = surfaceTransform;
+        private readonly GeometryModel3D _surfaceModel = new();
 
-        // Activity visuals receive body-radius scaling,
-        // but do not inherit the surface animation transform.
-        _activityGroup.Transform = _activityScaleTransform;
+        private readonly ScaleTransform3D _scaleTransform =
+            new(1.0, 1.0, 1.0);
 
-        _surfaceModel.Geometry = SphereMesh;
+        private readonly ScaleTransform3D _activityScaleTransform =
+            new(1.0, 1.0, 1.0);
 
-        _surfaceGroup.Children.Add(_surfaceModel);
+        private readonly Transform3DGroup _animationTransform = new();
 
-        // The planet surface, activity visuals, and attachments
-        // are siblings with independent transform responsibilities.
-        // All three inherit the planetary axial tilt.
-        _tiltGroup.Children.Add(_surfaceGroup);
-        _tiltGroup.Children.Add(_activityGroup);
-        _tiltGroup.Children.Add(_attachmentRoot);
+        // Axial tilt is applied to the entire planetary system.
+        private readonly AxisAngleRotation3D _axialTiltRotation =
+            new(new Vector3D(1.0, 0.0, 0.0), 0.0);
 
-        _root.Children.Add(_tiltGroup);
-    }
+        private CelestialBody? _body;
 
-    public Model3DGroup Root => _root;
+        private readonly Dictionary<string, IAttachmentRenderer> _attachmentRenderers = [];
 
-    public void Update(CelestialBody body, ImageSource? texture)
-    {
-        ArgumentNullException.ThrowIfNull(body);
+        private readonly Dictionary<string, ICelestialBodyAnimationRenderer> _animationRenderers = [];
 
-        _body = body;
+        // ICelestialBodyAnimationTarget
+        public Transform3DGroup AnimationTransform => _animationTransform;
 
-        // Update the planet's axial tilt.
-        // This affects the surface, activity visuals, and attachments.
-        _axialTiltRotation.Angle = body.AxialTilt;
+        // ICelestialBodyVisualTarget
+        public Model3DGroup BodyVisualRoot => _surfaceGroup;
 
-        _scaleTransform.ScaleX = body.Radius;
-        _scaleTransform.ScaleY = body.Radius;
-        _scaleTransform.ScaleZ = body.Radius;
+        public Model3DGroup ActivityVisualRoot => _activityGroup;
 
-        _activityScaleTransform.ScaleX = body.Radius;
-        _activityScaleTransform.ScaleY = body.Radius;
-        _activityScaleTransform.ScaleZ = body.Radius;
+        public Color BodyColor => _body?.BaseColor ?? Colors.White;
 
-        Material material;
-
-        if (texture is not null)
+        public PlanetCelestialBodyRenderer()
         {
-            ImageBrush imageBrush = new(texture)
-            {
-                Stretch = Stretch.Fill,
-                TileMode = TileMode.None
-            };
+            // The tilt group applies axial tilt to the entire planetary system.
+            _tiltGroup.Transform = new RotateTransform3D(_axialTiltRotation);
 
-            material = new DiffuseMaterial(imageBrush);
-        }
-        else
-        {
-            material = new DiffuseMaterial(
-                new SolidColorBrush(body.BaseColor));
+            Transform3DGroup surfaceTransform = new();
+
+            surfaceTransform.Children.Add(_scaleTransform);
+            surfaceTransform.Children.Add(_animationTransform);
+
+            _surfaceGroup.Transform = surfaceTransform;
+
+            // Activity visuals receive body-radius scaling,
+            // but do not inherit the surface animation transform.
+            _activityGroup.Transform = _activityScaleTransform;
+
+            _surfaceModel.Geometry = SphereMesh;
+
+            _surfaceGroup.Children.Add(_surfaceModel);
+
+            // The planet surface, activity visuals, and attachments
+            // are siblings with independent transform responsibilities.
+            // All three inherit the planetary axial tilt.
+            _tiltGroup.Children.Add(_surfaceGroup);
+            _tiltGroup.Children.Add(_activityGroup);
+            _tiltGroup.Children.Add(_attachmentRoot);
+
+            _root.Children.Add(_tiltGroup);
         }
 
-        _surfaceModel.Material = material;
-        _surfaceModel.BackMaterial = material;
+        public Model3DGroup Root => _root;
 
-        RefreshAnimationRenderers();
-    }
-
-    internal static class AttachmentRendererFactory
-    {
-        public static IAttachmentRenderer Create(
-            CelestialBodyAttachment attachment)
+        public void Update(CelestialBody body, ImageSource? texture)
         {
-            ArgumentNullException.ThrowIfNull(attachment);
+            ArgumentNullException.ThrowIfNull(body);
 
-            return attachment.Type switch
+            _body = body;
+
+            // Update the planet's axial tilt.
+            // This affects the surface, activity visuals, and attachments.
+            _axialTiltRotation.Angle = body.AxialTilt;
+
+            _scaleTransform.ScaleX = body.Radius;
+            _scaleTransform.ScaleY = body.Radius;
+            _scaleTransform.ScaleZ = body.Radius;
+
+            _activityScaleTransform.ScaleX = body.Radius;
+            _activityScaleTransform.ScaleY = body.Radius;
+            _activityScaleTransform.ScaleZ = body.Radius;
+
+            Material material;
+
+            if (texture is not null)
             {
-                CelestialBodyAttachmentType.PlanetaryRings =>
-                    new PlanetaryRingsAttachmentRenderer(),
+                ImageBrush imageBrush = new(texture)
+                {
+                    Stretch = Stretch.Fill,
+                    TileMode = TileMode.None
+                };
 
-                CelestialBodyAttachmentType.CloudLayer =>
-                    new CloudLayerAttachmentRenderer(),
-
-                _ => throw new NotSupportedException(
-                    $"Unsupported attachment type: {attachment.Type}")
-            };
-        }
-    }
-
-    public void RefreshAttachments(
-        Func<CelestialBodyAttachment, BitmapSource?> textureResolver)
-    {
-        ArgumentNullException.ThrowIfNull(textureResolver);
-
-        if (_body is null)
-            return;
-
-        HashSet<string> currentAttachmentIds = [];
-
-        foreach (CelestialBodyAttachment attachment in _body.Attachments)
-        {
-            currentAttachmentIds.Add(attachment.Id);
-
-            if (!_attachmentRenderers.TryGetValue(
-                    attachment.Id,
-                    out IAttachmentRenderer? renderer))
-            {
-                renderer = AttachmentRendererFactory.Create(attachment);
-
-                _attachmentRenderers.Add(attachment.Id, renderer);
+                material = new DiffuseMaterial(imageBrush);
             }
-            else if (renderer.AttachmentType != attachment.Type)
+            else
             {
+                material = new DiffuseMaterial(
+                    new SolidColorBrush(body.BaseColor));
+            }
+
+            _surfaceModel.Material = material;
+            _surfaceModel.BackMaterial = material;
+
+            RefreshAnimationRenderers();
+        }
+
+        internal static class AttachmentRendererFactory
+        {
+            public static IAttachmentRenderer Create(
+                CelestialBodyAttachment attachment)
+            {
+                ArgumentNullException.ThrowIfNull(attachment);
+
+                return attachment.Type switch
+                {
+                    CelestialBodyAttachmentType.PlanetaryRings =>
+                        new PlanetaryRingsAttachmentRenderer(),
+
+                    CelestialBodyAttachmentType.CloudLayer =>
+                        new CloudLayerAttachmentRenderer(),
+
+                    _ => throw new NotSupportedException(
+                        $"Unsupported attachment type: {attachment.Type}")
+                };
+            }
+        }
+
+        public void RefreshAttachments(
+            Func<CelestialBodyAttachment, BitmapSource?> textureResolver)
+        {
+            ArgumentNullException.ThrowIfNull(textureResolver);
+
+            if (_body is null)
+                return;
+
+            HashSet<string> currentAttachmentIds = [];
+
+            foreach (CelestialBodyAttachment attachment in _body.Attachments)
+            {
+                currentAttachmentIds.Add(attachment.Id);
+
+                if (!_attachmentRenderers.TryGetValue(
+                        attachment.Id,
+                        out IAttachmentRenderer? renderer))
+                {
+                    renderer = AttachmentRendererFactory.Create(attachment);
+
+                    _attachmentRenderers.Add(attachment.Id, renderer);
+                }
+                else if (renderer.AttachmentType != attachment.Type)
+                {
+                    _attachmentRoot.Children.Remove(renderer.Root);
+
+                    renderer.ResetAnimation();
+
+                    renderer = AttachmentRendererFactory.Create(attachment);
+
+                    _attachmentRenderers[attachment.Id] = renderer;
+                }
+
+                BitmapSource? texture = textureResolver(attachment);
+
+                renderer.Update(attachment, texture, _body.Radius);
+
+                bool isInScene =
+                    _attachmentRoot.Children.Contains(renderer.Root);
+
+                if (renderer.IsEnabled && !isInScene)
+                {
+                    _attachmentRoot.Children.Add(renderer.Root);
+                }
+                else if (!renderer.IsEnabled && isInScene)
+                {
+                    _attachmentRoot.Children.Remove(renderer.Root);
+                }
+            }
+
+            string[] removedAttachmentIds = _attachmentRenderers.Keys
+                .Where(id => !currentAttachmentIds.Contains(id))
+                .ToArray();
+
+            foreach (string attachmentId in removedAttachmentIds)
+            {
+                IAttachmentRenderer renderer =
+                    _attachmentRenderers[attachmentId];
+
                 _attachmentRoot.Children.Remove(renderer.Root);
 
                 renderer.ResetAnimation();
 
-                renderer = AttachmentRendererFactory.Create(attachment);
-
-                _attachmentRenderers[attachment.Id] = renderer;
+                _attachmentRenderers.Remove(attachmentId);
             }
+        }
 
-            BitmapSource? texture = textureResolver(attachment);
+        private void RefreshAnimationRenderers()
+        {
+            if (_body is null)
+                return;
 
-            renderer.Update(attachment, texture, _body.Radius);
+            HashSet<string> activeIds = _body.Animations
+                .Select(animation => animation.Id)
+                .ToHashSet();
 
-            bool isInScene =
-                _attachmentRoot.Children.Contains(renderer.Root);
-
-            if (renderer.IsEnabled && !isInScene)
+            foreach (string id in _animationRenderers.Keys.ToArray())
             {
-                _attachmentRoot.Children.Add(renderer.Root);
+                if (!activeIds.Contains(id))
+                {
+                    _animationRenderers[id].ResetAnimation();
+                    _animationRenderers.Remove(id);
+                }
             }
-            else if (!renderer.IsEnabled && isInScene)
+
+            foreach (CelestialBodyAnimation animation in _body.Animations)
             {
-                _attachmentRoot.Children.Remove(renderer.Root);
+                if (!_animationRenderers.TryGetValue(
+                        animation.Id,
+                        out ICelestialBodyAnimationRenderer? renderer))
+                {
+                    renderer = AnimationRendererFactory.Create(animation);
+                    _animationRenderers.Add(animation.Id, renderer);
+                }
+
+                renderer.Update(animation, this);
             }
         }
 
-        string[] removedAttachmentIds = _attachmentRenderers.Keys
-            .Where(id => !currentAttachmentIds.Contains(id))
-            .ToArray();
-
-        foreach (string attachmentId in removedAttachmentIds)
+        public void AdvanceAnimation(CelestialAnimationFrame frame)
         {
-            IAttachmentRenderer renderer =
-                _attachmentRenderers[attachmentId];
+            if (_body is null || frame.DeltaSeconds <= 0.0)
+                return;
 
-            _attachmentRoot.Children.Remove(renderer.Root);
-
-            renderer.ResetAnimation();
-
-            _attachmentRenderers.Remove(attachmentId);
-        }
-    }
-
-    private void RefreshAnimationRenderers()
-    {
-        if (_body is null)
-            return;
-
-        HashSet<string> activeIds = _body.Animations
-            .Select(animation => animation.Id)
-            .ToHashSet();
-
-        foreach (string id in _animationRenderers.Keys.ToArray())
-        {
-            if (!activeIds.Contains(id))
+            foreach (ICelestialBodyAnimationRenderer renderer
+                     in _animationRenderers.Values)
             {
-                _animationRenderers[id].ResetAnimation();
-                _animationRenderers.Remove(id);
+                renderer.AdvanceAnimation(frame);
             }
-        }
 
-        foreach (CelestialBodyAnimation animation in _body.Animations)
-        {
-            if (!_animationRenderers.TryGetValue(
-                    animation.Id,
-                    out ICelestialBodyAnimationRenderer? renderer))
+            foreach (IAttachmentRenderer renderer in _attachmentRenderers.Values)
             {
-                renderer = AnimationRendererFactory.Create(animation);
-                _animationRenderers.Add(animation.Id, renderer);
+                renderer.AdvanceAnimation(frame);
             }
-
-            renderer.Update(animation, this);
-        }
-    }
-
-    public void AdvanceAnimation(WorldGlobeAnimationFrame frame)
-    {
-        if (_body is null || frame.DeltaSeconds <= 0.0)
-            return;
-
-        foreach (ICelestialBodyAnimationRenderer renderer
-                 in _animationRenderers.Values)
-        {
-            renderer.AdvanceAnimation(frame);
         }
 
-        foreach (IAttachmentRenderer renderer in _attachmentRenderers.Values)
+        public void ResetAnimation()
         {
-            renderer.AdvanceAnimation(frame);
-        }
-    }
-
-    public void ResetAnimation()
-    {
-        foreach (ICelestialBodyAnimationRenderer renderer
-                 in _animationRenderers.Values)
-        {
-            renderer.ResetAnimation();
-        }
-
-        foreach (IAttachmentRenderer renderer in _attachmentRenderers.Values)
-        {
-            renderer.ResetAnimation();
-        }
-    }
-
-    private static MeshGeometry3D CreateSphereMesh(
-        double radius,
-        int thetaDiv,
-        int phiDiv)
-    {
-        MeshGeometry3D mesh = new();
-
-        for (int latitude = 0; latitude <= phiDiv; latitude++)
-        {
-            double phi = Math.PI * latitude / phiDiv;
-
-            double y = Math.Cos(phi);
-            double ringRadius = Math.Sin(phi);
-
-            for (int longitude = 0; longitude <= thetaDiv; longitude++)
+            foreach (ICelestialBodyAnimationRenderer renderer
+                     in _animationRenderers.Values)
             {
-                double theta =
-                    2.0 * Math.PI * longitude / thetaDiv;
-
-                double x = ringRadius * Math.Cos(theta);
-                double z = ringRadius * Math.Sin(theta);
-
-                mesh.Positions.Add(new Point3D(
-                    radius * x,
-                    radius * y,
-                    radius * z));
-
-                mesh.Normals.Add(new Vector3D(x, y, z));
-
-                mesh.TextureCoordinates.Add(new Point(
-                    (double)longitude / thetaDiv,
-                    (double)latitude / phiDiv));
+                renderer.ResetAnimation();
             }
-        }
 
-        for (int latitude = 0; latitude < phiDiv; latitude++)
-        {
-            for (int longitude = 0; longitude < thetaDiv; longitude++)
+            foreach (IAttachmentRenderer renderer in _attachmentRenderers.Values)
             {
-                int current =
-                    latitude * (thetaDiv + 1) + longitude;
-
-                int next = current + thetaDiv + 1;
-
-                mesh.TriangleIndices.Add(current);
-                mesh.TriangleIndices.Add(next);
-                mesh.TriangleIndices.Add(current + 1);
-
-                mesh.TriangleIndices.Add(current + 1);
-                mesh.TriangleIndices.Add(next);
-                mesh.TriangleIndices.Add(next + 1);
+                renderer.ResetAnimation();
             }
         }
 
-        return mesh;
+        private static MeshGeometry3D CreateSphereMesh(
+            double radius,
+            int thetaDiv,
+            int phiDiv)
+        {
+            MeshGeometry3D mesh = new();
+
+            for (int latitude = 0; latitude <= phiDiv; latitude++)
+            {
+                double phi = Math.PI * latitude / phiDiv;
+
+                double y = Math.Cos(phi);
+                double ringRadius = Math.Sin(phi);
+
+                for (int longitude = 0; longitude <= thetaDiv; longitude++)
+                {
+                    double theta =
+                        2.0 * Math.PI * longitude / thetaDiv;
+
+                    double x = ringRadius * Math.Cos(theta);
+                    double z = ringRadius * Math.Sin(theta);
+
+                    mesh.Positions.Add(new Point3D(
+                        radius * x,
+                        radius * y,
+                        radius * z));
+
+                    mesh.Normals.Add(new Vector3D(x, y, z));
+
+                    mesh.TextureCoordinates.Add(new Point(
+                        (double)longitude / thetaDiv,
+                        (double)latitude / phiDiv));
+                }
+            }
+
+            for (int latitude = 0; latitude < phiDiv; latitude++)
+            {
+                for (int longitude = 0; longitude < thetaDiv; longitude++)
+                {
+                    int current =
+                        latitude * (thetaDiv + 1) + longitude;
+
+                    int next = current + thetaDiv + 1;
+
+                    mesh.TriangleIndices.Add(current);
+                    mesh.TriangleIndices.Add(next);
+                    mesh.TriangleIndices.Add(current + 1);
+
+                    mesh.TriangleIndices.Add(current + 1);
+                    mesh.TriangleIndices.Add(next);
+                    mesh.TriangleIndices.Add(next + 1);
+                }
+            }
+
+            return mesh;
+        }
     }
 }

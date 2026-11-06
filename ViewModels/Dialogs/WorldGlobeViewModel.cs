@@ -3,7 +3,6 @@ using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Celestial;
 using RealmStudioX.WPF.Views.Dialogs;
-using RealmStudioX.WPF.WorldGlobe;
 
 namespace RealmStudioX.WPF.ViewModels.Dialogs
 {

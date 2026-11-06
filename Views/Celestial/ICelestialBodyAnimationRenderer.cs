@@ -1,9 +1,8 @@
 ﻿using RealmStudioShapeRenderingLib;
-using RealmStudioX.WPF.WorldGlobe;
 
 namespace RealmStudioX.WPF.Views.Celestial;
 
-public interface ICelestialBodyAnimationRenderer : IWorldGlobeAnimatedObject
+public interface ICelestialBodyAnimationRenderer : ICelestialAnimatedObject
 {
     CelestialBodyAnimationType AnimationType { get; }
 

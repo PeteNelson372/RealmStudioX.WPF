@@ -1,8 +1,7 @@
-﻿using System.Windows.Media;
-using System.Windows.Media.Media3D;
+﻿using System.Windows.Media.Media3D;
 using Color = System.Windows.Media.Color;
 
-namespace RealmStudioX.WPF.WorldGlobe.Particles;
+namespace RealmStudioX.WPF.Views.Celestial.Particles;
 
 internal readonly record struct ParticleState(
     Point3D Position,

@@ -1,11 +1,9 @@
 ﻿using RealmStudioShapeRenderingLib;
-using RealmStudioX.WPF.WorldGlobe;
 using System.Windows.Media.Media3D;
 
 namespace RealmStudioX.WPF.Views.Celestial;
 
-internal sealed class BasicRotationAnimationRenderer
-    : ICelestialBodyAnimationRenderer
+internal sealed class BasicRotationAnimationRenderer : ICelestialBodyAnimationRenderer
 {
     private const double SecondsPerRevolution = 60.0;
 
@@ -20,8 +18,7 @@ internal sealed class BasicRotationAnimationRenderer
 
     private bool _enabled;
 
-    public CelestialBodyAnimationType AnimationType =>
-        CelestialBodyAnimationType.BasicRotation;
+    public CelestialBodyAnimationType AnimationType => CelestialBodyAnimationType.BasicRotation;
 
     public void Update(
         CelestialBodyAnimation animation,
@@ -62,7 +59,7 @@ internal sealed class BasicRotationAnimationRenderer
             ResetAnimation();
     }
 
-    public void AdvanceAnimation(WorldGlobeAnimationFrame frame)
+    public void AdvanceAnimation(CelestialAnimationFrame frame)
     {
         if (!_enabled || _settings is null || frame.DeltaSeconds <= 0.0)
             return;

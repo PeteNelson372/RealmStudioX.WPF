@@ -1,16 +1,17 @@
-﻿namespace RealmStudioX.WPF.Views.Celestial;
-
-public sealed class RingTurbulenceSettings : ICelestialBodyAnimationSettings
+﻿namespace RealmStudioX.WPF.Views.Celestial
 {
-    public double Intensity { get; set; } = 0.2;
-    public double UpdateRate { get; set; } = 30.0;
-
-    public ICelestialBodyAnimationSettings Clone()
+    public sealed class RingTurbulenceSettings : ICelestialBodyAnimationSettings
     {
-        return new RingTurbulenceSettings
+        public double Intensity { get; set; } = 0.2;
+        public double UpdateRate { get; set; } = 30.0;
+
+        public ICelestialBodyAnimationSettings Clone()
         {
-            Intensity = Intensity,
-            UpdateRate = UpdateRate,
-        };
+            return new RingTurbulenceSettings
+            {
+                Intensity = Intensity,
+                UpdateRate = UpdateRate,
+            };
+        }
     }
 }

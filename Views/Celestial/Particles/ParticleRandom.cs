@@ -1,4 +1,4 @@
-﻿namespace RealmStudioX.WPF.WorldGlobe.Particles;
+﻿namespace RealmStudioX.WPF.Views.Celestial.Particles;
 
 internal static class ParticleRandom
 {

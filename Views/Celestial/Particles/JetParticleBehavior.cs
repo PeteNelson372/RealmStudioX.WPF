@@ -1,7 +1,7 @@
 ﻿using System.Windows.Media.Media3D;
 using Color = System.Windows.Media.Color;
 
-namespace RealmStudioX.WPF.WorldGlobe.Particles;
+namespace RealmStudioX.WPF.Views.Celestial.Particles;
 
 internal sealed class JetParticleBehavior : IDeterministicParticleBehavior
 {

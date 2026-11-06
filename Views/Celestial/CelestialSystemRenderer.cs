@@ -1,20 +1,19 @@
 ﻿
 using RealmStudioShapeRenderingLib;
-using RealmStudioX.WPF.WorldGlobe;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 
 namespace RealmStudioX.WPF.Views.Celestial;
 
-internal sealed class CelestialSystemRenderer : IWorldGlobeAnimatedObject
+internal sealed class CelestialSystemRenderer : ICelestialAnimatedObject
 {
     private readonly Func<CelestialBody, ImageSource?> _textureResolver;
 
     private readonly Func<CelestialBodyAttachment, BitmapSource?>
         _attachmentTextureResolver;
 
-    private readonly List<IWorldGlobeAnimatedObject> _animatedRenderers = [];
+    private readonly List<ICelestialAnimatedObject> _animatedRenderers = [];
 
     private readonly List<IAttachmentContainer> _attachmentContainers = [];
 
@@ -68,7 +67,7 @@ internal sealed class CelestialSystemRenderer : IWorldGlobeAnimatedObject
 
     private void ClearRendererRegistrations()
     {
-        foreach (IWorldGlobeAnimatedObject renderer in _animatedRenderers)
+        foreach (ICelestialAnimatedObject renderer in _animatedRenderers)
         {
             renderer.ResetAnimation();
         }
@@ -198,7 +197,7 @@ internal sealed class CelestialSystemRenderer : IWorldGlobeAnimatedObject
 
     private void RegisterRenderer(ICelestialBodyRenderer renderer)
     {
-        if (renderer is IWorldGlobeAnimatedObject animatedRenderer)
+        if (renderer is ICelestialAnimatedObject animatedRenderer)
         {
             _animatedRenderers.Add(animatedRenderer);
         }
@@ -219,7 +218,7 @@ internal sealed class CelestialSystemRenderer : IWorldGlobeAnimatedObject
 
     private void UnregisterRenderer(ICelestialBodyRenderer renderer)
     {
-        if (renderer is IWorldGlobeAnimatedObject animatedRenderer)
+        if (renderer is ICelestialAnimatedObject animatedRenderer)
         {
             animatedRenderer.ResetAnimation();
 
@@ -338,9 +337,9 @@ internal sealed class CelestialSystemRenderer : IWorldGlobeAnimatedObject
 
     #region Animation
 
-    public void AdvanceAnimation(WorldGlobeAnimationFrame frame)
+    public void AdvanceAnimation(CelestialAnimationFrame frame)
     {
-        foreach (IWorldGlobeAnimatedObject renderer in _animatedRenderers)
+        foreach (ICelestialAnimatedObject renderer in _animatedRenderers)
         {
             renderer.AdvanceAnimation(frame);
         }
@@ -348,7 +347,7 @@ internal sealed class CelestialSystemRenderer : IWorldGlobeAnimatedObject
 
     public void ResetAnimation()
     {
-        foreach (IWorldGlobeAnimatedObject renderer in _animatedRenderers)
+        foreach (ICelestialAnimatedObject renderer in _animatedRenderers)
         {
             renderer.ResetAnimation();
         }

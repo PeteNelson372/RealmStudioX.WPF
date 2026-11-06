@@ -4,9 +4,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using Color = System.Windows.Media.Color;
 
-namespace RealmStudioX.WPF.WorldGlobe;
+namespace RealmStudioX.WPF.Views.Celestial;
 
-internal sealed class AtmosphereTurbulenceEffect3D : IWorldGlobeAnimatedObject
+internal sealed class AtmosphereTurbulenceEffect3D : ICelestialAnimatedObject
 {
     private const int TextureWidth = 512;
     private const int TextureHeight = 256;
@@ -148,7 +148,7 @@ internal sealed class AtmosphereTurbulenceEffect3D : IWorldGlobeAnimatedObject
         _atmosphereSurface.Transform = transform;
     }
 
-    public void AdvanceAnimation(WorldGlobeAnimationFrame frame)
+    public void AdvanceAnimation(CelestialAnimationFrame frame)
     {
         if (!_enabled || _intensity <= 0.0)
             return;

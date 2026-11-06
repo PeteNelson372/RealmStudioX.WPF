@@ -1,5 +1,4 @@
 ﻿using RealmStudioShapeRenderingLib;
-using RealmStudioX.WPF.WorldGlobe;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 
@@ -68,7 +67,7 @@ internal sealed class AtmosphereTurbulenceRenderer : ICelestialBodyAnimationRend
             intensity: settings.TurbulenceIntensity);
     }
 
-    public void AdvanceAnimation(WorldGlobeAnimationFrame frame)
+    public void AdvanceAnimation(CelestialAnimationFrame frame)
     {
         _effect.AdvanceAnimation(frame);
     }

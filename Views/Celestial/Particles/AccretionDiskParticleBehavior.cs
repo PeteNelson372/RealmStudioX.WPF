@@ -1,9 +1,7 @@
-﻿using System;
-using System.Windows.Media;
-using System.Windows.Media.Media3D;
+﻿using System.Windows.Media.Media3D;
 using Color = System.Windows.Media.Color;
 
-namespace RealmStudioX.WPF.WorldGlobe.Particles;
+namespace RealmStudioX.WPF.Views.Celestial.Particles;
 
 /// <summary>
 /// Emits deterministic particles that stream outward across the accretion disk.

@@ -4,7 +4,6 @@ using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.Views.Celestial;
-using RealmStudioX.WPF.WorldGlobe;
 using System.IO;
 using System.Windows.Input;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
