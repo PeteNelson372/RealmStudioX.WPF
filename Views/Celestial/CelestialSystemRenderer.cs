@@ -381,6 +381,9 @@ internal sealed class CelestialSystemRenderer : IWorldGlobeAnimatedObject
             CelestialBodyRendererType.Sun =>
                 new SunCelestialBodyRenderer(),
 
+            CelestialBodyRendererType.Nebula =>
+                new NebulaCelestialBodyRenderer(),
+
             CelestialBodyRendererType.Corona =>
                 new CoronaCelestialBodyRenderer(),
 

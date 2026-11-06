@@ -264,6 +264,8 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             star.Radius = Math.Clamp(LocalStarSize, 0.01, 1.0);
             star.BaseColor = StarlightColor;
 
+            star.AxialTilt = SelectedLocalStarType == LocalStarType.GasGiant ? _gasGiantModel.AxialTilt : 0.0;
+
             star.TextureSource = new CelestialTextureSource();
 
             if (SelectedLocalStarType != LocalStarType.GasGiant)

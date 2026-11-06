@@ -95,8 +95,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         private readonly Model3DGroup _sceneRootModel = new();
 
-        private ILocalStarSceneObject? _localStarSceneObject;
-
         private CelestialSystem? _celestialSystem;
         private CelestialSystemRenderer? _celestialSystemRenderer;
 
@@ -143,14 +141,9 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
                 _worldVisualTransform.Children.Clear();
 
-                //_worldVisualTransform.Children.Add(
-                //    new RotateTransform3D(_globeTiltRotation));
+                _worldVisualTransform.Children.Add(new RotateTransform3D(_globeYaw));
 
-                _worldVisualTransform.Children.Add(
-                    new RotateTransform3D(_globeYaw));
-
-                _worldVisualTransform.Children.Add(
-                    new RotateTransform3D(_globePitch));
+                _worldVisualTransform.Children.Add(new RotateTransform3D(_globePitch));
 
                 // Use HelixToolkit for left-drag panning,
                 // but not for right-drag camera rotation.
@@ -208,7 +201,9 @@ namespace RealmStudioX.WPF.Views.Dialogs
         private void StartRendering()
         {
             if (_isRenderingSubscribed)
+            {
                 return;
+            }
 
             CompositionTarget.Rendering += GlobeRendering;
             _isRenderingSubscribed = true;
@@ -217,7 +212,9 @@ namespace RealmStudioX.WPF.Views.Dialogs
         private void StopRendering()
         {
             if (!_isRenderingSubscribed)
+            {
                 return;
+            }
 
             CompositionTarget.Rendering -= GlobeRendering;
             _isRenderingSubscribed = false;
@@ -444,13 +441,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 EnsureCloudLayerAttachment();
 
                 _celestialSystemRenderer = new CelestialSystemRenderer(
-                    body => _worldTextureSource,
-                    attachment => attachment.Type switch
-                    {
-                        CelestialBodyAttachmentType.CloudLayer => _tintedCloudTexture,
-                        CelestialBodyAttachmentType.PlanetaryRings => ResolvePlanetaryRingTexture(),
-                        _ => null
-                    });
+                    ResolveBodyTexture,
+                    ResolveAttachmentTexture);
             }
 
             // Build the celestial scene and apply the World Globe's visual
@@ -950,19 +942,123 @@ namespace RealmStudioX.WPF.Views.Dialogs
             return bitmap;
         }
 
-        private BitmapSource? ResolvePlanetaryRingTexture()
+        private ImageSource? ResolveBodyTexture(CelestialBody body)
         {
-            if (_planetaryRingsAttachment?.AttachmentSettings
-                is not PlanetaryRingSettings settings)
+            ArgumentNullException.ThrowIfNull(body);
+
+            return ResolveTextureSource(body.TextureSource);
+        }
+
+        private BitmapSource? ResolveAttachmentTexture(
+            CelestialBodyAttachment attachment)
+        {
+            ArgumentNullException.ThrowIfNull(attachment);
+
+            return attachment.Type switch
+            {
+                CelestialBodyAttachmentType.CloudLayer =>
+                    _tintedCloudTexture,
+
+                CelestialBodyAttachmentType.PlanetaryRings =>
+                    ResolvePlanetaryRingTexture(attachment),
+
+                _ => ResolveTextureSource(attachment.TextureSource) as BitmapSource
+            };
+        }
+
+        private ImageSource? ResolveTextureSource(CelestialTextureSource? textureSource)
+        {
+            if (textureSource is null)
+                return null;
+
+            return textureSource.SourceType switch
+            {
+                CelestialTextureSourceType.RealmMap => _worldTextureSource,
+
+                CelestialTextureSourceType.Asset =>
+                    LoadCachedTexture(textureSource.AssetPath, isAsset: true),
+
+                CelestialTextureSourceType.BitmapFile =>
+                    LoadCachedTexture(textureSource.FilePath, isAsset: false),
+
+                // Procedural textures need a generator registry before they
+                // can be resolved here.
+                _ => null
+            };
+        }
+
+        private BitmapSource? LoadCachedTexture(
+            string? texturePath,
+            bool isAsset)
+        {
+            if (string.IsNullOrWhiteSpace(texturePath))
+                return null;
+
+            string resolvedPath = texturePath.Trim();
+
+            if (isAsset && !Path.IsPathRooted(resolvedPath))
+            {
+                resolvedPath = WorldGlobeAssets.GetPath(resolvedPath);
+            }
+
+            if (!File.Exists(resolvedPath))
+                return null;
+
+            resolvedPath = Path.GetFullPath(resolvedPath);
+
+            if (_textureCache.TryGetValue(
+                resolvedPath,
+                out BitmapSource? cachedTexture))
+            {
+                return cachedTexture;
+            }
+
+            BitmapImage bitmap = new();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.UriSource = new Uri(resolvedPath, UriKind.Absolute);
+            bitmap.EndInit();
+            bitmap.Freeze();
+
+            _textureCache[resolvedPath] = bitmap;
+
+            return bitmap;
+        }
+
+        private BitmapSource? ResolvePlanetaryRingTexture(
+            CelestialBodyAttachment attachment)
+        {
+            if (!attachment.Enabled ||
+                attachment.AttachmentSettings is not PlanetaryRingSettings settings ||
+                !settings.Enabled)
             {
                 return null;
             }
 
             string texturePath = GetRingTexturePath(settings.TexturePath);
 
-            return _textureCache.TryGetValue(texturePath, out BitmapSource? texture)
-                ? texture
-                : null;
+            if (_textureCache.TryGetValue(
+                    texturePath,
+                    out BitmapSource? cachedTexture))
+            {
+                return cachedTexture;
+            }
+
+            try
+            {
+                BitmapSource texture = LoadRingTexture(texturePath);
+
+                _textureCache[texturePath] = texture;
+
+                return texture;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"Failed to load planetary ring texture '{texturePath}': {ex}");
+
+                return null;
+            }
         }
 
         private void EnsurePlanetaryRingsAttachment()

@@ -40,8 +40,7 @@ public class GasGiantViewModel : ViewModelBase
 
     public PlanetaryRingViewModel Rings { get; }
 
-    public GasGiantViewModel(
-        WorldGlobeSceneViewModel globeSceneViewModel)
+    public GasGiantViewModel(WorldGlobeSceneViewModel globeSceneViewModel)
     {
         _globeSceneViewModel = globeSceneViewModel
             ?? throw new ArgumentNullException(nameof(globeSceneViewModel));
@@ -61,6 +60,25 @@ public class GasGiantViewModel : ViewModelBase
         set
         {
             if (SetProperty(ref _texturePath, value))
+                UpdateActiveGasGiant();
+        }
+    }
+
+    private const double MinimumAxialTilt = 0.0;
+    private const double MaximumAxialTilt = 90.0;
+
+    private double _axialTilt;
+
+    public double AxialTilt
+    {
+        get => _axialTilt;
+        set
+        {
+            value = double.IsFinite(value)
+                ? Math.Clamp(value, MinimumAxialTilt, MaximumAxialTilt)
+                : 0.0;
+
+            if (SetProperty(ref _axialTilt, value))
                 UpdateActiveGasGiant();
         }
     }

@@ -21,6 +21,7 @@ internal sealed class PlanetCelestialBodyRenderer :
         CreateSphereMesh(radius: 1.0, thetaDiv: 128, phiDiv: 64);
 
     private readonly Model3DGroup _root = new();
+    private readonly Model3DGroup _tiltGroup = new();
     private readonly Model3DGroup _surfaceGroup = new();
     private readonly Model3DGroup _activityGroup = new();
     private readonly Model3DGroup _attachmentRoot = new();
@@ -34,6 +35,10 @@ internal sealed class PlanetCelestialBodyRenderer :
         new(1.0, 1.0, 1.0);
 
     private readonly Transform3DGroup _animationTransform = new();
+
+    // Axial tilt is applied to the entire planetary system.
+    private readonly AxisAngleRotation3D _axialTiltRotation =
+        new(new Vector3D(1.0, 0.0, 0.0), 0.0);
 
     private CelestialBody? _body;
 
@@ -53,6 +58,9 @@ internal sealed class PlanetCelestialBodyRenderer :
 
     public PlanetCelestialBodyRenderer()
     {
+        // The tilt group applies axial tilt to the entire planetary system.
+        _tiltGroup.Transform = new RotateTransform3D(_axialTiltRotation);
+
         Transform3DGroup surfaceTransform = new();
 
         surfaceTransform.Children.Add(_scaleTransform);
@@ -70,9 +78,12 @@ internal sealed class PlanetCelestialBodyRenderer :
 
         // The planet surface, activity visuals, and attachments
         // are siblings with independent transform responsibilities.
-        _root.Children.Add(_surfaceGroup);
-        _root.Children.Add(_activityGroup);
-        _root.Children.Add(_attachmentRoot);
+        // All three inherit the planetary axial tilt.
+        _tiltGroup.Children.Add(_surfaceGroup);
+        _tiltGroup.Children.Add(_activityGroup);
+        _tiltGroup.Children.Add(_attachmentRoot);
+
+        _root.Children.Add(_tiltGroup);
     }
 
     public Model3DGroup Root => _root;
@@ -82,6 +93,10 @@ internal sealed class PlanetCelestialBodyRenderer :
         ArgumentNullException.ThrowIfNull(body);
 
         _body = body;
+
+        // Update the planet's axial tilt.
+        // This affects the surface, activity visuals, and attachments.
+        _axialTiltRotation.Angle = body.AxialTilt;
 
         _scaleTransform.ScaleX = body.Radius;
         _scaleTransform.ScaleY = body.Radius;

@@ -1,4 +1,5 @@
-﻿using RealmStudioShapeRenderingLib;
+﻿
+using RealmStudioShapeRenderingLib;
 using RealmStudioX.WPF.WorldGlobe;
 using System.Collections.ObjectModel;
 using System.Windows.Media;
@@ -51,9 +52,9 @@ internal sealed class PlanetaryRingsAttachmentRenderer :
 
     public PlanetaryRingsAttachmentRenderer()
     {
-        _root.Children.Add(_ringModel);
-
-        UpdateRootTransform();
+        // Do not add the ring model here.
+        // It is added only after a valid texture is available
+        // and the attachment has been enabled.
     }
 
     public void Update(
@@ -67,17 +68,6 @@ internal sealed class PlanetaryRingsAttachmentRenderer :
 
         PlanetaryRingSettings settings = GetSettings(attachment);
 
-        if (texture is not null)
-        {
-            bool textureChanged =
-                !ReferenceEquals(_sourceTexture, texture);
-
-            _sourceTexture = texture;
-
-            if (textureChanged)
-                UpdateTextureMaterial();
-        }
-
         bool geometryChanged =
             !_hasGeometry ||
             _settings is null ||
@@ -89,15 +79,36 @@ internal sealed class PlanetaryRingsAttachmentRenderer :
         _settings = settings.Clone();
         _hostRadius = hostRadius;
 
+        // Both the attachment and its settings must be enabled,
+        // and a valid texture must be supplied.
+        bool shouldEnable =
+            attachment.Enabled &&
+            settings.Enabled &&
+            texture is not null;
+
+        if (!shouldEnable)
+        {
+            DisableRings();
+            return;
+        }
+
+        bool textureChanged =
+            !ReferenceEquals(_sourceTexture, texture);
+
+        _sourceTexture = texture;
+
+        if (textureChanged)
+            UpdateTextureMaterial();
+
         if (geometryChanged)
             UpdateRingGeometry();
 
         UpdateRootTransform();
 
-        IsEnabled =
-            attachment.Enabled &&
-            settings.Enabled &&
-            _sourceTexture is not null;
+        if (!_root.Children.Contains(_ringModel))
+            _root.Children.Add(_ringModel);
+
+        IsEnabled = true;
 
         RefreshAnimationRenderers(attachment.Animations);
     }
@@ -109,6 +120,39 @@ internal sealed class PlanetaryRingsAttachmentRenderer :
             ?? throw new InvalidOperationException(
                 $"The planetary rings attachment '{attachment.Name}' " +
                 "does not contain valid PlanetaryRingSettings.");
+    }
+
+    private void DisableRings()
+    {
+        // Reset animation renderers BEFORE clearing the source texture.
+        // Some renderers restore the original texture during reset.
+        ClearAnimationRenderers();
+
+        IsEnabled = false;
+
+        _root.Children.Remove(_ringModel);
+
+        _ringModel.Geometry = null;
+        _ringModel.Material = null;
+        _ringModel.BackMaterial = null;
+
+        _hasGeometry = false;
+
+        _sourceTexture = null;
+
+        // Remove any transforms left by animation renderers.
+        _animationTransform.Children.Clear();
+    }
+
+    private void ClearAnimationRenderers()
+    {
+        foreach (ICelestialBodyAnimationRenderer renderer
+                 in _animationRenderers.Values)
+        {
+            renderer.ResetAnimation();
+        }
+
+        _animationRenderers.Clear();
     }
 
     private void RefreshAnimationRenderers(
@@ -166,7 +210,11 @@ internal sealed class PlanetaryRingsAttachmentRenderer :
 
     public void SetAnimatedTexture(BitmapSource? texture)
     {
-        BitmapSource materialTexture = texture ?? SourceTexture;
+        // A null texture means restore the original ring texture.
+        BitmapSource? materialTexture = texture ?? _sourceTexture;
+
+        if (materialTexture is null)
+            return;
 
         ImageBrush brush = new(materialTexture)
         {
@@ -191,7 +239,7 @@ internal sealed class PlanetaryRingsAttachmentRenderer :
 
     private void UpdateRingGeometry()
     {
-        if (_settings is null)
+        if (_settings is null || _sourceTexture is null)
             return;
 
         double innerRadius =

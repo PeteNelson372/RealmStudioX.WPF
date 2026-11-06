@@ -14,6 +14,7 @@ namespace RealmStudioX.WPF.Views.Celestial
 
         // Physical/display properties
         public double Radius { get; set; } = 1.0;
+        public double AxialTilt { get; set; } = 0.0;
         public Color BaseColor { get; set; } = Colors.White;
 
         // Rendering configuration
