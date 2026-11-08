@@ -115,7 +115,7 @@ public class CoronaViewModel(WorldGlobeSceneViewModel globeSceneViewModel) : Vie
 
     private void UpdateActiveCorona()
     {
-        if (_globeSceneViewModel.StarViewModel.SelectedLocalStarType == LocalStarType.Corona)
+        if (_globeSceneViewModel.StarViewModel.SelectedLocalStarType == OrbitalBodyType.Corona)
             _globeSceneViewModel.StarViewModel.UpdateCurrentLocalStar();
     }
 }

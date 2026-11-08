@@ -231,7 +231,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
         private void UpdateActiveNebula()
         {
-            if (_globeSceneViewModel.StarViewModel.SelectedLocalStarType == LocalStarType.Nebula)
+            if (_globeSceneViewModel.StarViewModel.SelectedLocalStarType == OrbitalBodyType.Nebula)
             {
                 _globeSceneViewModel.StarViewModel.UpdateCurrentLocalStar();
             }

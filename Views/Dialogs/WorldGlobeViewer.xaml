@@ -546,7 +546,7 @@
                                 </TreeViewItem.Header>
                             </TreeViewItem>
 
-                            <TreeViewItem x:Name="MoonTreeViewItem" IsExpanded="True" Margin="0,2,0,0" Tag="Moons">
+                            <TreeViewItem x:Name="WorldMoonTreeViewItem" IsExpanded="True" Margin="0,2,0,0" Tag="Moons">
                                 <TreeViewItem.Header>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
 
@@ -569,7 +569,7 @@
 
                         </TreeViewItem>
 
-                        <TreeViewItem IsExpanded="True" Margin="0,2,0,0" Tag="LocalStar">
+                        <TreeViewItem x:Name="WorldLocalStarTreeViewItem" IsExpanded="True" Margin="0,2,0,0" Tag="LocalStar">
                             <TreeViewItem.Header>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
 
@@ -588,6 +588,30 @@
                                                 RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
                                 </StackPanel>
                             </TreeViewItem.Header>
+
+                            <TreeViewItem x:Name="PlanetsTreeViewItem" IsExpanded="True" Margin="0,2,0,0" Tag="Planets">
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                                        <materialDesign:PackIcon
+                                            Kind="AtomVariant"
+                                            Width="18"
+                                            Height="18"
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Foreground="{Binding Foreground,
+                                                RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+
+                                        <TextBlock Text="Planets"
+                                            VerticalAlignment="Center"
+                                            Foreground="{Binding Foreground,
+                                                RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+
+
+
+                            </TreeViewItem>
                         </TreeViewItem>
 
                         <TreeViewItem IsExpanded="True" Margin="0,2,0,0" Tag="Lighting">

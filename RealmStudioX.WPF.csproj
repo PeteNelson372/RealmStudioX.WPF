@@ -380,6 +380,9 @@
     <Compile Update="Views\Panels\ProjectPanel.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Panels\WorldGlobeViewerPanels\PlanetsTools.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Panels\WorldGlobeViewerPanels\WorldTools.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -167,7 +167,7 @@ public class SunViewModel(WorldGlobeSceneViewModel globeSceneViewModel) : ViewMo
 
     private void UpdateActiveSun()
     {
-        if (_globeSceneViewModel.StarViewModel.SelectedLocalStarType == LocalStarType.Sun)
+        if (_globeSceneViewModel.StarViewModel.SelectedLocalStarType == OrbitalBodyType.Sun)
             _globeSceneViewModel.StarViewModel.UpdateCurrentLocalStar();
     }
 }

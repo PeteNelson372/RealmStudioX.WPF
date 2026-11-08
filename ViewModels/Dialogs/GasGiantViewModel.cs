@@ -143,8 +143,7 @@ public class GasGiantViewModel : ViewModelBase
 
     private void UpdateActiveGasGiant()
     {
-        if (_globeSceneViewModel.StarViewModel.SelectedLocalStarType ==
-            LocalStarType.GasGiant)
+        if (_globeSceneViewModel.StarViewModel.SelectedLocalStarType == OrbitalBodyType.GasGiant)
         {
             _globeSceneViewModel.StarViewModel.UpdateCurrentLocalStar();
         }

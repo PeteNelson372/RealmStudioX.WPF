@@ -39,6 +39,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             ["LocalStar"] = new LocalStarTools(),
             ["Moons"] = new PlanetaryMoonsTools(),
             ["Effects"] = new EffectsTools(),
+            ["Planets"] = new PlanetsTools(),
         };
 
         public static readonly int[] SupportedFrameRates =

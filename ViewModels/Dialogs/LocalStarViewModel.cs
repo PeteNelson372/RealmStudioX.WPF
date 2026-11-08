@@ -29,7 +29,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
         private GasGiantViewModel _gasGiantModel = gasGiantModel;
 
-        public IReadOnlyList<LocalStarType> LocalStarTypes { get; } = Enum.GetValues<LocalStarType>();
+        public IReadOnlyList<OrbitalBodyType> LocalStarTypes { get; } = Enum.GetValues<OrbitalBodyType>();
 
         private CelestialBody? _currentLocalStar;
 
@@ -54,9 +54,9 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             }
         }
 
-        private LocalStarType _selectedLocalStarType = LocalStarType.Sun;
+        private OrbitalBodyType _selectedLocalStarType = OrbitalBodyType.Sun;
 
-        public LocalStarType SelectedLocalStarType
+        public OrbitalBodyType SelectedLocalStarType
         {
             get => _selectedLocalStarType;
             set
@@ -264,11 +264,11 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             star.Radius = Math.Clamp(LocalStarSize, 0.01, 1.0);
             star.BaseColor = StarlightColor;
 
-            star.AxialTilt = SelectedLocalStarType == LocalStarType.GasGiant ? _gasGiantModel.AxialTilt : 0.0;
+            star.AxialTilt = SelectedLocalStarType == OrbitalBodyType.GasGiant ? _gasGiantModel.AxialTilt : 0.0;
 
             star.TextureSource = new CelestialTextureSource();
 
-            if (SelectedLocalStarType != LocalStarType.GasGiant)
+            if (SelectedLocalStarType != OrbitalBodyType.GasGiant)
             {
                 for (int i = star.Attachments.Count - 1; i >= 0; i--)
                 {
@@ -282,7 +282,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
             switch (SelectedLocalStarType)
             {
-                case LocalStarType.Sun:
+                case OrbitalBodyType.Sun:
                     star.RendererType = CelestialBodyRendererType.Sun;
 
                     CelestialBodyAnimation rotation =
@@ -323,7 +323,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
                     break;
 
-                case LocalStarType.Corona:
+                case OrbitalBodyType.Corona:
                     star.RendererType = CelestialBodyRendererType.Corona;
 
                     CelestialBodyAnimation coronaActivity =
@@ -348,7 +348,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
                     break;
 
-                case LocalStarType.BlackHole:
+                case OrbitalBodyType.BlackHole:
                     star.RendererType = CelestialBodyRendererType.BlackHole;
 
                     CelestialBodyAnimation blackHoleRotation =
@@ -392,7 +392,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
                     break;
 
-                case LocalStarType.Nebula:
+                case OrbitalBodyType.Nebula:
                     star.RendererType = CelestialBodyRendererType.Nebula;
 
                     star.Animations.Add(new CelestialBodyAnimation
@@ -415,7 +415,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                     break;
 
 
-                case LocalStarType.GasGiant:
+                case OrbitalBodyType.GasGiant:
                     star.RendererType = CelestialBodyRendererType.Planet;
 
                     star.TextureSource = new CelestialTextureSource

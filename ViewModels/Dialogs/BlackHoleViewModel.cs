@@ -233,7 +233,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
         private void UpdateActiveBlackHole()
         {
-            if (_globeSceneViewModel.StarViewModel.SelectedLocalStarType == LocalStarType.BlackHole)
+            if (_globeSceneViewModel.StarViewModel.SelectedLocalStarType == OrbitalBodyType.BlackHole)
             {
                 _globeSceneViewModel.StarViewModel.UpdateCurrentLocalStar();
             }
