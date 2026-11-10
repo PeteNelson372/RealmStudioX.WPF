@@ -1,13 +1,10 @@
-﻿using RealmStudioShapeRenderingLib;
-using RealmStudioX.WPF.ViewModels.Infrastructure;
+﻿using RealmStudioX.WPF.ViewModels.Infrastructure;
 
 namespace RealmStudioX.WPF.ViewModels.Dialogs
 {
-    public class BlackHoleViewModel(WorldGlobeSceneViewModel globeSceneViewModel) : ViewModelBase
+    public class BlackHoleViewModel(Action? updateActiveBlackHole = null) : ViewModelBase
     {
-        private readonly WorldGlobeSceneViewModel _globeSceneViewModel = globeSceneViewModel
-            ?? throw new ArgumentNullException(nameof(globeSceneViewModel));
-
+        private readonly Action? _updateActiveBlackHole = updateActiveBlackHole;
 
         private bool _enableJets = true;
 
@@ -233,10 +230,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
         private void UpdateActiveBlackHole()
         {
-            if (_globeSceneViewModel.StarViewModel.SelectedLocalStarType == OrbitalBodyType.BlackHole)
-            {
-                _globeSceneViewModel.StarViewModel.UpdateCurrentLocalStar();
-            }
+            _updateActiveBlackHole?.Invoke();
         }
     }
 }

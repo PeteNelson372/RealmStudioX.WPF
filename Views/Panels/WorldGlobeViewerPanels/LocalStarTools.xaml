@@ -119,6 +119,7 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Text="Local Star Type"
@@ -225,14 +226,33 @@
                                         Value="{Binding StarViewModel.LocalStarPlane}"/>
 
                                 <TextBlock
-                                        Grid.Row="5"
+                                       Grid.Row="5"
+                                       Grid.Column="0"                                       
+                                       Text="Axial Tilt"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0,0,0"/>
+
+                                <controls:NumericUpDown x:Name="TiltAngleBox"
+                                            Grid.Row="5"
+                                            Grid.Column="1"
+                                            Value="{Binding StarViewModel.LocalStarAxialTilt}"
+                                            HorizontalAlignment="Left"
+                                            Minimum="0.0"
+                                            Maximum="90.0"
+                                            Increment="0.1"
+                                            DecimalPlaces="1"
+                                            Margin="0,10,0,0"
+                                            Width="100"/>
+
+                                <TextBlock
+                                        Grid.Row="6"
                                         Grid.Column="0"
                                         Text="Star Light Color"
                                         Foreground="#FF45443F"
                                         VerticalAlignment="Center"
                                         Margin="10,0,0,0"/>
                                 <Button
-                                        Grid.Row="5"
+                                        Grid.Row="6"
                                         Grid.Column="1"                                       
                                         Style="{StaticResource FlatToolButton}"
                                         Width="120"
@@ -252,14 +272,14 @@
                                 </Button>
 
                                 <TextBlock Text="Light Intensity"
-                                        Grid.Row="6"
+                                        Grid.Row="7"
                                         Grid.Column="0"                                               
                                         Foreground="#FF45443F"
                                         VerticalAlignment="Center"
                                         Margin="10,0,0,0"/>
 
                                 <Slider x:Name="StarLightIntensitySlider"
-                                        Grid.Row="6"
+                                        Grid.Row="7"
                                         Grid.Column="1"                                             
                                         Style="{StaticResource ModernSlider}"
                                         behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
@@ -273,14 +293,14 @@
                                         Value="{Binding StarViewModel.LocalStarlightIntensity}"/>
 
                                 <TextBlock
-                                        Grid.Row="7"
+                                        Grid.Row="8"
                                         Grid.Column="0"
                                         Text="Create Local Star"
                                         Foreground="#FF45443F"
                                         VerticalAlignment="Center"
                                         Margin="10,0,0,0"/>
                                 <Button
-                                        Grid.Row="7"
+                                        Grid.Row="8"
                                         Grid.Column="1"                                       
                                         Style="{StaticResource FlatToolButton}"
                                         Width="120"
@@ -404,7 +424,7 @@
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center"
                                   Margin="0,10,0,0"
-                                  IsChecked="{Binding SunModel.EnableCorona, Mode=TwoWay}"
+                                  IsChecked="{Binding LocalStarSunModel.EnableCorona, Mode=TwoWay}"
                                   Style="{StaticResource ToggleSwitchStyle}"
                                   shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
@@ -418,7 +438,7 @@
                                         Grid.Column="1"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Center"
-                                        Value="{Binding SunModel.CoronaOpacity, Mode=TwoWay}"
+                                        Value="{Binding LocalStarSunModel.CoronaOpacity, Mode=TwoWay}"
                                         Minimum="0.05"
                                         Maximum="0.30"
                                         Increment="0.005"
@@ -436,7 +456,7 @@
                                         Grid.Column="1"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Center"
-                                        Value="{Binding SunModel.CoronaRotationSpeed, Mode=TwoWay}"
+                                        Value="{Binding LocalStarSunModel.CoronaRotationSpeed, Mode=TwoWay}"
                                         Minimum="0.0"
                                         Maximum="25.0"
                                         Increment="0.1"
@@ -453,7 +473,7 @@
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center"
                                   Margin="0,10,0,0"
-                                  IsChecked="{Binding SunModel.EnableProminences, Mode=TwoWay}"
+                                  IsChecked="{Binding LocalStarSunModel.EnableProminences, Mode=TwoWay}"
                                   Style="{StaticResource ToggleSwitchStyle}"
                                   shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
@@ -466,7 +486,7 @@
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center"
                                   Margin="0,10,0,0"
-                                  IsChecked="{Binding SunModel.EnableFlares, Mode=TwoWay}"
+                                  IsChecked="{Binding LocalStarSunModel.EnableFlares, Mode=TwoWay}"
                                   Style="{StaticResource ToggleSwitchStyle}"
                                   shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
@@ -480,7 +500,7 @@
                                         Grid.Column="1"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Center"
-                                        Value="{Binding SunModel.ActivityIntensity, Mode=TwoWay}"
+                                        Value="{Binding LocalStarSunModel.ActivityIntensity, Mode=TwoWay}"
                                         Minimum="0.0"
                                         Maximum="2.0"
                                         Increment="0.1"
@@ -497,7 +517,7 @@
                                     Grid.Row="6"
                                     Grid.Column="1"
                                     HorizontalAlignment="Left"
-                                    Value="{Binding SunModel.ActivityFrequency, Mode=TwoWay}"
+                                    Value="{Binding LocalStarSunModel.ActivityFrequency, Mode=TwoWay}"
                                     Minimum="0.0"
                                     Maximum="30.0"
                                     Increment="1.0"
@@ -514,7 +534,7 @@
                                         Grid.Row="7"
                                         Grid.Column="1"
                                         HorizontalAlignment="Left"
-                                        Value="{Binding SunModel.ActivityGeometryScale, Mode=TwoWay}"
+                                        Value="{Binding LocalStarSunModel.ActivityGeometryScale, Mode=TwoWay}"
                                         Minimum="0.1"
                                         Maximum="1.0"
                                         Increment="0.01"
@@ -531,7 +551,7 @@
                                         Grid.Row="8"
                                         Grid.Column="1"
                                         HorizontalAlignment="Left"
-                                        Value="{Binding SunModel.ActivityThicknessScale, Mode=TwoWay}"
+                                        Value="{Binding LocalStarSunModel.ActivityThicknessScale, Mode=TwoWay}"
                                         Minimum="0.5"
                                         Maximum="2.0"
                                         Increment="0.01"
@@ -580,7 +600,7 @@
                                              Grid.Row="0"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding NebulaModel.LayerCount, Mode=TwoWay}"
+                                             Value="{Binding LocalStarNebulaModel.LayerCount, Mode=TwoWay}"
                                              Minimum="1"
                                              Maximum="7"
                                              Increment="1"
@@ -600,7 +620,7 @@
                                              Grid.Row="1"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding NebulaModel.Width, Mode=TwoWay}"
+                                             Value="{Binding LocalStarNebulaModel.Width, Mode=TwoWay}"
                                              Minimum="1"
                                              Maximum="60"
                                              Increment="1"
@@ -620,7 +640,7 @@
                                              Grid.Row="2"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding NebulaModel.Height, Mode=TwoWay}"
+                                             Value="{Binding LocalStarNebulaModel.Height, Mode=TwoWay}"
                                              Minimum="1"
                                              Maximum="60"
                                              Increment="1"
@@ -640,7 +660,7 @@
                                              Grid.Row="3"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding NebulaModel.Depth, Mode=TwoWay}"
+                                             Value="{Binding LocalStarNebulaModel.Depth, Mode=TwoWay}"
                                              Minimum="0.0"
                                              Maximum="20.0"
                                              Increment="0.1"
@@ -660,7 +680,7 @@
                                              Grid.Row="4"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding NebulaModel.Opacity, Mode=TwoWay}"
+                                             Value="{Binding LocalStarNebulaModel.Opacity, Mode=TwoWay}"
                                              Minimum="0.0"
                                              Maximum="1.0"
                                              Increment="0.01"
@@ -680,7 +700,7 @@
                                              Grid.Row="5"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding NebulaModel.Brightness, Mode=TwoWay}"
+                                             Value="{Binding LocalStarNebulaModel.Brightness, Mode=TwoWay}"
                                              Minimum="0.0"
                                              Maximum="3.0"
                                              Increment="0.1"
@@ -700,7 +720,7 @@
                                              Grid.Row="6"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding NebulaModel.DetailIntensity, Mode=TwoWay}"
+                                             Value="{Binding LocalStarNebulaModel.DetailIntensity, Mode=TwoWay}"
                                              Minimum="0.0"
                                              Maximum="2.0"
                                              Increment="0.01"
@@ -720,7 +740,7 @@
                                              Grid.Row="7"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding NebulaModel.DriftSpeed, Mode=TwoWay}"
+                                             Value="{Binding LocalStarNebulaModel.DriftSpeed, Mode=TwoWay}"
                                              Minimum="0.0"
                                              Maximum="0.5"
                                              Increment="0.001"
@@ -740,7 +760,7 @@
                                              Grid.Row="8"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding NebulaModel.RotationSpeed, Mode=TwoWay}"
+                                             Value="{Binding LocalStarNebulaModel.RotationSpeed, Mode=TwoWay}"
                                              Minimum="-2.0"
                                              Maximum="2.0"
                                              Increment="0.01"
@@ -794,32 +814,13 @@
                                     Margin="3,3,3,3"
                                     HorizontalAlignment="Center"
                                     ToolTip="Select Gas Giant Texture File"
-                                    Command="{Binding GasGiantModel.SelectTextureFileCommand}">
+                                    Command="{Binding LocalStarGasGiantModel.SelectTextureFileCommand}">
 
                                     <materialDesign:PackIcon Kind="FileImageAddOutline"
                                     Width="36"
                                     Height="36"
                                     Opacity="0.7"/>
                                 </Button>
-
-                                <TextBlock
-                                       Grid.Row="1"
-                                       Grid.Column="0"                                       
-                                       Text="Tilt Angle"
-                                       VerticalAlignment="Center"
-                                       Margin="10,0,0,0"/>
-
-                                <controls:NumericUpDown x:Name="TiltAngleBox"
-                                            Grid.Row="1"
-                                            Grid.Column="1"
-                                            Value="{Binding GasGiantModel.AxialTilt}"
-                                            HorizontalAlignment="Left"
-                                            Minimum="0.0"
-                                            Maximum="90.0"
-                                            Increment="0.1"
-                                            DecimalPlaces="1"
-                                            Margin="0,10,0,0"
-                                            Width="100"/>
 
                                 <TextBlock Grid.Row="2" Grid.Column="0"
                                    Text="Enable Turbulence"
@@ -830,7 +831,7 @@
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center"
                                   Margin="0,10,0,0"
-                                  IsChecked="{Binding GasGiantModel.EnableAtmosphericTurbulence, Mode=TwoWay}"
+                                  IsChecked="{Binding LocalStarGasGiantModel.EnableAtmosphericTurbulence, Mode=TwoWay}"
                                   Style="{StaticResource ToggleSwitchStyle}"
                                   shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
@@ -844,7 +845,7 @@
                                         Grid.Column="1"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Center"
-                                        Value="{Binding GasGiantModel.TurbulenceIntensity, Mode=TwoWay}"
+                                        Value="{Binding LocalStarGasGiantModel.TurbulenceIntensity, Mode=TwoWay}"
                                         Minimum="0.0"
                                         Maximum="1.0"
                                         Increment="0.01"
@@ -895,7 +896,7 @@
                                         Margin="3"
                                         HorizontalAlignment="Center"
                                         ToolTip="Select Rings Texture File"
-                                        Command="{Binding GasGiantModel.Rings.SelectTextureFileCommand}">
+                                        Command="{Binding LocalStarGasGiantModel.Rings.SelectTextureFileCommand}">
 
                                     <materialDesign:PackIcon Kind="FileImageAddOutline"
                                          Width="36"
@@ -914,7 +915,7 @@
                                       HorizontalAlignment="Left"
                                       VerticalAlignment="Center"
                                       Margin="0,10,0,0"
-                                      IsChecked="{Binding GasGiantModel.Rings.Enabled, Mode=TwoWay}"
+                                      IsChecked="{Binding LocalStarGasGiantModel.Rings.Enabled, Mode=TwoWay}"
                                       Style="{StaticResource ToggleSwitchStyle}"
                                       shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
@@ -926,7 +927,7 @@
 
                                 <controls:NumericUpDown Grid.Row="2"
                                         Grid.Column="1"
-                                        Value="{Binding GasGiantModel.Rings.InnerRadiusScale}"
+                                        Value="{Binding LocalStarGasGiantModel.Rings.InnerRadiusScale}"
                                         Minimum="1.01"
                                         Maximum="9.99"
                                         Increment="0.01"
@@ -934,7 +935,7 @@
                                         Width="100"
                                         HorizontalAlignment="Left"
                                         Margin="0,10,0,0"
-                                        IsEnabled="{Binding GasGiantModel.Rings.Enabled}"/>
+                                        IsEnabled="{Binding LocalStarGasGiantModel.Rings.Enabled}"/>
 
                                 <TextBlock Grid.Row="3"
                                        Grid.Column="0"
@@ -944,7 +945,7 @@
 
                                 <controls:NumericUpDown Grid.Row="3"
                                         Grid.Column="1"
-                                        Value="{Binding GasGiantModel.Rings.OuterRadiusScale}"
+                                        Value="{Binding LocalStarGasGiantModel.Rings.OuterRadiusScale}"
                                         Minimum="1.02"
                                         Maximum="10.0"
                                         Increment="0.01"
@@ -952,7 +953,7 @@
                                         Width="100"
                                         HorizontalAlignment="Left"
                                         Margin="0,10,0,0"
-                                        IsEnabled="{Binding GasGiantModel.Rings.Enabled}"/>
+                                        IsEnabled="{Binding LocalStarGasGiantModel.Rings.Enabled}"/>
 
                                 <TextBlock Grid.Row="4"
                                        Grid.Column="0"
@@ -962,7 +963,7 @@
 
                                 <controls:NumericUpDown Grid.Row="4"
                                         Grid.Column="1"
-                                        Value="{Binding GasGiantModel.Rings.Inclination}"
+                                        Value="{Binding LocalStarGasGiantModel.Rings.Inclination}"
                                         Minimum="-90"
                                         Maximum="90"
                                         Increment="0.1"
@@ -970,7 +971,7 @@
                                         Width="100"
                                         HorizontalAlignment="Left"
                                         Margin="0,10,0,0"
-                                        IsEnabled="{Binding GasGiantModel.Rings.Enabled}"/>
+                                        IsEnabled="{Binding LocalStarGasGiantModel.Rings.Enabled}"/>
 
                                 <!-- Enable Ring Turbulence -->
                                 <TextBlock Grid.Row="5"
@@ -984,9 +985,9 @@
                                       HorizontalAlignment="Left"
                                       VerticalAlignment="Center"
                                       Margin="0,10,0,0"
-                                      IsChecked="{Binding GasGiantModel.Rings.EnableTurbulence,
+                                      IsChecked="{Binding LocalStarGasGiantModel.Rings.EnableTurbulence,
                                                           Mode=TwoWay}"
-                                      IsEnabled="{Binding GasGiantModel.Rings.Enabled}"
+                                      IsEnabled="{Binding LocalStarGasGiantModel.Rings.Enabled}"
                                       Style="{StaticResource ToggleSwitchStyle}"
                                       shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
@@ -999,7 +1000,7 @@
 
                                 <controls:NumericUpDown Grid.Row="6"
                                         Grid.Column="1"
-                                        Value="{Binding GasGiantModel.Rings.TurbulenceIntensity,
+                                        Value="{Binding LocalStarGasGiantModel.Rings.TurbulenceIntensity,
                                                         Mode=TwoWay}"
                                         Minimum="0.0"
                                         Maximum="1.0"
@@ -1008,7 +1009,7 @@
                                         Width="100"
                                         HorizontalAlignment="Left"
                                         Margin="0,10,0,0"
-                                        IsEnabled="{Binding GasGiantModel.Rings.Enabled}"/>
+                                        IsEnabled="{Binding LocalStarGasGiantModel.Rings.Enabled}"/>
 
                                 <!-- Enable Ring Rotation -->
                                 <TextBlock Grid.Row="7"
@@ -1022,8 +1023,8 @@
                                       HorizontalAlignment="Left"
                                       VerticalAlignment="Center"
                                       Margin="0,10,0,0"
-                                      IsChecked="{Binding GasGiantModel.Rings.EnableRotation, Mode=TwoWay}"
-                                      IsEnabled="{Binding GasGiantModel.Rings.Enabled}"
+                                      IsChecked="{Binding LocalStarGasGiantModel.Rings.EnableRotation, Mode=TwoWay}"
+                                      IsEnabled="{Binding LocalStarGasGiantModel.Rings.Enabled}"
                                       Style="{StaticResource ToggleSwitchStyle}"
                                       shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
@@ -1036,7 +1037,7 @@
 
                                 <controls:NumericUpDown Grid.Row="8"
                                         Grid.Column="1"
-                                        Value="{Binding GasGiantModel.Rings.RotationRate, Mode=TwoWay}"
+                                        Value="{Binding LocalStarGasGiantModel.Rings.RotationRate, Mode=TwoWay}"
                                         Minimum="0.0"
                                         Maximum="10.0"
                                         Increment="0.1"
@@ -1044,7 +1045,7 @@
                                         Width="100"
                                         HorizontalAlignment="Left"
                                         Margin="0,10,0,0"
-                                        IsEnabled="{Binding GasGiantModel.Rings.Enabled}"/>
+                                        IsEnabled="{Binding LocalStarGasGiantModel.Rings.Enabled}"/>
 
                                 <!-- Ring Rotation Direction -->
                                 <TextBlock
@@ -1059,14 +1060,14 @@
                                     <RadioButton Content="Prograde"
                                              Margin="0,4"
                                              GroupName="Rotation"
-                                             IsChecked="{Binding GasGiantModel.Rings.RotationDirection, Mode=TwoWay,
+                                             IsChecked="{Binding LocalStarGasGiantModel.Rings.RotationDirection, Mode=TwoWay,
                                                 Converter={StaticResource EnumToBooleanConverter},
                                              ConverterParameter={x:Static rendering:WorldRotationDirection.Prograde}}"/>
 
                                     <RadioButton Content="Retrograde"
                                              Margin="0,4"
                                              GroupName="Rotation"
-                                             IsChecked="{Binding GasGiantModel.Rings.RotationDirection, Mode=TwoWay,
+                                             IsChecked="{Binding LocalStarGasGiantModel.Rings.RotationDirection, Mode=TwoWay,
                                                 Converter={StaticResource EnumToBooleanConverter},
                                              ConverterParameter={x:Static rendering:WorldRotationDirection.Retrograde}}"/>
 
@@ -1109,7 +1110,7 @@
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center"
                                   Margin="0,10,0,0"
-                                  IsChecked="{Binding CoronaModel.EnableProminences, Mode=TwoWay}"
+                                  IsChecked="{Binding LocalStarCoronaModel.EnableProminences, Mode=TwoWay}"
                                   Style="{StaticResource ToggleSwitchStyle}"
                                   shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
@@ -1122,7 +1123,7 @@
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center"
                                   Margin="0,10,0,0"
-                                  IsChecked="{Binding CoronaModel.EnableFlares, Mode=TwoWay}"
+                                  IsChecked="{Binding LocalStarCoronaModel.EnableFlares, Mode=TwoWay}"
                                   Style="{StaticResource ToggleSwitchStyle}"
                                   shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
@@ -1136,7 +1137,7 @@
                                         Grid.Column="1"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Center"
-                                        Value="{Binding CoronaModel.ActivityIntensity, Mode=TwoWay}"
+                                        Value="{Binding LocalStarCoronaModel.ActivityIntensity, Mode=TwoWay}"
                                         Minimum="0.0"
                                         Maximum="2.0"
                                         Increment="0.01"
@@ -1153,7 +1154,7 @@
                                     Grid.Row="3"
                                     Grid.Column="1"
                                     HorizontalAlignment="Left"
-                                    Value="{Binding CoronaModel.ActivityFrequency, Mode=TwoWay}"
+                                    Value="{Binding LocalStarCoronaModel.ActivityFrequency, Mode=TwoWay}"
                                     Minimum="0.0"
                                     Maximum="30.0"
                                     Increment="0.5"
@@ -1170,7 +1171,7 @@
                                         Grid.Row="4"
                                         Grid.Column="1"
                                         HorizontalAlignment="Left"
-                                        Value="{Binding CoronaModel.ActivityGeometryScale, Mode=TwoWay}"
+                                        Value="{Binding LocalStarCoronaModel.ActivityGeometryScale, Mode=TwoWay}"
                                         Minimum="0.1"
                                         Maximum="1.0"
                                         Increment="0.01"
@@ -1187,7 +1188,7 @@
                                         Grid.Row="5"
                                         Grid.Column="1"
                                         HorizontalAlignment="Left"
-                                        Value="{Binding CoronaModel.ActivityThicknessScale, Mode=TwoWay}"
+                                        Value="{Binding LocalStarCoronaModel.ActivityThicknessScale, Mode=TwoWay}"
                                         Minimum="0.5"
                                         Maximum="2.0"
                                         Increment="0.01"
@@ -1235,7 +1236,7 @@
                                   Grid.Row="0" Grid.Column="1"
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center"
-                                  IsChecked="{Binding BlackHoleModel.EnableJets, Mode=TwoWay}"
+                                  IsChecked="{Binding LocalStarBlackHoleModel.EnableJets, Mode=TwoWay}"
                                   Style="{StaticResource ToggleSwitchStyle}"
                                   shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
@@ -1248,7 +1249,7 @@
                                              Grid.Row="1"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding BlackHoleModel.JetLength, Mode=TwoWay}"
+                                             Value="{Binding LocalStarBlackHoleModel.JetLength, Mode=TwoWay}"
                                              Minimum="0.1"
                                              Maximum="30.0"
                                              Increment="0.1"
@@ -1266,7 +1267,7 @@
                                              Grid.Row="2"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding BlackHoleModel.JetPulseRate, Mode=TwoWay}"
+                                             Value="{Binding LocalStarBlackHoleModel.JetPulseRate, Mode=TwoWay}"
                                              Minimum="0.0"
                                              Maximum="2.0"
                                              Increment="0.001"
@@ -1285,7 +1286,7 @@
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center"
                                   Margin="0,10,0,0"
-                                  IsChecked="{Binding BlackHoleModel.EnableJetParticles, Mode=TwoWay}"
+                                  IsChecked="{Binding LocalStarBlackHoleModel.EnableJetParticles, Mode=TwoWay}"
                                   Style="{StaticResource ToggleSwitchStyle}"
                                   shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
@@ -1298,7 +1299,7 @@
                                              Grid.Row="4"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding BlackHoleModel.JetParticleEmissionRate, Mode=TwoWay}"
+                                             Value="{Binding LocalStarBlackHoleModel.JetParticleEmissionRate, Mode=TwoWay}"
                                              Minimum="0.0"
                                              Maximum="60.0"
                                              Increment="0.1"
@@ -1315,7 +1316,7 @@
                                              Grid.Row="5"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding BlackHoleModel.JetParticleLifetime, Mode=TwoWay}"
+                                             Value="{Binding LocalStarBlackHoleModel.JetParticleLifetime, Mode=TwoWay}"
                                              Minimum="0.1"
                                              Maximum="20.0"
                                              Increment="0.1"
@@ -1332,7 +1333,7 @@
                                              Grid.Row="6"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding BlackHoleModel.JetParticleDispersion, Mode=TwoWay}"
+                                             Value="{Binding LocalStarBlackHoleModel.JetParticleDispersion, Mode=TwoWay}"
                                              Minimum="0.0"
                                              Maximum="4.0"
                                              Increment="0.1"
@@ -1349,7 +1350,7 @@
                                              Grid.Row="7"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding BlackHoleModel.JetParticleSpeed, Mode=TwoWay}"
+                                             Value="{Binding LocalStarBlackHoleModel.JetParticleSpeed, Mode=TwoWay}"
                                              Minimum="0.0"
                                              Maximum="20.0"
                                              Increment="0.005"
@@ -1387,7 +1388,7 @@
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center"
                                   Margin="0,10,0,0"
-                                  IsChecked="{Binding BlackHoleModel.EnableDiskParticles, Mode=TwoWay}"
+                                  IsChecked="{Binding LocalStarBlackHoleModel.EnableDiskParticles, Mode=TwoWay}"
                                   Style="{StaticResource ToggleSwitchStyle}"
                                   shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
@@ -1400,7 +1401,7 @@
                                              Grid.Row="1"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding BlackHoleModel.DiskParticleEmissionRate, Mode=TwoWay}"
+                                             Value="{Binding LocalStarBlackHoleModel.DiskParticleEmissionRate, Mode=TwoWay}"
                                              Minimum="0.0"
                                              Maximum="40.0"
                                              Increment="0.1"
@@ -1417,7 +1418,7 @@
                                              Grid.Row="2"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding BlackHoleModel.DiskParticleLifetime, Mode=TwoWay}"
+                                             Value="{Binding LocalStarBlackHoleModel.DiskParticleLifetime, Mode=TwoWay}"
                                              Minimum="0.1"
                                              Maximum="20.0"
                                              Increment="0.1"
@@ -1434,7 +1435,7 @@
                                              Grid.Row="3"
                                              Grid.Column="1"
                                              HorizontalAlignment="Left"
-                                             Value="{Binding BlackHoleModel.DiskParticleOutflowSpeed, Mode=TwoWay}"
+                                             Value="{Binding LocalStarBlackHoleModel.DiskParticleOutflowSpeed, Mode=TwoWay}"
                                              Minimum="0.0"
                                              Maximum="5.0"
                                              Increment="0.1"
@@ -1442,6 +1443,307 @@
                                              Margin="0,10,0,0"
                                              Width="100" />
                             </Grid>
+                        </GroupBox>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Terrestrial">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+                    <StackPanel Margin="10">
+
+                        <GroupBox Header="Terrestrial Planet" Height="Auto"  HorizontalAlignment="Stretch" Margin="0,10,0,0"  Padding="0,10,0,10">
+
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="0"
+                                    Text="Texture"
+                                    Foreground="#FF45443F"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Left"
+                                    Margin="10,0,0,0"/>
+
+                                <Button
+                                        Grid.Row="0"
+                                        Grid.Column="1"
+                                        Style="{StaticResource FlatToolButton}"
+                                        Width="Auto"
+                                        Height="Auto"
+                                        Margin="3,3,3,3"
+                                        HorizontalAlignment="Center"
+                                        ToolTip="Select Planet Texture File"
+                                        Command="{Binding LocalStarTerrestrialPlanetModel.SelectTextureFileCommand}">
+
+                                    <materialDesign:PackIcon Kind="FileImageAddOutline"
+                                            Width="36"
+                                            Height="36"
+                                            Opacity="0.7"/>
+                                </Button>
+
+                                <!-- Select a map to use as the planet texture -->
+
+                                <TextBlock
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    Text="Project Map"
+                                    Foreground="#FF45443F"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Left"
+                                    Margin="10,0,0,0"/>
+
+                                <Button
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        Style="{StaticResource FlatToolButton}"
+                                        Width="Auto"
+                                        Height="Auto"
+                                        Margin="3,3,3,3"
+                                        HorizontalAlignment="Center"
+                                        ToolTip="Select Project Map"
+                                        Command="{Binding CreatePlanetModel.SelectPlanetMapTextureCommand}">
+
+                                    <materialDesign:PackIcon Kind="MapAdd"
+                                            Width="36"
+                                            Height="36"
+                                            Opacity="0.7"/>
+                                </Button>
+
+                            </Grid>
+
+                        </GroupBox>
+
+                        <GroupBox Header="Planetary Rings"
+                              HorizontalAlignment="Stretch"
+                              Margin="0,10,0,0">
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0"
+                                       Grid.Column="0"
+                                       Text="Texture"
+                                       Foreground="#FF45443F"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <Button Grid.Row="0"
+                                        Grid.Column="1"
+                                        Style="{StaticResource FlatToolButton}"
+                                        Width="Auto"
+                                        Height="Auto"
+                                        Margin="3"
+                                        HorizontalAlignment="Center"
+                                        ToolTip="Select Rings Texture File"
+                                        Command="{Binding LocalStarTerrestrialPlanetModel.Rings.SelectTextureFileCommand}">
+
+                                    <materialDesign:PackIcon Kind="FileImageAddOutline"
+                                         Width="36"
+                                         Height="36"
+                                         Opacity="0.7"/>
+                                </Button>
+
+                                <TextBlock Grid.Row="1"
+                                       Grid.Column="0"
+                                       Text="Enable Rings"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="1"
+                                      Grid.Column="1"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center"
+                                      Margin="0,10,0,0"
+                                      IsChecked="{Binding LocalStarTerrestrialPlanetModel.Rings.Enabled, Mode=TwoWay}"
+                                      Style="{StaticResource ToggleSwitchStyle}"
+                                      shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="2"
+                                       Grid.Column="0"
+                                       Text="Inner Radius"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown Grid.Row="2"
+                                        Grid.Column="1"
+                                        Value="{Binding LocalStarTerrestrialPlanetModel.Rings.InnerRadiusScale}"
+                                        Minimum="1.01"
+                                        Maximum="9.99"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"
+                                        IsEnabled="{Binding LocalStarTerrestrialPlanetModel.Rings.Enabled}"/>
+
+                                <TextBlock Grid.Row="3"
+                                       Grid.Column="0"
+                                       Text="Outer Radius"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown Grid.Row="3"
+                                        Grid.Column="1"
+                                        Value="{Binding LocalStarTerrestrialPlanetModel.Rings.OuterRadiusScale}"
+                                        Minimum="1.02"
+                                        Maximum="10.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"
+                                        IsEnabled="{Binding LocalStarTerrestrialPlanetModel.Rings.Enabled}"/>
+
+                                <TextBlock Grid.Row="4"
+                                       Grid.Column="0"
+                                       Text="Inclination"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown Grid.Row="4"
+                                        Grid.Column="1"
+                                        Value="{Binding LocalStarTerrestrialPlanetModel.Rings.Inclination}"
+                                        Minimum="-90"
+                                        Maximum="90"
+                                        Increment="0.1"
+                                        DecimalPlaces="1"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"
+                                        IsEnabled="{Binding LocalStarTerrestrialPlanetModel.Rings.Enabled}"/>
+
+                                <!-- Enable Ring Turbulence -->
+                                <TextBlock Grid.Row="5"
+                                       Grid.Column="0"
+                                       Text="Enable Turbulence"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="5"
+                                      Grid.Column="1"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center"
+                                      Margin="0,10,0,0"
+                                      IsChecked="{Binding LocalStarTerrestrialPlanetModel.Rings.EnableTurbulence,
+                                                          Mode=TwoWay}"
+                                      IsEnabled="{Binding LocalStarTerrestrialPlanetModel.Rings.Enabled}"
+                                      Style="{StaticResource ToggleSwitchStyle}"
+                                      shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <!-- Ring Turbulence Intensity -->
+                                <TextBlock Grid.Row="6"
+                                       Grid.Column="0"
+                                       Text="Turbulence Intensity"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown Grid.Row="6"
+                                        Grid.Column="1"
+                                        Value="{Binding LocalStarTerrestrialPlanetModel.Rings.TurbulenceIntensity,
+                                                        Mode=TwoWay}"
+                                        Minimum="0.0"
+                                        Maximum="1.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"
+                                        IsEnabled="{Binding LocalStarTerrestrialPlanetModel.Rings.Enabled}"/>
+
+                                <!-- Enable Ring Rotation -->
+                                <TextBlock Grid.Row="7"
+                                       Grid.Column="0"
+                                       Text="Enable Rotation"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="7"
+                                      Grid.Column="1"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center"
+                                      Margin="0,10,0,0"
+                                      IsChecked="{Binding LocalStarTerrestrialPlanetModel.Rings.EnableRotation, Mode=TwoWay}"
+                                      IsEnabled="{Binding LocalStarTerrestrialPlanetModel.Rings.Enabled}"
+                                      Style="{StaticResource ToggleSwitchStyle}"
+                                      shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <!-- Ring Rotation Rate -->
+                                <TextBlock Grid.Row="8"
+                                        Grid.Column="0"
+                                        Text="Rotation Rate"
+                                        VerticalAlignment="Center"
+                                        Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown Grid.Row="8"
+                                        Grid.Column="1"
+                                        Value="{Binding LocalStarTerrestrialPlanetModel.Rings.RotationRate, Mode=TwoWay}"
+                                        Minimum="0.0"
+                                        Maximum="10.0"
+                                        Increment="0.1"
+                                        DecimalPlaces="1"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"
+                                        IsEnabled="{Binding LocalStarTerrestrialPlanetModel.Rings.Enabled}"/>
+
+                                <!-- Ring Rotation Direction -->
+                                <TextBlock
+                                       Grid.Row="9"
+                                       Grid.Column="0"                                       
+                                       Text="Rotation Direction"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <StackPanel Orientation="Vertical" Grid.Row="9" Grid.Column="1" Margin="0,10,0,10">
+                                    <RadioButton Content="Prograde"
+                                             Margin="0,4"
+                                             GroupName="Rotation"
+                                             IsChecked="{Binding LocalStarTerrestrialPlanetModel.Rings.RotationDirection, Mode=TwoWay,
+                                                Converter={StaticResource EnumToBooleanConverter},
+                                             ConverterParameter={x:Static rendering:WorldRotationDirection.Prograde}}"/>
+
+                                    <RadioButton Content="Retrograde"
+                                             Margin="0,4"
+                                             GroupName="Rotation"
+                                             IsChecked="{Binding LocalStarTerrestrialPlanetModel.Rings.RotationDirection, Mode=TwoWay,
+                                                Converter={StaticResource EnumToBooleanConverter},
+                                             ConverterParameter={x:Static rendering:WorldRotationDirection.Retrograde}}"/>
+
+                                </StackPanel>
+
+                            </Grid>
+
                         </GroupBox>
 
                     </StackPanel>

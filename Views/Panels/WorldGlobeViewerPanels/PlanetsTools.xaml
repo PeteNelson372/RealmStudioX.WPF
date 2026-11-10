@@ -97,14 +97,15 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Text="Planet Type"
+                                    Grid.Row="0"
+                                    Grid.Column="0"
                                     Foreground="#FF45443F"
                                     VerticalAlignment="Center"
                                     HorizontalAlignment="Left"
-                                    Margin="10,3,3,3"/>
+                                    Margin="10,0,0,0"/>
 
                                 <ComboBox x:Name="PlanetTypeCombo"
                                     Grid.Row="0"
@@ -113,8 +114,8 @@
                                     Width="120"
                                     Height="26"
                                     Background="#FFDFDBD2"
-                                    ItemsSource="{Binding StarViewModel.LocalStarTypes}"
-                                    SelectedItem="{Binding StarViewModel.SelectedLocalStarType, Mode=TwoWay}"
+                                    ItemsSource="{Binding CreatePlanetModel.PlanetTypes}"
+                                    SelectedItem="{Binding CreatePlanetModel.SelectedPlanetType, Mode=TwoWay}"
                                     ItemTemplate="{StaticResource EnumDescriptionTemplate}" />
 
                                 <TextBlock Text="Size"
@@ -124,7 +125,7 @@
                                     VerticalAlignment="Center"
                                     Margin="10,10,0,0"/>
 
-                                <Slider x:Name="StarSizeSlider"
+                                <Slider x:Name="PlanetSizeSlider"
                                     Grid.Row="1"
                                     Grid.Column="1"                                             
                                     Style="{StaticResource ModernSlider}"
@@ -137,7 +138,7 @@
                                     TickFrequency="0.01"
                                     IsSnapToTickEnabled="True"
                                     SmallChange="0.01"
-                                    Value="{Binding StarViewModel.LocalStarSize}"/>
+                                    Value="{Binding CreatePlanetModel.PlanetSize}"/>
 
 
                                 <TextBlock Text="Distance"
@@ -147,7 +148,7 @@
                                     VerticalAlignment="Center"
                                     Margin="10,0,0,0"/>
 
-                                <Slider x:Name="StarDistanceSlider"
+                                <Slider x:Name="PlanetDistanceSlider"
                                     Grid.Row="2"
                                     Grid.Column="1"                                             
                                     Style="{StaticResource ModernSlider}"
@@ -159,7 +160,7 @@
                                     TickFrequency="0.01"
                                     IsSnapToTickEnabled="True"
                                     SmallChange="0.01"
-                                    Value="{Binding StarViewModel.LocalStarDistance}"/>
+                                    Value="{Binding CreatePlanetModel.PlanetDistance}"/>
 
                                 <TextBlock Text="Orbit"
                                     Grid.Row="3"
@@ -168,7 +169,7 @@
                                     VerticalAlignment="Center"
                                     Margin="10,0,0,0"/>
 
-                                <Slider x:Name="StarOrbitSlider"
+                                <Slider x:Name="PlanetOrbitSlider"
                                     Grid.Row="3"
                                     Grid.Column="1"                                             
                                     Style="{StaticResource ModernSlider}"
@@ -180,7 +181,7 @@
                                     TickFrequency="0.01"
                                     IsSnapToTickEnabled="True"
                                     SmallChange="0.01"
-                                    Value="{Binding StarViewModel.LocalStarOrbit}"/>
+                                    Value="{Binding CreatePlanetModel.PlanetOrbit}"/>
 
                                 <TextBlock Text="Plane"
                                     Grid.Row="4"
@@ -189,7 +190,7 @@
                                     VerticalAlignment="Center"
                                     Margin="10,0,0,0"/>
 
-                                <Slider x:Name="StarPlaneSlider"
+                                <Slider x:Name="PlanetPlaneSlider"
                                     Grid.Row="4"
                                     Grid.Column="1"                                             
                                     Style="{StaticResource ModernSlider}"
@@ -201,18 +202,37 @@
                                     TickFrequency="0.01"
                                     IsSnapToTickEnabled="True"
                                     SmallChange="0.01"
-                                    Value="{Binding StarViewModel.LocalStarPlane}"/>
+                                    Value="{Binding CreatePlanetModel.PlanetPlane}"/>
 
                                 <TextBlock
-                                    Grid.Row="7"
+                                       Grid.Row="5"
+                                       Grid.Column="0"                                       
+                                       Text="Axial Tilt"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0,0,0"/>
+
+                                <controls:NumericUpDown x:Name="PlanetTiltAngleBox"
+                                            Grid.Row="5"
+                                            Grid.Column="1"
+                                            Value="{Binding CreatePlanetModel.AxialTilt}"
+                                            HorizontalAlignment="Left"
+                                            Minimum="0.0"
+                                            Maximum="90.0"
+                                            Increment="0.1"
+                                            DecimalPlaces="1"
+                                            Margin="0,10,0,0"
+                                            Width="100"/>
+
+                                <TextBlock
+                                    Grid.Row="6"
                                     Grid.Column="0"
                                     Text="Create Planet"
                                     Foreground="#FF45443F"
                                     VerticalAlignment="Center"
                                     Margin="10,0,0,0"/>
-                                        
+
                                 <Button
-                                    Grid.Row="7"
+                                    Grid.Row="6"
                                     Grid.Column="1"                                       
                                     Style="{StaticResource FlatToolButton}"
                                     Width="120"
@@ -220,9 +240,9 @@
                                     HorizontalAlignment="Left"
                                     Margin="3,3,3,3"
                                     ToolTip="Create Planet"
-                                    Command="{Binding StarViewModel.CreateLocalStarCommand}">
+                                    Command="{Binding CreatePlanetModel.CreatePlanetCommand}">
 
-                                    <materialDesign:PackIcon Kind="StarAddOutline"
+                                    <materialDesign:PackIcon Kind="PlanetPlus"
                                         Width="36"
                                         Height="36"
                                         Foreground="LightSeaGreen"
@@ -254,6 +274,1362 @@
 
                     </StackPanel>
 
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Terrestrial">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+                    <StackPanel Margin="10">
+
+                        <GroupBox Header="Terrestrial Planet" Height="Auto"  HorizontalAlignment="Stretch" Margin="0,10,0,0"  Padding="0,10,0,10">
+
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="0"
+                                    Text="Texture"
+                                    Foreground="#FF45443F"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Left"
+                                    Margin="10,0,0,0"/>
+
+                                <Button
+                                        Grid.Row="0"
+                                        Grid.Column="1"
+                                        Style="{StaticResource FlatToolButton}"
+                                        Width="Auto"
+                                        Height="Auto"
+                                        Margin="3,3,3,3"
+                                        HorizontalAlignment="Center"
+                                        ToolTip="Select Planet Texture File"
+                                        Command="{Binding CreatePlanetModel.SelectPlanetTextureFileCommand}">
+
+                                    <materialDesign:PackIcon Kind="FileImageAddOutline"
+                                            Width="36"
+                                            Height="36"
+                                            Opacity="0.7"/>
+                                </Button>
+
+                                <!-- Select a map to use as the planet texture -->
+
+                                <TextBlock
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    Text="Project Map"
+                                    Foreground="#FF45443F"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Left"
+                                    Margin="10,0,0,0"/>
+
+                                <Button
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        Style="{StaticResource FlatToolButton}"
+                                        Width="Auto"
+                                        Height="Auto"
+                                        Margin="3,3,3,3"
+                                        HorizontalAlignment="Center"
+                                        ToolTip="Select Project Map"
+                                        Command="{Binding CreatePlanetModel.SelectPlanetMapTextureCommand}">
+
+                                    <materialDesign:PackIcon Kind="MapAdd"
+                                            Width="36"
+                                            Height="36"
+                                            Opacity="0.7"/>
+                                </Button>
+
+                            </Grid>
+
+                        </GroupBox>
+
+                        <GroupBox Header="Planetary Rings"
+                              HorizontalAlignment="Stretch"
+                              Margin="0,10,0,0">
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0"
+                                       Grid.Column="0"
+                                       Text="Texture"
+                                       Foreground="#FF45443F"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <Button Grid.Row="0"
+                                        Grid.Column="1"
+                                        Style="{StaticResource FlatToolButton}"
+                                        Width="Auto"
+                                        Height="Auto"
+                                        Margin="3"
+                                        HorizontalAlignment="Center"
+                                        ToolTip="Select Rings Texture File"
+                                        Command="{Binding CreatePlanetModel.PlanetTerrestrialModel.Rings.SelectTextureFileCommand}">
+
+                                    <materialDesign:PackIcon Kind="FileImageAddOutline"
+                                         Width="36"
+                                         Height="36"
+                                         Opacity="0.7"/>
+                                </Button>
+
+                                <TextBlock Grid.Row="1"
+                                       Grid.Column="0"
+                                       Text="Enable Rings"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="1"
+                                      Grid.Column="1"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center"
+                                      Margin="0,10,0,0"
+                                      IsChecked="{Binding CreatePlanetModel.PlanetTerrestrialModel.Rings.Enabled, Mode=TwoWay}"
+                                      Style="{StaticResource ToggleSwitchStyle}"
+                                      shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="2"
+                                       Grid.Column="0"
+                                       Text="Inner Radius"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown Grid.Row="2"
+                                        Grid.Column="1"
+                                        Value="{Binding CreatePlanetModel.PlanetTerrestrialModel.Rings.InnerRadiusScale}"
+                                        Minimum="1.01"
+                                        Maximum="9.99"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"
+                                        IsEnabled="{Binding CreatePlanetModel.PlanetTerrestrialModel.Rings.Enabled}"/>
+
+                                <TextBlock Grid.Row="3"
+                                       Grid.Column="0"
+                                       Text="Outer Radius"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown Grid.Row="3"
+                                        Grid.Column="1"
+                                        Value="{Binding CreatePlanetModel.PlanetTerrestrialModel.Rings.OuterRadiusScale}"
+                                        Minimum="1.02"
+                                        Maximum="10.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"
+                                        IsEnabled="{Binding CreatePlanetModel.PlanetTerrestrialModel.Rings.Enabled}"/>
+
+                                <TextBlock Grid.Row="4"
+                                       Grid.Column="0"
+                                       Text="Inclination"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown Grid.Row="4"
+                                        Grid.Column="1"
+                                        Value="{Binding CreatePlanetModel.PlanetTerrestrialModel.Rings.Inclination}"
+                                        Minimum="-90"
+                                        Maximum="90"
+                                        Increment="0.1"
+                                        DecimalPlaces="1"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"
+                                        IsEnabled="{Binding CreatePlanetModel.PlanetTerrestrialModel.Rings.Enabled}"/>
+
+                                <!-- Enable Ring Turbulence -->
+                                <TextBlock Grid.Row="5"
+                                       Grid.Column="0"
+                                       Text="Enable Turbulence"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="5"
+                                      Grid.Column="1"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center"
+                                      Margin="0,10,0,0"
+                                      IsChecked="{Binding CreatePlanetModel.PlanetTerrestrialModel.Rings.EnableTurbulence,
+                                                          Mode=TwoWay}"
+                                      IsEnabled="{Binding CreatePlanetModel.PlanetTerrestrialModel.Rings.Enabled}"
+                                      Style="{StaticResource ToggleSwitchStyle}"
+                                      shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <!-- Ring Turbulence Intensity -->
+                                <TextBlock Grid.Row="6"
+                                       Grid.Column="0"
+                                       Text="Turbulence Intensity"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown Grid.Row="6"
+                                        Grid.Column="1"
+                                        Value="{Binding CreatePlanetModel.PlanetTerrestrialModel.Rings.TurbulenceIntensity,
+                                                        Mode=TwoWay}"
+                                        Minimum="0.0"
+                                        Maximum="1.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"
+                                        IsEnabled="{Binding CreatePlanetModel.PlanetTerrestrialModel.Rings.Enabled}"/>
+
+                                <!-- Enable Ring Rotation -->
+                                <TextBlock Grid.Row="7"
+                                       Grid.Column="0"
+                                       Text="Enable Rotation"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="7"
+                                      Grid.Column="1"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center"
+                                      Margin="0,10,0,0"
+                                      IsChecked="{Binding CreatePlanetModel.PlanetTerrestrialModel.Rings.EnableRotation, Mode=TwoWay}"
+                                      IsEnabled="{Binding CreatePlanetModel.PlanetTerrestrialModel.Rings.Enabled}"
+                                      Style="{StaticResource ToggleSwitchStyle}"
+                                      shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <!-- Ring Rotation Rate -->
+                                <TextBlock Grid.Row="8"
+                                        Grid.Column="0"
+                                        Text="Rotation Rate"
+                                        VerticalAlignment="Center"
+                                        Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown Grid.Row="8"
+                                        Grid.Column="1"
+                                        Value="{Binding CreatePlanetModel.PlanetTerrestrialModel.Rings.RotationRate, Mode=TwoWay}"
+                                        Minimum="0.0"
+                                        Maximum="10.0"
+                                        Increment="0.1"
+                                        DecimalPlaces="1"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"
+                                        IsEnabled="{Binding CreatePlanetModel.PlanetTerrestrialModel.Rings.Enabled}"/>
+
+                                <!-- Ring Rotation Direction -->
+                                <TextBlock
+                                       Grid.Row="9"
+                                       Grid.Column="0"                                       
+                                       Text="Rotation Direction"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <StackPanel Orientation="Vertical" Grid.Row="9" Grid.Column="1" Margin="0,10,0,10">
+                                    <RadioButton Content="Prograde"
+                                             Margin="0,4"
+                                             GroupName="Rotation"
+                                             IsChecked="{Binding CreatePlanetModel.PlanetTerrestrialModel.Rings.RotationDirection, Mode=TwoWay,
+                                                Converter={StaticResource EnumToBooleanConverter},
+                                             ConverterParameter={x:Static rendering:WorldRotationDirection.Prograde}}"/>
+
+                                    <RadioButton Content="Retrograde"
+                                             Margin="0,4"
+                                             GroupName="Rotation"
+                                             IsChecked="{Binding CreatePlanetModel.PlanetTerrestrialModel.Rings.RotationDirection, Mode=TwoWay,
+                                                Converter={StaticResource EnumToBooleanConverter},
+                                             ConverterParameter={x:Static rendering:WorldRotationDirection.Retrograde}}"/>
+
+                                </StackPanel>
+
+                            </Grid>
+
+                        </GroupBox>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Gas Giant">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+                    <StackPanel Margin="10">
+
+                        <GroupBox Header="Gas Giant" Height="Auto"  HorizontalAlignment="Stretch" Margin="0,10,0,0"  Padding="0,10,0,10">
+
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="0"
+                                    Text="Texture"
+                                    Foreground="#FF45443F"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Left"
+                                    Margin="10,10,0,0"/>
+
+                                <Button
+                                    Grid.Row="0"
+                                    Grid.Column="1"
+                                    Style="{StaticResource FlatToolButton}"
+                                    Width="Auto"
+                                    Height="Auto"
+                                    Margin="3,3,3,3"
+                                    HorizontalAlignment="Center"
+                                    ToolTip="Select Gas Giant Texture File"
+                                    Command="{Binding CreatePlanetModel.SelectGasGiantTextureFileCommand}">
+
+                                    <materialDesign:PackIcon Kind="FileImageAddOutline"
+                                    Width="36"
+                                    Height="36"
+                                    Opacity="0.7"/>
+                                </Button>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                   Text="Enable Turbulence"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="1" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Margin="0,10,0,0"
+                                  IsChecked="{Binding CreatePlanetModel.PlanetGasGiantModel.EnableAtmosphericTurbulence, Mode=TwoWay}"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                   Text="Turbulence Intensity"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="TurbulenceIntensityBox"
+                                        Grid.Row="2"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Value="{Binding CreatePlanetModel.PlanetGasGiantModel.TurbulenceIntensity, Mode=TwoWay}"
+                                        Minimum="0.0"
+                                        Maximum="1.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Margin="0,10,0,0"
+                                        Width="100"/>
+
+                            </Grid>
+
+                        </GroupBox>
+
+                        <GroupBox Header="Planetary Rings"
+                              HorizontalAlignment="Stretch"
+                              Margin="0,10,0,0">
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0"
+                                       Grid.Column="0"
+                                       Text="Texture"
+                                       Foreground="#FF45443F"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <Button Grid.Row="0"
+                                        Grid.Column="1"
+                                        Style="{StaticResource FlatToolButton}"
+                                        Width="Auto"
+                                        Height="Auto"
+                                        Margin="3"
+                                        HorizontalAlignment="Center"
+                                        ToolTip="Select Rings Texture File"
+                                        Command="{Binding CreatePlanetModel.PlanetGasGiantModel.Rings.SelectTextureFileCommand}">
+
+                                    <materialDesign:PackIcon Kind="FileImageAddOutline"
+                                         Width="36"
+                                         Height="36"
+                                         Opacity="0.7"/>
+                                </Button>
+
+                                <TextBlock Grid.Row="1"
+                                       Grid.Column="0"
+                                       Text="Enable Rings"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="1"
+                                      Grid.Column="1"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center"
+                                      Margin="0,10,0,0"
+                                      IsChecked="{Binding CreatePlanetModel.PlanetGasGiantModel.Rings.Enabled, Mode=TwoWay}"
+                                      Style="{StaticResource ToggleSwitchStyle}"
+                                      shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="2"
+                                       Grid.Column="0"
+                                       Text="Inner Radius"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown Grid.Row="2"
+                                        Grid.Column="1"
+                                        Value="{Binding CreatePlanetModel.PlanetGasGiantModel.Rings.InnerRadiusScale}"
+                                        Minimum="1.01"
+                                        Maximum="9.99"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"
+                                        IsEnabled="{Binding CreatePlanetModel.PlanetGasGiantModel.Rings.Enabled}"/>
+
+                                <TextBlock Grid.Row="3"
+                                       Grid.Column="0"
+                                       Text="Outer Radius"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown Grid.Row="3"
+                                        Grid.Column="1"
+                                        Value="{Binding CreatePlanetModel.PlanetGasGiantModel.Rings.OuterRadiusScale}"
+                                        Minimum="1.02"
+                                        Maximum="10.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"
+                                        IsEnabled="{Binding CreatePlanetModel.PlanetGasGiantModel.Rings.Enabled}"/>
+
+                                <TextBlock Grid.Row="4"
+                                       Grid.Column="0"
+                                       Text="Inclination"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown Grid.Row="4"
+                                        Grid.Column="1"
+                                        Value="{Binding CreatePlanetModel.PlanetGasGiantModel.Rings.Inclination}"
+                                        Minimum="-90"
+                                        Maximum="90"
+                                        Increment="0.1"
+                                        DecimalPlaces="1"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"
+                                        IsEnabled="{Binding CreatePlanetModel.PlanetGasGiantModel.Rings.Enabled}"/>
+
+                                <!-- Enable Ring Turbulence -->
+                                <TextBlock Grid.Row="5"
+                                       Grid.Column="0"
+                                       Text="Enable Turbulence"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="5"
+                                      Grid.Column="1"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center"
+                                      Margin="0,10,0,0"
+                                      IsChecked="{Binding CreatePlanetModel.PlanetGasGiantModel.Rings.EnableTurbulence,
+                                                          Mode=TwoWay}"
+                                      IsEnabled="{Binding CreatePlanetModel.PlanetGasGiantModel.Rings.Enabled}"
+                                      Style="{StaticResource ToggleSwitchStyle}"
+                                      shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <!-- Ring Turbulence Intensity -->
+                                <TextBlock Grid.Row="6"
+                                       Grid.Column="0"
+                                       Text="Turbulence Intensity"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown Grid.Row="6"
+                                        Grid.Column="1"
+                                        Value="{Binding CreatePlanetModel.PlanetGasGiantModel.Rings.TurbulenceIntensity,
+                                                        Mode=TwoWay}"
+                                        Minimum="0.0"
+                                        Maximum="1.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"
+                                        IsEnabled="{Binding CreatePlanetModel.PlanetGasGiantModel.Rings.Enabled}"/>
+
+                                <!-- Enable Ring Rotation -->
+                                <TextBlock Grid.Row="7"
+                                       Grid.Column="0"
+                                       Text="Enable Rotation"
+                                       VerticalAlignment="Center"
+                                       Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="7"
+                                      Grid.Column="1"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center"
+                                      Margin="0,10,0,0"
+                                      IsChecked="{Binding CreatePlanetModel.PlanetGasGiantModel.Rings.EnableRotation, Mode=TwoWay}"
+                                      IsEnabled="{Binding CreatePlanetModel.PlanetGasGiantModel.Rings.Enabled}"
+                                      Style="{StaticResource ToggleSwitchStyle}"
+                                      shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <!-- Ring Rotation Rate -->
+                                <TextBlock Grid.Row="8"
+                                        Grid.Column="0"
+                                        Text="Rotation Rate"
+                                        VerticalAlignment="Center"
+                                        Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown Grid.Row="8"
+                                        Grid.Column="1"
+                                        Value="{Binding CreatePlanetModel.PlanetGasGiantModel.Rings.RotationRate, Mode=TwoWay}"
+                                        Minimum="0.0"
+                                        Maximum="10.0"
+                                        Increment="0.1"
+                                        DecimalPlaces="1"
+                                        Width="100"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"
+                                        IsEnabled="{Binding CreatePlanetModel.PlanetGasGiantModel.Rings.Enabled}"/>
+
+                                <!-- Ring Rotation Direction -->
+                                <TextBlock
+                                       Grid.Row="9"
+                                       Grid.Column="0"                                       
+                                       Text="Rotation Direction"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <StackPanel Orientation="Vertical" Grid.Row="9" Grid.Column="1" Margin="0,10,0,10">
+                                    <RadioButton Content="Prograde"
+                                             Margin="0,4"
+                                             GroupName="Rotation"
+                                             IsChecked="{Binding CreatePlanetModel.PlanetGasGiantModel.Rings.RotationDirection, Mode=TwoWay,
+                                                Converter={StaticResource EnumToBooleanConverter},
+                                             ConverterParameter={x:Static rendering:WorldRotationDirection.Prograde}}"/>
+
+                                    <RadioButton Content="Retrograde"
+                                             Margin="0,4"
+                                             GroupName="Rotation"
+                                             IsChecked="{Binding CreatePlanetModel.PlanetGasGiantModel.Rings.RotationDirection, Mode=TwoWay,
+                                                Converter={StaticResource EnumToBooleanConverter},
+                                             ConverterParameter={x:Static rendering:WorldRotationDirection.Retrograde}}"/>
+
+                                </StackPanel>
+
+                            </Grid>
+
+                        </GroupBox>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Sun">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+                    <StackPanel Margin="10">
+                        <GroupBox Header="Solar Activity" HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,10,0,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                   Text="Enable Corona"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="0" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Margin="0,10,0,0"
+                                  IsChecked="{Binding CreatePlanetModel.PlanetSunModel.EnableCorona, Mode=TwoWay}"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                   Text="Corona Opacity"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="SunCoronaOpacityBox"
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Value="{Binding CreatePlanetModel.PlanetSunModel.CoronaOpacity, Mode=TwoWay}"
+                                        Minimum="0.05"
+                                        Maximum="0.30"
+                                        Increment="0.005"
+                                        DecimalPlaces="3"
+                                        Margin="0,10,0,0"
+                                        Width="100"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                   Text="Corona Rotation Speed"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="SunCoronaRotationSpeedBox"
+                                        Grid.Row="2"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Value="{Binding CreatePlanetModel.PlanetSunModel.CoronaRotationSpeed, Mode=TwoWay}"
+                                        Minimum="0.0"
+                                        Maximum="25.0"
+                                        Increment="0.1"
+                                        DecimalPlaces="1"
+                                        Margin="0,10,0,0"
+                                        Width="100"/>
+
+                                <TextBlock Grid.Row="3" Grid.Column="0"
+                                   Text="Prominence Loops"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="3" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Margin="0,10,0,0"
+                                  IsChecked="{Binding CreatePlanetModel.PlanetSunModel.EnableProminences, Mode=TwoWay}"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="4" Grid.Column="0"
+                                   Text="Solar Flares"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="4" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Margin="0,10,0,0"
+                                  IsChecked="{Binding CreatePlanetModel.PlanetSunModel.EnableFlares, Mode=TwoWay}"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="5" Grid.Column="0"
+                                   Text="Intensity"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="SunActivityIntensityBox"
+                                        Grid.Row="5"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Value="{Binding CreatePlanetModel.PlanetSunModel.ActivityIntensity, Mode=TwoWay}"
+                                        Minimum="0.0"
+                                        Maximum="2.0"
+                                        Increment="0.1"
+                                        DecimalPlaces="1"
+                                        Margin="0,10,0,0"
+                                        Width="100"/>
+
+                                <TextBlock Grid.Row="6" Grid.Column="0"
+                                   Text="Frequency (per min)"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="SunActivityFrequencyBox"
+                                    Grid.Row="6"
+                                    Grid.Column="1"
+                                    HorizontalAlignment="Left"
+                                    Value="{Binding CreatePlanetModel.PlanetSunModel.ActivityFrequency, Mode=TwoWay}"
+                                    Minimum="0.0"
+                                    Maximum="30.0"
+                                    Increment="1.0"
+                                    DecimalPlaces="0"
+                                    Margin="0,10,0,0"
+                                    Width="100"/>
+
+                                <TextBlock Grid.Row="7" Grid.Column="0"
+                                   Text="Geometry Scale"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="SunActivityGeometryScaleBox"
+                                        Grid.Row="7"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        Value="{Binding CreatePlanetModel.PlanetSunModel.ActivityGeometryScale, Mode=TwoWay}"
+                                        Minimum="0.1"
+                                        Maximum="1.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Margin="0,10,0,0"
+                                        Width="100"/>
+
+                                <TextBlock Grid.Row="8" Grid.Column="0"
+                                   Text="Thickness Scale"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="SunActivityThicknessScaleBox"
+                                        Grid.Row="8"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        Value="{Binding CreatePlanetModel.PlanetSunModel.ActivityThicknessScale, Mode=TwoWay}"
+                                        Minimum="0.5"
+                                        Maximum="2.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Margin="0,10,0,0"
+                                        Width="100"/>
+                            </Grid>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Nebula">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+                    <StackPanel Margin="10">
+                        <GroupBox Header="Nebula" Height="Auto"  HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,10,0,10">
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock
+                                       Grid.Row="0"
+                                       Grid.Column="0"                                       
+                                       Text="Layer Count"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="LayerCountBox"
+                                             Grid.Row="0"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CreatePlanetModel.PlanetNebulaModel.LayerCount, Mode=TwoWay}"
+                                             Minimum="1"
+                                             Maximum="7"
+                                             Increment="1"
+                                             DecimalPlaces="0"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+                                <TextBlock
+                                       Grid.Row="1"
+                                       Grid.Column="0"                                       
+                                       Text="Width"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="WidthBox"
+                                             Grid.Row="1"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CreatePlanetModel.PlanetNebulaModel.Width, Mode=TwoWay}"
+                                             Minimum="1"
+                                             Maximum="60"
+                                             Increment="1"
+                                             DecimalPlaces="0"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+                                <TextBlock
+                                       Grid.Row="2"
+                                       Grid.Column="0"                                       
+                                       Text="Height"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="HeightBox"
+                                             Grid.Row="2"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CreatePlanetModel.PlanetNebulaModel.Height, Mode=TwoWay}"
+                                             Minimum="1"
+                                             Maximum="60"
+                                             Increment="1"
+                                             DecimalPlaces="0"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+                                <TextBlock
+                                       Grid.Row="3"
+                                       Grid.Column="0"                                       
+                                       Text="Depth"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="NebulaDepthBox"
+                                             Grid.Row="3"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CreatePlanetModel.PlanetNebulaModel.Depth, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="20.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="1"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+                                <TextBlock
+                                       Grid.Row="4"
+                                       Grid.Column="0"                                       
+                                       Text="Opacity"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="NebulaOpacityBox"
+                                             Grid.Row="4"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CreatePlanetModel.PlanetNebulaModel.Opacity, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="1.0"
+                                             Increment="0.01"
+                                             DecimalPlaces="2"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+                                <TextBlock
+                                       Grid.Row="5"
+                                       Grid.Column="0"                                       
+                                       Text="Brightness"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="NebulaBrightnessBox"
+                                             Grid.Row="5"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CreatePlanetModel.PlanetNebulaModel.Brightness, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="3.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="1"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+                                <TextBlock
+                                       Grid.Row="6"
+                                       Grid.Column="0"                                       
+                                       Text="Detail Intensity"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="NebulaDetailIntensityBox"
+                                             Grid.Row="6"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CreatePlanetModel.PlanetNebulaModel.DetailIntensity, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="2.0"
+                                             Increment="0.01"
+                                             DecimalPlaces="2"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+                                <TextBlock
+                                       Grid.Row="7"
+                                       Grid.Column="0"                                       
+                                       Text="Drift Speed"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="NebulaDriftSpeedBox"
+                                             Grid.Row="7"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CreatePlanetModel.PlanetNebulaModel.DriftSpeed, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="0.5"
+                                             Increment="0.001"
+                                             DecimalPlaces="3"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+                                <TextBlock
+                                       Grid.Row="8"
+                                       Grid.Column="0"                                       
+                                       Text="Rotation Speed"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="NebulaRotationSpeedBox"
+                                             Grid.Row="8"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CreatePlanetModel.PlanetNebulaModel.RotationSpeed, Mode=TwoWay}"
+                                             Minimum="-2.0"
+                                             Maximum="2.0"
+                                             Increment="0.01"
+                                             DecimalPlaces="2"
+                                             Margin="0,0,6,6"
+                                             Width="100" />
+
+
+                            </Grid>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Corona">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+                    <StackPanel Margin="10">
+
+                        <GroupBox Header="Corona Solar Activity" HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,10,0,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                   Text="Prominence Loops"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="0" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Margin="0,10,0,0"
+                                  IsChecked="{Binding CreatePlanetModel.PlanetCoronaModel.EnableProminences, Mode=TwoWay}"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                   Text="Solar Flares"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <CheckBox Grid.Row="1" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Margin="0,10,0,0"
+                                  IsChecked="{Binding CreatePlanetModel.PlanetCoronaModel.EnableFlares, Mode=TwoWay}"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                   Text="Intensity"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="CoronaActivityIntensityBox"
+                                        Grid.Row="2"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Value="{Binding CreatePlanetModel.PlanetCoronaModel.ActivityIntensity, Mode=TwoWay}"
+                                        Minimum="0.0"
+                                        Maximum="2.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Margin="0,10,0,0"
+                                        Width="100"/>
+
+                                <TextBlock Grid.Row="3" Grid.Column="0"
+                                   Text="Frequency (per min)"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="CoronaActivityFrequencyBox"
+                                    Grid.Row="3"
+                                    Grid.Column="1"
+                                    HorizontalAlignment="Left"
+                                    Value="{Binding CreatePlanetModel.PlanetCoronaModel.ActivityFrequency, Mode=TwoWay}"
+                                    Minimum="0.0"
+                                    Maximum="30.0"
+                                    Increment="0.5"
+                                    DecimalPlaces="1"
+                                    Margin="0,10,0,0"
+                                    Width="100"/>
+
+                                <TextBlock Grid.Row="4" Grid.Column="0"
+                                   Text="Geometry Scale"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="CoronaActivityGeometryScaleBox"
+                                        Grid.Row="4"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        Value="{Binding CreatePlanetModel.PlanetCoronaModel.ActivityGeometryScale, Mode=TwoWay}"
+                                        Minimum="0.1"
+                                        Maximum="1.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Margin="0,10,0,0"
+                                        Width="100"/>
+
+                                <TextBlock Grid.Row="5" Grid.Column="0"
+                                   Text="Thickness Scale"
+                                   VerticalAlignment="Center"
+                                   Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="CoronaActivityThicknessScaleBox"
+                                        Grid.Row="5"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        Value="{Binding CreatePlanetModel.PlanetCoronaModel.ActivityThicknessScale, Mode=TwoWay}"
+                                        Minimum="0.5"
+                                        Maximum="2.0"
+                                        Increment="0.01"
+                                        DecimalPlaces="2"
+                                        Margin="0,10,0,0"
+                                        Width="100"/>
+                            </Grid>
+                        </GroupBox>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Black Hole">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+                    <StackPanel Margin="10">
+
+                        <GroupBox Header="Plasma Jets" Height="Auto"  HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,10,0,10">
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                    Text="Enable Plasma Jets"
+                                    Foreground="#FF45443F"
+                                    VerticalAlignment="Center"
+                                    Margin="10,0,0,0"/>
+
+                                <CheckBox x:Name="EnableJetsCheckBox"
+                                  Grid.Row="0" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  IsChecked="{Binding CreatePlanetModel.PlanetBlackHoleModel.EnableJets, Mode=TwoWay}"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                           Text="Jet Length"
+                                           VerticalAlignment="Center"
+                                           Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="JetLengthBox"
+                                             Grid.Row="1"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CreatePlanetModel.PlanetBlackHoleModel.JetLength, Mode=TwoWay}"
+                                             Minimum="0.1"
+                                             Maximum="30.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="2"
+                                             Margin="0,10,0,0"
+                                             Width="100" />
+
+
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                           Text="Jet Pulse Rate"
+                                           VerticalAlignment="Center"
+                                           Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="JetPulseRateBox"
+                                             Grid.Row="2"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CreatePlanetModel.PlanetBlackHoleModel.JetPulseRate, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="2.0"
+                                             Increment="0.001"
+                                             DecimalPlaces="3"
+                                             Margin="0,10,0,0"
+                                             Width="100" />
+
+                                <TextBlock Grid.Row="3" Grid.Column="0"
+                                    Text="Enable Jet Particles"
+                                    Foreground="#FF45443F"
+                                    VerticalAlignment="Center"
+                                    Margin="10,10,0,0"/>
+
+                                <CheckBox x:Name="EnableJetParticlesCheckBox"
+                                  Grid.Row="3" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Margin="0,10,0,0"
+                                  IsChecked="{Binding CreatePlanetModel.PlanetBlackHoleModel.EnableJetParticles, Mode=TwoWay}"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="4" Grid.Column="0"
+                                           Text="Particle Emission Rate"
+                                           VerticalAlignment="Center"
+                                           Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="JetParticleEmissionRateBox"
+                                             Grid.Row="4"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CreatePlanetModel.PlanetBlackHoleModel.JetParticleEmissionRate, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="60.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="2"
+                                             Margin="0,10,0,0"
+                                             Width="100" />
+
+                                <TextBlock Grid.Row="5" Grid.Column="0"
+                                           Text="Particle Lifetime"
+                                           VerticalAlignment="Center"
+                                           Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="JetParticleLifetimeBox"
+                                             Grid.Row="5"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CreatePlanetModel.PlanetBlackHoleModel.JetParticleLifetime, Mode=TwoWay}"
+                                             Minimum="0.1"
+                                             Maximum="20.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="2"
+                                             Margin="0,10,0,0"
+                                             Width="100" />
+
+                                <TextBlock Grid.Row="6" Grid.Column="0"
+                                           Text="Particle Dispersion"
+                                           VerticalAlignment="Center"
+                                           Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="JetParticleDispersionBox"
+                                             Grid.Row="6"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CreatePlanetModel.PlanetBlackHoleModel.JetParticleDispersion, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="4.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="2"
+                                             Margin="0,10,0,0"
+                                             Width="100" />
+
+                                <TextBlock Grid.Row="7" Grid.Column="0"
+                                           Text="Particle Speed"
+                                           VerticalAlignment="Center"
+                                           Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="JetParticleSpeedBox"
+                                             Grid.Row="7"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CreatePlanetModel.PlanetBlackHoleModel.JetParticleSpeed, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="20.0"
+                                             Increment="0.005"
+                                             DecimalPlaces="3"
+                                             Margin="0,10,0,0"
+                                             Width="100" />
+
+                            </Grid>
+                        </GroupBox>
+
+                        <GroupBox Header="Accretion Disk" Height="Auto"  HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,10,0,10">
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                    Text="Enable Disk Particles"
+                                    Foreground="#FF45443F"
+                                    VerticalAlignment="Center"
+                                    Margin="10,10,0,0"/>
+
+                                <CheckBox x:Name="EnableDiskParticlesCheckBox"
+                                  Grid.Row="0" Grid.Column="1"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Margin="0,10,0,0"
+                                  IsChecked="{Binding CreatePlanetModel.PlanetBlackHoleModel.EnableDiskParticles, Mode=TwoWay}"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                           Text="Particle Emission Rate"
+                                           VerticalAlignment="Center"
+                                           Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="DiskParticleEmissionRateBox"
+                                             Grid.Row="1"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CreatePlanetModel.PlanetBlackHoleModel.DiskParticleEmissionRate, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="40.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="2"
+                                             Margin="0,10,0,0"
+                                             Width="100" />
+
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                           Text="Particle Lifetime"
+                                           VerticalAlignment="Center"
+                                           Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="DiskParticleLifetimeBox"
+                                             Grid.Row="2"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CreatePlanetModel.PlanetBlackHoleModel.DiskParticleLifetime, Mode=TwoWay}"
+                                             Minimum="0.1"
+                                             Maximum="20.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="2"
+                                             Margin="0,10,0,0"
+                                             Width="100" />
+
+                                <TextBlock Grid.Row="3" Grid.Column="0"
+                                           Text="Particle Outflow Speed"
+                                           VerticalAlignment="Center"
+                                           Margin="10,10,0,0"/>
+
+                                <controls:NumericUpDown x:Name="DiskParticleSpeedBox"
+                                             Grid.Row="3"
+                                             Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             Value="{Binding CreatePlanetModel.PlanetBlackHoleModel.DiskParticleOutflowSpeed, Mode=TwoWay}"
+                                             Minimum="0.0"
+                                             Maximum="5.0"
+                                             Increment="0.1"
+                                             DecimalPlaces="2"
+                                             Margin="0,10,0,0"
+                                             Width="100" />
+                            </Grid>
+                        </GroupBox>
+
+                    </StackPanel>
                 </ScrollViewer>
             </TabItem>
 

@@ -33,20 +33,26 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         private readonly LocalStarViewModel _localStarViewModel;
         public LocalStarViewModel StarViewModel => _localStarViewModel;
 
-        private BlackHoleViewModel _blackHoleModel;
-        public BlackHoleViewModel BlackHoleModel => _blackHoleModel;
+        private readonly CreatePlanetViewModel _createPlanetViewModel;
+        public CreatePlanetViewModel CreatePlanetModel => _createPlanetViewModel;
 
-        private NebulaViewModel _nebulaModel;
-        public NebulaViewModel NebulaModel => _nebulaModel;
+        private BlackHoleViewModel _localStarBlackHoleModel;
+        public BlackHoleViewModel LocalStarBlackHoleModel => _localStarBlackHoleModel;
 
-        private CoronaViewModel _coronaModel;
-        public CoronaViewModel CoronaModel => _coronaModel;
+        private NebulaViewModel _localStarNebulaModel;
+        public NebulaViewModel LocalStarNebulaModel => _localStarNebulaModel;
 
-        private SunViewModel _sunModel;
-        public SunViewModel SunModel => _sunModel;
+        private CoronaViewModel _localStarCoronaModel;
+        public CoronaViewModel LocalStarCoronaModel => _localStarCoronaModel;
 
-        private GasGiantViewModel _gasGiantModel;
-        public GasGiantViewModel GasGiantModel => _gasGiantModel;
+        private SunViewModel _localStarSunModel;
+        public SunViewModel LocalStarSunModel => _localStarSunModel;
+
+        private GasGiantViewModel _localStarGasGiantModel;
+        public GasGiantViewModel LocalStarGasGiantModel => _localStarGasGiantModel;
+
+        private TerrestrialPlanetViewModel _localStarTerrestrialPlanetModel;
+        public TerrestrialPlanetViewModel LocalStarTerrestrialPlanetModel => _localStarTerrestrialPlanetModel;
 
         public WorldGlobeSceneViewModel(MainWindowViewModel mainViewModel, WorldGlobeViewer globeViewer)
         {
@@ -57,16 +63,63 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             _worldGlobeViewModel = new (_mainViewModel, _globeViewer);
             _atmosphereViewModel = new(_mainViewModel, _globeViewer);
 
-            _blackHoleModel = new(this);
-            _nebulaModel = new(this);
-            _coronaModel = new(this);
-            _sunModel = new(this);
-            _gasGiantModel = new(this);
+            _localStarSunModel = new SunViewModel(() =>
+            {
+                if (StarViewModel.SelectedLocalStarType == CelestialBodyType.Sun)
+                {
+                    StarViewModel.UpdateCurrentLocalStar();
+                }
+            });
+
+            _localStarBlackHoleModel = new BlackHoleViewModel(() =>
+            {
+                if (StarViewModel.SelectedLocalStarType == CelestialBodyType.BlackHole)
+                {
+                    StarViewModel.UpdateCurrentLocalStar();
+                }
+            });
+
+            _localStarNebulaModel = new NebulaViewModel(() =>
+            {
+                if (StarViewModel.SelectedLocalStarType == CelestialBodyType.Nebula)
+                {
+                    StarViewModel.UpdateCurrentLocalStar();
+                }
+            });
+
+
+            _localStarCoronaModel = new CoronaViewModel(() =>
+            {
+                if (StarViewModel.SelectedLocalStarType == CelestialBodyType.Corona)
+                {
+                    StarViewModel.UpdateCurrentLocalStar();
+                }
+            });
+
+            _localStarGasGiantModel = new GasGiantViewModel(() =>
+            {
+                if (StarViewModel.SelectedLocalStarType == CelestialBodyType.GasGiant)
+                {
+                    StarViewModel.UpdateCurrentLocalStar();
+                }
+            });
+
+            _localStarTerrestrialPlanetModel = new TerrestrialPlanetViewModel(() =>
+            {
+                if (StarViewModel.SelectedLocalStarType == CelestialBodyType.TerrestrialPlanet)
+                {
+                    StarViewModel.UpdateCurrentLocalStar();
+                }
+            });
 
             // create the view models for sun types before the local star view model,
             // then pass the sun type view models into the local star view model
 
-            _localStarViewModel = new(_globeViewer, _blackHoleModel, _nebulaModel, _coronaModel, _sunModel, _gasGiantModel);
+            _localStarViewModel = new(_globeViewer, _localStarBlackHoleModel,
+                _localStarNebulaModel, _localStarCoronaModel,
+                _localStarSunModel, _localStarGasGiantModel, _localStarTerrestrialPlanetModel);
+
+            _createPlanetViewModel = new();
         }
 
         private string starfieldFileName = string.Empty;

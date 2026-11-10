@@ -21,7 +21,8 @@ internal sealed class CoronaCelestialBodyRenderer :
     public override CelestialBodyRendererType Type =>
         CelestialBodyRendererType.Corona;
 
-    public CoronaCelestialBodyRenderer()
+    public CoronaCelestialBodyRenderer(Func<CelestialTextureSource?, ImageSource?> textureResolver)
+            : base(textureResolver)
     {
         _centralSphere.Geometry = SphereMesh;
         _centralSphere.Material = BlackMaterial;

@@ -4,10 +4,9 @@ using RealmStudioX.WPF.ViewModels.Infrastructure;
 
 namespace RealmStudioX.WPF.ViewModels.Dialogs
 {
-    public class NebulaViewModel(WorldGlobeSceneViewModel globeSceneViewModel) : ViewModelBase
+    public class NebulaViewModel(Action? updateActiveNebula = null) : ViewModelBase
     {
-        private readonly WorldGlobeSceneViewModel _globeSceneViewModel = globeSceneViewModel
-            ?? throw new ArgumentNullException(nameof(globeSceneViewModel));
+        private readonly Action? _updateActiveNebula = updateActiveNebula;
 
         // =============================================================
         // Layer count
@@ -231,10 +230,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
         private void UpdateActiveNebula()
         {
-            if (_globeSceneViewModel.StarViewModel.SelectedLocalStarType == OrbitalBodyType.Nebula)
-            {
-                _globeSceneViewModel.StarViewModel.UpdateCurrentLocalStar();
-            }
+            _updateActiveNebula?.Invoke();
         }
     }
 }

@@ -32,6 +32,8 @@ namespace RealmStudioX.WPF.Views.Celestial
 
         private Color _lastColor = Colors.Transparent;
 
+        private readonly Func<CelestialTextureSource?, ImageSource?> _textureResolver;
+
         private double _width = 18.0;
         private double _height = 12.0;
         private double _depth = 5.0;
@@ -48,8 +50,11 @@ namespace RealmStudioX.WPF.Views.Celestial
 
         public Model3DGroup Root => _root;
 
-        public NebulaCelestialBodyRenderer()
+        public NebulaCelestialBodyRenderer(
+            Func<CelestialTextureSource?, ImageSource?> textureResolver)
         {
+            _textureResolver = textureResolver
+                ?? throw new ArgumentNullException(nameof(textureResolver));
             _root.Children.Add(_billboardGroup);
 
             _billboardGroup.Transform =
@@ -69,18 +74,26 @@ namespace RealmStudioX.WPF.Views.Celestial
             _root.Children.Add(_light);
         }
 
-        public void Update(CelestialBody body, ImageSource? texture)
+        public void Update(CelestialBodyNode node, CelestialTextureSource? textureSource)
         {
-            ArgumentNullException.ThrowIfNull(body);
+            ArgumentNullException.ThrowIfNull(node);
+            ArgumentNullException.ThrowIfNull(node.Body);
+            ArgumentNullException.ThrowIfNull(node.Placement);
+
+            CelestialBody body = node.Body;
+            ImageSource? texture = _textureResolver(textureSource);
+            _ = texture; // Current nebula layers are generated procedurally.
 
             NebulaAnimationSettings settings = GetNebulaSettings(body);
 
-            double radius = Math.Max(0.001,
-                double.IsFinite(body.Radius) ? body.Radius : 1.0);
+            double size = Math.Max(0.001,
+                double.IsFinite(node.Placement.Size)
+                    ? node.Placement.Size
+                    : 1.0);
 
-            _cloudScale.ScaleX = radius;
-            _cloudScale.ScaleY = radius;
-            _cloudScale.ScaleZ = radius;
+            _cloudScale.ScaleX = size;
+            _cloudScale.ScaleY = size;
+            _cloudScale.ScaleZ = size;
 
             bool textureChanged = _lastColor != body.BaseColor;
 

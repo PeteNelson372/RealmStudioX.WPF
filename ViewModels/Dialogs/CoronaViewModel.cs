@@ -3,10 +3,9 @@ using RealmStudioX.WPF.ViewModels.Infrastructure;
 
 namespace RealmStudioX.WPF.ViewModels.Dialogs;
 
-public class CoronaViewModel(WorldGlobeSceneViewModel globeSceneViewModel) : ViewModelBase
+public class CoronaViewModel(Action? updateActiveCorona = null) : ViewModelBase
 {
-    private readonly WorldGlobeSceneViewModel _globeSceneViewModel =
-        globeSceneViewModel ?? throw new ArgumentNullException(nameof(globeSceneViewModel));
+    private readonly Action? _updateActiveCorona = updateActiveCorona;
 
     private bool _enableProminences = true;
 
@@ -115,7 +114,6 @@ public class CoronaViewModel(WorldGlobeSceneViewModel globeSceneViewModel) : Vie
 
     private void UpdateActiveCorona()
     {
-        if (_globeSceneViewModel.StarViewModel.SelectedLocalStarType == OrbitalBodyType.Corona)
-            _globeSceneViewModel.StarViewModel.UpdateCurrentLocalStar();
+        _updateActiveCorona?.Invoke();
     }
 }

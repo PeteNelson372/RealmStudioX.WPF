@@ -33,15 +33,22 @@ namespace RealmStudioX.WPF.Views.Celestial
 
         private CelestialBody? _body;
 
+        private CelestialBodyNode? _node;
+
+        private readonly Func<CelestialTextureSource?, ImageSource?> _textureResolver;
+
         private readonly Model3DGroup _activityVisualRoot = new();
 
         public Model3DGroup ActivityVisualRoot => _activityVisualRoot;
 
         private readonly ScaleTransform3D _activityScaleTransform = new(1.0, 1.0, 1.0);
 
-        protected LocalStarCelestialBodyRenderer()
+        protected LocalStarCelestialBodyRenderer(
+            Func<CelestialTextureSource?, ImageSource?> textureResolver)
         {
-            // The body visual receives the body's radius scaling and
+            _textureResolver = textureResolver
+                ?? throw new ArgumentNullException(nameof(textureResolver));
+            // The body visual receives the placement size scaling and
             // its animation transforms.
             Transform3DGroup bodyTransform = new();
 
@@ -50,7 +57,7 @@ namespace RealmStudioX.WPF.Views.Celestial
 
             _bodyVisualRoot.Transform = bodyTransform;
 
-            // Solar activity receives the same radius scaling as the body,
+            // Solar activity receives the same placement-size scaling as the body,
             // but deliberately does not inherit its animation transforms.
             _activityVisualRoot.Transform = _activityScaleTransform;
 
@@ -58,8 +65,8 @@ namespace RealmStudioX.WPF.Views.Celestial
             _root.Children.Add(_activityVisualRoot);
 
             // Attachments are deliberately kept outside the body visual
-            // transform. Each attachment receives the host radius when
-            // its own renderer is updated.
+            // transform. Each attachment receives the host placement size
+            // when its own renderer is updated.
             _root.Children.Add(_attachmentRoot);
 
             // The light remains at the Local Star's origin and is not
@@ -77,7 +84,11 @@ namespace RealmStudioX.WPF.Views.Celestial
             _body ?? throw new InvalidOperationException(
                 "The Local Star renderer has not been initialized.");
 
-        protected double Radius => Body.Radius;
+        protected CelestialBodyNode Node =>
+            _node ?? throw new InvalidOperationException(
+                "The Local Star renderer has not been initialized.");
+
+        protected double Size => Node.Placement.Size;
 
         protected Color StarColor => Body.BaseColor;
 
@@ -93,25 +104,32 @@ namespace RealmStudioX.WPF.Views.Celestial
         /// </summary>
         protected double LightRange { get; set; } = 10.0;
 
-        public void Update(CelestialBody body, ImageSource? texture)
+        public void Update(CelestialBodyNode node, CelestialTextureSource? textureSource)
         {
-            ArgumentNullException.ThrowIfNull(body);
+            ArgumentNullException.ThrowIfNull(node);
+            ArgumentNullException.ThrowIfNull(node.Body);
+            ArgumentNullException.ThrowIfNull(node.Placement);
 
-            _body = body;
+            _node = node;
+            _body = node.Body;
 
-            _scaleTransform.ScaleX = body.Radius;
-            _scaleTransform.ScaleY = body.Radius;
-            _scaleTransform.ScaleZ = body.Radius;
+            ImageSource? texture = _textureResolver(textureSource);
 
-            _activityScaleTransform.ScaleX = body.Radius;
-            _activityScaleTransform.ScaleY = body.Radius;
-            _activityScaleTransform.ScaleZ = body.Radius;
+            double size = node.Placement.Size;
+
+            _scaleTransform.ScaleX = size;
+            _scaleTransform.ScaleY = size;
+            _scaleTransform.ScaleZ = size;
+
+            _activityScaleTransform.ScaleX = size;
+            _activityScaleTransform.ScaleY = size;
+            _activityScaleTransform.ScaleZ = size;
 
             UpdateLight();
 
             // The derived renderer owns all geometry and materials
             // associated with the particular Local Star type.
-            UpdateBodyVisuals(body, texture);
+            UpdateBodyVisuals(node.Body, texture);
 
             RefreshAnimationRenderers();
         }
@@ -191,7 +209,7 @@ namespace RealmStudioX.WPF.Views.Celestial
 
                 BitmapSource? texture = textureResolver(attachment);
 
-                renderer.Update(attachment, texture, _body.Radius);
+                renderer.Update(attachment, texture, Size);
 
                 bool isInScene =
                     _attachmentRoot.Children.Contains(renderer.Root);

@@ -12,9 +12,10 @@ namespace RealmStudioX.WPF.Views.Celestial
         public string Name { get; set; } = "New Body";
         public string Description { get; set; } = string.Empty;
 
-        // Physical/display properties
-        public double Radius { get; set; } = 1.0;
-        public double AxialTilt { get; set; } = 0.0;
+        // Conceptual body identity
+        public CelestialBodyType BodyType { get; set; } = CelestialBodyType.TerrestrialPlanet;
+
+        // Display properties
         public Color BaseColor { get; set; } = Colors.White;
 
         // Rendering configuration

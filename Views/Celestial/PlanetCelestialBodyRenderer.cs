@@ -41,6 +41,10 @@ namespace RealmStudioX.WPF.Views.Celestial
 
         private CelestialBody? _body;
 
+        private readonly Func<CelestialTextureSource?, ImageSource?> _textureResolver;
+
+        private CelestialBodyNode? _node;
+
         private readonly Dictionary<string, IAttachmentRenderer> _attachmentRenderers = [];
 
         private readonly Dictionary<string, ICelestialBodyAnimationRenderer> _animationRenderers = [];
@@ -55,8 +59,11 @@ namespace RealmStudioX.WPF.Views.Celestial
 
         public Color BodyColor => _body?.BaseColor ?? Colors.White;
 
-        public PlanetCelestialBodyRenderer()
+        public PlanetCelestialBodyRenderer(
+            Func<CelestialTextureSource?, ImageSource?> textureResolver)
         {
+            _textureResolver = textureResolver
+                ?? throw new ArgumentNullException(nameof(textureResolver));
             // The tilt group applies axial tilt to the entire planetary system.
             _tiltGroup.Transform = new RotateTransform3D(_axialTiltRotation);
 
@@ -67,7 +74,7 @@ namespace RealmStudioX.WPF.Views.Celestial
 
             _surfaceGroup.Transform = surfaceTransform;
 
-            // Activity visuals receive body-radius scaling,
+            // Activity visuals receive placement-size scaling,
             // but do not inherit the surface animation transform.
             _activityGroup.Transform = _activityScaleTransform;
 
@@ -87,23 +94,31 @@ namespace RealmStudioX.WPF.Views.Celestial
 
         public Model3DGroup Root => _root;
 
-        public void Update(CelestialBody body, ImageSource? texture)
+        public void Update(CelestialBodyNode node, CelestialTextureSource? textureSource)
         {
-            ArgumentNullException.ThrowIfNull(body);
+            ArgumentNullException.ThrowIfNull(node);
+            ArgumentNullException.ThrowIfNull(node.Body);
+            ArgumentNullException.ThrowIfNull(node.Placement);
 
+            _node = node;
+            CelestialBody body = node.Body;
             _body = body;
 
-            // Update the planet's axial tilt.
-            // This affects the surface, activity visuals, and attachments.
-            _axialTiltRotation.Angle = body.AxialTilt;
+            ImageSource? texture = _textureResolver(textureSource);
 
-            _scaleTransform.ScaleX = body.Radius;
-            _scaleTransform.ScaleY = body.Radius;
-            _scaleTransform.ScaleZ = body.Radius;
+            double size = node.Placement.Size;
 
-            _activityScaleTransform.ScaleX = body.Radius;
-            _activityScaleTransform.ScaleY = body.Radius;
-            _activityScaleTransform.ScaleZ = body.Radius;
+            // Axial tilt applies to the entire planetary system,
+            // including the surface, activity visuals, and attachments.
+            _axialTiltRotation.Angle = node.Placement.AxialTilt;
+
+            _scaleTransform.ScaleX = size;
+            _scaleTransform.ScaleY = size;
+            _scaleTransform.ScaleZ = size;
+
+            _activityScaleTransform.ScaleX = size;
+            _activityScaleTransform.ScaleY = size;
+            _activityScaleTransform.ScaleZ = size;
 
             Material material;
 
@@ -185,7 +200,7 @@ namespace RealmStudioX.WPF.Views.Celestial
 
                 BitmapSource? texture = textureResolver(attachment);
 
-                renderer.Update(attachment, texture, _body.Radius);
+                renderer.Update(attachment, texture, _node!.Placement.Size);
 
                 bool isInScene =
                     _attachmentRoot.Children.Contains(renderer.Root);

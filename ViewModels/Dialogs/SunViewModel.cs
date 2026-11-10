@@ -1,13 +1,10 @@
-﻿using RealmStudioShapeRenderingLib;
-using RealmStudioX.WPF.ViewModels.Infrastructure;
+﻿using RealmStudioX.WPF.ViewModels.Infrastructure;
 
 namespace RealmStudioX.WPF.ViewModels.Dialogs;
 
-public class SunViewModel(WorldGlobeSceneViewModel globeSceneViewModel) : ViewModelBase
+public class SunViewModel(Action? updateActiveSun = null) : ViewModelBase
 {
-    private readonly WorldGlobeSceneViewModel _globeSceneViewModel =
-        globeSceneViewModel ?? throw new ArgumentNullException(nameof(globeSceneViewModel));
-
+    private readonly Action? _updateActiveSun = updateActiveSun;
     private bool _enableProminences = true;
 
     public bool EnableProminences
@@ -57,7 +54,7 @@ public class SunViewModel(WorldGlobeSceneViewModel globeSceneViewModel) : ViewMo
         {
             value = double.IsFinite(value)
                 ? Math.Clamp(value, MinimumCoronaOpacity, MaximumCoronaOpacity)
-                : DefaultActivityIntensity;
+                : DefaultCoronaOpacity;
 
             if (SetProperty(ref _coronaOpacity, value))
                 UpdateActiveSun();
@@ -77,7 +74,7 @@ public class SunViewModel(WorldGlobeSceneViewModel globeSceneViewModel) : ViewMo
         {
             value = double.IsFinite(value)
                 ? Math.Clamp(value, MinimumCoronaRotationSpeed, MaximumCoronaRotationSpeed)
-                : DefaultActivityIntensity;
+                : DefaultCoronaRotationSpeed;
 
             if (SetProperty(ref _coronaRotationSpeed, value))
                 UpdateActiveSun();
@@ -110,7 +107,10 @@ public class SunViewModel(WorldGlobeSceneViewModel globeSceneViewModel) : ViewMo
 
     private double _activityFrequency = DefaultActivityFrequency;
 
-    /// <summary>Mean number of new flare/prominence events per minute. Zero disables emissions.</summary>
+    /// <summary>
+    /// Mean number of new flare/prominence events per minute.
+    /// Zero disables emissions.
+    /// </summary>
     public double ActivityFrequency
     {
         get => _activityFrequency;
@@ -138,7 +138,7 @@ public class SunViewModel(WorldGlobeSceneViewModel globeSceneViewModel) : ViewMo
         {
             value = double.IsFinite(value)
                 ? Math.Clamp(value, MinimumActivityGeometryScale, MaximumActivityGeometryScale)
-                : DefaultActivityFrequency;
+                : DefaultActivityGeometryScale;
 
             if (SetProperty(ref _activityGeometryScale, value))
                 UpdateActiveSun();
@@ -158,7 +158,7 @@ public class SunViewModel(WorldGlobeSceneViewModel globeSceneViewModel) : ViewMo
         {
             value = double.IsFinite(value)
                 ? Math.Clamp(value, MinimumActivityThicknessScale, MaximumActivityThicknessScale)
-                : DefaultActivityFrequency;
+                : DefaultActivityThicknessScale;
 
             if (SetProperty(ref _activityThicknessScale, value))
                 UpdateActiveSun();
@@ -167,7 +167,6 @@ public class SunViewModel(WorldGlobeSceneViewModel globeSceneViewModel) : ViewMo
 
     private void UpdateActiveSun()
     {
-        if (_globeSceneViewModel.StarViewModel.SelectedLocalStarType == OrbitalBodyType.Sun)
-            _globeSceneViewModel.StarViewModel.UpdateCurrentLocalStar();
+        _updateActiveSun?.Invoke();
     }
 }

@@ -28,7 +28,8 @@ internal sealed class BlackHoleCelestialBodyRenderer :
     public override CelestialBodyRendererType Type =>
         CelestialBodyRendererType.BlackHole;
 
-    public BlackHoleCelestialBodyRenderer()
+    public BlackHoleCelestialBodyRenderer(Func<CelestialTextureSource?, ImageSource?> textureResolver)
+            : base(textureResolver)
     {
         Material blackMaterial = CreateBlackMaterial();
 

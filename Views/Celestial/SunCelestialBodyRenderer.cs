@@ -62,7 +62,8 @@ namespace RealmStudioX.WPF.Views.Celestial
 
         public override CelestialBodyRendererType Type => CelestialBodyRendererType.Sun;
 
-        public SunCelestialBodyRenderer()
+        public SunCelestialBodyRenderer(Func<CelestialTextureSource?, ImageSource?> textureResolver)
+            : base(textureResolver)
         {
             ImageBrush sunBrush = new(SunTexture.Value)
             {

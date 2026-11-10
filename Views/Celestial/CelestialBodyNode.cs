@@ -7,18 +7,10 @@ namespace RealmStudioX.WPF.Views.Celestial
     {
         public CelestialBody Body { get; set; } = new();
 
-        public Point3D Center { get; set; } = new(0, 0, 0);
+        // Relationship to the parent body
+        public CelestialBodyPlacementSettings Placement { get; set; } = new();
 
         public ObservableCollection<CelestialBodyNode> Children { get; } = [];
-
-        // Relationship to the parent body
-        public double OrbitalDistance { get; set; } = 1.0;
-
-        public double OrbitalInclination { get; set; } = 0.0;
-
-        public double OrbitalAngle { get; set; } = 0.0;
-
-        public double OrbitalSpeed { get; set; } = 0.0;
 
         public bool EnableOrbitAnimation { get; set; } = false;
 

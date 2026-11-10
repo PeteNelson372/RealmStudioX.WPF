@@ -394,12 +394,11 @@ namespace RealmStudioX.WPF.Views.Dialogs
             // Create the celestial system only once.
             if (_celestialSystem is null)
             {
-                // create the world globe and its basic rotation animation
+                // Create the World Globe body.
                 _worldBody = new CelestialBody
                 {
                     Name = "World",
                     Description = "The world represented by this globe.",
-                    Radius = 1.0,
                     BaseColor = Colors.White,
                     RendererType = CelestialBodyRendererType.Planet,
                     TextureSource = new CelestialTextureSource
@@ -419,18 +418,23 @@ namespace RealmStudioX.WPF.Views.Dialogs
                     }
                 });
 
-                // create the celestial system and add the world body to it
-
+                // Create the celestial system.
                 _celestialSystem = new CelestialSystem
                 {
                     Name = "World",
                     Description = "World Globe"
                 };
 
+                // Create the World Globe node.
+                // Size and position are properties of the placement, not the body.
                 _worldNode = new CelestialBodyNode
                 {
                     Body = _worldBody,
-                    Center = new Point3D(0, 0, 0)
+                    Placement = new CelestialBodyPlacementSettings
+                    {
+                        Center = new Point3D(0, 0, 0),
+                        Size = 1.0
+                    }
                 };
 
                 _celestialSystem.Bodies.Add(_worldNode);
@@ -440,7 +444,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 EnsureCloudLayerAttachment();
 
                 _celestialSystemRenderer = new CelestialSystemRenderer(
-                    ResolveBodyTexture,
+                    ResolveTextureSource,
                     ResolveAttachmentTexture);
             }
 
@@ -1168,7 +1172,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         #region Local Star Methods
 
-        public void ShowLocalStar(CelestialBody star, Point3D worldPosition)
+        public void ShowLocalStar(
+            CelestialBody star,
+            Point3D worldPosition,
+            double size)
         {
             ArgumentNullException.ThrowIfNull(star);
 
@@ -1186,7 +1193,12 @@ namespace RealmStudioX.WPF.Views.Dialogs
             _localStarNode = new CelestialBodyNode
             {
                 Body = star,
-                Center = new Point3D(0, 0, 0)
+                Placement = new CelestialBodyPlacementSettings
+                {
+                    Center = new Point3D(0, 0, 0),
+                    Size = Math.Clamp(size, 0.01, 1.0),
+                    AxialTilt = GetLocalStarAxialTilt()
+                }
             };
 
             _localStarNode.Children.Add(_worldNode);
@@ -1198,29 +1210,46 @@ namespace RealmStudioX.WPF.Views.Dialogs
             RebuildCelestialScene();
         }
 
-        public void UpdateLocalStar(CelestialBody star, Point3D worldPosition)
+        public void UpdateLocalStar(
+            CelestialBody star,
+            Point3D worldPosition,
+            double size)
         {
             ArgumentNullException.ThrowIfNull(star);
 
             if (_localStarNode is null || _worldNode is null)
             {
-                ShowLocalStar(star, worldPosition);
+                ShowLocalStar(star, worldPosition, size);
                 return;
             }
 
             _localStarNode.Body = star;
+            _localStarNode.Placement.Size =
+                Math.Clamp(size, 0.01, 1.0);
+
+            _localStarNode.Placement.AxialTilt = GetLocalStarAxialTilt();
 
             UpdateWorldPosition(worldPosition);
 
-            _celestialSystemRenderer!.UpdateBody(
-                star,
-                new Point3D(0, 0, 0));
+            _celestialSystemRenderer!.UpdateBody(_localStarNode);
 
-            _celestialSystemRenderer.UpdateBodyPosition(
-                _worldNode.Body,
-                worldPosition);
+            _celestialSystemRenderer.UpdateBodyPosition(_worldNode);
 
             UpdateCameraFacingLocalStar();
+        }
+
+        private double GetLocalStarAxialTilt()
+        {
+            if (ViewModel.StarViewModel.SelectedLocalStarType == CelestialBodyType.Nebula
+                || ViewModel.StarViewModel.SelectedLocalStarType == CelestialBodyType.Corona)
+            {
+                return 0.0;
+            }
+
+            return Math.Clamp(
+                ViewModel.StarViewModel.LocalStarAxialTilt,
+                0.0,
+                90.0);
         }
 
         public void RemoveLocalStar()
@@ -1249,7 +1278,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             if (_worldNode is null)
                 return;
 
-            Vector3D delta = newPosition - _worldNode.Center;
+            Vector3D delta = newPosition - _worldNode.Placement.Center;
 
             // Move the camera by exactly the same amount as the globe.
             ModelViewer.TranslateCamera(delta);
@@ -1257,7 +1286,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             // Then update the globe's position relative to the star.
             // Its surface, attachments, and atmosphere all inherit this
             // node translation through the World Globe visual hierarchy.
-            _worldNode.Center = newPosition;
+            _worldNode.Placement.Center = newPosition;
         }
 
         private void RebuildCelestialScene()

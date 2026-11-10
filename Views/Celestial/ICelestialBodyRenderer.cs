@@ -1,5 +1,4 @@
 ﻿using RealmStudioShapeRenderingLib;
-using System.Windows.Media;
 using System.Windows.Media.Media3D;
 
 namespace RealmStudioX.WPF.Views.Celestial
@@ -10,6 +9,6 @@ namespace RealmStudioX.WPF.Views.Celestial
 
         Model3DGroup Root { get; }
 
-        void Update(CelestialBody body, ImageSource? texture);
+        void Update(CelestialBodyNode node, CelestialTextureSource? textureSource);
     }
 }

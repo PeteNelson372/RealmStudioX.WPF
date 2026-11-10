@@ -15,13 +15,12 @@ using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Dialogs;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Panels;
+using RealmStudioX.WPF.Views.Celestial;
 using RealmStudioX.WPF.Views.Dialogs;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
 using System.IO;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using Application = System.Windows.Application;
 using Cursors = System.Windows.Input.Cursors;
 
@@ -117,6 +116,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
         public HeightMapManager HeightMapManager { get; }
 
         public LandformPerimeterExtractionService PerimeterExtractionService { get; }
+
+        public CelestialTextureResolver CelestialTextureResolver { get; }
 
         public event Action? RequestOpenNameGeneratorConfig;
 
@@ -215,6 +216,8 @@ namespace RealmStudioX.WPF.ViewModels.Main
             HeightMapManager = new HeightMapManager(HeightMapViewModel);
 
             PerimeterExtractionService = new LandformPerimeterExtractionService();
+
+            CelestialTextureResolver = new CelestialTextureResolver(this);
 
             _editor.SetLabelsViewModel(LabelsViewModel);
 

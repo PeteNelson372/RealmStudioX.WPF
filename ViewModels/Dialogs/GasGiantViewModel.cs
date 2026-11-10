@@ -12,7 +12,20 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs;
 
 public class GasGiantViewModel : ViewModelBase
 {
-    private readonly WorldGlobeSceneViewModel _globeSceneViewModel;
+    Action? _updateActiveGasGiant;
+
+    public PlanetaryRingViewModel Rings { get; }
+
+    public GasGiantViewModel(Action? updateActiveGasGiant = null)
+    {
+        _updateActiveGasGiant = updateActiveGasGiant;
+
+        Rings = new PlanetaryRingViewModel(
+            _ringSettings,
+            _ringRotationAnimation,
+            _ringTurbulenceAnimation,
+            UpdateActiveGasGiant);
+    }
 
     private readonly PlanetaryRingSettings _ringSettings = new();
 
@@ -37,20 +50,6 @@ public class GasGiantViewModel : ViewModelBase
         }
     };
 
-    public PlanetaryRingViewModel Rings { get; }
-
-    public GasGiantViewModel(WorldGlobeSceneViewModel globeSceneViewModel)
-    {
-        _globeSceneViewModel = globeSceneViewModel
-            ?? throw new ArgumentNullException(nameof(globeSceneViewModel));
-
-        Rings = new PlanetaryRingViewModel(
-            _ringSettings,
-            _ringRotationAnimation,
-            _ringTurbulenceAnimation,
-            UpdateActiveGasGiant);
-    }
-
     private string _texturePath = string.Empty;
 
     public string TexturePath
@@ -59,25 +58,6 @@ public class GasGiantViewModel : ViewModelBase
         set
         {
             if (SetProperty(ref _texturePath, value))
-                UpdateActiveGasGiant();
-        }
-    }
-
-    private const double MinimumAxialTilt = 0.0;
-    private const double MaximumAxialTilt = 90.0;
-
-    private double _axialTilt;
-
-    public double AxialTilt
-    {
-        get => _axialTilt;
-        set
-        {
-            value = double.IsFinite(value)
-                ? Math.Clamp(value, MinimumAxialTilt, MaximumAxialTilt)
-                : 0.0;
-
-            if (SetProperty(ref _axialTilt, value))
                 UpdateActiveGasGiant();
         }
     }
@@ -143,9 +123,6 @@ public class GasGiantViewModel : ViewModelBase
 
     private void UpdateActiveGasGiant()
     {
-        if (_globeSceneViewModel.StarViewModel.SelectedLocalStarType == OrbitalBodyType.GasGiant)
-        {
-            _globeSceneViewModel.StarViewModel.UpdateCurrentLocalStar();
-        }
+        _updateActiveGasGiant?.Invoke();
     }
 }

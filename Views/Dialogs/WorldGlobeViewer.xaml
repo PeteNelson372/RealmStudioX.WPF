@@ -15,7 +15,7 @@
     xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"    
     mc:Ignorable="d"
     Title="World Globe Viewer"
-    Width="1400"
+    Width="1500"
     Height="900"
     MinWidth="1000"
     MinHeight="650"
@@ -109,7 +109,7 @@
                                      Width="18"
                                      Height="18"
                                      Opacity="0.7"/>
-                            
+
                             <TextBlock Text="Load..."
                                FontSize="12"
                                Foreground="#FF45443F"
@@ -338,9 +338,7 @@
                 <ColumnDefinition Width="5" />
 
                 <!-- Properties -->
-                <ColumnDefinition
-                    Width="300"
-                    MinWidth="230" />
+                <ColumnDefinition Width="300" MinWidth="300"/>
             </Grid.ColumnDefinitions>
 
             <!-- ================================================= -->
@@ -501,7 +499,7 @@
                                                 RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
                                 </StackPanel>
                             </TreeViewItem.Header>
-                            
+
                             <!-- world children -->
 
                             <TreeViewItem IsExpanded="True" Margin="0,2,0,0" Tag="Surface">
@@ -668,7 +666,6 @@
             <GridSplitter
                 Grid.Column="1"
                 HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"
                 Background="#FFD0CCC5"
                 ShowsPreview="True"
                 ResizeBehavior="PreviousAndNext"
@@ -680,7 +677,7 @@
 
             <Grid
                 Grid.Column="2"
-                Margin="5,0">
+                Margin="5,0,5,0">
 
                 <Grid.RowDefinitions>
                     <!-- Main 3D viewport -->
@@ -689,7 +686,7 @@
                     <!-- Collapsible animation timeline -->
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                
+
                 <Border
                     Grid.Row="0"
                     Background="#FFF5F3EF"
@@ -799,7 +796,7 @@
                                     VerticalAlignment="Center" />
 
                             </StackPanel>
-                            
+
                             <StackPanel
                                 Grid.Column="1"
                                 Orientation="Horizontal"
@@ -853,7 +850,6 @@
             <GridSplitter
                 Grid.Column="3"
                 HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"
                 Background="#FFD0CCC5"
                 ShowsPreview="True"
                 ResizeBehavior="PreviousAndNext"
@@ -869,7 +865,7 @@
                 BorderBrush="#FFC8C4BD"
                 BorderThickness="1"
                 CornerRadius="3"
-                Padding="8">
+                Padding="8" Grid.ColumnSpan="2">
 
                 <DockPanel x:Name="ToolsPanel">
                     <!-- Tool panels -->
@@ -880,7 +876,7 @@
 
 
                 </DockPanel>
-                               
+
             </Border>
 
         </Grid>

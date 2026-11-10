@@ -8,7 +8,7 @@ namespace RealmStudioX.WPF.Views.Celestial;
 
 internal sealed class CelestialSystemRenderer : ICelestialAnimatedObject
 {
-    private readonly Func<CelestialBody, ImageSource?> _textureResolver;
+    private readonly Func<CelestialTextureSource?, ImageSource?> _textureResolver;
 
     private readonly Func<CelestialBodyAttachment, BitmapSource?>
         _attachmentTextureResolver;
@@ -37,7 +37,7 @@ internal sealed class CelestialSystemRenderer : ICelestialAnimatedObject
     }
 
     public CelestialSystemRenderer(
-        Func<CelestialBody, ImageSource?> textureResolver,
+        Func<CelestialTextureSource?, ImageSource?> textureResolver,
         Func<CelestialBodyAttachment, BitmapSource?>? attachmentTextureResolver = null)
     {
         _textureResolver = textureResolver
@@ -84,14 +84,14 @@ internal sealed class CelestialSystemRenderer : ICelestialAnimatedObject
 
         ICelestialBodyRenderer renderer = CreateBodyRenderer(body);
 
-        renderer.Update(body, _textureResolver(body));
+        renderer.Update(node, body.TextureSource);
 
         Model3DGroup nodeRoot = new();
 
         TranslateTransform3D centerTransform = new(
-            node.Center.X,
-            node.Center.Y,
-            node.Center.Z);
+            node.Placement.Center.X,
+            node.Placement.Center.Y,
+            node.Placement.Center.Z);
 
         Transform3DGroup nodeTransform = new();
 
@@ -240,11 +240,13 @@ internal sealed class CelestialSystemRenderer : ICelestialAnimatedObject
 
     #region Body Updates
 
-    public void UpdateBody(
-        CelestialBody body,
-        Point3D center)
+    public void UpdateBody(CelestialBodyNode node)
     {
-        ArgumentNullException.ThrowIfNull(body);
+        ArgumentNullException.ThrowIfNull(node);
+        ArgumentNullException.ThrowIfNull(node.Body);
+        ArgumentNullException.ThrowIfNull(node.Placement);
+
+        CelestialBody body = node.Body;
 
         if (!_bodyRenderers.TryGetValue(
                 body.Id,
@@ -254,37 +256,31 @@ internal sealed class CelestialSystemRenderer : ICelestialAnimatedObject
                 $"No renderer exists for celestial body '{body.Id}'.");
         }
 
-        UpdateBodyPosition(body, center);
+        UpdateBodyPosition(node);
 
         if (entry.Renderer.Type != body.RendererType)
         {
-            ReplaceBodyRenderer(body, entry);
+            ReplaceBodyRenderer(node, entry);
         }
         else
         {
-            entry.Renderer.Update(
-                body,
-                _textureResolver(body));
-
+            entry.Renderer.Update(node, body.TextureSource);
             RefreshAttachments(entry.Renderer);
         }
     }
 
     private void ReplaceBodyRenderer(
-        CelestialBody body,
+        CelestialBodyNode node,
         BodyRendererEntry entry)
     {
         UnregisterRenderer(entry.Renderer);
 
         ICelestialBodyRenderer replacement =
-            CreateBodyRenderer(body);
+            CreateBodyRenderer(node.Body);
 
-        replacement.Update(
-            body,
-            _textureResolver(body));
+        replacement.Update(node, node.Body.TextureSource);
 
         entry.VisualRoot.Children.Remove(entry.Renderer.Root);
-
         entry.VisualRoot.Children.Add(replacement.Root);
 
         entry.Renderer = replacement;
@@ -301,19 +297,21 @@ internal sealed class CelestialSystemRenderer : ICelestialAnimatedObject
         }
     }
 
-    public void UpdateBodyPosition(
-        CelestialBody body,
-        Point3D center)
+    public void UpdateBodyPosition(CelestialBodyNode node)
     {
-        ArgumentNullException.ThrowIfNull(body);
+        ArgumentNullException.ThrowIfNull(node);
+        ArgumentNullException.ThrowIfNull(node.Body);
+        ArgumentNullException.ThrowIfNull(node.Placement);
 
         if (!_bodyRenderers.TryGetValue(
-                body.Id,
+                node.Body.Id,
                 out BodyRendererEntry? entry))
         {
             throw new InvalidOperationException(
-                $"No renderer exists for celestial body '{body.Id}'.");
+                $"No renderer exists for celestial body '{node.Body.Id}'.");
         }
+
+        Point3D center = node.Placement.Center;
 
         entry.CenterTransform.OffsetX = center.X;
         entry.CenterTransform.OffsetY = center.Y;
@@ -369,25 +367,25 @@ internal sealed class CelestialSystemRenderer : ICelestialAnimatedObject
 
     #region Renderer Factory
 
-    private static ICelestialBodyRenderer CreateBodyRenderer(
+    private ICelestialBodyRenderer CreateBodyRenderer(
         CelestialBody body)
     {
         return body.RendererType switch
         {
             CelestialBodyRendererType.Planet =>
-                new PlanetCelestialBodyRenderer(),
+                new PlanetCelestialBodyRenderer(_textureResolver),
 
             CelestialBodyRendererType.Sun =>
-                new SunCelestialBodyRenderer(),
+                new SunCelestialBodyRenderer(_textureResolver),
 
             CelestialBodyRendererType.Nebula =>
-                new NebulaCelestialBodyRenderer(),
+                new NebulaCelestialBodyRenderer(_textureResolver),
 
             CelestialBodyRendererType.Corona =>
-                new CoronaCelestialBodyRenderer(),
+                new CoronaCelestialBodyRenderer(_textureResolver),
 
             CelestialBodyRendererType.BlackHole =>
-                new BlackHoleCelestialBodyRenderer(),
+                new BlackHoleCelestialBodyRenderer(_textureResolver),
 
             _ => throw new NotSupportedException(
                 $"Renderer type '{body.RendererType}' is not supported.")
