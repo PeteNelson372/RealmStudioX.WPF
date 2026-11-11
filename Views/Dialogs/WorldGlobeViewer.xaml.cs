@@ -1188,6 +1188,28 @@ namespace RealmStudioX.WPF.Views.Dialogs
             _celestialSystem.Bodies.Add(_localStarNode);
 
             RebuildCelestialScene();
+
+            if (WorldLocalStarTreeViewItem is not null && star is not null &&
+                !string.IsNullOrEmpty(star.Name))
+            {
+                SetTreeViewHeader(WorldLocalStarTreeViewItem, "Local Star", star.Name);
+            }
+        }
+
+        public static void SetTreeViewHeader(TreeViewItem treeViewItem, string prefix, string name)
+        {
+            if (treeViewItem is null)
+                return;
+
+            treeViewItem.Header = new TextBlock
+            {
+                MaxWidth = 200,
+                Text = prefix + ": " + name,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                TextWrapping = TextWrapping.NoWrap
+            };
+
+            treeViewItem.ToolTip = name;
         }
 
         public void UpdateLocalStar(
@@ -1222,6 +1244,12 @@ namespace RealmStudioX.WPF.Views.Dialogs
             _celestialSystemRenderer.UpdateBodyPosition(_worldNode);
 
             UpdateCameraFacingLocalStar();
+
+            if (WorldLocalStarTreeViewItem is not null && star is not null &&
+                !string.IsNullOrEmpty(star.Name))
+            {
+                SetTreeViewHeader(WorldLocalStarTreeViewItem, "Local Star", star.Name);
+            }
         }
 
         private double GetLocalStarAxialTilt()
@@ -1349,8 +1377,11 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             if (_localStarNode is null)
             {
-                throw new InvalidOperationException(
-                    "A Local Star must be created before adding a planet.");
+                MessageDialog messageDialog = MessageDialogFactory.WarningDialog("No Local Star",
+                    "A Local Star must be added before adding planets.");
+
+                messageDialog.ShowDialog();
+                return;
             }
 
             _localStarNode.Children.Add(planet);
@@ -1367,8 +1398,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
             planetItem.BringIntoView();
         }
 
-
-
         private TreeViewItem AddPlanetTreeViewItem(CelestialBodyNode planet)
         {
             TreeViewItem item = CreateTreeViewItem(planet);
@@ -1377,7 +1406,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             return item;
         }
-
 
         private static TreeViewItem CreateTreeViewItem(CelestialBodyNode node)
         {
@@ -1397,9 +1425,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             return item;
         }
 
-        private static TreeViewItem? FindTreeViewItem(
-            ItemsControl parent,
-            CelestialBodyNode node)
+        private static TreeViewItem? FindTreeViewItem(ItemsControl parent, CelestialBodyNode node)
         {
             foreach (object child in parent.Items)
             {
@@ -1417,9 +1443,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             return null;
         }
 
-        private static bool RemoveTreeViewItem(
-            ItemsControl parent,
-            CelestialBodyNode node)
+        private static bool RemoveTreeViewItem(ItemsControl parent, CelestialBodyNode node)
         {
             for (int i = 0; i < parent.Items.Count; i++)
             {
@@ -1439,9 +1463,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             return false;
         }
 
-        private static bool ContainsNode(
-            CelestialBodyNode parent,
-            CelestialBodyNode target)
+        private static bool ContainsNode(CelestialBodyNode parent, CelestialBodyNode target)
         {
             foreach (CelestialBodyNode child in parent.Children)
             {
@@ -1452,9 +1474,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             return false;
         }
 
-        private static bool RemoveNodeFromHierarchy(
-            CelestialBodyNode parent,
-            CelestialBodyNode target)
+        private static bool RemoveNodeFromHierarchy(CelestialBodyNode parent, CelestialBodyNode target)
         {
             if (parent.Children.Remove(target))
                 return true;
@@ -1495,11 +1515,9 @@ namespace RealmStudioX.WPF.Views.Dialogs
             TreeViewItem? planetItem =
                 FindTreeViewItem(PlanetsTreeViewItem, planet);
 
-            if (planetItem is not null)
+            if (planetItem is not null && !string.IsNullOrEmpty(planet.Body.Name))
             {
-                // Update the existing item in place, preserving its parent
-                // relationship and any expanded/collapsed state.
-                planetItem.Header = planet.Body.Name;
+                SetTreeViewHeader(planetItem, "Planet", planet.Body.Name);
             }
         }
 

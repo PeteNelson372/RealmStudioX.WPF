@@ -1,4 +1,9 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioShapeRenderingLib.Logging;
+using RealmStudioX.WPF.Editor.Services;
+using RealmStudioX.WPF.Editor.UserInterface;
+using RealmStudioX.WPF.ViewModels.Main;
+using RealmStudioX.WPF.Views.Dialogs;
 
 using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.EditorUtilities;
@@ -24,11 +29,18 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         public TerrestrialPlanetViewModel PlanetTerrestrialModel { get; }
 
         private readonly Action<CelestialBodyNode> _addPlanet;
+        private readonly MapObjectDescriptionService _descriptionService;
+        private readonly ObjectCharacteristicsViewModel _planetCharacteristics = new();
 
-        public CreatePlanetViewModel(Action<CelestialBodyNode> addPlanet)
+        public CreatePlanetViewModel(
+            Action<CelestialBodyNode> addPlanet,
+            MapObjectDescriptionService descriptionService)
         {
             _addPlanet = addPlanet
                 ?? throw new ArgumentNullException(nameof(addPlanet));
+
+            _descriptionService = descriptionService
+                ?? throw new ArgumentNullException(nameof(descriptionService));
 
             PlanetBlackHoleModel = new();
             PlanetNebulaModel = new();
@@ -80,6 +92,91 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             get => _selectedPlanetType;
             set => SetProperty(ref _selectedPlanetType, value);
         }
+
+        #region Name and Description
+
+        private string _planetName = "New Planet";
+
+        public string PlanetName
+        {
+            get => _planetName;
+            set => SetProperty(ref _planetName, value ?? string.Empty);
+        }
+
+        private string _planetDescription = string.Empty;
+
+        public string PlanetDescription
+        {
+            get => _planetDescription;
+            set => SetProperty(ref _planetDescription, value ?? string.Empty);
+        }
+
+        private bool _planetNameLocked;
+
+        public bool PlanetNameLocked
+        {
+            get => _planetNameLocked;
+            set => SetProperty(ref _planetNameLocked, value);
+        }
+
+        public ICommand GeneratePlanetNameCommand => new RelayCommand(() =>
+        {
+            if (!PlanetNameLocked)
+            {
+                PlanetName = MainWindowViewModel.GenerateName();
+            }
+        });
+
+        public ICommand LockPlanetNameCommand => new RelayCommand(() =>
+        {
+            PlanetNameLocked = !PlanetNameLocked;
+        });
+
+        public ICommand GeneratePlanetDescriptionCommand => new RelayCommand(async () =>
+        {
+            try
+            {
+                string query = _descriptionService.BuildAiQuery(
+                    "CelestialBody",
+                    PlanetName,
+                    _planetCharacteristics.SelectedObjectType,
+                    [.. _planetCharacteristics.ObjectCharacteristicsList]);
+
+                _descriptionService.ClearDescription();
+                await _descriptionService.GetMapObjectDescription(query);
+
+                string description = _descriptionService.ObjectDescription;
+
+                if (!string.IsNullOrWhiteSpace(description))
+                {
+                    PlanetDescription = description;
+                }
+            }
+            catch (Exception ex)
+            {
+                RealmStudioXLogger.Exception(
+                    "An error occurred retrieving a planet description.", ex);
+
+                MessageDialogFactory.ErrorDialog(
+                    "Error retrieving planet description.", ex.Message);
+            }
+        });
+
+        public ICommand SetPlanetCharacteristicsCommand => new RelayCommand(() =>
+        {
+            ObjectCharacteristics dialog = new(_planetCharacteristics, MapObjectType.CelestialBody);
+
+            dialog.ShowDialog();
+        });
+
+        public ICommand CreatePlanetArticleCommand => new RelayCommand(() =>
+        {
+            MessageDialogFactory.InformationDialog(
+                "Create Planet Article",
+                "This feature is not yet implemented. It will allow you to create a World Anvil article for the planet.");
+        });
+
+        #endregion
 
         #region Placement Properties
 
@@ -285,7 +382,11 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 PlanetGasGiantModel,
                 PlanetTerrestrialModel,
                 baseColor: PlanetColor,
-                description: $"Planet of type {SelectedPlanetType}.");
+                description: PlanetDescription);
+
+            // Apply user-defined metadata after factory configuration.
+            planet.Name = PlanetName;
+            planet.Description = PlanetDescription;
         }
 
         #endregion

@@ -366,6 +366,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
             CopyPropertiesToCelestialBody(_currentLocalStar);
 
+
             // Keep the model current while hidden, but do not recreate the
             // Local Star in the viewer until the user enables it again.
             if (!EnableLocalStar)

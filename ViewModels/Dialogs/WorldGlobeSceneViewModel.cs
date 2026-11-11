@@ -120,7 +120,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 _localStarNebulaModel, _localStarCoronaModel,
                 _localStarSunModel, _localStarGasGiantModel, _localStarTerrestrialPlanetModel);
 
-            _createPlanetViewModel = new(_globeViewer.AddPlanet);
+            _createPlanetViewModel = new(_globeViewer.AddPlanet, _mainViewModel.MapObjectDescriptionService);
         }
 
 
@@ -136,7 +136,8 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             PlanetModel = new PlanetViewModel(
                 planet,
                 _globeViewer.UpdatePlanet,
-                _globeViewer.RemovePlanet);
+                _globeViewer.RemovePlanet,
+                _mainViewModel.MapObjectDescriptionService);
         }
 
         public void ClearSelectedPlanet()

@@ -1,8 +1,12 @@
 ﻿
 using RealmStudioShapeRenderingLib;
-using RealmStudioX.Infrastructure;
+using RealmStudioShapeRenderingLib.Logging;
+using RealmStudioX.WPF.Editor.Services;
+using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
+using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Celestial;
+using RealmStudioX.WPF.Views.Dialogs;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
@@ -18,6 +22,12 @@ public sealed class PlanetViewModel : ViewModelBase
     private readonly CelestialBodyNode _planetNode;
     private readonly Action<CelestialBodyNode> _updatePlanet;
     private readonly Action<CelestialBodyNode> _removePlanet;
+    private readonly MapObjectDescriptionService _descriptionService;
+    private readonly ObjectCharacteristicsViewModel _planetCharacteristics = new();
+
+    private string _planetName = string.Empty;
+    private string _planetDescription = string.Empty;
+    private bool _planetNameLocked;
 
     private bool _isInitializing = true;
 
@@ -66,10 +76,106 @@ public sealed class PlanetViewModel : ViewModelBase
         }
     }
 
+    #region Name and Description
+
+    public string PlanetName
+    {
+        get => _planetName;
+        set
+        {
+            if (SetProperty(ref _planetName, value ?? string.Empty))
+            {
+                _planetNode.Body.Name = _planetName;
+                _updatePlanet(_planetNode);
+            }
+        }
+    }
+
+    public string PlanetDescription
+    {
+        get => _planetDescription;
+        set
+        {
+            if (SetProperty(ref _planetDescription, value ?? string.Empty))
+            {
+                _planetNode.Body.Description = _planetDescription;
+                _updatePlanet(_planetNode);
+            }
+        }
+    }
+
+    public bool PlanetNameLocked
+    {
+        get => _planetNameLocked;
+        set => SetProperty(ref _planetNameLocked, value);
+    }
+
+    public ICommand GeneratePlanetNameCommand => new RelayCommand(() =>
+    {
+        if (!PlanetNameLocked)
+        {
+            PlanetName = MainWindowViewModel.GenerateName();
+        }
+    });
+
+    public ICommand LockPlanetNameCommand => new RelayCommand(() =>
+    {
+        PlanetNameLocked = !PlanetNameLocked;
+    });
+
+    public ICommand GeneratePlanetDescriptionCommand => new RelayCommand(async () =>
+    {
+        try
+        {
+            string query = _descriptionService.BuildAiQuery(
+                "CelestialBody",
+                PlanetName,
+                _planetCharacteristics.SelectedObjectType,
+                [.. _planetCharacteristics.ObjectCharacteristicsList]);
+
+            _descriptionService.ClearDescription();
+            await _descriptionService.GetMapObjectDescription(query);
+
+            string description = _descriptionService.ObjectDescription;
+
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                PlanetDescription = description;
+            }
+        }
+        catch (Exception ex)
+        {
+            RealmStudioXLogger.Exception(
+                "An error occurred retrieving a planet description.", ex);
+
+            MessageDialogFactory.ErrorDialog(
+                "Error retrieving planet description.", ex.Message);
+        }
+    });
+
+    public ICommand SetPlanetCharacteristicsCommand => new RelayCommand(() =>
+    {
+        ObjectCharacteristics dialog = new(
+            _planetCharacteristics,
+            MapObjectType.CelestialBody);
+
+        dialog.ShowDialog();
+    });
+
+    public ICommand CreatePlanetArticleCommand => new RelayCommand(() =>
+    {
+        MessageDialogFactory.InformationDialog(
+            "Create Planet Article",
+            "This feature is not yet implemented. It will allow you to create a World Anvil article for the planet.");
+    });
+
+    #endregion
+
     public PlanetViewModel(
         CelestialBodyNode planetNode,
         Action<CelestialBodyNode> updatePlanet,
-        Action<CelestialBodyNode> removePlanet)
+        Action<CelestialBodyNode> removePlanet,
+        MapObjectDescriptionService descriptionService)
     {
         _planetNode = planetNode
             ?? throw new ArgumentNullException(nameof(planetNode));
@@ -82,6 +188,12 @@ public sealed class PlanetViewModel : ViewModelBase
 
         _removePlanet = removePlanet
             ?? throw new ArgumentNullException(nameof(removePlanet));
+
+        _descriptionService = descriptionService
+            ?? throw new ArgumentNullException(nameof(descriptionService));
+
+        _planetName = planetNode.Body.Name ?? string.Empty;
+        _planetDescription = planetNode.Body.Description ?? string.Empty;
 
         _selectedPlanetType = planetNode.Body.BodyType;
         _planetColor = planetNode.Body.BaseColor;
@@ -468,7 +580,12 @@ public sealed class PlanetViewModel : ViewModelBase
             PlanetGasGiantModel,
             PlanetTerrestrialModel,
             baseColor: PlanetColor,
-            description: _planetNode.Body.Description);
+            description: PlanetDescription);
+
+        // Factory configuration can assign type-specific metadata.
+        // Restore the user's values so type changes never erase them.
+        _planetNode.Body.Name = PlanetName;
+        _planetNode.Body.Description = PlanetDescription;
 
         _updatePlanet(_planetNode);
     }
