@@ -1,5 +1,9 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioShapeRenderingLib.Logging;
+using RealmStudioX.WPF.Editor.Services;
+using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
+using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Celestial;
 using RealmStudioX.WPF.Views.Dialogs;
 using System.Windows.Input;
@@ -65,6 +69,44 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             }
         }
 
+
+        private string _localStarName = "Local Star";
+
+        public string LocalStarName
+        {
+            get => _localStarName;
+            set
+            {
+                if (SetProperty(ref _localStarName, value ?? string.Empty))
+                {
+                    UpdateCurrentLocalStar();
+                }
+            }
+        }
+
+        private string _localStarDescription = string.Empty;
+
+        public string LocalStarDescription
+        {
+            get => _localStarDescription;
+            set
+            {
+                if (SetProperty(ref _localStarDescription, value ?? string.Empty))
+                {
+                    UpdateCurrentLocalStar();
+                }
+            }
+        }
+
+        private bool _localStarNameLocked;
+
+        public bool LocalStarNameLocked
+        {
+            get => _localStarNameLocked;
+            set => SetProperty(ref _localStarNameLocked, value);
+        }
+
+
         private CelestialBodyType _selectedLocalStarType = CelestialBodyType.Sun;
 
         public CelestialBodyType SelectedLocalStarType
@@ -95,46 +137,50 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             }
         }
 
-        private double _localStarDistance = 0.08;
+        private const double PositionLimit = 10.0;
 
-        public double LocalStarDistance
+        private double _localStarX = 0.0;
+        public double LocalStarX
         {
-            get => _localStarDistance;
-            set
-            {
-                if (SetProperty(ref _localStarDistance, Math.Clamp(value, 0.0, 1.0)))
-                {
-                    UpdateCurrentLocalStar();
-                }
-            }
+            get => _localStarX;
+            set => SetPosition(value, LocalStarY, LocalStarZ);
         }
 
-        private double _localStarOrbit = 0.0;
-
-        public double LocalStarOrbit
+        private double _localStarY = -1.44;
+        public double LocalStarY
         {
-            get => _localStarOrbit;
-            set
-            {
-                if (SetProperty(ref _localStarOrbit, Math.Clamp(value, 0.0, 1.0)))
-                {
-                    UpdateCurrentLocalStar();
-                }
-            }
+            get => _localStarY;
+            set => SetPosition(LocalStarX, value, LocalStarZ);
         }
 
-        private double _localStarPlane = 0.24;
-
-        public double LocalStarPlane
+        private double _localStarZ = -1.63;
+        public double LocalStarZ
         {
-            get => _localStarPlane;
-            set
-            {
-                if (SetProperty(ref _localStarPlane, Math.Clamp(value, 0.0, 1.0)))
-                {
-                    UpdateCurrentLocalStar();
-                }
-            }
+            get => _localStarZ;
+            set => SetPosition(LocalStarX, LocalStarY, value);
+        }
+
+        private void SetPosition(double x, double y, double z)
+        {
+            x = Math.Clamp(double.IsFinite(x) ? x : 0.0, -PositionLimit, PositionLimit);
+            y = Math.Clamp(double.IsFinite(y) ? y : 0.0, -PositionLimit, PositionLimit);
+            z = Math.Clamp(double.IsFinite(z) ? z : 0.0, -PositionLimit, PositionLimit);
+
+            bool changedX = _localStarX != x;
+            bool changedY = _localStarY != y;
+            bool changedZ = _localStarZ != z;
+            if (!changedX && !changedY && !changedZ)
+                return;
+
+            _localStarX = x;
+            _localStarY = y;
+            _localStarZ = z;
+
+            if (changedX) OnPropertyChanged(nameof(LocalStarX));
+            if (changedY) OnPropertyChanged(nameof(LocalStarY));
+            if (changedZ) OnPropertyChanged(nameof(LocalStarZ));
+
+            UpdateCurrentLocalStar();
         }
 
         private WorldRotationDirection _localStarRotationDirection = WorldRotationDirection.Prograde;
@@ -212,6 +258,68 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             }
         });
 
+
+        public ICommand GenerateLocalStarNameCommand => new RelayCommand(() =>
+        {
+            if (!LocalStarNameLocked)
+            {
+                LocalStarName = MainWindowViewModel.GenerateName();
+            }
+        });
+
+        public ICommand LockLocalStarNameCommand => new RelayCommand(() =>
+        {
+            LocalStarNameLocked = !LocalStarNameLocked;
+        });
+
+        public ICommand GenerateLocalStarDescriptionCommand => new RelayCommand(async () =>
+        {
+            MapObjectDescriptionService descriptionService = _globeViewer.ViewModel.MainViewModel.MapObjectDescriptionService;
+
+            if (localStarCharacteristics != null)
+            {
+                string query = descriptionService.BuildAiQuery("CelestialBody",
+                    LocalStarName,
+                    localStarCharacteristics.SelectedObjectType,
+                    [.. localStarCharacteristics.ObjectCharacteristicsList]);
+
+                try
+                {
+                    descriptionService.ClearDescription();
+                    await descriptionService.GetMapObjectDescription(query);
+                    string description = descriptionService.ObjectDescription;
+
+                    if (!string.IsNullOrEmpty(description))
+                    {
+                        LocalStarDescription = description;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    RealmStudioXLogger.Exception("An error occurred retrieving an object description.", ex);
+                    MessageDialog dlg = MessageDialogFactory.ErrorDialog("Error retrieving local star description.", ex.Message);
+                }
+            }
+
+        });
+
+        private readonly ObjectCharacteristicsViewModel localStarCharacteristics = new();
+
+        public ICommand SetLocalStarCharacteristicsCommand => new RelayCommand(() =>
+        {
+            ObjectCharacteristics localStarCharacteristicsDlg = new(localStarCharacteristics, MapObjectType.CelestialBody);
+            localStarCharacteristicsDlg.ShowDialog();
+        });
+
+        public ICommand CreateLocalStarArticleCommand => new RelayCommand(() =>
+        {
+            // TODO: Connect to World Anvil article creation and upload functionality.
+            MessageDialog dlg = MessageDialogFactory.InformationDialog(
+                "Create Local Star Article",
+                "This feature is not yet implemented. It will allow you to create a World Anvil article for the local star.");
+        });
+
+
         private Color _starlightColor = Colors.Yellow;
 
         public Color StarlightColor
@@ -239,22 +347,8 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             private set => SetProperty(ref _starlightColorBrush, value);
         }
 
-        private Point3D CalculateWorldPosition()
-        {
-            double distanceFromCenter =
-                GlobeRadius +
-                MinimumStarGap +
-                Math.Clamp(LocalStarDistance, 0.0, 1.0)
-                    * LocalStarPositionScale;
-
-            return new Point3D(
-                -LocalStarOrbit * LocalStarPositionScale,
-                -LocalStarPlane * LocalStarPositionScale,
-                -distanceFromCenter);
-        }
-
-        private const double GlobeRadius = 1.0;
-        private const double MinimumStarGap = 0.15;
+        private Point3D CalculateWorldPosition() =>
+            new(LocalStarX, LocalStarY, LocalStarZ);
 
         private CelestialBody CreateLocalStarFromProperties()
         {
@@ -295,7 +389,6 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             }
         }
 
-        private const double LocalStarPositionScale = 6.0;
 
         private void CopyPropertiesToCelestialBody(CelestialBody star)
         {
@@ -312,6 +405,11 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 _terrestrialPlanetModel,
                 StarlightColor,
                 $"Local star of type {SelectedLocalStarType}.");
+
+            // Preserve user-defined metadata after factory configuration.
+            star.Name = LocalStarName;
+            star.Description = LocalStarDescription;
         }
+
     }
 }

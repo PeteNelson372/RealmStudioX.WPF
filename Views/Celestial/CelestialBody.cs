@@ -9,6 +9,7 @@ namespace RealmStudioX.WPF.Views.Celestial
     {
         // Identity and descriptive information
         public string Id { get; set; } = Guid.NewGuid().ToString();
+
         public string Name { get; set; } = "New Body";
         public string Description { get; set; } = string.Empty;
 

@@ -9,7 +9,8 @@
              xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
              xmlns:behaviors="clr-namespace:RealmStudioX.WPF.Editor.Behaviors"
              xmlns:conv="clr-namespace:RealmStudioX.WPF.Editor.Converters"
-             xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"               
+             xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"
+             xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
              mc:Ignorable="d" 
              d:DesignHeight="750" d:DesignWidth="300">
 
@@ -102,7 +103,181 @@
                                 Margin="4,0,10,0"/>
                         </StackPanel>
 
-                        <GroupBox Header="Local Star" Height="Auto"  HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,0,0,10">
+
+                        <GroupBox Header="Local Star Name and Description"
+                              Height="Auto"
+                              HorizontalAlignment="Stretch"
+                              Margin="0,10,0,0"
+                              Padding="0,10,0,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Text="Name"
+                                       Grid.Row="0"
+                                       Grid.Column="0"
+                                       Foreground="#FF45443F"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Left"
+                                       Margin="10,0,0,0"/>
+
+
+                                <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch">
+                                
+                                <TextBox Width="115"
+                                     Margin="0"
+                                     VerticalContentAlignment="Center"
+                                     Text="{Binding StarViewModel.LocalStarName,
+                                                    UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <Button
+                                        x:Name="GenerateNameButton"
+                                        Width="20"
+                                        Height="20"
+                                        Margin="0,0,0,0"
+                                        VerticalAlignment="Center"
+                                        ToolTip="Generate Name"
+                                        Style="{StaticResource FlatToolButton}"
+                                        Command="{Binding StarViewModel.GenerateLocalStarNameCommand}">
+
+                                        <materialDesign:PackIcon Kind="RenameOutline"
+                                             Width="12"
+                                             Height="12"
+                                             HorizontalAlignment="Center"
+                                             Opacity="0.7">
+                                        </materialDesign:PackIcon>
+                                    </Button>
+
+                                    <Button
+                                        Width="20"
+                                        Height="20"
+                                        HorizontalAlignment="Right"
+                                        Margin="0,0,0,0"
+                                        ToolTip="Lock Name"
+                                        Style="{StaticResource FlatToolButton}"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Cursor="Hand"                                
+                                        Command="{Binding StarViewModel.LockLocalStarNameCommand}">
+
+                                        <materialDesign:PackIcon
+                                            Width="12"
+                                            Height="12"
+                                            Opacity="0.7">
+
+                                            <materialDesign:PackIcon.Style>
+                                                <Style TargetType="materialDesign:PackIcon">
+
+                                                    <!-- Default = unlocked -->
+                                                    <Setter Property="Kind" Value="LockOpenOutline"/>
+
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding StarViewModel.LocalStarNameLocked}" Value="True">
+                                                            <Setter Property="Kind" Value="Lock"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+
+                                                </Style>
+                                            </materialDesign:PackIcon.Style>
+
+                                        </materialDesign:PackIcon>
+                                    </Button>
+
+                                </StackPanel>
+
+
+                                <TextBlock Text="Description"
+                                   Grid.Row="1"
+                                   Grid.Column="0"
+                                   Foreground="#FF45443F"
+                                   VerticalAlignment="Top"
+                                   HorizontalAlignment="Left"
+                                   Margin="10,5,0,0"/>
+
+                                <Button x:Name="GenerateRealmDescriptionButton"
+                                    Grid.Row="2"
+                                    Grid.Column="0"
+                                    Width="32"
+                                    Height="32"
+                                    VerticalAlignment="Top"
+                                    HorizontalAlignment="Left"                        
+                                    Margin="10,0,0,0"
+                                    Style="{StaticResource FlatToolButton}"
+                                    Command="{Binding StarViewModel.GenerateLocalStarDescriptionCommand}"
+                                    ToolTip="Generate a description for the local star using RealmStudioX AI integration.">
+                                     <svgc:SvgViewbox Source="/Assets/svg/OAI_OpenAI-Blossom_Black.svg" Width="22" Height="22" />
+                                </Button>
+
+                                <Button
+                                    x:Name="SetLocalStarCharacteristicsButton"
+                                    Grid.Row="3"
+                                    Grid.Column="0"
+                                    Width="32"
+                                    Height="32"
+                                    VerticalAlignment="Top"
+                                    HorizontalAlignment="Left"                        
+                                    Margin="10,0,0,0"
+                                    Style="{StaticResource FlatToolButton}"
+                                    Command="{Binding StarViewModel.SetLocalStarCharacteristicsCommand}"
+                                    ToolTip="Set the type and characteristics of the local star.">
+                                    
+                                    <materialDesign:PackIcon Kind="MapLegend"
+                                     Foreground="SaddleBrown"
+                                     HorizontalAlignment="Center"
+                                     Width="24"
+                                     Height="24"
+                                     Opacity="0.7"/>
+                                </Button>
+
+                                <Button
+                                    x:Name="CreateLocalStarArticleButton"
+                                    Grid.Row="4"
+                                    Grid.Column="0"
+                                    Width="32"
+                                    Height="32"
+                                    VerticalAlignment="Top"
+                                    HorizontalAlignment="Left"                        
+                                    Margin="10,0,0,0"
+                                    Style="{StaticResource FlatToolButton}"
+                                    Command="{Binding StarViewModel.CreateLocalStarArticleCommand}"
+                                    ToolTip="Create and upload an article for the local star to World Anvil.">
+                                        <materialDesign:PackIcon Kind="FileUpload"
+                                            Foreground="#FF8C0A0A"
+                                            HorizontalAlignment="Center"
+                                            Width="24"
+                                            Height="24"
+                                            Opacity="0.7"/>
+                                </Button>
+
+
+                                <TextBox Grid.Row="1"
+                                     Grid.Column="1"
+                                     Grid.RowSpan="4"
+                                     Margin="0,5,0,0"
+                                     Height="120"
+                                     AcceptsReturn="True"
+                                     TextWrapping="Wrap"
+                                     VerticalScrollBarVisibility="Auto"
+                                     HorizontalScrollBarVisibility="Disabled"
+                                     VerticalContentAlignment="Top"
+                                     Text="{Binding StarViewModel.LocalStarDescription,
+                                                    UpdateSourceTrigger=PropertyChanged}"/>
+
+                            </Grid>
+                        </GroupBox>
+
+
+                        <GroupBox Header="Local Star Properties" Height="Auto"  HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,10,0,10">
                             <Grid>
 
                                 <Grid.ColumnDefinitions>
@@ -123,6 +298,8 @@
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Text="Local Star Type"
+                                    Grid.Row="0"
+                                    Grid.Column="0"
                                     Foreground="#FF45443F"
                                     VerticalAlignment="Center"
                                     HorizontalAlignment="Left"
@@ -162,68 +339,50 @@
                                         Value="{Binding StarViewModel.LocalStarSize}"/>
 
 
-                                <TextBlock Text="Distance"
-                                        Grid.Row="2"
-                                        Grid.Column="0"                                               
+                                <TextBlock Text="X Position"
+                                        Grid.Row="2" Grid.Column="0"
                                         Foreground="#FF45443F"
                                         VerticalAlignment="Center"
                                         Margin="10,0,0,0"/>
-
-                                <Slider x:Name="StarDistanceSlider"
-                                        Grid.Row="2"
-                                        Grid.Column="1"                                             
+                                <Slider x:Name="StarXSlider"
+                                        Grid.Row="2" Grid.Column="1"
                                         Style="{StaticResource ModernSlider}"
                                         behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
-                                        Width="120"
-                                        HorizontalAlignment="Left"
-                                        Minimum="0"
-                                        Maximum="1.0"                                        
-                                        TickFrequency="0.01"
-                                        IsSnapToTickEnabled="True"
-                                        SmallChange="0.01"
-                                        Value="{Binding StarViewModel.LocalStarDistance}"/>
+                                        Width="120" HorizontalAlignment="Left"
+                                        Minimum="-10.0" Maximum="10.0"
+                                        TickFrequency="0.1" IsSnapToTickEnabled="True"
+                                        SmallChange="0.1"
+                                        Value="{Binding StarViewModel.LocalStarX}"/>
 
-                                <TextBlock Text="Orbit"
-                                        Grid.Row="3"
-                                        Grid.Column="0"                                               
+                                <TextBlock Text="Y Position"
+                                        Grid.Row="3" Grid.Column="0"
                                         Foreground="#FF45443F"
                                         VerticalAlignment="Center"
                                         Margin="10,0,0,0"/>
-
-                                <Slider x:Name="StarOrbitSlider"
-                                        Grid.Row="3"
-                                        Grid.Column="1"                                             
+                                <Slider x:Name="StarYSlider"
+                                        Grid.Row="3" Grid.Column="1"
                                         Style="{StaticResource ModernSlider}"
                                         behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
-                                        Width="120"
-                                        HorizontalAlignment="Left"
-                                        Minimum="0"
-                                        Maximum="1.0"                                        
-                                        TickFrequency="0.01"
-                                        IsSnapToTickEnabled="True"
-                                        SmallChange="0.01"
-                                        Value="{Binding StarViewModel.LocalStarOrbit}"/>
+                                        Width="120" HorizontalAlignment="Left"
+                                        Minimum="-10.0" Maximum="10.0"
+                                        TickFrequency="0.1" IsSnapToTickEnabled="True"
+                                        SmallChange="0.1"
+                                        Value="{Binding StarViewModel.LocalStarY}"/>
 
-                                <TextBlock Text="Plane"
-                                        Grid.Row="4"
-                                        Grid.Column="0"                                               
+                                <TextBlock Text="Z Position"
+                                        Grid.Row="4" Grid.Column="0"
                                         Foreground="#FF45443F"
                                         VerticalAlignment="Center"
                                         Margin="10,0,0,0"/>
-
-                                <Slider x:Name="StarPlaneSlider"
-                                        Grid.Row="4"
-                                        Grid.Column="1"                                             
+                                <Slider x:Name="StarZSlider"
+                                        Grid.Row="4" Grid.Column="1"
                                         Style="{StaticResource ModernSlider}"
                                         behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
-                                        Width="120"
-                                        HorizontalAlignment="Left"
-                                        Minimum="0"
-                                        Maximum="1.0"                                        
-                                        TickFrequency="0.01"
-                                        IsSnapToTickEnabled="True"
-                                        SmallChange="0.01"
-                                        Value="{Binding StarViewModel.LocalStarPlane}"/>
+                                        Width="120" HorizontalAlignment="Left"
+                                        Minimum="-10.0" Maximum="10.0"
+                                        TickFrequency="0.1" IsSnapToTickEnabled="True"
+                                        SmallChange="0.1"
+                                        Value="{Binding StarViewModel.LocalStarZ}"/>
 
                                 <TextBlock
                                        Grid.Row="5"

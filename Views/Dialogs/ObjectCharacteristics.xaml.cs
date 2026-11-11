@@ -102,6 +102,11 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 ObjectTypesList.ItemsSource = symbolTypes;
                 TitleBarText.Text = "Symbol Characteristics";
             }
+            else if (objectType == MapObjectType.CelestialBody)
+            {
+                ObjectTypesList.ItemsSource = celestialBodyTypes;
+                TitleBarText.Text = "Celestial Body Characteristics";
+            }
         }
 
         private readonly List<string> realmTypes =
@@ -336,6 +341,35 @@ namespace RealmStudioX.WPF.Views.Dialogs
             "Plain", "Steppe", "Field", "Meadow", "Dune", "Desert", "Moor", "Heath", "Marsh",
             "Bog", "Swamp", "Fen", "Mire", "Slope", "Rise", "Knoll", "Sinkhole"
         ];
+
+        private readonly List<string> celestialBodyTypes =
+            [
+                "Star",
+                "Planet",
+                "Moon",
+                "Asteroid",
+                "Comet",
+                "Dwarf Planet",
+                "Exoplanet",
+                "Gas Giant",
+                "Terrestrial Planet",
+                "Ice Giant",
+                "Rogue Planet",
+                "Binary Star",
+                "Neutron Star",
+                "White Dwarf",
+                "Black Hole",
+                "Pulsar",
+                "Quasar",
+                "Supernova",
+                "Nebula",
+                "Galaxy",
+                "Star Cluster",
+                "Globular Cluster",
+                "Open Cluster",
+                "Protostar",
+            ];
+
 
         // INotifyPropertyChanged implementation
         public event PropertyChangedEventHandler? PropertyChanged;

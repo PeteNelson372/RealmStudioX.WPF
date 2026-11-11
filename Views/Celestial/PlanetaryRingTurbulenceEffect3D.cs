@@ -75,6 +75,14 @@ namespace RealmStudioX.WPF.Views.Celestial
                 0);
 
             _textureModified = true;
+
+            // Immediately regenerate the output bitmap using the new source.
+            // Otherwise, the previous source texture remains visible until
+            // the next animation update.
+            UpdateTexture(
+                double.IsFinite(_lastTextureUpdateTime)
+                    ? _lastTextureUpdateTime
+                    : 0.0);
         }
 
         public void Update(bool enabled, double intensity, double updateRate = 30.0)

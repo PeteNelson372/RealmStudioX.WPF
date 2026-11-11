@@ -4,6 +4,7 @@ using RealmStudioX.Infrastructure;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
+using RealmStudioX.WPF.Views.Celestial;
 using RealmStudioX.WPF.Views.Dialogs;
 using SkiaSharp;
 using System.IO;
@@ -119,7 +120,28 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 _localStarNebulaModel, _localStarCoronaModel,
                 _localStarSunModel, _localStarGasGiantModel, _localStarTerrestrialPlanetModel);
 
-            _createPlanetViewModel = new();
+            _createPlanetViewModel = new(_globeViewer.AddPlanet);
+        }
+
+
+        private PlanetViewModel? _planetModel;
+        public PlanetViewModel? PlanetModel
+        {
+            get => _planetModel;
+            private set => SetProperty(ref _planetModel, value);
+        }
+
+        public void SelectPlanet(CelestialBodyNode planet)
+        {
+            PlanetModel = new PlanetViewModel(
+                planet,
+                _globeViewer.UpdatePlanet,
+                _globeViewer.RemovePlanet);
+        }
+
+        public void ClearSelectedPlanet()
+        {
+            PlanetModel = null;
         }
 
         private string starfieldFileName = string.Empty;

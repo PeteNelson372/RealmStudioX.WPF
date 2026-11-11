@@ -27,7 +27,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
     {
         public override string WindowId { get; } = Guid.NewGuid().ToString();
 
-        public WorldGlobeSceneViewModel ViewModel { get; private set; }
+        public WorldGlobeSceneViewModel ViewModel { get; }
 
         private readonly Dictionary<string, UserControl> _toolPanels = new()
         {
@@ -40,6 +40,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             ["Moons"] = new PlanetaryMoonsTools(),
             ["Effects"] = new EffectsTools(),
             ["Planets"] = new PlanetsTools(),
+            ["EditPlanet"] = new EditPlanetTools(),
         };
 
         public static readonly int[] SupportedFrameRates =
@@ -59,19 +60,11 @@ namespace RealmStudioX.WPF.Views.Dialogs
         private const double GlobeRotationSensitivity = 0.5;
 
 
-        // Retained as a scene-graph grouping node. Surface rotation is
-        // now handled by PlanetCelestialBodyRenderer.
-        private readonly Model3DGroup _globeSpinGroup = new();
-
-        private Model3DGroup? _globeBody;
-        public Model3DGroup? GlobeBody => _globeBody;
-
-        private readonly AxisAngleRotation3D _globeTiltRotation = new(new Vector3D(1, 0, 0), 0);
-
-        private readonly Model3DGroup _globeTiltGroup = new();
-
-        private readonly Transform3DGroup _globeTransform = new();
-        public Transform3DGroup GlobeTransform => _globeTransform;
+        // These manual rotations affect only the World Globe's visual root.
+        // Child celestial bodies (the Local Star, planets, and future moons)
+        // are not affected by the globe's presentation orientation.
+        private readonly AxisAngleRotation3D _globeTiltRotation =
+            new(new Vector3D(1, 0, 0), 0);
 
         private readonly Transform3DGroup _worldVisualTransform = new();
 
@@ -107,7 +100,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         public static readonly Color DefaultSpaceColor = Color.FromRgb(5, 8, 18);
 
-        private MainWindowViewModel _mainViewModel;
+        private readonly MainWindowViewModel _mainViewModel;
+        private bool _isViewerInitialized;
 
         public WorldGlobeViewer(MainWindowViewModel mainViewModel)
         {
@@ -123,51 +117,57 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             WorldGlobeViewerMenu.DataContext = ViewModel;
 
-            Loaded += (s, e) =>
+            // Register UI and lifecycle handlers once, independently of the
+            // Loaded/Unloaded cycle.
+            WorldGlobeViewerTitleBar.MinimizeClicked += (s, e) => MinimizeHandler();
+            WorldGlobeViewerTitleBar.MaximizeClicked += (s, e) => MaximizeHandler();
+            WorldGlobeViewerTitleBar.ExitClicked += (s, e) => ExitHandler();
+            WorldGlobeViewerMenu.ExitClicked += (s, e) => ExitHandler();
+
+            ModelViewer.PreviewMouseDown += ModelViewer_PreviewMouseDown;
+            ModelViewer.PreviewMouseMove += ModelViewer_PreviewMouseMove;
+            ModelViewer.PreviewMouseUp += ModelViewer_PreviewMouseUp;
+            ModelViewer.LostMouseCapture += ModelViewer_LostMouseCapture;
+
+            Loaded += WorldGlobeViewer_Loaded;
+            Unloaded += WorldGlobeViewer_Unloaded;
+        }
+
+        private void InitializeViewer()
+        {
+            if (_isViewerInitialized)
+                return;
+
+            ModelViewer.SetBackgroundColor(DefaultSpaceColor);
+
+            _worldVisualTransform.Children.Clear();
+            // Preserve the previous transform order: manual yaw and pitch
+            // followed by the configured axial tilt.
+            _worldVisualTransform.Children.Add(new RotateTransform3D(_globeYaw));
+            _worldVisualTransform.Children.Add(new RotateTransform3D(_globePitch));
+            _worldVisualTransform.Children.Add(new RotateTransform3D(_globeTiltRotation));
+
+            // Use HelixToolkit for left-drag panning, but not for right-drag
+            // camera rotation (right-drag rotates the globe itself).
+            ModelViewer.SetCameraRotationEnabled(false);
+
+            FrameRateCombo.ItemsSource = SupportedFrameRates;
+
+            CreateGlobe();
+
+            if (ViewModel.AtmosphereModel.EnableClouds)
             {
-                WorldGlobeViewerTitleBar.MinimizeClicked += (s, e) => MinimizeHandler();
-                WorldGlobeViewerTitleBar.MaximizeClicked += (s, e) => MaximizeHandler();
-                WorldGlobeViewerTitleBar.ExitClicked += (s, e) => ExitHandler();
+                ViewModel.AtmosphereModel.UseDefaultCloudTexture = true;
+                RefreshCloudLayer();
+            }
 
-                WorldGlobeViewerMenu.ExitClicked += (s, e) => ExitHandler();
-
-                _animationController.Register(this);
-
-                Loaded += WorldGlobeViewer_Loaded;
-                Unloaded += WorldGlobeViewer_Unloaded;
-
-                ModelViewer.SetBackgroundColor(DefaultSpaceColor);
-
-                _worldVisualTransform.Children.Clear();
-
-                _worldVisualTransform.Children.Add(new RotateTransform3D(_globeYaw));
-
-                _worldVisualTransform.Children.Add(new RotateTransform3D(_globePitch));
-
-                // Use HelixToolkit for left-drag panning,
-                // but not for right-drag camera rotation.
-                ModelViewer.SetCameraRotationEnabled(false);
-
-                ModelViewer.PreviewMouseDown += ModelViewer_PreviewMouseDown;
-                ModelViewer.PreviewMouseMove += ModelViewer_PreviewMouseMove;
-                ModelViewer.PreviewMouseUp += ModelViewer_PreviewMouseUp;
-                ModelViewer.LostMouseCapture += ModelViewer_LostMouseCapture;
-
-                CreateGlobe();
-
-                if (ViewModel.AtmosphereModel.EnableClouds)
-                {
-                    ViewModel.AtmosphereModel.UseDefaultCloudTexture = true;
-                    RefreshCloudLayer();
-                }
-
-
-                FrameRateCombo.ItemsSource = SupportedFrameRates;
-            };
+            _animationController.Register(this);
+            _isViewerInitialized = true;
         }
 
         private void WorldGlobeViewer_Loaded(object sender, RoutedEventArgs e)
         {
+            InitializeViewer();
             SetAnimationEnabled(ViewModel.EnableAnimation);
         }
 
@@ -281,10 +281,21 @@ namespace RealmStudioX.WPF.Views.Dialogs
             AnimationTimelineExpander.IsExpanded = !AnimationTimelineExpander.IsExpanded;
         }
 
-        private void SceneTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        private void SceneTree_SelectedItemChanged(
+            object sender,
+            RoutedPropertyChangedEventArgs<object> e)
         {
             if (e.NewValue is not TreeViewItem selectedItem)
                 return;
+
+            if (selectedItem.Tag is CelestialBodyNode planet)
+            {
+                ViewModel.SelectPlanet(planet);
+                ShowToolPanel("EditPlanet");
+                return;
+            }
+
+            ViewModel.ClearSelectedPlanet();
 
             string? selectedCategory = selectedItem.Tag?.ToString();
 
@@ -293,27 +304,27 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 ShowToolPanel(selectedCategory);
             }
         }
-
         private void ShowToolPanel(string? tab)
         {
-            if (string.IsNullOrEmpty(tab) || !_toolPanels.ContainsKey(tab))
+            if (tab is null ||
+                !_toolPanels.TryGetValue(tab, out UserControl? panel))
             {
                 ToolsPanelHost.Content = null;
                 return;
             }
 
-            if (_toolPanels[tab] is StarfieldTools st)
+            // These panels explicitly use the viewer's root viewmodel.
+            if (panel is StarfieldTools or EditPlanetTools)
             {
-                st.DataContext = ViewModel;
+                panel.DataContext = ViewModel;
             }
 
-
-            ToolsPanelHost.Content = _toolPanels[tab];
+            ToolsPanelHost.Content = panel;
         }
 
         private void ModelViewer_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton != MouseButton.Right || GlobeBody is null)
+            if (e.ChangedButton != MouseButton.Right || _worldBody is null)
             {
                 return;
             }
@@ -374,9 +385,9 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         public void CreateGlobe()
         {
-            SKBitmap? globeTexture = CreateWorldGlobeTexture();
+            using SKBitmap? globeTexture = CreateWorldGlobeTexture();
 
-            if (globeTexture != null)
+            if (globeTexture is not null)
             {
                 InitializeWorldGlobeScene(globeTexture);
             }
@@ -453,35 +464,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
             // hierarchy is rebuilt after adding or removing a Local Star.
             RebuildCelestialScene();
 
-            // Preserve the existing globe transform hierarchy.
-            if (_globeBody is null)
-            {
-                _globeBody = new Model3DGroup
-                {
-                    Transform = GlobeTransform
-                };
-
-                _globeTiltGroup.Transform =
-                    new RotateTransform3D(_globeTiltRotation);
-
-                _globeTiltGroup.Children.Clear();
-                _globeTiltGroup.Children.Add(_globeSpinGroup);
-
-                _globeBody.Children.Add(_globeTiltGroup);
-
-                _sceneRootModel.Children.Clear();
-                _sceneRootModel.Children.Add(_globeBody);
-
-                ModelViewer.ShowGrid(false);
-                ModelViewer.ShowBoundingBox(false);
-                ModelViewer.ShowWireframe(false);
-                ModelViewer.ShowViewCube(false);
-                ModelViewer.ShowCoordinateSystem(false);
-
-                ModelViewer.SetModel(_sceneRootModel);
-            }
-
-            _celestialSystemRenderer?.RefreshAttachments();
+            // RebuildCelestialScene installs the celestial scene directly
+            // beneath _sceneRootModel and sets the model on first creation.
         }
 
         private static MeshGeometry3D CreateSphereMesh(double radius = 1.0, int longitudeSegments = 128, int latitudeSegments = 64)
@@ -619,9 +603,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
             }
         }
 
-        private TimeSpan? _lastRenderingTime;
-
-
         public void UpdateGlobeTilt(double tiltAngle)
         {
             if (!double.IsFinite(tiltAngle))
@@ -636,10 +617,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
         {
             Vector3D northAxis = new(0, 1, 0);
 
-            // Apply the configured axial tilt.
-            northAxis = _globeTiltGroup.Transform.Transform(northAxis);
-
-            // Apply each manual visual transform in sequence.
+            // Apply the same yaw/pitch/tilt transform chain used by the
+            // World Globe visual root.
             foreach (Transform3D transform in _worldVisualTransform.Children)
             {
                 northAxis = transform.Transform(northAxis);
@@ -669,10 +648,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             // Reset the world's body rotation.
             _celestialSystemRenderer?.ResetAnimation();
-
-            // Restart the rendering time baseline so the next frame
-            // doesn't apply an unexpectedly large time delta.
-            _lastRenderingTime = null;
 
             // Update the displayed tilt readout.
             ViewModel.WorldGlobeModel.UpdateCurrentTiltAngle(0);
@@ -945,13 +920,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
             return bitmap;
         }
 
-        private ImageSource? ResolveBodyTexture(CelestialBody body)
-        {
-            ArgumentNullException.ThrowIfNull(body);
-
-            return ResolveTextureSource(body.TextureSource);
-        }
-
         private BitmapSource? ResolveAttachmentTexture(
             CelestialBodyAttachment attachment)
         {
@@ -1124,31 +1092,31 @@ namespace RealmStudioX.WPF.Views.Dialogs
             SyncAttachmentAnimation(rotationAnimation);
             SyncAttachmentAnimation(turbulenceAnimation);
 
-            string requestedTexturePath = GetRingTexturePath(settings.TexturePath);
-
-            if (!_textureCache.ContainsKey(requestedTexturePath))
-            {
-                _textureCache[requestedTexturePath] =
-                    LoadRingTexture(settings.TexturePath);
-            }
-
+            // RefreshAttachments asks the attachment renderer to resolve a
+            // texture only when the attachment and its settings are enabled.
+            // ResolvePlanetaryRingTexture owns loading, fallback, and caching.
             _celestialSystemRenderer?.RefreshAttachments();
         }
 
         private void SyncAttachmentAnimation(CelestialBodyAnimation animation)
         {
+            CelestialBodyAttachment attachment =
+                _planetaryRingsAttachment
+                ?? throw new InvalidOperationException(
+                    "The World Globe ring attachment has not been initialized.");
+
             CelestialBodyAnimation? existing =
-                _planetaryRingsAttachment!.Animations.FirstOrDefault(
+                attachment.Animations.FirstOrDefault(
                     item => item.AnimationType == animation.AnimationType);
 
             if (existing is null)
             {
-                _planetaryRingsAttachment.Animations.Add(animation);
+                attachment.Animations.Add(animation);
             }
             else if (!ReferenceEquals(existing, animation))
             {
-                int index = _planetaryRingsAttachment.Animations.IndexOf(existing);
-                _planetaryRingsAttachment.Animations[index] = animation;
+                int index = attachment.Animations.IndexOf(existing);
+                attachment.Animations[index] = animation;
             }
         }
 
@@ -1179,12 +1147,24 @@ namespace RealmStudioX.WPF.Views.Dialogs
         {
             ArgumentNullException.ThrowIfNull(star);
 
-            if (_celestialSystem is null || _worldNode is null)
+            if (_celestialSystem is null ||
+                _celestialSystemRenderer is null ||
+                _worldNode is null)
+            {
                 return;
+            }
 
             if (_localStarNode is not null)
             {
-                _celestialSystem.Bodies.Remove(_localStarNode);
+                CelestialBodyNode previousLocalStar = _localStarNode;
+
+                // Replacing a Local Star also replaces its dependent hierarchy.
+                // Detach the World Globe before clearing the old star's children.
+                previousLocalStar.Children.Remove(_worldNode);
+                _celestialSystem.Bodies.Remove(previousLocalStar);
+                RemoveAllPlanetTreeItems();
+                ViewModel.ClearSelectedPlanet();
+                ClearDescendants(previousLocalStar);
                 _localStarNode = null;
             }
 
@@ -1229,9 +1209,15 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             _localStarNode.Placement.AxialTilt = GetLocalStarAxialTilt();
 
+            if (_celestialSystemRenderer is null)
+            {
+                throw new InvalidOperationException(
+                    "The celestial scene renderer has not been initialized.");
+            }
+
             UpdateWorldPosition(worldPosition);
 
-            _celestialSystemRenderer!.UpdateBody(_localStarNode);
+            _celestialSystemRenderer.UpdateBody(_localStarNode);
 
             _celestialSystemRenderer.UpdateBodyPosition(_worldNode);
 
@@ -1261,14 +1247,25 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 return;
             }
 
-            _localStarNode.Children.Remove(_worldNode);
-            _celestialSystem.Bodies.Remove(_localStarNode);
+            CelestialBodyNode removedLocalStar = _localStarNode;
+
+            // The World Globe becomes the root again. Every other descendant
+            // (planets, and eventually moons and deeper descendants) is removed
+            // with the Local Star.
+            removedLocalStar.Children.Remove(_worldNode);
+            _celestialSystem.Bodies.Remove(removedLocalStar);
 
             UpdateWorldPosition(new Point3D(0, 0, 0));
-
             _celestialSystem.Bodies.Add(_worldNode);
 
+            RemoveAllPlanetTreeItems();
+            ViewModel.ClearSelectedPlanet();
+            ClearDescendants(removedLocalStar);
+
             _localStarNode = null;
+
+            ShowToolPanel("LocalStar");
+            WorldLocalStarTreeViewItem.IsSelected = true;
 
             RebuildCelestialScene();
         }
@@ -1308,13 +1305,23 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 _worldBody,
                 _worldVisualTransform);
 
-            _globeSpinGroup.Children.Clear();
-            _globeSpinGroup.Children.Add(celestialScene);
+            bool isFirstScene = _sceneRootModel.Children.Count == 0;
 
-            _celestialSystemRenderer?.RefreshAttachments();
+            _sceneRootModel.Children.Clear();
+            _sceneRootModel.Children.Add(celestialScene);
 
-            // Atmosphere is an additional World Globe visual, rather than
-            // a child of the outer tilt group. Restore it after rebuilding.
+            if (isFirstScene)
+            {
+                ModelViewer.ShowGrid(false);
+                ModelViewer.ShowBoundingBox(false);
+                ModelViewer.ShowWireframe(false);
+                ModelViewer.ShowViewCube(false);
+                ModelViewer.ShowCoordinateSystem(false);
+                ModelViewer.SetModel(_sceneRootModel);
+            }
+
+            // The World Globe's transform is applied to its visual root only;
+            // child celestial bodies remain independent of manual globe rotation.
             if (_atmosphereModel is not null &&
                 ViewModel.AtmosphereModel.EnableAtmosphere)
             {
@@ -1324,6 +1331,200 @@ namespace RealmStudioX.WPF.Views.Dialogs
             }
 
             UpdateCameraFacingLocalStar();
+        }
+
+
+        public void AddPlanet(CelestialBodyNode planet)
+        {
+            ArgumentNullException.ThrowIfNull(planet);
+
+            ArgumentNullException.ThrowIfNull(planet.Body);
+            ArgumentNullException.ThrowIfNull(planet.Placement);
+
+            if (_celestialSystem is null)
+            {
+                throw new InvalidOperationException(
+                    "The celestial system has not been initialized.");
+            }
+
+            if (_localStarNode is null)
+            {
+                throw new InvalidOperationException(
+                    "A Local Star must be created before adding a planet.");
+            }
+
+            _localStarNode.Children.Add(planet);
+
+            // Add the TreeView item and retain a reference to it.
+            TreeViewItem planetItem = AddPlanetTreeViewItem(planet);
+
+            RebuildCelestialScene();
+
+            // Select the new planet, which automatically invokes
+            // SceneTree_SelectedItemChanged and opens its Edit panel.
+            PlanetsTreeViewItem.IsExpanded = true;
+            planetItem.IsSelected = true;
+            planetItem.BringIntoView();
+        }
+
+
+
+        private TreeViewItem AddPlanetTreeViewItem(CelestialBodyNode planet)
+        {
+            TreeViewItem item = CreateTreeViewItem(planet);
+
+            PlanetsTreeViewItem.Items.Add(item);
+
+            return item;
+        }
+
+
+        private static TreeViewItem CreateTreeViewItem(CelestialBodyNode node)
+        {
+            TreeViewItem item = new()
+            {
+                Header = node.Body.Name,
+                Tag = node,
+                IsExpanded = false,
+                Margin = new Thickness(2)
+            };
+
+            foreach (CelestialBodyNode child in node.Children)
+            {
+                item.Items.Add(CreateTreeViewItem(child));
+            }
+
+            return item;
+        }
+
+        private static TreeViewItem? FindTreeViewItem(
+            ItemsControl parent,
+            CelestialBodyNode node)
+        {
+            foreach (object child in parent.Items)
+            {
+                if (child is not TreeViewItem item)
+                    continue;
+
+                if (ReferenceEquals(item.Tag, node))
+                    return item;
+
+                TreeViewItem? descendant = FindTreeViewItem(item, node);
+                if (descendant is not null)
+                    return descendant;
+            }
+
+            return null;
+        }
+
+        private static bool RemoveTreeViewItem(
+            ItemsControl parent,
+            CelestialBodyNode node)
+        {
+            for (int i = 0; i < parent.Items.Count; i++)
+            {
+                if (parent.Items[i] is not TreeViewItem item)
+                    continue;
+
+                if (ReferenceEquals(item.Tag, node))
+                {
+                    parent.Items.RemoveAt(i);
+                    return true;
+                }
+
+                if (RemoveTreeViewItem(item, node))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static bool ContainsNode(
+            CelestialBodyNode parent,
+            CelestialBodyNode target)
+        {
+            foreach (CelestialBodyNode child in parent.Children)
+            {
+                if (ReferenceEquals(child, target) || ContainsNode(child, target))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static bool RemoveNodeFromHierarchy(
+            CelestialBodyNode parent,
+            CelestialBodyNode target)
+        {
+            if (parent.Children.Remove(target))
+                return true;
+
+            foreach (CelestialBodyNode child in parent.Children.ToArray())
+            {
+                if (RemoveNodeFromHierarchy(child, target))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private void RemoveAllPlanetTreeItems()
+        {
+            PlanetsTreeViewItem.Items.Clear();
+        }
+
+        private static void ClearDescendants(CelestialBodyNode node)
+        {
+            foreach (CelestialBodyNode child in node.Children.ToArray())
+            {
+                ClearDescendants(child);
+            }
+
+            node.Children.Clear();
+        }
+
+        public void UpdatePlanet(CelestialBodyNode planet)
+        {
+            ArgumentNullException.ThrowIfNull(planet);
+
+            if (_localStarNode is null || !ContainsNode(_localStarNode, planet))
+                return;
+
+            _celestialSystemRenderer?.UpdateBody(planet);
+
+            TreeViewItem? planetItem =
+                FindTreeViewItem(PlanetsTreeViewItem, planet);
+
+            if (planetItem is not null)
+            {
+                // Update the existing item in place, preserving its parent
+                // relationship and any expanded/collapsed state.
+                planetItem.Header = planet.Body.Name;
+            }
+        }
+
+        public void RemovePlanet(CelestialBodyNode planet)
+        {
+            ArgumentNullException.ThrowIfNull(planet);
+
+            if (_localStarNode is null ||
+                !RemoveNodeFromHierarchy(_localStarNode, planet))
+            {
+                return;
+            }
+
+            // Removing a node from its parent's Children collection removes
+            // its entire subtree from the celestial hierarchy. Remove the
+            // matching TreeView item wherever it occurs in that hierarchy.
+            RemoveTreeViewItem(PlanetsTreeViewItem, planet);
+            ClearDescendants(planet);
+
+            ViewModel.ClearSelectedPlanet();
+
+            ShowToolPanel("Planets");
+            PlanetsTreeViewItem.IsSelected = true;
+
+            RebuildCelestialScene();
         }
 
         #endregion

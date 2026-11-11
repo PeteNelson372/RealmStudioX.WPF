@@ -39,7 +39,12 @@ internal sealed class AtmosphereTurbulenceRenderer : ICelestialBodyAnimationRend
                 "AtmosphereTurbulenceActivity requires a celestial body visual target.");
         }
 
+        GasGiantAnimationSettings settings =
+            animation.Settings as GasGiantAnimationSettings
+            ?? throw new InvalidOperationException(
+                "AtmosphereTurbulenceActivity requires GasGiantAnimationSettings.");
 
+        // Detach from the previous target if necessary.
         if (_target is not null &&
             !ReferenceEquals(_target, visualTarget))
         {
@@ -48,22 +53,28 @@ internal sealed class AtmosphereTurbulenceRenderer : ICelestialBodyAnimationRend
 
         _target = visualTarget;
 
-        if (!_target.ActivityVisualRoot.Children.Contains(_effect.Root))
-        {
-            _target.ActivityVisualRoot.Children.Add(_effect.Root);
-        }
+        bool enabled =
+            animation.Enabled &&
+            settings.EnableAtmosphericTurbulence;
 
-        GasGiantAnimationSettings settings =
-            animation.Settings as GasGiantAnimationSettings
-            ?? throw new InvalidOperationException(
-                "AtmosphereTurbulenceActivity requires GasGiantAnimationSettings.");
+        // Only keep the effect in the visual tree when enabled.
+        if (enabled)
+        {
+            if (!_target.ActivityVisualRoot.Children.Contains(_effect.Root))
+            {
+                _target.ActivityVisualRoot.Children.Add(_effect.Root);
+            }
+        }
+        else
+        {
+            _target.ActivityVisualRoot.Children.Remove(_effect.Root);
+        }
 
         _effect.Update(
             radius: 1.0,
             rotation: Quaternion.Identity,
             baseColor: visualTarget.BodyColor,
-            enabled: animation.Enabled &&
-                     settings.EnableAtmosphericTurbulence,
+            enabled: enabled,
             intensity: settings.TurbulenceIntensity);
     }
 
@@ -74,6 +85,13 @@ internal sealed class AtmosphereTurbulenceRenderer : ICelestialBodyAnimationRend
 
     public void ResetAnimation()
     {
+        // Remove the effect geometry as well as resetting its animation.
+        if (_target is not null)
+        {
+            _target.ActivityVisualRoot.Children.Remove(_effect.Root);
+            _target = null;
+        }
+
         _effect.ResetAnimation();
     }
 

@@ -158,6 +158,16 @@
                         }
                     }
                     break;
+                case "CelestialBody":
+                    {
+                        query = $"Generate a description for the fantasy map celestial body (star, planet, moon, asteroid, comet, etc.)";
+
+                        if (!string.IsNullOrEmpty(mapObjectDetailType))
+                        {
+                            query += $" of type '{mapObjectDetailType}'";
+                        }
+                    }
+                    break;
                 default:
                     break;
             }

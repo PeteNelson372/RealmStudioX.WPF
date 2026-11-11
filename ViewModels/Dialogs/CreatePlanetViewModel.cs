@@ -5,9 +5,12 @@ using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.Views.Celestial;
 using System.IO;
+using System.Windows.Media;
 using System.Windows.Input;
 using System.Windows.Media.Media3D;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
+using Color = System.Windows.Media.Color;
+using Brush = System.Windows.Media.Brush;
 
 namespace RealmStudioX.WPF.ViewModels.Dialogs
 {
@@ -20,8 +23,13 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         public GasGiantViewModel PlanetGasGiantModel { get; }
         public TerrestrialPlanetViewModel PlanetTerrestrialModel { get; }
 
-        public CreatePlanetViewModel()
+        private readonly Action<CelestialBodyNode> _addPlanet;
+
+        public CreatePlanetViewModel(Action<CelestialBodyNode> addPlanet)
         {
+            _addPlanet = addPlanet
+                ?? throw new ArgumentNullException(nameof(addPlanet));
+
             PlanetBlackHoleModel = new();
             PlanetNebulaModel = new();
             PlanetCoronaModel = new();
@@ -32,7 +40,36 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
         // These are the defaults used when creating a new planet.
         // Each new CelestialBodyNode receives its own cloned instance.
-        private readonly CelestialBodyPlacementSettings _placement = new();
+        private readonly CelestialBodyPlacementSettings _placement = new()
+        {
+            // Preserve the previous default composition while allowing the
+            // three coordinates to be edited independently.
+            Center = new Point3D(0.0, -1.44, -1.72)
+        };
+
+        private const double PositionLimit = 10.0;
+
+        private Color _planetColor = Colors.White;
+        public Color PlanetColor
+        {
+            get => _planetColor;
+            set
+            {
+                if (SetProperty(ref _planetColor, value))
+                {
+                    SolidColorBrush brush = new(value);
+                    brush.Freeze();
+                    PlanetColorBrush = brush;
+                }
+            }
+        }
+
+        private Brush _planetColorBrush = new SolidColorBrush(Colors.White);
+        public Brush PlanetColorBrush
+        {
+            get => _planetColorBrush;
+            private set => SetProperty(ref _planetColorBrush, value);
+        }
 
         public IReadOnlyList<CelestialBodyType> PlanetTypes { get; } = Enum.GetValues<CelestialBodyType>();
 
@@ -61,49 +98,38 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             }
         }
 
-        public double PlanetDistance
+        public double PlanetX
         {
-            get => _placement.Distance;
-            set
-            {
-                double distance = Math.Clamp(value, 0.0, 1.0);
-
-                if (_placement.Distance != distance)
-                {
-                    _placement.Distance = distance;
-                    OnPropertyChanged();
-                }
-            }
+            get => _placement.Center.X;
+            set => SetCoordinate(value, _placement.Center.Y, _placement.Center.Z);
         }
 
-        public double PlanetOrbit
+        public double PlanetY
         {
-            get => _placement.Orbit;
-            set
-            {
-                double orbit = Math.Clamp(value, 0.0, 1.0);
-
-                if (_placement.Orbit != orbit)
-                {
-                    _placement.Orbit = orbit;
-                    OnPropertyChanged();
-                }
-            }
+            get => _placement.Center.Y;
+            set => SetCoordinate(_placement.Center.X, value, _placement.Center.Z);
         }
 
-        public double PlanetPlane
+        public double PlanetZ
         {
-            get => _placement.Plane;
-            set
-            {
-                double plane = Math.Clamp(value, 0.0, 1.0);
+            get => _placement.Center.Z;
+            set => SetCoordinate(_placement.Center.X, _placement.Center.Y, value);
+        }
 
-                if (_placement.Plane != plane)
-                {
-                    _placement.Plane = plane;
-                    OnPropertyChanged();
-                }
-            }
+        private void SetCoordinate(double x, double y, double z)
+        {
+            Point3D center = new(
+                Math.Clamp(double.IsFinite(x) ? x : 0.0, -PositionLimit, PositionLimit),
+                Math.Clamp(double.IsFinite(y) ? y : 0.0, -PositionLimit, PositionLimit),
+                Math.Clamp(double.IsFinite(z) ? z : 0.0, -PositionLimit, PositionLimit));
+
+            if (_placement.Center == center)
+                return;
+
+            _placement.Center = center;
+            OnPropertyChanged(nameof(PlanetX));
+            OnPropertyChanged(nameof(PlanetY));
+            OnPropertyChanged(nameof(PlanetZ));
         }
 
         public WorldRotationDirection PlanetRotationDirection
@@ -158,29 +184,14 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
         #endregion
 
-        /// <summary>
-        /// The most recently created planet node.
-        /// The scene coordinator can use this to add the node
-        /// to the celestial hierarchy.
-        /// </summary>
-        private CelestialBodyNode? _createdPlanetNode;
-
-        public CelestialBodyNode? CreatedPlanetNode
-        {
-            get => _createdPlanetNode;
-            private set => SetProperty(ref _createdPlanetNode, value);
-        }
-
         public ICommand CreatePlanetCommand => new RelayCommand(() =>
         {
-            CreatedPlanetNode = CreatePlanetFromProperties();
+            CelestialBodyNode planet = CreatePlanetFromProperties();
+
+            _addPlanet(planet);
         });
 
         #region Planet Creation
-
-        private const double PlanetPositionScale = 6.0;
-        private const double GlobeRadius = 1.0;
-        private const double MinimumStarGap = 0.15;
 
         public ICommand SelectPlanetTextureFileCommand => new RelayCommand(() =>
         {
@@ -249,32 +260,11 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
             CelestialBodyPlacementSettings placement = _placement.Clone();
 
-            placement.Center = CalculatePlanetPosition(placement);
-
             return new CelestialBodyNode
             {
                 Body = planet,
                 Placement = placement
             };
-        }
-
-        /// <summary>
-        /// Calculates the position of the planet relative to its
-        /// parent celestial body.
-        /// </summary>
-        private static Point3D CalculatePlanetPosition(
-            CelestialBodyPlacementSettings placement)
-        {
-            double distanceFromCenter =
-                GlobeRadius +
-                placement.Size +
-                MinimumStarGap +
-                placement.Distance * PlanetPositionScale;
-
-            return new Point3D(
-                -placement.Orbit * PlanetPositionScale,
-                -placement.Plane * PlanetPositionScale,
-                -distanceFromCenter);
         }
 
         #endregion
@@ -294,6 +284,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 PlanetSunModel,
                 PlanetGasGiantModel,
                 PlanetTerrestrialModel,
+                baseColor: PlanetColor,
                 description: $"Planet of type {SelectedPlanetType}.");
         }
 

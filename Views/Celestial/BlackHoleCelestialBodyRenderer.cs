@@ -23,7 +23,6 @@ internal sealed class BlackHoleCelestialBodyRenderer :
     private readonly ImageBrush _accretionDiskBrush;
 
     private Color _lastDiskColor;
-    private WorldRotationDirection _lastDiskDirection;
 
     public override CelestialBodyRendererType Type =>
         CelestialBodyRendererType.BlackHole;

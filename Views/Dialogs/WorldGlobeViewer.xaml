@@ -15,7 +15,7 @@
     xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"    
     mc:Ignorable="d"
     Title="World Globe Viewer"
-    Width="1500"
+    Width="1550"
     Height="900"
     MinWidth="1000"
     MinHeight="650"
@@ -323,7 +323,7 @@
             <Grid.ColumnDefinitions>
                 <!-- Scene Explorer -->
                 <ColumnDefinition
-                    Width="220"
+                    Width="240"
                     MinWidth="170" />
 
                 <!-- Left splitter -->
@@ -338,7 +338,7 @@
                 <ColumnDefinition Width="5" />
 
                 <!-- Properties -->
-                <ColumnDefinition Width="300" MinWidth="300"/>
+                <ColumnDefinition Width="320" MinWidth="320"/>
             </Grid.ColumnDefinitions>
 
             <!-- ================================================= -->
@@ -606,10 +606,9 @@
                                                 RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
                                     </StackPanel>
                                 </TreeViewItem.Header>
-
-
-
+                                
                             </TreeViewItem>
+                            
                         </TreeViewItem>
 
                         <TreeViewItem IsExpanded="True" Margin="0,2,0,0" Tag="Lighting">

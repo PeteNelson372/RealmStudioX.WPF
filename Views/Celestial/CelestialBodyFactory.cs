@@ -38,6 +38,7 @@ internal static class CelestialBodyFactory
         ArgumentNullException.ThrowIfNull(gasGiant);
         ArgumentNullException.ThrowIfNull(terrestrialPlanet);
 
+        body.BodyType = bodyType;
         body.Name = bodyType.ToString();
         body.Description = description ?? $"Celestial body of type {bodyType}.";
         if (baseColor.HasValue)
