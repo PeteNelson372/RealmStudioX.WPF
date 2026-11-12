@@ -124,7 +124,7 @@
                                     <RadioButton Content="{Binding Display}"
                                              Tag="{Binding}"
                                              Margin="0,4"
-                                             GroupName="MapSizePresets"
+                                             GroupName="ResizeMapSizePresets"
                                              IsChecked="{Binding IsSelected}"
                                              Checked="OnPresetSelected"
                                              LayoutTransform="{StaticResource RadioScaleTransform}"/>

@@ -232,14 +232,12 @@
                                     <StackPanel Orientation="Vertical" Grid.Row="0" Grid.Column="1" Margin="0,10,0,10">
                                         <RadioButton Content="Prograde"
                                              Margin="0,4"
-                                             GroupName="Rotation"
                                              IsChecked="{Binding WorldGlobeModel.RotationDirection, Mode=TwoWay,
                                                 Converter={StaticResource EnumToBooleanConverter},
                                              ConverterParameter={x:Static rendering:WorldRotationDirection.Prograde}}"/>
 
                                         <RadioButton Content="Retrograde"
                                              Margin="0,4"
-                                             GroupName="Rotation"
                                              IsChecked="{Binding WorldGlobeModel.RotationDirection, Mode=TwoWay,
                                                 Converter={StaticResource EnumToBooleanConverter},
                                              ConverterParameter={x:Static rendering:WorldRotationDirection.Retrograde}}"/>
@@ -325,14 +323,12 @@
                                     <StackPanel Orientation="Vertical" Grid.Row="2" Grid.Column="1" Margin="0,10,0,10">
                                         <RadioButton Content="Prograde"
                                              Margin="0,4"
-                                             GroupName="RingRotation"
                                              IsChecked="{Binding WorldGlobeModel.Rings.RotationDirection, Mode=TwoWay,
                                                 Converter={StaticResource EnumToBooleanConverter},
                                              ConverterParameter={x:Static rendering:WorldRotationDirection.Prograde}}"/>
 
                                         <RadioButton Content="Retrograde"
                                              Margin="0,4"
-                                             GroupName="RingRotation"
                                              IsChecked="{Binding WorldGlobeModel.Rings.RotationDirection, Mode=TwoWay,
                                                 Converter={StaticResource EnumToBooleanConverter},
                                              ConverterParameter={x:Static rendering:WorldRotationDirection.Retrograde}}"/>

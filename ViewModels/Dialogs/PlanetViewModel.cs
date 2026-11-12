@@ -25,6 +25,8 @@ public sealed class PlanetViewModel : ViewModelBase
     private readonly MapObjectDescriptionService _descriptionService;
     private readonly ObjectCharacteristicsViewModel _planetCharacteristics = new();
 
+    private readonly Func<string?, string?> _selectMapForTexture;
+
     private string _planetName = string.Empty;
     private string _planetDescription = string.Empty;
     private bool _planetNameLocked;
@@ -175,7 +177,8 @@ public sealed class PlanetViewModel : ViewModelBase
         CelestialBodyNode planetNode,
         Action<CelestialBodyNode> updatePlanet,
         Action<CelestialBodyNode> removePlanet,
-        MapObjectDescriptionService descriptionService)
+        MapObjectDescriptionService descriptionService,
+        Func<string?, string?> selectMapForTexture)
     {
         _planetNode = planetNode
             ?? throw new ArgumentNullException(nameof(planetNode));
@@ -191,6 +194,9 @@ public sealed class PlanetViewModel : ViewModelBase
 
         _descriptionService = descriptionService
             ?? throw new ArgumentNullException(nameof(descriptionService));
+
+        _selectMapForTexture = selectMapForTexture
+            ?? throw new ArgumentNullException(nameof(selectMapForTexture));
 
         _planetName = planetNode.Body.Name ?? string.Empty;
         _planetDescription = planetNode.Body.Description ?? string.Empty;
@@ -376,6 +382,18 @@ public sealed class PlanetViewModel : ViewModelBase
                 break;
         }
     }
+
+    public ICommand SelectPlanetMapTextureCommand => new RelayCommand(() =>
+    {
+        string? mapId =
+            _selectMapForTexture(PlanetTerrestrialModel.MapIdentifier);
+
+        if (string.IsNullOrWhiteSpace(mapId))
+            return;
+
+        PlanetTerrestrialModel.TexturePath = string.Empty;
+        PlanetTerrestrialModel.MapIdentifier = mapId;
+    });
 
     private void InitializeAnimationSettings(CelestialBody body)
     {

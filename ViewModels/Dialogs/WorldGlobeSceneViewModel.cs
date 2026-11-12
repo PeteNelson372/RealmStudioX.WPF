@@ -55,13 +55,16 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         private TerrestrialPlanetViewModel _localStarTerrestrialPlanetModel;
         public TerrestrialPlanetViewModel LocalStarTerrestrialPlanetModel => _localStarTerrestrialPlanetModel;
 
+        public CelestialBodyPlacementService BodyPlacementService { get; } = new();
+
+
         public WorldGlobeSceneViewModel(MainWindowViewModel mainViewModel, WorldGlobeViewer globeViewer)
         {
             _mainViewModel = mainViewModel;
             _globeViewer = globeViewer;
             _modelViewer = globeViewer.ModelViewer;
 
-            _worldGlobeViewModel = new (_mainViewModel, _globeViewer);
+            _worldGlobeViewModel = new(_mainViewModel, _globeViewer);
             _atmosphereViewModel = new(_mainViewModel, _globeViewer);
 
             _localStarSunModel = new SunViewModel(() =>
@@ -120,7 +123,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 _localStarNebulaModel, _localStarCoronaModel,
                 _localStarSunModel, _localStarGasGiantModel, _localStarTerrestrialPlanetModel);
 
-            _createPlanetViewModel = new(_globeViewer.AddPlanet, _mainViewModel.MapObjectDescriptionService);
+            _createPlanetViewModel = new(_globeViewer.AddPlanet, _mainViewModel.MapObjectDescriptionService, SelectProjectMap);
         }
 
 
@@ -131,22 +134,88 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             private set => SetProperty(ref _planetModel, value);
         }
 
+        private CreateMoonViewModel? _createMoonModel;
+        public CreateMoonViewModel? CreateMoonModel
+        {
+            get => _createMoonModel;
+            private set => SetProperty(ref _createMoonModel, value);
+        }
+
+        private MoonViewModel? _moonModel;
+        public MoonViewModel? MoonModel
+        {
+            get => _moonModel;
+            private set => SetProperty(ref _moonModel, value);
+        }
+
+        /// <summary>
+        /// Opens the project-map picker without changing the active editor map.
+        /// Returns null when the user cancels the selection.
+        /// </summary>
+        private string? SelectProjectMap(string? currentMapId)
+        {
+            RealmStudioProject? project =
+                _mainViewModel.ProjectManager.CurrentProject;
+
+            if (project is null)
+                return null;
+
+            MapSelectionDialog dialog = new(
+                project,
+                _mainViewModel.CommandService,
+                currentMapId,
+                _globeViewer);
+
+            return dialog.ShowDialog() == true
+                ? dialog.SelectedMapId
+                : null;
+        }
+
+        public void SelectMoonParent(CelestialBodyNode parent)
+        {
+            ArgumentNullException.ThrowIfNull(parent);
+            PlanetModel = null;
+            MoonModel = null;
+            CreateMoonModel = new CreateMoonViewModel(
+                parent,
+                _globeViewer.AddMoon,
+                _mainViewModel.MapObjectDescriptionService,
+                SelectProjectMap);
+        }
+
+        public void SelectMoon(CelestialBodyNode moon)
+        {
+            ArgumentNullException.ThrowIfNull(moon);
+            PlanetModel = null;
+            CreateMoonModel = null;
+            MoonModel = new MoonViewModel(
+                moon,
+                _globeViewer.UpdateMoon,
+                _globeViewer.RemoveMoon,
+                _mainViewModel.MapObjectDescriptionService,
+                SelectProjectMap);
+        }
+
         public void SelectPlanet(CelestialBodyNode planet)
         {
+            MoonModel = null;
+            CreateMoonModel = null;
             PlanetModel = new PlanetViewModel(
                 planet,
                 _globeViewer.UpdatePlanet,
                 _globeViewer.RemovePlanet,
-                _mainViewModel.MapObjectDescriptionService);
+                _mainViewModel.MapObjectDescriptionService,
+                SelectProjectMap);
         }
 
         public void ClearSelectedPlanet()
         {
             PlanetModel = null;
+            MoonModel = null;
+            CreateMoonModel = null;
         }
 
         private string starfieldFileName = string.Empty;
-        private string planetTextureFileName = string.Empty;
 
         private bool _enableStarfield = true;
         public bool EnableStarfield
@@ -230,7 +299,10 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
         public ICommand SelectTextureFileCommand => new RelayCommand(() =>
         {
-            string planetTextureDirectory = Path.Combine(ApplicationPreferences.Current.RootAssetDirectory, "Textures", "Planet");
+            string planetTextureDirectory = Path.Combine(
+                ApplicationPreferences.Current.RootAssetDirectory,
+                "Textures",
+                "Planet");
 
             OpenFileDialog dialog = new()
             {
@@ -245,12 +317,20 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
             if (result == true)
             {
-                planetTextureFileName = dialog.FileName;
-
-                SKBitmap texture = SKBitmap.Decode(planetTextureFileName);
-
-                _globeViewer.InitializeWorldGlobeScene(texture);
+                _globeViewer.SetWorldGlobeBitmapTexture(dialog.FileName);
             }
+        });
+
+        public ICommand SelectWorldGlobeMapTextureCommand => new RelayCommand(() =>
+        {
+            string? currentMapId = _globeViewer.WorldGlobeMapId;
+
+            string? mapId = SelectProjectMap(currentMapId);
+
+            if (string.IsNullOrWhiteSpace(mapId))
+                return;
+
+            _globeViewer.SetWorldGlobeMapTexture(mapId);
         });
 
         public ICommand ClearTextureCommand => new RelayCommand(() =>

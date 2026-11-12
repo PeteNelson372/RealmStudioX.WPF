@@ -41,6 +41,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             ["Effects"] = new EffectsTools(),
             ["Planets"] = new PlanetsTools(),
             ["EditPlanet"] = new EditPlanetTools(),
+            ["EditMoon"] = new EditMoonTools(),
         };
 
         public static readonly int[] SupportedFrameRates =
@@ -96,11 +97,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         private CelestialBodyNode? _localStarNode;
 
-        private BitmapSource? _worldTextureSource;
-
         public static readonly Color DefaultSpaceColor = Color.FromRgb(5, 8, 18);
 
         private readonly MainWindowViewModel _mainViewModel;
+        private readonly CelestialTextureResolver _celestialTextureResolver;
         private bool _isViewerInitialized;
 
         public WorldGlobeViewer(MainWindowViewModel mainViewModel)
@@ -108,6 +108,11 @@ namespace RealmStudioX.WPF.Views.Dialogs
             InitializeComponent();
 
             _mainViewModel = mainViewModel;
+
+            // Resolves per-body textures, including project maps selected
+            // for planets and moons, independently of the active editor map.
+            _celestialTextureResolver =
+                new CelestialTextureResolver(_mainViewModel);
 
             ViewModel = new WorldGlobeSceneViewModel(mainViewModel, this);
 
@@ -131,6 +136,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             Loaded += WorldGlobeViewer_Loaded;
             Unloaded += WorldGlobeViewer_Unloaded;
+
+            // The resolver subscribes to ProjectManager.ProjectChanged.
+            // Dispose it when this modeless viewer is permanently closed.
+            Closed += (_, _) => _celestialTextureResolver.Dispose();
         }
 
         private void InitializeViewer()
@@ -288,10 +297,27 @@ namespace RealmStudioX.WPF.Views.Dialogs
             if (e.NewValue is not TreeViewItem selectedItem)
                 return;
 
-            if (selectedItem.Tag is CelestialBodyNode planet)
+            if (selectedItem.Tag is MoonCollectionContext moonCollection)
             {
-                ViewModel.SelectPlanet(planet);
-                ShowToolPanel("EditPlanet");
+                ViewModel.SelectMoonParent(moonCollection.ParentNode);
+                ShowToolPanel("Moons");
+                return;
+            }
+
+            if (selectedItem.Tag is CelestialBodyNode bodyNode)
+            {
+                if (_localStarNode is not null &&
+                    !ReferenceEquals(bodyNode, _worldNode) &&
+                    _localStarNode.Children.Contains(bodyNode))
+                {
+                    ViewModel.SelectPlanet(bodyNode);
+                    ShowToolPanel("EditPlanet");
+                }
+                else
+                {
+                    ViewModel.SelectMoon(bodyNode);
+                    ShowToolPanel("EditMoon");
+                }
                 return;
             }
 
@@ -314,7 +340,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
             }
 
             // These panels explicitly use the viewer's root viewmodel.
-            if (panel is StarfieldTools or EditPlanetTools)
+            if (panel is StarfieldTools or EditPlanetTools or
+                EditMoonTools or PlanetaryMoonsTools)
             {
                 panel.DataContext = ViewModel;
             }
@@ -383,39 +410,137 @@ namespace RealmStudioX.WPF.Views.Dialogs
             _isRotatingGlobe = false;
         }
 
+
+        /// <summary>
+        /// Restores the World Globe's texture to the currently active
+        /// project map.
+        /// </summary>
         public void CreateGlobe()
         {
-            using SKBitmap? globeTexture = CreateWorldGlobeTexture();
-
-            if (globeTexture is not null)
-            {
-                InitializeWorldGlobeScene(globeTexture);
-            }
+            SetWorldGlobeTextureSource(CreateActiveMapTextureSource());
         }
 
-        public void InitializeWorldGlobeScene(SKBitmap worldTexture)
+        /// <summary>
+        /// Returns the project map currently being edited as a
+        /// CelestialTextureSource.
+        /// </summary>
+        private CelestialTextureSource CreateActiveMapTextureSource()
         {
-            ArgumentNullException.ThrowIfNull(worldTexture);
+            RealmStudioMap? activeMap = _mainViewModel.Editor.Scene?.Map;
 
-            if (worldTexture.ToImageSource() is not BitmapSource bitmapSource)
+            string? mapId = activeMap?.MapId;
+
+            // Prefer the project entry ID when available. The resolver
+            // also supports the map's own ID as a fallback.
+            if (activeMap is not null)
+            {
+                RealmStudioProject? project =
+                    _mainViewModel.ProjectManager.CurrentProject;
+
+                MapProjectEntry? entry = project?.Maps.FirstOrDefault(
+                    item =>
+                        ReferenceEquals(item.Map, activeMap) ||
+                        (!string.IsNullOrWhiteSpace(activeMap.MapId) &&
+                         string.Equals(
+                             item.Map.MapId,
+                             activeMap.MapId,
+                             StringComparison.OrdinalIgnoreCase)));
+
+                if (!string.IsNullOrWhiteSpace(entry?.MapId))
+                    mapId = entry.MapId;
+            }
+
+            return new CelestialTextureSource
+            {
+                SourceType = CelestialTextureSourceType.RealmMap,
+                MapId = mapId
+            };
+        }
+
+        /// <summary>
+        /// Gets the map ID currently assigned to the World Globe.
+        /// </summary>
+        public string? WorldGlobeMapId =>
+            _worldBody?.TextureSource?.MapId;
+
+        /// <summary>
+        /// Assigns a new texture source to the World Globe and rebuilds
+        /// the celestial scene so the renderer resolves the new texture.
+        /// </summary>
+        private void SetWorldGlobeTextureSource(
+            CelestialTextureSource textureSource)
+        {
+            ArgumentNullException.ThrowIfNull(textureSource);
+
+            if (_worldBody is null)
+            {
+                InitializeWorldGlobeScene(textureSource);
                 return;
+            }
 
-            _worldTextureSource = bitmapSource;
+            _worldBody.TextureSource = textureSource;
+
+            RebuildCelestialScene();
+        }
+
+        /// <summary>
+        /// Assigns a project map as the World Globe's surface texture.
+        /// </summary>
+        public void SetWorldGlobeMapTexture(string mapId)
+        {
+            if (string.IsNullOrWhiteSpace(mapId))
+                throw new ArgumentException(
+                    "A project map ID is required.",
+                    nameof(mapId));
+
+            SetWorldGlobeTextureSource(new CelestialTextureSource
+            {
+                SourceType = CelestialTextureSourceType.RealmMap,
+                MapId = mapId
+            });
+        }
+
+        /// <summary>
+        /// Assigns an external bitmap file as the World Globe's surface texture.
+        /// </summary>
+        public void SetWorldGlobeBitmapTexture(string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+                throw new ArgumentException(
+                    "A texture file path is required.",
+                    nameof(filePath));
+
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException(
+                    "The selected World Globe texture could not be found.",
+                    filePath);
+
+            SetWorldGlobeTextureSource(new CelestialTextureSource
+            {
+                SourceType = CelestialTextureSourceType.BitmapFile,
+                FilePath = Path.GetFullPath(filePath)
+            });
+        }
+
+        /// <summary>
+        /// Initializes the World Globe's celestial body and renderer.
+        /// The texture is resolved through CelestialTextureResolver.
+        /// </summary>
+        private void InitializeWorldGlobeScene(
+            CelestialTextureSource textureSource)
+        {
+            ArgumentNullException.ThrowIfNull(textureSource);
 
             // Create the celestial system only once.
             if (_celestialSystem is null)
             {
-                // Create the World Globe body.
                 _worldBody = new CelestialBody
                 {
                     Name = "World",
                     Description = "The world represented by this globe.",
                     BaseColor = Colors.White,
                     RendererType = CelestialBodyRendererType.Planet,
-                    TextureSource = new CelestialTextureSource
-                    {
-                        SourceType = CelestialTextureSourceType.RealmMap
-                    }
+                    TextureSource = textureSource
                 };
 
                 _worldBody.Animations.Add(new CelestialBodyAnimation
@@ -437,7 +562,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 };
 
                 // Create the World Globe node.
-                // Size and position are properties of the placement, not the body.
                 _worldNode = new CelestialBodyNode
                 {
                     Body = _worldBody,
@@ -450,23 +574,23 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
                 _celestialSystem.Bodies.Add(_worldNode);
 
-                // The cloud attachment is initialized from the body's current
-                // rotation settings, then maintains its own independent values.
+                WorldMoonTreeViewItem.Tag =
+                    new MoonCollectionContext(_worldNode);
+
                 EnsureCloudLayerAttachment();
 
                 _celestialSystemRenderer = new CelestialSystemRenderer(
                     ResolveTextureSource,
                     ResolveAttachmentTexture);
             }
+            else if (_worldBody is not null)
+            {
+                _worldBody.TextureSource = textureSource;
+            }
 
-            // Build the celestial scene and apply the World Globe's visual
-            // transform. This same method is used when the celestial
-            // hierarchy is rebuilt after adding or removing a Local Star.
             RebuildCelestialScene();
-
-            // RebuildCelestialScene installs the celestial scene directly
-            // beneath _sceneRootModel and sets the model on first creation.
         }
+
 
         private static MeshGeometry3D CreateSphereMesh(double radius = 1.0, int longitudeSegments = 128, int latitudeSegments = 64)
         {
@@ -539,68 +663,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
             }
 
             return mesh;
-        }
-
-        private SKBitmap? CreateWorldGlobeTexture()
-        {
-            if (_mainViewModel.Editor.Scene == null || _mainViewModel.Editor.Scene.Map == null)
-            {
-                return null;
-            }
-
-            RealmStudioMap map = _mainViewModel.Editor.Scene.Map;
-
-            int width = map.MapWidth;
-            int height = map.MapHeight;
-
-            if (width <= GlobeTextureEdgeInset * 2 ||
-                height <= GlobeTextureEdgeInset * 2)
-            {
-                throw new InvalidOperationException("The map is too small to create a globe texture.");
-            }
-
-            // Render the map without editor overlays.
-            using var renderedMap = new SKBitmap(new SKImageInfo(width, height));
-
-            using (var renderCanvas = new SKCanvas(renderedMap))
-            {
-                renderCanvas.Clear(SKColors.Transparent);
-
-                _mainViewModel.Editor.Scene.RenderFor3DGlobeView(renderCanvas);
-            }
-
-            // Create the final texture at the original map dimensions.
-            var globeTexture = new SKBitmap(new SKImageInfo(width, height));
-
-            try
-            {
-                using var textureCanvas = new SKCanvas(globeTexture);
-
-                textureCanvas.Clear(SKColors.Transparent);
-
-                // Exclude the outer three pixels on each edge.
-                SKRect sourceRect = new(
-                    GlobeTextureEdgeInset,
-                    GlobeTextureEdgeInset,
-                    width - GlobeTextureEdgeInset,
-                    height - GlobeTextureEdgeInset);
-
-                // Expand the cropped image back to the original dimensions.
-                SKRect destinationRect = new(0, 0, width, height);
-
-                textureCanvas.DrawBitmap(
-                    renderedMap,
-                    sourceRect,
-                    destinationRect,
-                    SKSamplingOptions.Default);
-
-                return globeTexture;
-            }
-            catch
-            {
-                globeTexture.Dispose();
-                throw;
-            }
         }
 
         public void UpdateGlobeTilt(double tiltAngle)
@@ -937,25 +999,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
             };
         }
 
-        private ImageSource? ResolveTextureSource(CelestialTextureSource? textureSource)
+        private ImageSource? ResolveTextureSource(
+            CelestialTextureSource? textureSource)
         {
-            if (textureSource is null)
-                return null;
-
-            return textureSource.SourceType switch
-            {
-                CelestialTextureSourceType.RealmMap => _worldTextureSource,
-
-                CelestialTextureSourceType.Asset =>
-                    LoadCachedTexture(textureSource.AssetPath, isAsset: true),
-
-                CelestialTextureSourceType.BitmapFile =>
-                    LoadCachedTexture(textureSource.FilePath, isAsset: false),
-
-                // Procedural textures need a generator registry before they
-                // can be resolved here.
-                _ => null
-            };
+            return _celestialTextureResolver.Resolve(textureSource);
         }
 
         private BitmapSource? LoadCachedTexture(
@@ -1384,6 +1431,15 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 return;
             }
 
+            planet.Placement.Center =
+                ViewModel.BodyPlacementService.FindAvailablePosition(
+                    _localStarNode,
+                    _localStarNode,
+                    planet.Placement.Size,
+                    ModelViewer.Camera,
+                    ModelViewer.ActualWidth,
+                    ModelViewer.ActualHeight);
+
             _localStarNode.Children.Add(planet);
 
             // Add the TreeView item and retain a reference to it.
@@ -1398,6 +1454,143 @@ namespace RealmStudioX.WPF.Views.Dialogs
             planetItem.BringIntoView();
         }
 
+        private sealed record MoonCollectionContext(CelestialBodyNode ParentNode);
+
+        public void AddMoon(CelestialBodyNode parent, CelestialBodyNode moon)
+        {
+            ArgumentNullException.ThrowIfNull(parent);
+            ArgumentNullException.ThrowIfNull(moon);
+            ArgumentNullException.ThrowIfNull(moon.Body);
+            ArgumentNullException.ThrowIfNull(moon.Placement);
+
+            CelestialBodyNode? hierarchyRoot = _localStarNode ?? _worldNode;
+            if (hierarchyRoot is null ||
+                (!ReferenceEquals(parent, hierarchyRoot) &&
+                 !ContainsNode(hierarchyRoot, parent)))
+            {
+                throw new InvalidOperationException(
+                    "The selected moon parent is not part of the World Globe hierarchy.");
+            }
+
+            if (ReferenceEquals(parent, moon) ||
+                ContainsNode(moon, parent) ||
+                ReferenceEquals(moon, hierarchyRoot) ||
+                ContainsNode(hierarchyRoot, moon))
+            {
+                throw new InvalidOperationException(
+                    "The moon is already in the hierarchy or would create a hierarchy cycle.");
+            }
+
+
+            moon.Placement.Center =
+                ViewModel.BodyPlacementService.FindAvailablePosition(
+                    hierarchyRoot,
+                    parent,
+                    moon.Placement.Size,
+                    ModelViewer.Camera,
+                    ModelViewer.ActualWidth,
+                    ModelViewer.ActualHeight);
+
+
+            parent.Children.Add(moon);
+
+            TreeViewItem? moonCollectionItem = FindMoonCollectionItem(parent);
+            if (moonCollectionItem is null)
+            {
+                parent.Children.Remove(moon);
+                throw new InvalidOperationException(
+                    "The selected parent's Moons collection could not be found in the Scene Explorer.");
+            }
+
+            TreeViewItem moonItem = CreateTreeViewItem(moon);
+            moonCollectionItem.Items.Add(moonItem);
+
+            RebuildCelestialScene();
+
+            moonCollectionItem.IsExpanded = true;
+            moonItem.IsSelected = true;
+            moonItem.BringIntoView();
+        }
+
+        public void UpdateMoon(CelestialBodyNode moon)
+        {
+            ArgumentNullException.ThrowIfNull(moon);
+
+            CelestialBodyNode? hierarchyRoot = _localStarNode ?? _worldNode;
+            if (hierarchyRoot is null ||
+                (!ReferenceEquals(moon, hierarchyRoot) && !ContainsNode(hierarchyRoot, moon)))
+                return;
+
+            _celestialSystemRenderer?.UpdateBody(moon);
+
+            TreeViewItem? moonItem = FindTreeViewItem(SceneTree, moon);
+            if (moonItem is not null && !string.IsNullOrEmpty(moon.Body.Name))
+            {
+                SetTreeViewHeader(moonItem, "Moon", moon.Body.Name);
+            }
+        }
+
+        public void RemoveMoon(CelestialBodyNode moon)
+        {
+            ArgumentNullException.ThrowIfNull(moon);
+
+            CelestialBodyNode? hierarchyRoot = _localStarNode ?? _worldNode;
+            if (hierarchyRoot is null)
+                return;
+
+            CelestialBodyNode? parent = FindParentNode(hierarchyRoot, moon);
+            if (parent is null || !parent.Children.Remove(moon))
+                return;
+
+            TreeViewItem? moonCollectionItem = FindMoonCollectionItem(parent);
+            RemoveTreeViewItem(SceneTree, moon);
+            ClearDescendants(moon);
+
+            RebuildCelestialScene();
+
+            ViewModel.ClearSelectedPlanet();
+            ShowToolPanel("Moons");
+            if (moonCollectionItem is not null)
+                moonCollectionItem.IsSelected = true;
+        }
+
+        private TreeViewItem? FindMoonCollectionItem(CelestialBodyNode parent)
+        {
+            if (ReferenceEquals(parent, _worldNode))
+                return WorldMoonTreeViewItem;
+
+            TreeViewItem? parentItem = FindTreeViewItem(SceneTree, parent);
+            if (parentItem is null)
+                return null;
+
+            foreach (object child in parentItem.Items)
+            {
+                if (child is TreeViewItem item &&
+                    item.Tag is MoonCollectionContext context &&
+                    ReferenceEquals(context.ParentNode, parent))
+                    return item;
+            }
+
+            return null;
+        }
+
+        private static CelestialBodyNode? FindParentNode(
+            CelestialBodyNode parent,
+            CelestialBodyNode target)
+        {
+            foreach (CelestialBodyNode child in parent.Children)
+            {
+                if (ReferenceEquals(child, target))
+                    return parent;
+
+                CelestialBodyNode? found = FindParentNode(child, target);
+                if (found is not null)
+                    return found;
+            }
+
+            return null;
+        }
+
         private TreeViewItem AddPlanetTreeViewItem(CelestialBodyNode planet)
         {
             TreeViewItem item = CreateTreeViewItem(planet);
@@ -1407,7 +1600,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             return item;
         }
 
-        private static TreeViewItem CreateTreeViewItem(CelestialBodyNode node)
+        private TreeViewItem CreateTreeViewItem(CelestialBodyNode node)
         {
             TreeViewItem item = new()
             {
@@ -1417,11 +1610,20 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 Margin = new Thickness(2)
             };
 
+            TreeViewItem moonsItem = new()
+            {
+                Header = "Moons",
+                Tag = new MoonCollectionContext(node),
+                IsExpanded = true,
+                Margin = new Thickness(2)
+            };
+
             foreach (CelestialBodyNode child in node.Children)
             {
-                item.Items.Add(CreateTreeViewItem(child));
+                moonsItem.Items.Add(CreateTreeViewItem(child));
             }
 
+            item.Items.Add(moonsItem);
             return item;
         }
 
@@ -1513,7 +1715,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             _celestialSystemRenderer?.UpdateBody(planet);
 
             TreeViewItem? planetItem =
-                FindTreeViewItem(PlanetsTreeViewItem, planet);
+                FindTreeViewItem(SceneTree, planet);
 
             if (planetItem is not null && !string.IsNullOrEmpty(planet.Body.Name))
             {

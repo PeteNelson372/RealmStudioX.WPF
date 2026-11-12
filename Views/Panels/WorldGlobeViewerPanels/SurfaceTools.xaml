@@ -44,6 +44,7 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
                                 <TextBlock
@@ -71,8 +72,36 @@
                                             Opacity="0.7"/>
                                 </Button>
 
+                                <!-- Select a map to use as the planet texture -->
+
                                 <TextBlock
                                     Grid.Row="1"
+                                    Grid.Column="0"
+                                    Text="Project Map"
+                                    Foreground="#FF45443F"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Left"
+                                    Margin="3,0,0,0"/>
+
+                                <Button
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        Style="{StaticResource FlatToolButton}"
+                                        Width="Auto"
+                                        Height="Auto"
+                                        Margin="3,3,3,3"
+                                        HorizontalAlignment="Left"
+                                        ToolTip="Select Project Map"
+                                        Command="{Binding SelectWorldGlobeMapTextureCommand}">
+
+                                    <materialDesign:PackIcon Kind="MapAdd"
+                                            Width="36"
+                                            Height="36"
+                                            Opacity="0.7"/>
+                                </Button>
+
+                                <TextBlock
+                                    Grid.Row="2"
                                     Grid.Column="0"
                                     Text="Clear Texture"
                                     Foreground="#FF45443F"
@@ -81,7 +110,7 @@
                                     Margin="3,3,3,3"/>
 
                                 <Button
-                                    Grid.Row="1"
+                                    Grid.Row="2"
                                     Grid.Column="1"
                                     Style="{StaticResource FlatToolButton}"
                                     Width="Auto"

@@ -98,7 +98,12 @@ namespace RealmStudioX.WPF.Views.Celestial
             if (entry?.Map is null)
                 return null;
 
-            string cacheKey = entry.MapId;
+            string cacheKey =
+                !string.IsNullOrWhiteSpace(entry.MapId)
+                    ? entry.MapId
+                    : !string.IsNullOrWhiteSpace(entry.Map.MapId)
+                        ? entry.Map.MapId
+                        : mapId;
 
             // Serialize map rendering so multiple celestial bodies
             // cannot simultaneously render through the shared context.

@@ -130,6 +130,7 @@ public class TerrestrialPlanetViewModel : ViewModelBase
         if (dialog.ShowDialog() == true)
         {
             TexturePath = dialog.FileName;
+            MapIdentifier = string.Empty;
         }
     });
 

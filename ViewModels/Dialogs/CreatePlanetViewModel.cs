@@ -30,17 +30,22 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
         private readonly Action<CelestialBodyNode> _addPlanet;
         private readonly MapObjectDescriptionService _descriptionService;
+        private readonly Func<string?, string?> _selectMapForTexture;
         private readonly ObjectCharacteristicsViewModel _planetCharacteristics = new();
 
         public CreatePlanetViewModel(
             Action<CelestialBodyNode> addPlanet,
-            MapObjectDescriptionService descriptionService)
+            MapObjectDescriptionService descriptionService,
+            Func<string?, string?> selectMapForTexture)
         {
             _addPlanet = addPlanet
                 ?? throw new ArgumentNullException(nameof(addPlanet));
 
             _descriptionService = descriptionService
                 ?? throw new ArgumentNullException(nameof(descriptionService));
+
+            _selectMapForTexture = selectMapForTexture
+                ?? throw new ArgumentNullException(nameof(selectMapForTexture));
 
             PlanetBlackHoleModel = new();
             PlanetNebulaModel = new();
@@ -56,7 +61,8 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         {
             // Preserve the previous default composition while allowing the
             // three coordinates to be edited independently.
-            Center = new Point3D(0.0, -1.44, -1.72)
+            Center = new Point3D(0.0, -1.44, -1.72),
+            RotationDirection = WorldRotationDirection.Prograde,
         };
 
         private const double PositionLimit = 10.0;
@@ -297,12 +303,6 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             PlanetTerrestrialModel.TexturePath = texturePath;
         });
 
-        public ICommand SelectGasGiantTextureFileCommand => new RelayCommand(() =>
-        {
-            string texturePath = SelectTextureFile();
-
-            PlanetGasGiantModel.TexturePath = texturePath;
-        });
 
         private static string SelectTextureFile()
         {
@@ -313,7 +313,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
             OpenFileDialog dialog = new()
             {
-                Title = "Select Gas Giant Texture",
+                Title = "Select Texture",
                 Filter = UserInterfaceUtilities.GetCommonImageFilter(),
                 Multiselect = false,
                 InitialDirectory = Directory.Exists(textureDirectory)
@@ -330,19 +330,20 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             return string.Empty;
         }
 
+
         public ICommand SelectPlanetMapTextureCommand => new RelayCommand(() =>
         {
-            string mapId = SelectMapForTexture();
+            string? mapId =
+                _selectMapForTexture(PlanetTerrestrialModel.MapIdentifier);
 
+            // A null result means the user cancelled the dialog.
+            if (string.IsNullOrWhiteSpace(mapId))
+                return;
+
+            // A map source takes precedence over a bitmap source.
+            PlanetTerrestrialModel.TexturePath = string.Empty;
             PlanetTerrestrialModel.MapIdentifier = mapId;
         });
-
-        private static string SelectMapForTexture()
-        {
-            // TODO: create a dialog that allows the user to select a map from the available maps in the project
-
-            return string.Empty;
-        }
 
 
         /// <summary>

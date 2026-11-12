@@ -180,6 +180,7 @@ internal static class CelestialBodyFactory
             EnableAtmosphericTurbulence = model.EnableAtmosphericTurbulence,
             TurbulenceIntensity = model.TurbulenceIntensity
         });
+
         RemoveUnusedAnimations(body, CelestialBodyAnimationType.BasicRotation, CelestialBodyAnimationType.AtmosphereTurbulenceActivity);
     }
 
@@ -208,6 +209,7 @@ internal static class CelestialBodyFactory
 
         SetAnimation(body, CelestialBodyAnimationType.BasicRotation,
             new BasicRotationSettings { RotationRate = rotationRate, RotationDirection = direction });
+
         RemoveUnusedAnimations(body, CelestialBodyAnimationType.BasicRotation);
     }
 
