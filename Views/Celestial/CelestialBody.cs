@@ -19,10 +19,19 @@ namespace RealmStudioX.WPF.Views.Celestial
         // Display properties
         public Color BaseColor { get; set; } = Colors.White;
 
+        /// <summary>
+        /// Relative intensity of light emitted by this body, when supported
+        /// by its renderer.
+        /// </summary>
+        public double LightIntensity { get; set; } = 0.5;
+
         // Rendering configuration
         public CelestialBodyRendererType RendererType { get; set; } = CelestialBodyRendererType.Planet;
 
         public CelestialTextureSource TextureSource { get; set; } = new();
+
+        // Lighting configuration (owned by this body, not shared globally)
+        public CelestialPointLightSettings PointLightSettings { get; set; } = new();
 
         // Animation configuration
         public ObservableCollection<CelestialBodyAnimation> Animations { get; } = [];

@@ -347,7 +347,7 @@
                                 <Slider x:Name="StarXSlider"
                                         Grid.Row="2" Grid.Column="1"
                                         Style="{StaticResource ModernSlider}"
-                                        behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
+                                        behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
                                         Width="120" HorizontalAlignment="Left"
                                         Minimum="-10.0" Maximum="10.0"
                                         TickFrequency="0.1" IsSnapToTickEnabled="True"
@@ -362,7 +362,7 @@
                                 <Slider x:Name="StarYSlider"
                                         Grid.Row="3" Grid.Column="1"
                                         Style="{StaticResource ModernSlider}"
-                                        behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
+                                        behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
                                         Width="120" HorizontalAlignment="Left"
                                         Minimum="-10.0" Maximum="10.0"
                                         TickFrequency="0.1" IsSnapToTickEnabled="True"
@@ -377,7 +377,7 @@
                                 <Slider x:Name="StarZSlider"
                                         Grid.Row="4" Grid.Column="1"
                                         Style="{StaticResource ModernSlider}"
-                                        behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
+                                        behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
                                         Width="120" HorizontalAlignment="Left"
                                         Minimum="-10.0" Maximum="10.0"
                                         TickFrequency="0.1" IsSnapToTickEnabled="True"
@@ -717,7 +717,31 @@
                                         Width="100"/>
                             </Grid>
                         </GroupBox>
-                    </StackPanel>
+                    
+
+                        <GroupBox Header="Point Light" HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,10,0,10">
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Enable Point Light" VerticalAlignment="Center" Margin="0,4,10,0"/>
+                                <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding LocalStarSunModel.EnablePointLight, Mode=TwoWay}" Style="{StaticResource ToggleSwitchStyle}" VerticalAlignment="Center" Margin="0,4,0,0" shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Intensity" VerticalAlignment="Center" Margin="0,10,10,0"/>
+                                <controls:NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding LocalStarSunModel.PointLightIntensity, Mode=TwoWay}" IsEnabled="{Binding LocalStarSunModel.EnablePointLight}" Minimum="0.0" Maximum="1.0" Increment="0.01" DecimalPlaces="2" Width="100" Margin="0,10,0,0"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Range" VerticalAlignment="Center" Margin="0,10,10,0"/>
+                                <controls:NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding LocalStarSunModel.PointLightRange, Mode=TwoWay}" IsEnabled="{Binding LocalStarSunModel.EnablePointLight}" Minimum="0.1" Maximum="100.0" Increment="0.5" DecimalPlaces="1" Width="100" Margin="0,10,0,0"/>
+                            </Grid>
+                        </GroupBox>
+</StackPanel>
                 </ScrollViewer>
             </TabItem>
 
@@ -928,7 +952,31 @@
 
                             </Grid>
                         </GroupBox>
-                    </StackPanel>
+                    
+
+                        <GroupBox Header="Point Light" HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,10,0,10">
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Enable Point Light" VerticalAlignment="Center" Margin="0,4,10,0"/>
+                                <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding LocalStarNebulaModel.EnablePointLight, Mode=TwoWay}" Style="{StaticResource ToggleSwitchStyle}" VerticalAlignment="Center" Margin="0,4,0,0" shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Intensity" VerticalAlignment="Center" Margin="0,10,10,0"/>
+                                <controls:NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding LocalStarNebulaModel.PointLightIntensity, Mode=TwoWay}" IsEnabled="{Binding LocalStarNebulaModel.EnablePointLight}" Minimum="0.0" Maximum="1.0" Increment="0.01" DecimalPlaces="2" Width="100" Margin="0,10,0,0"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Range" VerticalAlignment="Center" Margin="0,10,10,0"/>
+                                <controls:NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding LocalStarNebulaModel.PointLightRange, Mode=TwoWay}" IsEnabled="{Binding LocalStarNebulaModel.EnablePointLight}" Minimum="0.1" Maximum="100.0" Increment="0.5" DecimalPlaces="1" Width="100" Margin="0,10,0,0"/>
+                            </Grid>
+                        </GroupBox>
+</StackPanel>
                 </ScrollViewer>
             </TabItem>
 
@@ -1353,7 +1401,31 @@
                             </Grid>
                         </GroupBox>
 
-                    </StackPanel>
+                    
+
+                        <GroupBox Header="Point Light" HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,10,0,10">
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Enable Point Light" VerticalAlignment="Center" Margin="0,4,10,0"/>
+                                <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding LocalStarCoronaModel.EnablePointLight, Mode=TwoWay}" Style="{StaticResource ToggleSwitchStyle}" VerticalAlignment="Center" Margin="0,4,0,0" shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Intensity" VerticalAlignment="Center" Margin="0,10,10,0"/>
+                                <controls:NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding LocalStarCoronaModel.PointLightIntensity, Mode=TwoWay}" IsEnabled="{Binding LocalStarCoronaModel.EnablePointLight}" Minimum="0.0" Maximum="1.0" Increment="0.01" DecimalPlaces="2" Width="100" Margin="0,10,0,0"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Range" VerticalAlignment="Center" Margin="0,10,10,0"/>
+                                <controls:NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding LocalStarCoronaModel.PointLightRange, Mode=TwoWay}" IsEnabled="{Binding LocalStarCoronaModel.EnablePointLight}" Minimum="0.1" Maximum="100.0" Increment="0.5" DecimalPlaces="1" Width="100" Margin="0,10,0,0"/>
+                            </Grid>
+                        </GroupBox>
+</StackPanel>
                 </ScrollViewer>
             </TabItem>
 

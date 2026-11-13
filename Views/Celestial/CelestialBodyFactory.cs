@@ -44,6 +44,31 @@ internal static class CelestialBodyFactory
         if (baseColor.HasValue)
             body.BaseColor = baseColor.Value;
 
+        // Point-light settings are selected from the active body type's own
+        // view model. Each body receives a distinct settings instance.
+        body.PointLightSettings = bodyType switch
+        {
+            CelestialBodyType.Sun => new CelestialPointLightSettings
+            {
+                Enabled = sun.EnablePointLight,
+                Intensity = sun.PointLightIntensity,
+                Range = sun.PointLightRange
+            },
+            CelestialBodyType.Corona => new CelestialPointLightSettings
+            {
+                Enabled = corona.EnablePointLight,
+                Intensity = corona.PointLightIntensity,
+                Range = corona.PointLightRange
+            },
+            CelestialBodyType.Nebula => new CelestialPointLightSettings
+            {
+                Enabled = nebula.EnablePointLight,
+                Intensity = nebula.PointLightIntensity,
+                Range = nebula.PointLightRange
+            },
+            _ => new CelestialPointLightSettings { Enabled = false }
+        };
+
         body.TextureSource = new CelestialTextureSource();
 
         // Rings are valid only for the two planet render configurations.

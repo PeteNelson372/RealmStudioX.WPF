@@ -101,6 +101,9 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         private readonly MainWindowViewModel _mainViewModel;
         private readonly CelestialTextureResolver _celestialTextureResolver;
+
+        private readonly CelestialLightingManager _lightingManager = new();
+
         private bool _isViewerInitialized;
 
         public WorldGlobeViewer(MainWindowViewModel mainViewModel)
@@ -147,6 +150,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             if (_isViewerInitialized)
                 return;
 
+            ModelViewer.UseDefaultLighting = false;
             ModelViewer.SetBackgroundColor(DefaultSpaceColor);
 
             _worldVisualTransform.Children.Clear();
@@ -159,6 +163,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
             // Use HelixToolkit for left-drag panning, but not for right-drag
             // camera rotation (right-drag rotates the globe itself).
             ModelViewer.SetCameraRotationEnabled(false);
+
+            // Establish the canonical World Globe viewing orientation.
+            // Camera is on the positive Z side, looking toward the origin.
+            ModelViewer.SetCameraView(ModelViewDirection.Front);
 
             FrameRateCombo.ItemsSource = SupportedFrameRates;
 
@@ -341,7 +349,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             // These panels explicitly use the viewer's root viewmodel.
             if (panel is StarfieldTools or EditPlanetTools or
-                EditMoonTools or PlanetaryMoonsTools)
+                EditMoonTools or PlanetaryMoonsTools or LightingTools)
             {
                 panel.DataContext = ViewModel;
             }
@@ -716,6 +724,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             // Reset camera position and orientation.
             ModelViewer.ResetCamera();
+            ModelViewer.SetCameraView(ModelViewDirection.Front);
         }
 
         public void UpdateAtmosphere(bool enabled, double height, double density, System.Windows.Media.Color color)
@@ -1167,6 +1176,10 @@ namespace RealmStudioX.WPF.Views.Dialogs
             }
         }
 
+        public void UpdateLightingSettings(CelestialLightingSettings settings)
+        {
+            _lightingManager.ApplySettings(settings);
+        }
 
         private void ExitHandler()
         {
@@ -1384,6 +1397,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             _sceneRootModel.Children.Clear();
             _sceneRootModel.Children.Add(celestialScene);
+            _sceneRootModel.Children.Add(_lightingManager.Root);
 
             if (isFirstScene)
             {

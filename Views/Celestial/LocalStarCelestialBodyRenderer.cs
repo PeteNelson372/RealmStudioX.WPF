@@ -25,7 +25,7 @@ namespace RealmStudioX.WPF.Views.Celestial
 
         private readonly Transform3DGroup _animationTransform = new();
 
-        private readonly PointLight _light = new();
+        private PointLight? _light;
 
         private readonly Dictionary<string, ICelestialBodyAnimationRenderer> _animationRenderers = [];
 
@@ -70,8 +70,8 @@ namespace RealmStudioX.WPF.Views.Celestial
             _root.Children.Add(_attachmentRoot);
 
             // The light remains at the Local Star's origin and is not
-            // affected by the body's visual scaling or rotation.
-            _root.Children.Add(_light);
+            // affected by the body's visual scaling or rotation. It is added
+            // to the scene only while the body's Point Light is enabled.
         }
 
         public abstract CelestialBodyRendererType Type { get; }
@@ -92,16 +92,8 @@ namespace RealmStudioX.WPF.Views.Celestial
 
         protected Color StarColor => Body.BaseColor;
 
-        /// <summary>
-        /// Relative intensity of the light emitted by this Local Star.
-        /// Derived renderers can override the default for their star type.
-        /// </summary>
-        protected double LightIntensity { get; set; } = 0.1;
-
-        /// <summary>
-        /// Effective range of the light emitted by this Local Star.
-        /// Derived renderers can override the default for their star type.
-        /// </summary>
+        // Retained for compatibility with derived renderers. Per-body
+        // CelestialPointLightSettings now supplies the effective values.
         protected double LightRange { get; set; } = 10.0;
 
         public void Update(CelestialBodyNode node, CelestialTextureSource? textureSource)
@@ -145,8 +137,29 @@ namespace RealmStudioX.WPF.Views.Celestial
 
         private void UpdateLight()
         {
-            double intensity = Math.Clamp(LightIntensity, 0.0, 1.0);
-            double range = Math.Max(0.001, LightRange);
+            CelestialPointLightSettings settings =
+                Body.PointLightSettings ?? new CelestialPointLightSettings();
+
+            if (!settings.Enabled)
+            {
+                if (_light is not null)
+                {
+                    _root.Children.Remove(_light);
+                    _light = null;
+                }
+
+                return;
+            }
+
+            // Do not even instantiate the WPF light until it is enabled.
+            _light ??= new PointLight();
+            if (!_root.Children.Contains(_light))
+                _root.Children.Add(_light);
+
+            double intensity = Math.Clamp(Body.LightIntensity, 0.0, 1.0);
+            double range = Math.Max(
+                0.001,
+                double.IsFinite(settings.Range) ? settings.Range : 10.0);
 
             byte red = (byte)Math.Clamp(StarColor.R * intensity, 0.0, 255.0);
             byte green = (byte)Math.Clamp(StarColor.G * intensity, 0.0, 255.0);

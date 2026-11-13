@@ -3,6 +3,7 @@ using RealmStudioX.WPF.EditorUtilities;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
+using Color = System.Windows.Media.Color;
 using Point = System.Windows.Point;
 
 namespace RealmStudioX.WPF.Views.Celestial
@@ -56,13 +57,16 @@ namespace RealmStudioX.WPF.Views.Celestial
         private double _coronaAnimationAngle;
         private double _coronaRotationRate = 12.0;
 
+        private const double CoronaRadiusScale = 1.02;
+
         private bool _enableCorona = true;
 
         private Quaternion _baseCoronaRotation = Quaternion.Identity;
 
         public override CelestialBodyRendererType Type => CelestialBodyRendererType.Sun;
 
-        public SunCelestialBodyRenderer(Func<CelestialTextureSource?, ImageSource?> textureResolver)
+        public SunCelestialBodyRenderer(
+            Func<CelestialTextureSource?, ImageSource?> textureResolver)
             : base(textureResolver)
         {
             ImageBrush sunBrush = new(SunTexture.Value)
@@ -81,9 +85,14 @@ namespace RealmStudioX.WPF.Views.Celestial
 
             _coronaMaterial = new EmissiveMaterial(_coronaBrush);
 
+            _corona.Geometry = SphereMesh;
+            _corona.Material = _coronaMaterial;
+
+            Material backMaterial = new DiffuseMaterial(_coronaBrush);
+
             _sunSurface.Geometry = SphereMesh;
             _sunSurface.Material = _sunMaterial;
-            _sunSurface.BackMaterial = _sunMaterial;
+            _sunSurface.BackMaterial = backMaterial;
 
             _corona.Geometry = SphereMesh;
             _corona.Material = _coronaMaterial;
@@ -126,7 +135,7 @@ namespace RealmStudioX.WPF.Views.Celestial
                 25.0);
 
             _corona.Transform = CreateStarSurfaceTransform(
-                1.12,
+                CoronaRadiusScale,
                 _baseCoronaRotation);
         }
 
@@ -213,7 +222,7 @@ namespace RealmStudioX.WPF.Views.Celestial
                         wobbleRotationB)));
 
             _corona.Transform = CreateStarSurfaceTransform(
-                1.12,
+                CoronaRadiusScale,
                 coronaRotation);
         }
 

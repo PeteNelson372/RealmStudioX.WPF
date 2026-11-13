@@ -228,6 +228,61 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         // Update the active scene object
         // =============================================================
 
+
+        #region Point Light
+
+        private bool _enablePointLight = true;
+
+        public bool EnablePointLight
+        {
+            get => _enablePointLight;
+            set
+            {
+                if (SetProperty(ref _enablePointLight, value))
+                    UpdateActiveNebula();
+            }
+        }
+
+        private const double MinimumPointLightIntensity = 0.0;
+        private const double MaximumPointLightIntensity = 1.0;
+        private const double DefaultPointLightIntensity = 0.1;
+        private double _pointLightIntensity = DefaultPointLightIntensity;
+
+        public double PointLightIntensity
+        {
+            get => _pointLightIntensity;
+            set
+            {
+                value = double.IsFinite(value)
+                    ? Math.Clamp(value, MinimumPointLightIntensity, MaximumPointLightIntensity)
+                    : DefaultPointLightIntensity;
+
+                if (SetProperty(ref _pointLightIntensity, value))
+                    UpdateActiveNebula();
+            }
+        }
+
+        private const double MinimumPointLightRange = 0.1;
+        private const double MaximumPointLightRange = 100.0;
+        private const double DefaultPointLightRange = 10.0;
+        private double _pointLightRange = DefaultPointLightRange;
+
+        public double PointLightRange
+        {
+            get => _pointLightRange;
+            set
+            {
+                value = double.IsFinite(value)
+                    ? Math.Clamp(value, MinimumPointLightRange, MaximumPointLightRange)
+                    : DefaultPointLightRange;
+
+                if (SetProperty(ref _pointLightRange, value))
+                    UpdateActiveNebula();
+            }
+        }
+
+        #endregion
+
         private void UpdateActiveNebula()
         {
             _updateActiveNebula?.Invoke();

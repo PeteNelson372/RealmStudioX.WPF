@@ -340,12 +340,12 @@ namespace RealmStudioX.WPF.Views.Celestial
                     int next = current + thetaDiv + 1;
 
                     mesh.TriangleIndices.Add(current);
-                    mesh.TriangleIndices.Add(next);
                     mesh.TriangleIndices.Add(current + 1);
+                    mesh.TriangleIndices.Add(next);
 
                     mesh.TriangleIndices.Add(current + 1);
-                    mesh.TriangleIndices.Add(next);
                     mesh.TriangleIndices.Add(next + 1);
+                    mesh.TriangleIndices.Add(next);
                 }
             }
 

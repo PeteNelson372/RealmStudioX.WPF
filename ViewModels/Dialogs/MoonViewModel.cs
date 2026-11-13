@@ -384,6 +384,7 @@ public sealed class MoonViewModel : ViewModelBase
 
         InitializeTextureSettings(body);
         InitializeAnimationSettings(body);
+        InitializePointLightSettings(body);
         InitializeRingSettings(body);
     }
 
@@ -420,6 +421,33 @@ public sealed class MoonViewModel : ViewModelBase
                     MoonTerrestrialModel.MapIdentifier =
                         texture.MapId ?? string.Empty;
                 }
+                break;
+        }
+    }
+
+    private void InitializePointLightSettings(CelestialBody body)
+    {
+        CelestialPointLightSettings settings =
+            body.PointLightSettings ?? new CelestialPointLightSettings();
+
+        switch (body.BodyType)
+        {
+            case CelestialBodyType.Sun:
+                MoonSunModel.EnablePointLight = settings.Enabled;
+                MoonSunModel.PointLightIntensity = settings.Intensity;
+                MoonSunModel.PointLightRange = settings.Range;
+                break;
+
+            case CelestialBodyType.Corona:
+                MoonCoronaModel.EnablePointLight = settings.Enabled;
+                MoonCoronaModel.PointLightIntensity = settings.Intensity;
+                MoonCoronaModel.PointLightRange = settings.Range;
+                break;
+
+            case CelestialBodyType.Nebula:
+                MoonNebulaModel.EnablePointLight = settings.Enabled;
+                MoonNebulaModel.PointLightIntensity = settings.Intensity;
+                MoonNebulaModel.PointLightRange = settings.Range;
                 break;
         }
     }

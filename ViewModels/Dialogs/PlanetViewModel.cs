@@ -343,6 +343,7 @@ public sealed class PlanetViewModel : ViewModelBase
 
         InitializeTextureSettings(body);
         InitializeAnimationSettings(body);
+        InitializePointLightSettings(body);
         InitializeRingSettings(body);
     }
 
@@ -394,6 +395,33 @@ public sealed class PlanetViewModel : ViewModelBase
         PlanetTerrestrialModel.TexturePath = string.Empty;
         PlanetTerrestrialModel.MapIdentifier = mapId;
     });
+
+    private void InitializePointLightSettings(CelestialBody body)
+    {
+        CelestialPointLightSettings settings =
+            body.PointLightSettings ?? new CelestialPointLightSettings();
+
+        switch (body.BodyType)
+        {
+            case CelestialBodyType.Sun:
+                PlanetSunModel.EnablePointLight = settings.Enabled;
+                PlanetSunModel.PointLightIntensity = settings.Intensity;
+                PlanetSunModel.PointLightRange = settings.Range;
+                break;
+
+            case CelestialBodyType.Corona:
+                PlanetCoronaModel.EnablePointLight = settings.Enabled;
+                PlanetCoronaModel.PointLightIntensity = settings.Intensity;
+                PlanetCoronaModel.PointLightRange = settings.Range;
+                break;
+
+            case CelestialBodyType.Nebula:
+                PlanetNebulaModel.EnablePointLight = settings.Enabled;
+                PlanetNebulaModel.PointLightIntensity = settings.Intensity;
+                PlanetNebulaModel.PointLightRange = settings.Range;
+                break;
+        }
+    }
 
     private void InitializeAnimationSettings(CelestialBody body)
     {

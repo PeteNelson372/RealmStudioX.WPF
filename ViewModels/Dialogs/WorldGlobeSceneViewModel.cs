@@ -57,6 +57,8 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
         public CelestialBodyPlacementService BodyPlacementService { get; } = new();
 
+        public CelestialLightingViewModel LightingModel { get; }
+
 
         public WorldGlobeSceneViewModel(MainWindowViewModel mainViewModel, WorldGlobeViewer globeViewer)
         {
@@ -115,6 +117,8 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                     StarViewModel.UpdateCurrentLocalStar();
                 }
             });
+
+            LightingModel = new CelestialLightingViewModel(_globeViewer.UpdateLightingSettings);
 
             // create the view models for sun types before the local star view model,
             // then pass the sun type view models into the local star view model

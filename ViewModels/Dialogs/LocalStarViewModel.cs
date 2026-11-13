@@ -137,7 +137,8 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             }
         }
 
-        private const double PositionLimit = 10.0;
+        private const double PositionLimitXY = 10.0;
+        private const double PositionLimitZ = 100.0;
 
         private double _localStarX = 0.0;
         public double LocalStarX
@@ -162,9 +163,14 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
         private void SetPosition(double x, double y, double z)
         {
-            x = Math.Clamp(double.IsFinite(x) ? x : 0.0, -PositionLimit, PositionLimit);
-            y = Math.Clamp(double.IsFinite(y) ? y : 0.0, -PositionLimit, PositionLimit);
-            z = Math.Clamp(double.IsFinite(z) ? z : 0.0, -PositionLimit, PositionLimit);
+            x = Math.Clamp(double.IsFinite(x) ? x : 0.0,
+                -PositionLimitXY, PositionLimitXY);
+
+            y = Math.Clamp(double.IsFinite(y) ? y : 0.0,
+                -PositionLimitXY, PositionLimitXY);
+
+            z = Math.Clamp(double.IsFinite(z) ? z : 0.0,
+                -PositionLimitZ, PositionLimitZ);
 
             bool changedX = _localStarX != x;
             bool changedY = _localStarY != y;
@@ -234,14 +240,18 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             }
         }
 
-        private double _localStarlightIntensity = 0.1;
+        private double _localStarlightIntensity = 0.5;
 
         public double LocalStarlightIntensity
         {
             get => _localStarlightIntensity;
             set
             {
-                if (SetProperty(ref _localStarlightIntensity, Math.Clamp(value, 0.0, 1.0)))
+                value = double.IsFinite(value)
+                    ? Math.Clamp(value, 0.0, 1.0)
+                    : 0.5;
+
+                if (SetProperty(ref _localStarlightIntensity, value))
                 {
                     UpdateCurrentLocalStar();
                 }
@@ -348,7 +358,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         }
 
         private Point3D CalculateWorldPosition() =>
-            new(LocalStarX, LocalStarY, LocalStarZ);
+            new(-LocalStarX, -LocalStarY, -LocalStarZ);
 
         private CelestialBody CreateLocalStarFromProperties()
         {
@@ -365,7 +375,6 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             CelestialBodyRendererType previousType = _currentLocalStar.RendererType;
 
             CopyPropertiesToCelestialBody(_currentLocalStar);
-
 
             // Keep the model current while hidden, but do not recreate the
             // Local Star in the viewer until the user enables it again.
@@ -406,6 +415,8 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 _terrestrialPlanetModel,
                 StarlightColor,
                 $"Local star of type {SelectedLocalStarType}.");
+
+            star.LightIntensity = LocalStarlightIntensity;
 
             // Preserve user-defined metadata after factory configuration.
             star.Name = LocalStarName;
