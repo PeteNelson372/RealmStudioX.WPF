@@ -1,4 +1,6 @@
-﻿namespace RealmStudioX.WPF.Views.Celestial
+﻿using RealmStudioX.Core;
+
+namespace RealmStudioX.WPF.Views.Celestial
 {
     public interface ICelestialAnimatedObject
     {

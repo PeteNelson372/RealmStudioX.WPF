@@ -294,7 +294,6 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Text="Local Star Type"
@@ -430,36 +429,15 @@
                                             Opacity="0.7"/>
                                 </Button>
 
-                                <TextBlock Text="Light Intensity"
-                                        Grid.Row="7"
-                                        Grid.Column="0"                                               
-                                        Foreground="#FF45443F"
-                                        VerticalAlignment="Center"
-                                        Margin="10,0,0,0"/>
-
-                                <Slider x:Name="StarLightIntensitySlider"
-                                        Grid.Row="7"
-                                        Grid.Column="1"                                             
-                                        Style="{StaticResource ModernSlider}"
-                                        behaviors:SliderToolTipBehavior.EnableFormattedToolTip="True"
-                                        Width="120"
-                                        HorizontalAlignment="Left"
-                                        Minimum="0"
-                                        Maximum="1.0"                                        
-                                        TickFrequency="0.01"
-                                        IsSnapToTickEnabled="True"
-                                        SmallChange="0.01"
-                                        Value="{Binding StarViewModel.LocalStarlightIntensity}"/>
-
                                 <TextBlock
-                                        Grid.Row="8"
+                                        Grid.Row="7"
                                         Grid.Column="0"
                                         Text="Create Local Star"
                                         Foreground="#FF45443F"
                                         VerticalAlignment="Center"
                                         Margin="10,0,0,0"/>
                                 <Button
-                                        Grid.Row="8"
+                                        Grid.Row="7"
                                         Grid.Column="1"                                       
                                         Style="{StaticResource FlatToolButton}"
                                         Width="120"

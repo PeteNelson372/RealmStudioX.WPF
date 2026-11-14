@@ -1,4 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.Core;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
@@ -156,14 +157,20 @@ namespace RealmStudioX.WPF.Views.Celestial
             if (!_root.Children.Contains(_light))
                 _root.Children.Add(_light);
 
-            double intensity = Math.Clamp(Body.LightIntensity, 0.0, 1.0);
-            double range = Math.Max(
-                0.001,
-                double.IsFinite(settings.Range) ? settings.Range : 10.0);
+            double intensity = Math.Clamp(
+                settings.Intensity, 0.0, 1.0);
 
-            byte red = (byte)Math.Clamp(StarColor.R * intensity, 0.0, 255.0);
-            byte green = (byte)Math.Clamp(StarColor.G * intensity, 0.0, 255.0);
-            byte blue = (byte)Math.Clamp(StarColor.B * intensity, 0.0, 255.0);
+            double range = Math.Max(
+                0.001, settings.Range);
+
+            byte red = (byte)Math.Clamp(
+                StarColor.R * intensity, 0.0, 255.0);
+
+            byte green = (byte)Math.Clamp(
+                StarColor.G * intensity, 0.0, 255.0);
+
+            byte blue = (byte)Math.Clamp(
+                StarColor.B * intensity, 0.0, 255.0);
 
             _light.Color = Color.FromRgb(red, green, blue);
             _light.Position = new Point3D(0, 0, 0);

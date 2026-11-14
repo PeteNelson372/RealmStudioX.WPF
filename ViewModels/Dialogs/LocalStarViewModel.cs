@@ -240,24 +240,6 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             }
         }
 
-        private double _localStarlightIntensity = 0.5;
-
-        public double LocalStarlightIntensity
-        {
-            get => _localStarlightIntensity;
-            set
-            {
-                value = double.IsFinite(value)
-                    ? Math.Clamp(value, 0.0, 1.0)
-                    : 0.5;
-
-                if (SetProperty(ref _localStarlightIntensity, value))
-                {
-                    UpdateCurrentLocalStar();
-                }
-            }
-        }
-
         public ICommand CreateLocalStarCommand => new RelayCommand(() =>
         {
             _currentLocalStar = CreateLocalStarFromProperties();
@@ -415,8 +397,6 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                 _terrestrialPlanetModel,
                 StarlightColor,
                 $"Local star of type {SelectedLocalStarType}.");
-
-            star.LightIntensity = LocalStarlightIntensity;
 
             // Preserve user-defined metadata after factory configuration.
             star.Name = LocalStarName;

@@ -1,5 +1,6 @@
 ﻿
 using RealmStudioShapeRenderingLib;
+using RealmStudioX.Core;
 using RealmStudioX.WPF.Views.Celestial.Particles;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;

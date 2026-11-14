@@ -1,4 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.Core;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -110,8 +111,29 @@ namespace RealmStudioX.WPF.Views.Celestial
 
             _lastColor = body.BaseColor;
 
-            _light.Color = ScaleColor(body.BaseColor, 0.1);
-            _light.QuadraticAttenuation = 1.0 / 100.0;
+            CelestialPointLightSettings lightSettings = body.PointLightSettings;
+
+            if (lightSettings.Enabled)
+            {
+                double intensity = Math.Clamp(
+                    lightSettings.Intensity, 0.0, 1.0);
+
+                double range = Math.Max(
+                    0.001, lightSettings.Range);
+
+                _light.Color = ScaleColor(body.BaseColor, intensity);
+
+                _light.ConstantAttenuation = 0.0;
+                _light.LinearAttenuation = 0.0;
+                _light.QuadraticAttenuation = 1.0 / (range * range);
+
+                if (!_root.Children.Contains(_light))
+                    _root.Children.Add(_light);
+            }
+            else
+            {
+                _root.Children.Remove(_light);
+            }
         }
 
         private static NebulaAnimationSettings GetNebulaSettings(

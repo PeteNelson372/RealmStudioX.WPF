@@ -1,4 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.Core;
 using System.Windows.Media.Imaging;
 
 namespace RealmStudioX.WPF.Views.Celestial

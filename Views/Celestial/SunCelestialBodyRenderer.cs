@@ -1,4 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.Core;
 using RealmStudioX.WPF.EditorUtilities;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;

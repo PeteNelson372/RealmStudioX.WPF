@@ -1,11 +1,11 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.Core;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Dialogs;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Celestial;
 using RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels;
-using SkiaSharp;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -243,7 +243,12 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 return;
             }
 
-            _animationController.Advance(renderingArgs.RenderingTime);
+            CelestialAnimationFrame frame =
+                _animationController.Advance(renderingArgs.RenderingTime);
+
+            // Advance the background shader using the same animation time
+            // used by the celestial scene.
+            ModelViewer.AdvanceBackgroundScintillation(frame);
 
             // Keep camera-facing effects oriented toward the viewer.
             UpdateCameraFacingLocalStar();
@@ -253,6 +258,29 @@ namespace RealmStudioX.WPF.Views.Dialogs
         {
             Camera? camera = ModelViewer.Camera;
             _celestialSystemRenderer?.UpdateCamera(camera);
+
+            UpdateLensFlareSource();
+        }
+
+        private void UpdateLensFlareSource()
+        {
+            double aspectRatio = ModelViewer.ViewportAspectRatio;
+
+            if (_localStarNode is null ||
+                !ModelViewer.TryProjectPointToViewport(
+                    _localStarNode.Placement.Center,
+                    out Point sourcePosition))
+            {
+                ViewModel.EffectsModel.UpdateLensFlareSource(
+                    null,
+                    aspectRatio);
+
+                return;
+            }
+
+            ViewModel.EffectsModel.UpdateLensFlareSource(
+                sourcePosition,
+                aspectRatio);
         }
 
         void ICelestialAnimatedObject.AdvanceAnimation(CelestialAnimationFrame frame)
@@ -286,6 +314,20 @@ namespace RealmStudioX.WPF.Views.Dialogs
             }
 
             _celestialSystemRenderer?.AdvanceAnimation(frame);
+        }
+
+        /// <summary>
+        /// Advances the entire scene to an explicit animation time.
+        /// Used for deterministic frame-by-frame rendering and video capture.
+        /// </summary>
+        public void SetAnimationTime(double timeSeconds)
+        {
+            CelestialAnimationFrame frame =
+                _animationController.SetTime(timeSeconds);
+
+            ModelViewer.AdvanceBackgroundScintillation(frame);
+
+            UpdateCameraFacingLocalStar();
         }
 
         void ICelestialAnimatedObject.ResetAnimation()
@@ -347,9 +389,14 @@ namespace RealmStudioX.WPF.Views.Dialogs
                 return;
             }
 
-            // These panels explicitly use the viewer's root viewmodel.
-            if (panel is StarfieldTools or EditPlanetTools or
-                EditMoonTools or PlanetaryMoonsTools or LightingTools)
+            // The Effects panel has its own dedicated ViewModel.
+            if (panel is EffectsTools)
+            {
+                panel.DataContext = ViewModel.EffectsModel;
+            }
+            // These panels explicitly use the viewer's root ViewModel.
+            else if (panel is StarfieldTools or EditPlanetTools or
+                     EditMoonTools or PlanetaryMoonsTools or LightingTools)
             {
                 panel.DataContext = ViewModel;
             }
