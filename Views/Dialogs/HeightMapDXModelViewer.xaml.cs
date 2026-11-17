@@ -7,6 +7,7 @@ using RealmStudioX.WPF.ViewModels.Main;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Media;
 
 namespace RealmStudioX.WPF.Views.Dialogs
 {
@@ -41,6 +42,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             Loaded += (s, e) =>
             {
+                ModelViewer.SetBackgroundColor(Colors.WhiteSmoke);
+
                 HeightMapDXTitleBar.MinimizeClicked += (s, e) => MinimizeHandler();
                 HeightMapDXTitleBar.MaximizeClicked += (s, e) => MaximizeHandler();
                 HeightMapDXTitleBar.ExitClicked += (s, e) => ExitHandler();

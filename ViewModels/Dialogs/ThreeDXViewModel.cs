@@ -12,7 +12,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 {
     public class ThreeDXViewModel(ThreeDXModelViewer modelViewer) : ViewModelBase
     {
-        private ModelViewer3DXControl _modelViewer = modelViewer.ModelViewer;
+        private readonly ModelViewer3DXControl _modelViewer = modelViewer.ModelViewer;
 
         public ICommand OpenModelCommand => new RelayCommand(() =>
         {

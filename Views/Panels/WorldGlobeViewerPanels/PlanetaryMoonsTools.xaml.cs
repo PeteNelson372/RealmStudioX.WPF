@@ -16,7 +16,7 @@ public partial class PlanetaryMoonsTools : UserControl
 
     private void MoonColor_LeftClick(object sender, RoutedEventArgs e)
     {
-        if (DataContext is not WorldGlobeSceneViewModel vm)
+        if (DataContext is not WorldGlobeSceneViewModel vm || vm.CreateMoonModel is null)
             return;
 
         ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(
@@ -28,7 +28,7 @@ public partial class PlanetaryMoonsTools : UserControl
 
     private void MoonColor_RightClick(object sender, RoutedEventArgs e)
     {
-        if (DataContext is not WorldGlobeSceneViewModel vm)
+        if (DataContext is not WorldGlobeSceneViewModel vm || vm.CreateMoonModel is null)
             return;
 
         ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(

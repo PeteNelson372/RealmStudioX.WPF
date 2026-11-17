@@ -1,0 +1,532 @@
+﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX._3D.Views.Controls;
+using RealmStudioX.Infrastructure;
+using RealmStudioX.WPF.EditorUtilities;
+using RealmStudioX.WPF.ViewModels.Infrastructure;
+using RealmStudioX.WPF.ViewModels.Main;
+using RealmStudioX.WPF.Views.Celestial;
+using RealmStudioX.WPF.Views.Dialogs;
+using System.Globalization;
+using System.IO;
+using System.Windows.Input;
+using System.Windows.Media.Imaging;
+using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
+using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
+
+namespace RealmStudioX.WPF.ViewModels.Dialogs
+{
+    public class WorldGlobeScene3DXViewModel : ViewModelBase
+    {
+        private readonly MainWindowViewModel _mainViewModel;
+        public MainWindowViewModel MainViewModel => _mainViewModel;
+
+        private readonly WorldGlobeViewer3DX _globeViewer;
+        public WorldGlobeViewer3DX GlobeViewer => _globeViewer;
+
+        private readonly ModelViewer3DXControl _modelViewer;
+        public ModelViewer3DXControl ModelViewer => _modelViewer;
+
+        private readonly WorldGlobe3DXViewModel _worldGlobeViewModel;
+        public WorldGlobe3DXViewModel WorldGlobeModel => _worldGlobeViewModel;
+
+        private readonly Atmosphere3DXViewModel _atmosphereViewModel;
+        public Atmosphere3DXViewModel AtmosphereModel => _atmosphereViewModel;
+
+        private readonly LocalStar3DXViewModel _localStarViewModel;
+        public LocalStar3DXViewModel StarViewModel => _localStarViewModel;
+
+        private readonly CreatePlanetViewModel _createPlanetViewModel;
+        public CreatePlanetViewModel CreatePlanetModel => _createPlanetViewModel;
+
+        private BlackHoleViewModel _localStarBlackHoleModel;
+        public BlackHoleViewModel LocalStarBlackHoleModel => _localStarBlackHoleModel;
+
+        private NebulaViewModel _localStarNebulaModel;
+        public NebulaViewModel LocalStarNebulaModel => _localStarNebulaModel;
+
+        private CoronaViewModel _localStarCoronaModel;
+        public CoronaViewModel LocalStarCoronaModel => _localStarCoronaModel;
+
+        private SunViewModel _localStarSunModel;
+        public SunViewModel LocalStarSunModel => _localStarSunModel;
+
+        private GasGiantViewModel _localStarGasGiantModel;
+        public GasGiantViewModel LocalStarGasGiantModel => _localStarGasGiantModel;
+
+        private TerrestrialPlanetViewModel _localStarTerrestrialPlanetModel;
+        public TerrestrialPlanetViewModel LocalStarTerrestrialPlanetModel => _localStarTerrestrialPlanetModel;
+
+        public Effects3DXViewModel EffectsModel { get; }
+
+        public CelestialBodyPlacementService BodyPlacementService { get; } = new();
+
+        public CelestialLightingViewModel LightingModel { get; }
+
+
+        public WorldGlobeScene3DXViewModel(MainWindowViewModel mainViewModel, WorldGlobeViewer3DX globeViewer)
+        {
+            _mainViewModel = mainViewModel;
+            _globeViewer = globeViewer;
+            _modelViewer = globeViewer.ModelViewer;
+
+            _worldGlobeViewModel = new(_mainViewModel, _globeViewer);
+            _atmosphereViewModel = new(_mainViewModel, _globeViewer);
+
+            _localStarSunModel = new SunViewModel(() =>
+            {
+                if (StarViewModel.SelectedLocalStarType == CelestialBodyType.Sun)
+                {
+                    StarViewModel.UpdateCurrentLocalStarVisualSettings();
+                }
+            });
+
+            _localStarBlackHoleModel = new BlackHoleViewModel(() =>
+            {
+                if (StarViewModel.SelectedLocalStarType == CelestialBodyType.BlackHole)
+                {
+                    StarViewModel.UpdateCurrentLocalStar();
+                }
+            });
+
+            _localStarNebulaModel = new NebulaViewModel(() =>
+            {
+                if (StarViewModel.SelectedLocalStarType == CelestialBodyType.Nebula)
+                {
+                    StarViewModel.UpdateCurrentLocalStar();
+                }
+            });
+
+
+            _localStarCoronaModel = new CoronaViewModel(() =>
+            {
+                if (StarViewModel.SelectedLocalStarType == CelestialBodyType.Corona)
+                {
+                    StarViewModel.UpdateCurrentLocalStar();
+                }
+            });
+
+            _localStarGasGiantModel = new GasGiantViewModel(() =>
+            {
+                if (StarViewModel.SelectedLocalStarType == CelestialBodyType.GasGiant)
+                {
+                    StarViewModel.UpdateCurrentLocalStar();
+                }
+            });
+
+            _localStarTerrestrialPlanetModel = new TerrestrialPlanetViewModel(() =>
+            {
+                if (StarViewModel.SelectedLocalStarType == CelestialBodyType.TerrestrialPlanet)
+                {
+                    StarViewModel.UpdateCurrentLocalStar();
+                }
+            });
+
+            LightingModel = new CelestialLightingViewModel(_globeViewer.UpdateLightingSettings);
+
+            EffectsModel = new Effects3DXViewModel(_modelViewer);
+
+            // create the view models for sun types before the local star view model,
+            // then pass the sun type view models into the local star view model
+
+            _localStarViewModel = new(_globeViewer, _localStarBlackHoleModel,
+                _localStarNebulaModel, _localStarCoronaModel,
+                _localStarSunModel, _localStarGasGiantModel, _localStarTerrestrialPlanetModel);
+
+            _createPlanetViewModel = new(_globeViewer.AddPlanet, _mainViewModel.MapObjectDescriptionService, SelectProjectMap);
+        }
+
+
+        private PlanetViewModel? _planetModel;
+        public PlanetViewModel? PlanetModel
+        {
+            get => _planetModel;
+            private set => SetProperty(ref _planetModel, value);
+        }
+
+        private CreateMoonViewModel? _createMoonModel;
+        public CreateMoonViewModel? CreateMoonModel
+        {
+            get => _createMoonModel;
+            private set => SetProperty(ref _createMoonModel, value);
+        }
+
+        private MoonViewModel? _moonModel;
+        public MoonViewModel? MoonModel
+        {
+            get => _moonModel;
+            private set => SetProperty(ref _moonModel, value);
+        }
+
+        public Func<Task<byte[]>>? CaptureWindowAsync { get; set; }
+
+        public ICommand CaptureImageCommand => new RelayCommand(async () =>
+        {
+            SaveFileDialog dialog = new()
+            {
+                DefaultExt = ".png",
+                AddExtension = true,
+                CheckFileExists = false,
+                OverwritePrompt = true,
+                Filter = UserInterfaceUtilities.GetCommonImageFilter(),
+                Title = "Save World Globe Snapshot",
+                FilterIndex = 3
+            };
+
+            if (dialog.ShowDialog() != true)
+                return;
+
+            if (CaptureWindowAsync == null)
+                return;
+
+            byte[] png = await CaptureWindowAsync();
+
+            BitmapImage frameBitmap = new();
+
+            using (MemoryStream stream = new(png))
+            {
+                frameBitmap.BeginInit();
+                frameBitmap.CacheOption = BitmapCacheOption.OnLoad;
+                frameBitmap.StreamSource = stream;
+                frameBitmap.EndInit();
+                frameBitmap.Freeze();
+            }
+
+            BitmapEncoder encoder = Path.GetExtension(dialog.FileName)
+                .ToLower(CultureInfo.CurrentCulture) switch
+            {
+                ".jpg" or ".jpeg" or ".jfif" or ".jpe" =>
+                    new JpegBitmapEncoder { QualityLevel = 100 },
+
+                ".bmp" or ".dib" or ".rle" =>
+                    new BmpBitmapEncoder(),
+
+                ".gif" =>
+                    new GifBitmapEncoder(),
+
+                _ =>
+                    new PngBitmapEncoder()
+            };
+
+            encoder.Frames.Add(BitmapFrame.Create(frameBitmap));
+
+            using FileStream fs = new(
+                dialog.FileName,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None);
+
+            encoder.Save(fs);
+        });
+
+        /// <summary>
+        /// Opens the project-map picker without changing the active editor map.
+        /// Returns null when the user cancels the selection.
+        /// </summary>
+        private string? SelectProjectMap(string? currentMapId)
+        {
+            RealmStudioProject? project =
+                _mainViewModel.ProjectManager.CurrentProject;
+
+            if (project is null)
+                return null;
+
+            MapSelectionDialog dialog = new(
+                project,
+                _mainViewModel.CommandService,
+                currentMapId,
+                _globeViewer);
+
+            return dialog.ShowDialog() == true
+                ? dialog.SelectedMapId
+                : null;
+        }
+
+        public void SelectMoonParent(CelestialBodyNode parent)
+        {
+            ArgumentNullException.ThrowIfNull(parent);
+            PlanetModel = null;
+            MoonModel = null;
+            CreateMoonModel = new CreateMoonViewModel(
+                parent,
+                _globeViewer.AddMoon,
+                _mainViewModel.MapObjectDescriptionService,
+                SelectProjectMap);
+        }
+
+        public void SelectMoon(CelestialBodyNode moon)
+        {
+            ArgumentNullException.ThrowIfNull(moon);
+            PlanetModel = null;
+            CreateMoonModel = null;
+            MoonModel = new MoonViewModel(
+                moon,
+                _globeViewer.UpdateMoon,
+                _globeViewer.RemoveMoon,
+                _mainViewModel.MapObjectDescriptionService,
+                SelectProjectMap);
+        }
+
+        public void SelectPlanet(CelestialBodyNode planet)
+        {
+            MoonModel = null;
+            CreateMoonModel = null;
+            PlanetModel = new PlanetViewModel(
+                planet,
+                _globeViewer.UpdatePlanet,
+                _globeViewer.RemovePlanet,
+                _mainViewModel.MapObjectDescriptionService,
+                SelectProjectMap);
+        }
+
+        public void ClearSelectedPlanet()
+        {
+            PlanetModel = null;
+            MoonModel = null;
+            CreateMoonModel = null;
+        }
+
+        private string starfieldFileName = string.Empty;
+
+        private bool _enableStarfield = true;
+        public bool EnableStarfield
+        {
+            get => _enableStarfield;
+            set => _enableStarfield = value;
+        }
+
+
+        private bool _enableAnimation;
+
+        public bool EnableAnimation
+        {
+            get => _enableAnimation;
+            set
+            {
+                if (!SetProperty(ref _enableAnimation, value))
+                {
+                    return;
+                }
+
+                GlobeViewer?.SetAnimationEnabled(value);
+            }
+        }
+
+        public ICommand ToggleStarfield => new RelayCommand(() =>
+        {
+            if (EnableStarfield && !string.IsNullOrEmpty(starfieldFileName))
+            {
+                SetBackground(starfieldFileName);
+            }
+            else
+            {
+                ModelViewer.SetBackgroundColor(WorldGlobeViewer3DX.DefaultSpaceColor);
+            }
+        });
+
+        public ICommand SelectBackgroundFileCommand => new RelayCommand(() =>
+        {
+            string starfieldDirectory = Path.Combine(ApplicationPreferences.Current.RootAssetDirectory, "Textures", "Starfields");
+
+            OpenFileDialog dialog = new()
+            {
+                Title = "Select Star Field Image File",
+                Filter = UserInterfaceUtilities.GetCommonImageFilter(),
+                Multiselect = false,
+                InitialDirectory = starfieldDirectory,
+                CheckFileExists = true
+            };
+
+            bool? result = dialog.ShowDialog();
+
+            if (result == true)
+            {
+                starfieldFileName = dialog.FileName;
+
+                if (EnableStarfield)
+                {
+                    SetBackground(starfieldFileName);
+                }
+            }
+        });
+
+        public void SetBackground(string backgroundFile)
+        {
+            if (string.IsNullOrEmpty(backgroundFile) || !File.Exists(backgroundFile))
+            {
+                throw new ArgumentException("Background file is empty or does not exist", nameof(backgroundFile));
+            }
+
+            BitmapImage bitmap = new();
+
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.UriSource = new Uri(backgroundFile, UriKind.Absolute);
+            bitmap.EndInit();
+            bitmap.Freeze();
+
+            ModelViewer.SetBackground(bitmap);
+        }
+
+        public ICommand SelectTextureFileCommand => new RelayCommand(() =>
+        {
+            string planetTextureDirectory = Path.Combine(
+                ApplicationPreferences.Current.RootAssetDirectory,
+                "Textures",
+                "Planet");
+
+            OpenFileDialog dialog = new()
+            {
+                Title = "Select Planet Texture Image File",
+                Filter = UserInterfaceUtilities.GetCommonImageFilter(),
+                Multiselect = false,
+                InitialDirectory = planetTextureDirectory,
+                CheckFileExists = true
+            };
+
+            bool? result = dialog.ShowDialog();
+
+            if (result == true)
+            {
+                _globeViewer.SetWorldGlobeBitmapTexture(dialog.FileName);
+            }
+        });
+
+        public ICommand SelectWorldGlobeMapTextureCommand => new RelayCommand(() =>
+        {
+            string? currentMapId = _globeViewer.WorldGlobeMapId;
+
+            string? mapId = SelectProjectMap(currentMapId);
+
+            if (string.IsNullOrWhiteSpace(mapId))
+                return;
+
+            _globeViewer.SetWorldGlobeMapTexture(mapId);
+        });
+
+        public ICommand ClearTextureCommand => new RelayCommand(() =>
+        {
+            // reset the world globe to the default texture
+            // created from the selected map
+
+            _globeViewer.CreateGlobe();
+        });
+
+        public ICommand ResetCameraCommand => new RelayCommand(() =>
+        {
+            ResetModelViewerDefaults();
+            _modelViewer.ResetCamera();
+
+            _globeViewer.ResetGlobeView();
+        });
+
+        private void ResetModelViewerDefaults()
+        {
+            ShowViewCube = false;
+            ShowCoordinateSystem = false;
+        }
+
+        private bool _showViewCube = false;
+
+        public bool ShowViewCube
+        {
+            get => _showViewCube;
+            set
+            {
+                if (_showViewCube != value)
+                {
+                    _showViewCube = value;
+                    _modelViewer.ShowViewCube(_showViewCube);
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public ICommand ShowViewCubeCommand => new RelayCommand(() =>
+        {
+            ShowViewCube = !ShowViewCube;
+        });
+
+        private bool _showCoordinateSystem = false;
+
+        public bool ShowCoordinateSystem
+        {
+            get => _showCoordinateSystem;
+            set
+            {
+                if (_showCoordinateSystem != value)
+                {
+                    _showCoordinateSystem = value;
+                    _modelViewer.ShowCoordinateSystem(_showCoordinateSystem);
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public ICommand ShowCoordinateSystemCommand => new RelayCommand(() =>
+        {
+            ShowCoordinateSystem = !ShowCoordinateSystem;
+        });
+
+        public ICommand ChangeAxisCommand => new RelayCommand(() =>
+        {
+            if (_modelViewer.CurrentUpDirection == ModelUpDirection.XUp)
+            {
+                _modelViewer.SetUpDirection(ModelUpDirection.YUp);
+            }
+            else if (_modelViewer.CurrentUpDirection == ModelUpDirection.YUp)
+            {
+                _modelViewer.SetUpDirection(ModelUpDirection.ZUp);
+            }
+            else if (_modelViewer.CurrentUpDirection == ModelUpDirection.ZUp)
+            {
+                _modelViewer.SetUpDirection(ModelUpDirection.XUp);
+            }
+        });
+
+        public ICommand SetXUpCommand => new RelayCommand(() =>
+        {
+            _modelViewer.SetUpDirection(ModelUpDirection.XUp);
+        });
+
+        public ICommand SetYUpCommand => new RelayCommand(() =>
+        {
+            _modelViewer.SetUpDirection(ModelUpDirection.YUp);
+        });
+
+        public ICommand SetZUpCommand => new RelayCommand(() =>
+        {
+            _modelViewer.SetUpDirection(ModelUpDirection.ZUp);
+        });
+
+        public ICommand ViewFrontCommand => new RelayCommand(() =>
+        {
+            _modelViewer.SetCameraView(ModelViewDirection.Front);
+        });
+
+        public ICommand ViewBackCommand => new RelayCommand(() =>
+        {
+            _modelViewer.SetCameraView(ModelViewDirection.Back);
+        });
+
+        public ICommand ViewLeftCommand => new RelayCommand(() =>
+        {
+            _modelViewer.SetCameraView(ModelViewDirection.Left);
+        });
+
+        public ICommand ViewRightCommand => new RelayCommand(() =>
+        {
+            _modelViewer.SetCameraView(ModelViewDirection.Right);
+        });
+
+        public ICommand ViewTopCommand => new RelayCommand(() =>
+        {
+            _modelViewer.SetCameraView(ModelViewDirection.Top);
+        });
+
+        public ICommand ViewBottomCommand => new RelayCommand(() =>
+        {
+            _modelViewer.SetCameraView(ModelViewDirection.Bottom);
+        });
+    }
+
+}

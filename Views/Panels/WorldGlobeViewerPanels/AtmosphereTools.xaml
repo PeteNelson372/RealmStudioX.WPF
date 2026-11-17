@@ -109,7 +109,7 @@
                                         Minimum="0"
                                         Maximum="150"
                                         AutoToolTipPlacement="TopLeft"
-                                        ToolTip="{Binding AtmosphereModel.AtmosphereDensity, StringFormat={}{0:F1}}"                                            
+                                        ToolTip="{Binding AtmosphereModel.AtmosphereAltitude, StringFormat={}{0:F1}}"                                            
                                         Value="{Binding AtmosphereModel.AtmosphereAltitude}"/>
 
                                     <TextBlock

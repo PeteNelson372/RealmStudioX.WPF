@@ -95,8 +95,6 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         public void UpdateCurrentTiltAngle(double angle)
         {
             CurrentTiltAngle = Math.Clamp(angle, 0.0, 90.0);
-
-            System.Diagnostics.Debug.WriteLine($"CurrentTiltAngle UpdateCurrentTiltAngle: {CurrentTiltAngle:F1}");
         }
 
         private WorldRotationDirection _rotationDirection = WorldRotationDirection.Prograde;

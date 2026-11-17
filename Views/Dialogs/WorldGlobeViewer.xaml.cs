@@ -6,10 +6,12 @@ using RealmStudioX.WPF.ViewModels.Dialogs;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Celestial;
 using RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
@@ -46,10 +48,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
         public static readonly int[] SupportedFrameRates =
             [
-                15, 24, 25, 30, 50, 60
+                15, 24, 25, 30, 50, 60, 120
             ];
-
-        private const int GlobeTextureEdgeInset = 3;
 
         private readonly AxisAngleRotation3D _globeYaw = new(new Vector3D(0, 1, 0), 0);
 
@@ -120,6 +120,17 @@ namespace RealmStudioX.WPF.Views.Dialogs
             ViewModel = new WorldGlobeSceneViewModel(mainViewModel, this);
 
             DataContext = ViewModel;
+
+            if (DataContext is WorldGlobeSceneViewModel viewModel)
+            {
+                ViewModel.CaptureWindowAsync = () =>
+                {
+                    IntPtr hwnd = new WindowInteropHelper(this).Handle;
+
+                    return WindowsGraphicsCaptureService
+                        .CaptureWindowPngAsync(hwnd);
+                };
+            }
 
             WorldGlobeViewerTitleBar.DataContext = ViewModel;
 
@@ -335,9 +346,9 @@ namespace RealmStudioX.WPF.Views.Dialogs
             _celestialSystemRenderer?.ResetAnimation();
         }
 
-        private void ShowHideAnimationTimeline(object sender, RoutedEventArgs e)
+        private void ShowHideVideoPanel(object sender, RoutedEventArgs e)
         {
-            AnimationTimelineExpander.IsExpanded = !AnimationTimelineExpander.IsExpanded;
+            VideoPanelExpander.IsExpanded = !VideoPanelExpander.IsExpanded;
         }
 
         private void SceneTree_SelectedItemChanged(

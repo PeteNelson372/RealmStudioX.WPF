@@ -15,7 +15,7 @@ namespace RealmStudioX.WPF.Views.Celestial
 
         private double _updateRate = 30.0;
 
-        private double TextureUpdateInterval => 1.0 / _updateRate;
+        private double _textureUpdateInterval = 1.0 / 30.0;
 
         private readonly WriteableBitmap _texture;
         private readonly byte[] _pixels;
@@ -37,7 +37,7 @@ namespace RealmStudioX.WPF.Views.Celestial
             BitmapSource sourceTexture,
             bool enabled,
             double intensity,
-            double updateRate = 30.0)
+            double updateRate)
         {
             _texture = new WriteableBitmap(
                 TextureWidth,
@@ -86,7 +86,10 @@ namespace RealmStudioX.WPF.Views.Celestial
                     : 0.0);
         }
 
-        public void Update(bool enabled, double intensity, double updateRate = 30.0)
+        public void Update(
+            bool enabled,
+            double intensity,
+            double updateRate)
         {
             _enabled = enabled;
 
@@ -94,9 +97,11 @@ namespace RealmStudioX.WPF.Views.Celestial
                 ? Math.Clamp(intensity, 0.0, 1.0)
                 : 0.2;
 
-            _updateRate = double.IsFinite(updateRate)
-                ? Math.Clamp(updateRate, MinimumUpdateRate, MaximumUpdateRate)
+            updateRate = double.IsFinite(updateRate)
+                ? Math.Clamp(updateRate, 1.0, 60.0)
                 : 30.0;
+
+            _textureUpdateInterval = 1.0 / updateRate;
 
             _textureModified = true;
         }
@@ -107,7 +112,7 @@ namespace RealmStudioX.WPF.Views.Celestial
                 return;
 
             if (!_textureModified &&
-                frame.TimeSeconds - _lastTextureUpdateTime < TextureUpdateInterval)
+                frame.TimeSeconds - _lastTextureUpdateTime < _textureUpdateInterval)
             {
                 return;
             }

@@ -42,7 +42,6 @@ namespace RealmStudioX.WPF.Editor.Tools
 
         private Landform? _activeLandform;
         private SKPoint _lastMouseWorld;
-        private bool _painting;
         private bool disposedValue;
 
 
@@ -136,7 +135,6 @@ namespace RealmStudioX.WPF.Editor.Tools
                     _commands.Execute(_activeModifyCommand);
                 }
 
-                _painting = false;
                 _activeLandform = null;
                 _activeModifyCommand = null;
                 _modifiedLandforms.Clear();
@@ -205,8 +203,6 @@ namespace RealmStudioX.WPF.Editor.Tools
             _activeModifyCommand?.RegisterNewLandform(_activeLandform);
 
             _modifiedLandforms.Add(_activeLandform);
-
-            _painting = true;
         }
 
         public void ContinuePaint(SKPoint worldPos)

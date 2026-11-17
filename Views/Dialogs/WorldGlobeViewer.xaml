@@ -209,7 +209,8 @@
                         Background="#FFEAE7E1"
                         Padding="12,4"
                         Margin="12,0,8,0"
-                        ToolTip="Capture the current viewport">
+                        ToolTip="Capture the current viewport"
+                        Command="{Binding CaptureImageCommand}">
                         <StackPanel Orientation="Horizontal">
                             <materialDesign:PackIcon Kind="CameraOutline"
                                      HorizontalAlignment="Left"
@@ -262,47 +263,23 @@
                         Background="#FFEAE7E1"
                         Padding="12,4"
                         Margin="12,0,8,0"
-                        ToolTip="Show the animation timeline"
-                        Click="ShowHideAnimationTimeline">
+                        ToolTip="Show the video panel"
+                        Click="ShowHideVideoPanel">
                         <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="AnimationOutline"
+                            <materialDesign:PackIcon Kind="VideoOutline"
                                      HorizontalAlignment="Left"
                                      VerticalAlignment="Center"
+                                     Foreground="Green"
                                      Margin="0,0,3,0"
                                      Width="18"
                                      Height="18"
                                      Opacity="0.7"/>
 
-                            <TextBlock Text="Animation"
+                            <TextBlock Text="Capture Video"
                                FontSize="12"
                                Foreground="#FF45443F"
                                HorizontalAlignment="Center"
                                Margin="0,0,0,3"/>
-
-                        </StackPanel>
-                    </Button>
-
-                    <Button
-                        Style="{StaticResource FlatToolButton}"
-                        Background="#FFEAE7E1"
-                        Padding="12,4"
-                        Margin="12,0,30,0"
-                        ToolTip="Configure and record an animation">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="VideoOutline"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"
-                                    Foreground="Green"
-                                    Margin="0,0,3,0"
-                                    Width="18"
-                                    Height="18"
-                                    Opacity="0.7"/>
-
-                            <TextBlock Text="Record Video"
-                            FontSize="12"
-                            Foreground="#FF45443F"
-                            HorizontalAlignment="Center"
-                            Margin="0,0,0,3"/>
 
                         </StackPanel>
                     </Button>
@@ -606,9 +583,9 @@
                                                 RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"/>
                                     </StackPanel>
                                 </TreeViewItem.Header>
-                                
+
                             </TreeViewItem>
-                            
+
                         </TreeViewItem>
 
                         <TreeViewItem IsExpanded="True" Margin="0,2,0,0" Tag="Lighting">
@@ -704,9 +681,9 @@
                 <!-- ============================================= -->
 
                 <Expander
-                    x:Name="AnimationTimelineExpander"
+                    x:Name="VideoPanelExpander"
                     Grid.Row="1"
-                    Header="Animation Timeline"
+                    Header="Video Panel"
                     IsExpanded="False"
                     MaxHeight="240"
                     Margin="0,6,0,0"
@@ -722,14 +699,44 @@
 
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="42*"/>
+                                <ColumnDefinition Width="191*"/>
+                                <ColumnDefinition Width="233*"/>
                             </Grid.ColumnDefinitions>
+                            
+                            
+                            
                             <!-- Playback controls -->
                             <StackPanel
                                 Grid.Column="0"
                                 Orientation="Horizontal"
-                                Margin="0,0,0,10">
+                                Margin="0,0,0,10" Grid.ColumnSpan="2">
+
+                                <Button
+                                    Style="{StaticResource FlatToolButton}"
+                                    Background="#FFEAE7E1"
+                                    Padding="12,4"
+                                    Margin="0,0,30,0"
+                                    ToolTip="Configure video capture and record video">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="Video"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            Foreground="Green"
+                                            Margin="0,0,5,0"
+                                            Width="20"
+                                            Height="24"
+                                            Opacity="0.7"/>
+
+                                        <TextBlock Text="Record Video"
+                                            FontSize="12"
+                                            Foreground="#FF45443F"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Center"
+                                            Margin="0,0,0,0"/>
+
+                                    </StackPanel>
+                                </Button>
 
                                 <Button
                                     Style="{StaticResource FlatToolButton}"
@@ -754,7 +761,7 @@
                                     Background="#FFEAE7E1"
                                     Padding="12,4"
                                     Margin="0,0,4,0"
-                                    ToolTip="Play the animation">
+                                    ToolTip="Play the video">
                                     <StackPanel Orientation="Horizontal">
                                         <materialDesign:PackIcon Kind="Play"
                                          HorizontalAlignment="Left"
@@ -772,9 +779,27 @@
                                     Background="#FFEAE7E1"
                                     Padding="12,4"
                                     Margin="0,0,4,0"
-                                    ToolTip="Stop the animation">
+                                    ToolTip="Stop the video playback">
                                     <StackPanel Orientation="Horizontal">
                                         <materialDesign:PackIcon Kind="Stop"
+                                         HorizontalAlignment="Left"
+                                         VerticalAlignment="Center"
+                                         Margin="0,0,3,0"
+                                         Width="24"
+                                         Height="24"
+                                         Opacity="0.7"/>
+
+                                    </StackPanel>
+                                </Button>
+
+                                <Button
+                                    Style="{StaticResource FlatToolButton}"
+                                    Background="#FFEAE7E1"
+                                    Padding="12,4"
+                                    Margin="0,0,4,0"
+                                    ToolTip="Go to the end">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="SkipForwardOutline"
                                          HorizontalAlignment="Left"
                                          VerticalAlignment="Center"
                                          Margin="0,0,3,0"
@@ -797,10 +822,10 @@
                             </StackPanel>
 
                             <StackPanel
-                                Grid.Column="1"
+                                Grid.Column="2"
                                 Orientation="Horizontal"
                                 HorizontalAlignment="Right"
-                                Margin="10,0,10,10">
+                                Margin="0,0,10,10">
 
                                 <TextBlock Text="Frame Rate"
                                    VerticalAlignment="Center"

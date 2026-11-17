@@ -11,7 +11,7 @@
         public double OuterRadiusScale { get; set; } = 2.0;
 
         // Inclination relative to the host body's equatorial plane.
-        public double Inclination { get; set; }
+        public double Inclination { get; set; } = 2.0;
 
         public PlanetaryRingSettings Clone() => new()
         {

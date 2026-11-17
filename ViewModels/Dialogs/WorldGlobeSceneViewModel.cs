@@ -7,10 +7,12 @@ using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Celestial;
 using RealmStudioX.WPF.Views.Dialogs;
 using SkiaSharp;
+using System.Globalization;
 using System.IO;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
+using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 namespace RealmStudioX.WPF.ViewModels.Dialogs
 {
@@ -155,6 +157,67 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             get => _moonModel;
             private set => SetProperty(ref _moonModel, value);
         }
+
+        public Func<Task<byte[]>>? CaptureWindowAsync { get; set; }
+
+        public ICommand CaptureImageCommand => new RelayCommand(async () =>
+        {
+            SaveFileDialog dialog = new()
+            {
+                DefaultExt = ".png",
+                AddExtension = true,
+                CheckFileExists = false,
+                OverwritePrompt = true,
+                Filter = UserInterfaceUtilities.GetCommonImageFilter(),
+                Title = "Save World Globe Snapshot",
+                FilterIndex = 3
+            };
+
+            if (dialog.ShowDialog() != true)
+                return;
+
+            if (CaptureWindowAsync == null)
+                return;
+
+            byte[] png = await CaptureWindowAsync();
+
+            BitmapImage frameBitmap = new();
+
+            using (MemoryStream stream = new(png))
+            {
+                frameBitmap.BeginInit();
+                frameBitmap.CacheOption = BitmapCacheOption.OnLoad;
+                frameBitmap.StreamSource = stream;
+                frameBitmap.EndInit();
+                frameBitmap.Freeze();
+            }
+
+            BitmapEncoder encoder = Path.GetExtension(dialog.FileName)
+                .ToLower(CultureInfo.CurrentCulture) switch
+            {
+                ".jpg" or ".jpeg" or ".jfif" or ".jpe" =>
+                    new JpegBitmapEncoder { QualityLevel = 100 },
+
+                ".bmp" or ".dib" or ".rle" =>
+                    new BmpBitmapEncoder(),
+
+                ".gif" =>
+                    new GifBitmapEncoder(),
+
+                _ =>
+                    new PngBitmapEncoder()
+            };
+
+            encoder.Frames.Add(BitmapFrame.Create(frameBitmap));
+
+            using FileStream fs = new(
+                dialog.FileName,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None);
+
+            encoder.Save(fs);
+        });
 
         /// <summary>
         /// Opens the project-map picker without changing the active editor map.
