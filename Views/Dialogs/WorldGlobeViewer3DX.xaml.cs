@@ -13,7 +13,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
@@ -201,6 +200,17 @@ namespace RealmStudioX.WPF.Views.Dialogs
             {
                 ViewModel.AtmosphereModel.UseDefaultCloudTexture = true;
                 RefreshCloudLayer();
+            }
+
+            ModelViewer.SetDefaultLightingEnabled(false);
+
+            if (_lightingSettings != null)
+            {
+                _lightingSettings.AmbientLightIntensity = 0.1;
+                _lightingSettings.AmbientLightColor = Colors.White;
+                _lightingSettings.EnableAmbientLight = true;
+
+                UpdateLightingSettings(_lightingSettings);
             }
 
             _animationController.Register(this);
@@ -676,8 +686,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
         /// Initializes the World Globe's celestial body and scene data.
         /// The texture is resolved through CelestialTextureResolver.
         /// </summary>
-        private void InitializeWorldGlobeScene(
-            CelestialTextureSource textureSource)
+        private void InitializeWorldGlobeScene(CelestialTextureSource textureSource)
         {
             ArgumentNullException.ThrowIfNull(textureSource);
 
@@ -1257,10 +1266,37 @@ namespace RealmStudioX.WPF.Views.Dialogs
             }
         }
 
+
         public void UpdateLightingSettings(CelestialLightingSettings settings)
         {
-            _lightingSettings = settings ?? throw new ArgumentNullException(nameof(settings));
+            ArgumentNullException.ThrowIfNull(settings);
+
+            _lightingSettings = settings;
+
+            double intensity = double.IsFinite(settings.AmbientLightIntensity)
+                ? Math.Clamp(settings.AmbientLightIntensity, 0.0, 1.0)
+                : 0.0;
+
+            Color source = settings.AmbientLightColor;
+
+            Color adjustedColor = Color.FromRgb(
+                ScaleLightChannel(source.R, intensity),
+                ScaleLightChannel(source.G, intensity),
+                ScaleLightChannel(source.B, intensity));
+
+            ModelViewer.SetAmbientLight(
+                adjustedColor,
+                settings.EnableAmbientLight);
         }
+
+        private static byte ScaleLightChannel(byte channel, double intensity)
+        {
+            return (byte)Math.Clamp(
+                Math.Round(channel * intensity),
+                0.0,
+                255.0);
+        }
+
 
         private void ExitHandler()
         {

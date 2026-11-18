@@ -169,6 +169,89 @@ internal sealed class PlanetCelestialBodyRenderer3DX :
         _activityScaleTransform.ScaleZ = size;
     }
 
+    private void UpdateSurfaceMaterial2(CelestialTextureSource? textureSource)
+    {
+        if (_body is null)
+            return;
+
+        BitmapSource? texture = _textureResolver(textureSource);
+
+        TextureModel? textureModel = texture is not null
+            ? _textureModelFactory(texture)
+            : null;
+
+        bool hasTexture = textureModel is not null;
+
+        PhongMaterial material = new()
+        {
+            // No diffuse contribution.
+            DiffuseColor = hasTexture
+                ? new Color4(0.0f, 0.0f, 0.0f, 1.0f)
+                : ToColor4(_body.BaseColor),
+
+            // No ambient contribution.
+            //AmbientColor = new Color4(0.5f, 0.5f, 0.5f, 1.0f),
+
+            // The emissive map should reproduce the bitmap's colors.
+            EmissiveColor = hasTexture
+                ? new Color4(0.75f, 0.75f, 0.75f, 1.0f)
+                : new Color4(0.0f, 0.0f, 0.0f, 1.0f),
+
+            RenderEmissiveMap = hasTexture,
+
+            // No specular contribution.
+            SpecularColor = new Color4(0.0f, 0.0f, 0.0f, 1.0f),
+            SpecularShininess = 20.0f
+        };
+
+        if (textureModel is not null)
+        {
+            // Assign ONLY the emissive map.
+            material.EmissiveMap = textureModel;
+        }
+
+        _surfaceModel.Material = material;
+    }
+
+    private void UpdateSurfaceMaterial3(CelestialTextureSource? textureSource)
+    {
+        if (_body is null)
+            return;
+
+        BitmapSource? texture = _textureResolver(textureSource);
+
+        TextureModel? textureModel = texture is not null
+            ? _textureModelFactory(texture)
+            : null;
+
+        bool hasTexture = textureModel is not null;
+
+        PhongMaterial material = new()
+        {
+            // No diffuse contribution.
+            DiffuseColor = new Color4(1f, 1f, 1f, 1.0f),
+
+            // Ambient contribution.
+            AmbientColor = new Color4(0.8f, 0.8f, 0.8f, 1.0f),
+
+
+            //RenderEmissiveMap = hasTexture,
+
+            // No specular contribution.
+            SpecularColor = new Color4(0.0f, 0.0f, 0.0f, 1.0f),
+            SpecularShininess = 20.0f
+        };
+
+        if (textureModel is not null)
+        {
+            // Assign ONLY the diffuse map.
+            material.DiffuseMap = textureModel;
+            material.RenderDiffuseMap = true;
+        }
+
+        _surfaceModel.Material = material;
+    }
+
     private void UpdateSurfaceMaterial(CelestialTextureSource? textureSource)
     {
         if (_body is null)
@@ -176,17 +259,31 @@ internal sealed class PlanetCelestialBodyRenderer3DX :
 
         BitmapSource? texture = _textureResolver(textureSource);
 
-        PhongMaterial material = new()
+        TextureModel? textureModel = texture is not null
+            ? _textureModelFactory(texture)
+            : null;
+
+        bool hasTexture = textureModel is not null;
+
+        PBRMaterial material = new()
         {
-            DiffuseColor = ToColor4(_body.BaseColor),
-            AmbientColor = new Color4(0.1f, 0.1f, 0.1f, 1.0f),
-            SpecularColor = new Color4(0.15f, 0.15f, 0.15f, 1.0f),
-            SpecularShininess = 20.0f
+            // Base surface color. White allows the texture's original
+            // colors to pass through without color tinting.
+            AlbedoColor = new Color4(0.25f, 0.25f, 0.25f, 1f),
+
+            // A non-metallic, relatively matte planetary surface.
+            MetallicFactor = 0.0,
+            RoughnessFactor = 0.0
         };
 
-        if (texture is not null)
+        if (textureModel is not null)
         {
-            material.DiffuseMap = _textureModelFactory(texture);
+            material.AlbedoMap = textureModel;
+            material.RenderAlbedoMap = true;
+
+            material.EmissiveMap = textureModel;
+            material.RenderEmissiveMap = true;
+            material.EmissiveColor = new Color4(1f, 1f, 1f, 0f);
         }
 
         _surfaceModel.Material = material;
