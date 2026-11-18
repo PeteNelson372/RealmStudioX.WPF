@@ -20,7 +20,7 @@ namespace RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels
 
         private void AtmosphereColor_LeftClick(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (DataContext is not WorldGlobeScene3DXViewModel vm)
+            if (DataContext is not WorldGlobeSceneViewModel vm)
                 return;
 
             ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.AtmosphereModel.AtmosphereColor, Window.GetWindow(this));
@@ -37,7 +37,7 @@ namespace RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels
 
         private void AtmosphereColor_RightClick(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (DataContext is not WorldGlobeScene3DXViewModel vm)
+            if (DataContext is not WorldGlobeSceneViewModel vm)
                 return;
 
             ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.AtmosphereModel.AtmosphereColor, Window.GetWindow(this), (Button)sender);
@@ -59,7 +59,7 @@ namespace RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels
 
         private void CloudColor_LeftClick(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (DataContext is not WorldGlobeScene3DXViewModel vm)
+            if (DataContext is not WorldGlobeSceneViewModel vm)
                 return;
 
             ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.AtmosphereModel.CloudColor, Window.GetWindow(this));
@@ -76,7 +76,7 @@ namespace RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels
 
         private void CloudColor_RightClick(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (DataContext is not WorldGlobeScene3DXViewModel vm)
+            if (DataContext is not WorldGlobeSceneViewModel vm)
                 return;
 
             ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.AtmosphereModel.CloudColor, Window.GetWindow(this), (Button)sender);

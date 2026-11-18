@@ -771,12 +771,6 @@ namespace RealmStudioX.WPF.ViewModels.Main
             globeViewer.Show();
         });
 
-        public ICommand DisplayWorldGlobe3DXCommand => new RelayCommand(() =>
-        {
-            WorldGlobeViewer3DX globeViewer = new(this);
-            globeViewer.Show();
-        });
-
 
         // -------------------------
         // Realm Properties

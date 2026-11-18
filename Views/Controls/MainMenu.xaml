@@ -46,8 +46,6 @@
             <Separator/>
             <MenuItem Header="Display World _Globe..." Command="{Binding DisplayWorldGlobeCommand}"/>
             <Separator/>
-            <MenuItem Header="Display _3DX World Globe..." Command="{Binding DisplayWorldGlobe3DXCommand}"/>            
-            <Separator/>
             <MenuItem Header="_Import..." Command="{Binding ImportCommand}" IsCheckable="True" IsChecked="{Binding ShowImportPanel, Mode=OneWay}" ToolTip="Show Import Panel"/>
         </MenuItem>
 

@@ -20,7 +20,7 @@ namespace RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels
 
         private void StarlightColor_LeftClick(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (DataContext is not WorldGlobeScene3DXViewModel vm)
+            if (DataContext is not WorldGlobeSceneViewModel vm)
                 return;
 
             ColorSelectionDialog dialog = WindowBuilder.BuildColorSelectionDialog(vm.StarViewModel.StarlightColor, Window.GetWindow(this));
@@ -37,7 +37,7 @@ namespace RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels
 
         private void StarlightColor_RightClick(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (DataContext is not WorldGlobeScene3DXViewModel vm)
+            if (DataContext is not WorldGlobeSceneViewModel vm)
                 return;
 
             ColorQuickPick dialog = WindowBuilder.BuildColorQuickPick(vm.StarViewModel.StarlightColor, Window.GetWindow(this), (Button)sender);

@@ -298,9 +298,6 @@
     <Compile Update="Views\Dialogs\HeightMapDXModelViewer.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Dialogs\WorldGlobeViewer3DX.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Update="Views\Dialogs\WorldGlobeViewer.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

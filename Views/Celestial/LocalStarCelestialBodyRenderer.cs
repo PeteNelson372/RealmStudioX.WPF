@@ -22,7 +22,11 @@ namespace RealmStudioX.WPF.Views.Celestial
 
         private readonly Model3DGroup _attachmentRoot = new();
 
+        private readonly Model3DGroup _tiltGroup = new();
+
         private readonly ScaleTransform3D _scaleTransform = new(1.0, 1.0, 1.0);
+
+        private readonly AxisAngleRotation3D _axialTiltRotation = new(new Vector3D(1.0, 0.0, 0.0), 0.0);
 
         private readonly Transform3DGroup _animationTransform = new();
 
@@ -49,8 +53,9 @@ namespace RealmStudioX.WPF.Views.Celestial
         {
             _textureResolver = textureResolver
                 ?? throw new ArgumentNullException(nameof(textureResolver));
-            // The body visual receives the placement size scaling and
-            // its animation transforms.
+
+            // The body visual receives placement-size scaling and its
+            // animation transforms. Animation remains local to the body.
             Transform3DGroup bodyTransform = new();
 
             bodyTransform.Children.Add(_scaleTransform);
@@ -58,16 +63,21 @@ namespace RealmStudioX.WPF.Views.Celestial
 
             _bodyVisualRoot.Transform = bodyTransform;
 
-            // Solar activity receives the same placement-size scaling as the body,
-            // but deliberately does not inherit its animation transforms.
+            // Axial tilt is applied to the entire body visual hierarchy,
+            // so the body's animation rotates around its tilted axis.
+            _tiltGroup.Transform = new RotateTransform3D(_axialTiltRotation);
+            _tiltGroup.Children.Add(_bodyVisualRoot);
+
+            // Solar activity receives the same placement-size scaling as
+            // the body, but deliberately does not inherit tilt or animation.
             _activityVisualRoot.Transform = _activityScaleTransform;
 
-            _root.Children.Add(_bodyVisualRoot);
+            _root.Children.Add(_tiltGroup);
             _root.Children.Add(_activityVisualRoot);
 
-            // Attachments are deliberately kept outside the body visual
-            // transform. Each attachment receives the host placement size
-            // when its own renderer is updated.
+            // Attachments remain outside the body visual transform.
+            // Each attachment receives the host placement size when its
+            // own renderer is updated.
             _root.Children.Add(_attachmentRoot);
 
             // The light remains at the Local Star's origin and is not
@@ -117,6 +127,14 @@ namespace RealmStudioX.WPF.Views.Celestial
             _activityScaleTransform.ScaleX = size;
             _activityScaleTransform.ScaleY = size;
             _activityScaleTransform.ScaleZ = size;
+
+            _axialTiltRotation.Angle = node.Body.BodyType switch
+            {
+                CelestialBodyType.BlackHole => node.Placement.AxialTilt,
+                CelestialBodyType.TerrestrialPlanet => node.Placement.AxialTilt,
+                CelestialBodyType.GasGiant => node.Placement.AxialTilt,
+                _ => 0.0
+            };
 
             UpdateLight();
 

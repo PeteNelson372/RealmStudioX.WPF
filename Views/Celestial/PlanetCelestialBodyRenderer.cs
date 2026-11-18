@@ -40,6 +40,9 @@ namespace RealmStudioX.WPF.Views.Celestial
         private readonly AxisAngleRotation3D _axialTiltRotation =
             new(new Vector3D(1.0, 0.0, 0.0), 0.0);
 
+        private readonly AxisAngleRotation3D _initialOrientationRotation =
+            new(new Vector3D(0, 1, 0), 180.0);
+
         private CelestialBody? _body;
 
         private readonly Func<CelestialTextureSource?, ImageSource?> _textureResolver;
@@ -67,10 +70,15 @@ namespace RealmStudioX.WPF.Views.Celestial
                 ?? throw new ArgumentNullException(nameof(textureResolver));
             // The tilt group applies axial tilt to the entire planetary system.
             _tiltGroup.Transform = new RotateTransform3D(_axialTiltRotation);
-
             Transform3DGroup surfaceTransform = new();
 
             surfaceTransform.Children.Add(_scaleTransform);
+
+            // Establish the initial texture orientation.
+            surfaceTransform.Children.Add(
+                new RotateTransform3D(_initialOrientationRotation));
+
+            // Animated rotation is applied independently.
             surfaceTransform.Children.Add(_animationTransform);
 
             _surfaceGroup.Transform = surfaceTransform;
@@ -216,9 +224,7 @@ namespace RealmStudioX.WPF.Views.Celestial
                 }
             }
 
-            string[] removedAttachmentIds = _attachmentRenderers.Keys
-                .Where(id => !currentAttachmentIds.Contains(id))
-                .ToArray();
+            string[] removedAttachmentIds = [.. _attachmentRenderers.Keys.Where(id => !currentAttachmentIds.Contains(id))];
 
             foreach (string attachmentId in removedAttachmentIds)
             {
@@ -326,7 +332,7 @@ namespace RealmStudioX.WPF.Views.Celestial
                     mesh.Normals.Add(new Vector3D(x, y, z));
 
                     mesh.TextureCoordinates.Add(new Point(
-                        (double)longitude / thetaDiv,
+                        1.0 - (double)longitude / thetaDiv,
                         (double)latitude / phiDiv));
                 }
             }

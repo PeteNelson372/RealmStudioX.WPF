@@ -176,24 +176,10 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             if (dialog.ShowDialog() != true)
                 return;
 
-            if (CaptureWindowAsync == null)
-                return;
-
-            byte[] png = await CaptureWindowAsync();
-
-            BitmapImage frameBitmap = new();
-
-            using (MemoryStream stream = new(png))
-            {
-                frameBitmap.BeginInit();
-                frameBitmap.CacheOption = BitmapCacheOption.OnLoad;
-                frameBitmap.StreamSource = stream;
-                frameBitmap.EndInit();
-                frameBitmap.Freeze();
-            }
+            RenderTargetBitmap frameBitmap = _modelViewer.CaptureFrame();
 
             BitmapEncoder encoder = Path.GetExtension(dialog.FileName)
-                .ToLower(CultureInfo.CurrentCulture) switch
+                .ToLowerInvariant() switch
             {
                 ".jpg" or ".jpeg" or ".jfif" or ".jpe" =>
                     new JpegBitmapEncoder { QualityLevel = 100 },

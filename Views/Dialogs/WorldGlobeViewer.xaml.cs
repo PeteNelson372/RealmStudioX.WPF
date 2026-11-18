@@ -634,7 +634,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
                     Placement = new CelestialBodyPlacementSettings
                     {
                         Center = new Point3D(0, 0, 0),
-                        Size = 1.0
+                        Size = 1.0,                        
                     }
                 };
 

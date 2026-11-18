@@ -96,44 +96,58 @@ public sealed class EffectsViewModel : ViewModelBase
         }
     }
 
-    private double _bloomBlurWidth = 2.0;
+    private double _bloomBlurWidth = 1.0;
 
     public double BloomBlurWidth
     {
         get => _bloomBlurWidth;
-        set
+        private set
         {
-            value = ClampFinite(value, 0.0, 100.0, 2.0);
+            value = ClampFinite(value, 0.0, 10.0, 1.0);
 
             if (SetProperty(ref _bloomBlurWidth, value))
                 ApplyEnabledEffects();
         }
     }
 
-    private double _bloomIntensity = 3.0;
+    private double _bloomIntensity = 0.25;
 
     public double BloomIntensity
     {
         get => _bloomIntensity;
         set
         {
-            value = ClampFinite(value, 0.0, 30.0, 3.0);
+            value = ClampFinite(value, 0.0, 2.0, 0.25);
 
             if (SetProperty(ref _bloomIntensity, value))
                 ApplyEnabledEffects();
         }
     }
 
-    private double _bloomHaloScale = 3.0;
+    private double _bloomHighlightThreshold = 0.90;
 
-    public double BloomHaloScale
+    public double BloomHighlightThreshold
     {
-        get => _bloomHaloScale;
-        set
+        get => _bloomHighlightThreshold;
+        private set
         {
-            value = ClampFinite(value, 1.0, 5.0, 3.0);
+            value = ClampFinite(value, 0.0, 1.0, 0.90);
 
-            if (SetProperty(ref _bloomHaloScale, value))
+            if (SetProperty(ref _bloomHighlightThreshold, value))
+                ApplyEnabledEffects();
+        }
+    }
+
+    private double _bloomHighlightIntensity = 0.15;
+
+    public double BloomHighlightIntensity
+    {
+        get => _bloomHighlightIntensity;
+        private set
+        {
+            value = ClampFinite(value, 0.0, 2.0, 0.15);
+
+            if (SetProperty(ref _bloomHighlightIntensity, value))
                 ApplyEnabledEffects();
         }
     }
@@ -285,7 +299,10 @@ public sealed class EffectsViewModel : ViewModelBase
         }
     }
 
-    private LensFlareEffect? _lensFlareEffect;
+    private LensFlareCoreEffect? _lensFlareCoreEffect;
+    private LensFlareStreakEffect? _lensFlareStreakEffect;
+    private LensFlareGhostEffect? _lensFlareGhostEffect;
+    private LensFlareStarburstEffect? _lensFlareStarburstEffect;
 
     private Point _lensFlareSourcePosition = new(0.5, 0.5);
 
@@ -312,12 +329,26 @@ public sealed class EffectsViewModel : ViewModelBase
                 ? (float)aspectRatio
                 : 1.0f;
 
-        if (_lensFlareEffect is null)
-            return;
+        UpdateLensFlarePasses();
+    }
 
-        _lensFlareEffect.SourcePosition = _lensFlareSourcePosition;
-        _lensFlareEffect.AspectRatio = _lensFlareAspectRatio;
-        _lensFlareEffect.SourceVisibility = _lensFlareSourceVisibility;
+    private void UpdateLensFlarePasses()
+    {
+        foreach (LensFlarePassEffect? effect in new LensFlarePassEffect?[]
+        {
+        _lensFlareCoreEffect,
+        _lensFlareStreakEffect,
+        _lensFlareGhostEffect,
+        _lensFlareStarburstEffect
+        })
+        {
+            if (effect is null)
+                continue;
+
+            effect.SourcePosition = _lensFlareSourcePosition;
+            effect.AspectRatio = _lensFlareAspectRatio;
+            effect.SourceVisibility = _lensFlareSourceVisibility;
+        }
     }
 
     #endregion
@@ -445,15 +476,38 @@ public sealed class EffectsViewModel : ViewModelBase
         float texelWidth = pixelWidth > 0 ? 1.0f / pixelWidth : 0.0f;
         float texelHeight = pixelHeight > 0 ? 1.0f / pixelHeight : 0.0f;
 
-        CinematicBloomEffect? bloom = EnableBloom
-            ? new CinematicBloomEffect
+        NvidiaBloomDownsampleEffect? bloomDownsample = EnableBloom
+            ? new NvidiaBloomDownsampleEffect
             {
-                Threshold = 0.70f,
-                Intensity = (float)BloomIntensity,
+                HighlightThreshold = (float)BloomHighlightThreshold,
                 TexelWidth = texelWidth,
-                TexelHeight = texelHeight,
-                BlurRadius = (float)BloomBlurWidth,
-                HaloScale = (float)BloomHaloScale
+                TexelHeight = texelHeight
+            }
+            : null;
+
+        NvidiaBloomHorizontalBlurEffect? bloomHorizontal = EnableBloom
+            ? new NvidiaBloomHorizontalBlurEffect
+            {
+                BlurWidth = (float)BloomBlurWidth,
+                TexelSize = texelWidth
+            }
+            : null;
+
+        NvidiaBloomVerticalBlurEffect? bloomVertical = EnableBloom
+            ? new NvidiaBloomVerticalBlurEffect
+            {
+                BlurWidth = (float)BloomBlurWidth,
+                TexelSize = texelHeight
+            }
+            : null;
+
+        NvidiaBloomCompositeEffect? bloomComposite = EnableBloom
+            ? new NvidiaBloomCompositeEffect
+            {
+                Scene = _modelViewer.CreateBloomSceneBrush(),
+                SceneIntensity = 1.0f,
+                GlowIntensity = (float)BloomIntensity,
+                HighlightIntensity = (float)BloomHighlightIntensity
             }
             : null;
 
@@ -471,31 +525,68 @@ public sealed class EffectsViewModel : ViewModelBase
             }
             : null;
 
-        _lensFlareEffect = EnableLensFlare
-            ? new LensFlareEffect
+        _lensFlareCoreEffect = EnableLensFlare
+            ? new LensFlareCoreEffect()
             {
                 SourcePosition = _lensFlareSourcePosition,
                 AspectRatio = _lensFlareAspectRatio,
+                Intensity = (float)LensFlareIntensity,
+                GlowSize = (float)LensFlareGlowSize,
+                SourceVisibility = _lensFlareSourceVisibility
+            }
+            : null;
 
+        _lensFlareStreakEffect = EnableLensFlare
+            ? new LensFlareStreakEffect()
+            {
+                SourcePosition = _lensFlareSourcePosition,
+                AspectRatio = _lensFlareAspectRatio,
                 Intensity = (float)LensFlareIntensity,
                 GlowSize = (float)LensFlareGlowSize,
                 StreakLength = (float)LensFlareStreakLength,
-                GhostIntensity = (float)LensFlareGhostIntensity,
-                StarburstIntensity = (float)LensFlareStarburstIntensity,
+                SourceVisibility = _lensFlareSourceVisibility
+            }
+            : null;
 
+        _lensFlareGhostEffect = EnableLensFlare
+            ? new LensFlareGhostEffect()
+            {
+                SourcePosition = _lensFlareSourcePosition,
+                AspectRatio = _lensFlareAspectRatio,
+                Intensity = (float)LensFlareIntensity,
+                GlowSize = (float)LensFlareGlowSize,
+                GhostIntensity = (float)LensFlareGhostIntensity,
+                SourceVisibility = _lensFlareSourceVisibility
+            }
+            : null;
+
+        _lensFlareStarburstEffect = EnableLensFlare
+            ? new LensFlareStarburstEffect()
+            {
+                SourcePosition = _lensFlareSourcePosition,
+                AspectRatio = _lensFlareAspectRatio,
+                Intensity = (float)LensFlareIntensity,
+                GlowSize = (float)LensFlareGlowSize,
+                StarburstIntensity = (float)LensFlareStarburstIntensity,
                 SourceVisibility = _lensFlareSourceVisibility
             }
             : null;
 
         _modelViewer.SetPostProcessingEffects(
-        [
-            _lensFlareEffect,
-            grayscale,
-            sepia,
-            bloom,
-            bleachBypass,
-            blur
-        ]);
+            [
+                grayscale,
+                sepia,
+                bloomDownsample,
+                bloomHorizontal,
+                bloomVertical,
+                bloomComposite,
+                _lensFlareCoreEffect,
+                _lensFlareStreakEffect,
+                _lensFlareGhostEffect,
+                _lensFlareStarburstEffect,
+                bleachBypass,
+                blur
+            ]);
     }
 
     private static double ClampFinite(
