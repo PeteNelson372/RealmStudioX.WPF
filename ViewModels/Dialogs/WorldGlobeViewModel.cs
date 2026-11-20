@@ -43,8 +43,8 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             {
                 if (e.PropertyName == nameof(CurrentTiltAngle))
                 {
-                    System.Diagnostics.Debug.WriteLine(
-                        $"CurrentTiltAngle PropertyChanged: {CurrentTiltAngle:F1}");
+                    //System.Diagnostics.Debug.WriteLine(
+                    //    $"CurrentTiltAngle PropertyChanged: {CurrentTiltAngle:F1}");
                 }
             };
         }

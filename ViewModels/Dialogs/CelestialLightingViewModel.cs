@@ -57,7 +57,7 @@ public sealed class CelestialLightingViewModel : ViewModelBase
         private set => SetProperty(ref _ambientLightColorBrush, value);
     }
 
-    private double _ambientLightIntensity = 0.20;
+    private double _ambientLightIntensity = 0.50;
 
     public double AmbientLightIntensity
     {

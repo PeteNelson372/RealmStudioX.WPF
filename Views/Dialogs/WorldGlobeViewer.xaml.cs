@@ -1,4 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX.Core;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
@@ -6,6 +7,7 @@ using RealmStudioX.WPF.ViewModels.Dialogs;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Celestial;
 using RealmStudioX.WPF.Views.Panels.WorldGlobeViewerPanels;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -121,17 +123,6 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             DataContext = ViewModel;
 
-            if (DataContext is WorldGlobeSceneViewModel viewModel)
-            {
-                ViewModel.CaptureWindowAsync = () =>
-                {
-                    IntPtr hwnd = new WindowInteropHelper(this).Handle;
-
-                    return WindowsGraphicsCaptureService
-                        .CaptureWindowPngAsync(hwnd);
-                };
-            }
-
             WorldGlobeViewerTitleBar.DataContext = ViewModel;
 
             WorldGlobeViewerMenu.DataContext = ViewModel;
@@ -191,6 +182,24 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             _animationController.Register(this);
             _isViewerInitialized = true;
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            if (ViewModel?.IsRecording == true)
+            {
+                e.Cancel = true;
+
+                MessageDialog dialog = MessageDialogFactory.WarningDialog(
+                    "Video Recording",
+                    "Video recording is in progress.\n\n" +
+                    "Please stop the recording before closing the World Globe Viewer.");
+
+                dialog.ShowDialog();
+                return;
+            }
+
+            base.OnClosing(e);
         }
 
         private void WorldGlobeViewer_Loaded(object sender, RoutedEventArgs e)
@@ -345,15 +354,9 @@ namespace RealmStudioX.WPF.Views.Dialogs
         {
             _celestialSystemRenderer?.ResetAnimation();
         }
-
-        private void ShowHideVideoPanel(object sender, RoutedEventArgs e)
-        {
-            VideoPanelExpander.IsExpanded = !VideoPanelExpander.IsExpanded;
-        }
-
         private void SceneTree_SelectedItemChanged(
-            object sender,
-            RoutedPropertyChangedEventArgs<object> e)
+                    object sender,
+                    RoutedPropertyChangedEventArgs<object> e)
         {
             if (e.NewValue is not TreeViewItem selectedItem)
                 return;
@@ -634,7 +637,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
                     Placement = new CelestialBodyPlacementSettings
                     {
                         Center = new Point3D(0, 0, 0),
-                        Size = 1.0,                        
+                        Size = 1.0,
                     }
                 };
 
@@ -1139,9 +1142,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine(
-                    $"Failed to load planetary ring texture '{texturePath}': {ex}");
-
+                RealmStudioXLogger.Exception("Failed to load planetary ring texture: {TexturePath}", ex);
                 return null;
             }
         }

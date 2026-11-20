@@ -547,12 +547,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     overlaps = RasterPathsOverlap(
                         existing.HitPath,
                         active.HitPath);
-
-                    Debug.WriteLine(
-                        $"MergeOverlappingLandforms: intersection failed; " +
-                        $"raster fallback reports overlap={overlaps}. " +
-                        $"Existing points={existing.HitPath.PointCount}, " +
-                        $"active points={active.HitPath.PointCount}.");
                 }
 
                 if (!overlaps)

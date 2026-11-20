@@ -78,5 +78,8 @@
     <Setting Name="SelectedMapAreaUnits" Type="System.String" Scope="User">
       <Value Profile="(Default)">Miles</Value>
     </Setting>
+    <Setting Name="OutputDirectory" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>

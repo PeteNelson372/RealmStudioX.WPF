@@ -4,5 +4,6 @@
   <Project Path="../RealmStudioX.3D/RealmStudioX.3D.csproj" />
   <Project Path="../RealmStudioX.Core/RealmStudioX.Core.csproj" />
   <Project Path="../RealmStudioX.Infrastructure/RealmStudioX.Infrastructure.csproj" />
+  <Project Path="../RealmStudioX.Video/RealmStudioX.Video.csproj" />
   <Project Path="RealmStudioX.WPF.csproj" />
 </Solution>

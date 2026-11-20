@@ -15,10 +15,10 @@
     xmlns:rendering="clr-namespace:RealmStudioShapeRenderingLib;assembly=RealmStudioShapeRenderingLib"    
     mc:Ignorable="d"
     Title="World Globe Viewer"
-    Width="1550"
-    Height="900"
-    MinWidth="1000"
-    MinHeight="650"
+    Width="1560"
+    Height="920"
+    MinWidth="1560"
+    MinHeight="920"
     Background="#FF45443F"
     WindowStyle="None"
     ShowInTaskbar="True"
@@ -70,6 +70,7 @@
 
         <controls:WorldGlobeViewerMenu
             x:Name="WorldGlobeViewerMenu"
+            IsEnabled="{Binding CanEditScene}"
             Grid.Row="1"
             Background="#FFDFDBD2"
             Foreground="{DynamicResource
@@ -82,6 +83,7 @@
 
         <Border
             Grid.Row="2"
+            IsEnabled="{Binding CanEditScene}"
             Background="#FFEAE7E1"
             BorderBrush="#FFCAC6BF"
             BorderThickness="0,0,0,1"
@@ -257,33 +259,6 @@
                             Margin="4,0,10,0"/>
                     </StackPanel>
 
-
-                    <Button
-                        Style="{StaticResource FlatToolButton}"
-                        Background="#FFEAE7E1"
-                        Padding="12,4"
-                        Margin="12,0,8,0"
-                        ToolTip="Show the video panel"
-                        Click="ShowHideVideoPanel">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="VideoOutline"
-                                     HorizontalAlignment="Left"
-                                     VerticalAlignment="Center"
-                                     Foreground="Green"
-                                     Margin="0,0,3,0"
-                                     Width="18"
-                                     Height="18"
-                                     Opacity="0.7"/>
-
-                            <TextBlock Text="Capture Video"
-                               FontSize="12"
-                               Foreground="#FF45443F"
-                               HorizontalAlignment="Center"
-                               Margin="0,0,0,3"/>
-
-                        </StackPanel>
-                    </Button>
-
                 </StackPanel>
 
             </DockPanel>
@@ -298,24 +273,14 @@
             Margin="8">
 
             <Grid.ColumnDefinitions>
-                <!-- Scene Explorer -->
-                <ColumnDefinition
-                    Width="240"
-                    MinWidth="170" />
+                <!-- Fixed-width Scene Explorer -->
+                <ColumnDefinition Width="240" />
 
-                <!-- Left splitter -->
-                <ColumnDefinition Width="5" />
+                <!-- Viewport and fixed recording panel -->
+                <ColumnDefinition Width="*" />
 
-                <!-- Viewport -->
-                <ColumnDefinition
-                    Width="*"
-                    MinWidth="300" />
-
-                <!-- Right splitter -->
-                <ColumnDefinition Width="5" />
-
-                <!-- Properties -->
-                <ColumnDefinition Width="320" MinWidth="320"/>
+                <!-- Fixed-width Properties panel -->
+                <ColumnDefinition Width="320" />
             </Grid.ColumnDefinitions>
 
             <!-- ================================================= -->
@@ -324,6 +289,7 @@
 
             <Border
                 Grid.Column="0"
+                IsEnabled="{Binding CanEditScene}"
                 Background="#FFEAE7E1"
                 BorderBrush="#FFC8C4BD"
                 BorderThickness="1"
@@ -634,44 +600,43 @@
 
                 </DockPanel>
             </Border>
-
-            <!-- ================================================= -->
-            <!-- RESIZABLE LEFT PANEL                              -->
-            <!-- ================================================= -->
-
-            <GridSplitter
-                Grid.Column="1"
-                HorizontalAlignment="Stretch"
-                Background="#FFD0CCC5"
-                ShowsPreview="True"
-                ResizeBehavior="PreviousAndNext"
-                ResizeDirection="Columns" />
-
             <!-- ================================================= -->
             <!-- CENTER: VIEWPORT AND TIMELINE                     -->
             <!-- ================================================= -->
 
             <Grid
-                Grid.Column="2"
+                Grid.Column="1"
+                Width="972"
+                Height="738"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
                 Margin="5,0,5,0">
 
                 <Grid.RowDefinitions>
-                    <!-- Main 3D viewport -->
-                    <RowDefinition Height="*" />
+                    <!-- Fixed 960 x 540 capture viewport, including its border -->
+                    <RowDefinition Height="542" />
 
-                    <!-- Collapsible animation timeline -->
-                    <RowDefinition Height="Auto" />
+                    <!-- Permanently visible, fixed-height recording panel -->
+                    <RowDefinition Height="240" />
                 </Grid.RowDefinitions>
 
                 <Border
                     Grid.Row="0"
+                    Width="962"
+                    Height="542"
+                    HorizontalAlignment="Center"
+                    IsEnabled="{Binding CanEditScene}"
                     Background="#FFF5F3EF"
                     BorderBrush="#FFC8C4BD"
                     BorderThickness="1"
-                    Padding="1">
+                    Padding="0">
 
                     <threeD:ModelViewerControl
                         x:Name="ModelViewer"
+                        Width="960"
+                        Height="540"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
                         Margin="0" />
 
                 </Border>
@@ -680,225 +645,286 @@
                 <!-- ANIMATION TIMELINE                            -->
                 <!-- ============================================= -->
 
-                <Expander
-                    x:Name="VideoPanelExpander"
+
+                <Border
                     Grid.Row="1"
-                    Header="Video Panel"
-                    IsExpanded="False"
-                    MaxHeight="240"
+                    Width="962"
+                    Height="190"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
                     Margin="0,6,0,0"
                     Background="#FFF5F3EF"
                     BorderBrush="#FFC8C4BD"
-                    BorderThickness="1">
+                    BorderThickness="1"
+                    Padding="8">
 
-                    <Grid Margin="10">
+                    <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <Grid>
+                        <!-- Recording controls -->
+                        <Grid Grid.Row="0">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="42*"/>
-                                <ColumnDefinition Width="191*"/>
-                                <ColumnDefinition Width="233*"/>
+                                <ColumnDefinition Width="540"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            
-                            
-                            
-                            <!-- Playback controls -->
+
+                            <!-- Recording -->
                             <StackPanel
                                 Grid.Column="0"
                                 Orientation="Horizontal"
-                                Margin="0,0,0,10" Grid.ColumnSpan="2">
+                                Margin="0,0,0,6">
+
+                                <!-- Keep your existing Record Video button here -->
 
                                 <Button
+                                    Command="{Binding RecordVideoCommand}"
                                     Style="{StaticResource FlatToolButton}"
                                     Background="#FFEAE7E1"
+                                    Width="120"
                                     Padding="12,4"
-                                    Margin="0,0,30,0"
-                                    ToolTip="Configure video capture and record video">
+                                    Margin="0,0,20,0"
+                                    ToolTip="Start or stop video recording">
+
                                     <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Kind="Video"
-                                            HorizontalAlignment="Left"
+                                        <materialDesign:PackIcon
                                             VerticalAlignment="Center"
-                                            Foreground="Green"
                                             Margin="0,0,5,0"
                                             Width="20"
                                             Height="24"
-                                            Opacity="0.7"/>
+                                            Opacity="0.7">
+                                            <materialDesign:PackIcon.Style>
+                                                <Style TargetType="{x:Type materialDesign:PackIcon}">
+                                                    <Setter Property="Kind" Value="Video"/>
+                                                    <Setter Property="Foreground" Value="Green"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsRecording}" Value="True">
+                                                            <Setter Property="Kind" Value="StopCircle"/>
+                                                            <Setter Property="Foreground" Value="Red"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </materialDesign:PackIcon.Style>
+                                        </materialDesign:PackIcon>
 
-                                        <TextBlock Text="Record Video"
+                                        <TextBlock
+                                            Text="{Binding RecordVideoButtonText}"
                                             FontSize="12"
                                             Foreground="#FF45443F"
-                                            VerticalAlignment="Center"
-                                            HorizontalAlignment="Center"
-                                            Margin="0,0,0,0"/>
-
+                                            VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
 
-                                <Button
-                                    Style="{StaticResource FlatToolButton}"
-                                    Background="#FFEAE7E1"
-                                    Padding="12,4"
-                                    Margin="12,0,4,0"
-                                    ToolTip="Go to the start">
-                                    <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Kind="SkipBackwardOutline"
-                                         HorizontalAlignment="Left"
-                                         VerticalAlignment="Center"
-                                         Margin="0,0,3,0"
-                                         Width="24"
-                                         Height="24"
-                                         Opacity="0.7"/>
+                                <TextBlock
+                                    Text="Frame:"
+                                    VerticalAlignment="Center"
+                                    Margin="12,0,6,0"/>
 
-                                    </StackPanel>
-                                </Button>
-
-                                <Button
-                                    Style="{StaticResource FlatToolButton}"
-                                    Background="#FFEAE7E1"
-                                    Padding="12,4"
-                                    Margin="0,0,4,0"
-                                    ToolTip="Play the video">
-                                    <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Kind="Play"
-                                         HorizontalAlignment="Left"
-                                         VerticalAlignment="Center"
-                                         Margin="0,0,3,0"
-                                         Width="24"
-                                         Height="24"
-                                         Opacity="0.7"/>
-
-                                    </StackPanel>
-                                </Button>
-
-                                <Button
-                                    Style="{StaticResource FlatToolButton}"
-                                    Background="#FFEAE7E1"
-                                    Padding="12,4"
-                                    Margin="0,0,4,0"
-                                    ToolTip="Stop the video playback">
-                                    <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Kind="Stop"
-                                         HorizontalAlignment="Left"
-                                         VerticalAlignment="Center"
-                                         Margin="0,0,3,0"
-                                         Width="24"
-                                         Height="24"
-                                         Opacity="0.7"/>
-
-                                    </StackPanel>
-                                </Button>
-
-                                <Button
-                                    Style="{StaticResource FlatToolButton}"
-                                    Background="#FFEAE7E1"
-                                    Padding="12,4"
-                                    Margin="0,0,4,0"
-                                    ToolTip="Go to the end">
-                                    <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Kind="SkipForwardOutline"
-                                         HorizontalAlignment="Left"
-                                         VerticalAlignment="Center"
-                                         Margin="0,0,3,0"
-                                         Width="24"
-                                         Height="24"
-                                         Opacity="0.7"/>
-
-                                    </StackPanel>
-                                </Button>
+                                <TextBlock
+                                    Text="{Binding RecordedFramesDisplay}"
+                                    VerticalAlignment="Center"/>
 
                                 <TextBlock
                                     Text="Time:"
                                     VerticalAlignment="Center"
-                                    Margin="10,0,6,0" />
+                                    Margin="15,0,6,0"/>
 
                                 <TextBlock
-                                    Text="00:00.000"
-                                    VerticalAlignment="Center" />
+                                    Text="{Binding AnimationTime, StringFormat='00:00.000'}"
+                                    VerticalAlignment="Center"/>
 
+                                <TextBlock
+                                    Text="Elapsed:"
+                                    VerticalAlignment="Center"
+                                    Margin="15,0,6,0"/>
+
+                                <TextBlock
+                                    Text="{Binding ElapsedRecordingTime}"
+                                    VerticalAlignment="Center"/>
+                                
                             </StackPanel>
 
+                            <!-- Recording settings -->
                             <StackPanel
-                                Grid.Column="2"
+                                Grid.Column="1"
+                                IsEnabled="{Binding CanEditScene}"
                                 Orientation="Horizontal"
                                 HorizontalAlignment="Right"
-                                Margin="0,0,10,10">
+                                Margin="0,0,4,6">
 
-                                <TextBlock Text="Frame Rate"
-                                   VerticalAlignment="Center"
-                                   Margin="20,0,8,0"/>
+                                <TextBlock
+                                    Text="Frame Rate"
+                                    VerticalAlignment="Center"
+                                    Margin="8,0,6,0"/>
 
-                                <ComboBox x:Name="FrameRateCombo"
-                                      Grid.Column="1"
-                                      Width="100"
-                                      Height="26"
-                                      Margin="4,0,0,0"
-                                      Background="#FFDFDBD2"
-                                      ItemsSource="{Binding SupportedFrameRates}"
-                                      SelectedItem="{Binding SelectedFrameRate, Mode=TwoWay}" />
+                                <ComboBox
+                                    x:Name="FrameRateCombo"
+                                    Width="75"
+                                    Height="26"
+                                    Background="#FFDFDBD2"
+                                    ItemsSource="{Binding SupportedFrameRates}"
+                                    SelectedItem="{Binding SelectedFrameRate, Mode=TwoWay}"/>
 
+                                <TextBlock
+                                    Text="Duration"
+                                    VerticalAlignment="Center"
+                                    Margin="10,0,6,0"/>
+
+                                <controls:NumericUpDown
+                                    x:Name="RecordingDurationBox"
+                                    Foreground="Black"
+                                    Background="#FFF5F3EF"
+                                    VerticalAlignment="Center"
+                                    Value="{Binding RecordingDurationSeconds}"
+                                    Width="65"
+                                    Height="24"/>
                             </StackPanel>
-
                         </Grid>
 
-                        <!-- Future timeline tracks -->
+                        <!-- Capture statistics -->
                         <Border
                             Grid.Row="1"
-                            MinHeight="70"
+                            Background="#FFF0EEE9"
+                            BorderBrush="#FFD0CCC5"
+                            BorderThickness="1"
+                            Padding="6,3"
+                            Margin="0,0,0,5">
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel
+                                    Grid.Column="0"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Left">
+
+                                    <TextBlock
+                                        Text="Frame Time:"
+                                        Foreground="#FF77736D"
+                                        Margin="0,0,6,0"/>
+
+                                    <TextBlock
+                                        Text="{Binding FrameTimeDisplay}"
+                                        FontWeight="SemiBold"/>
+                                </StackPanel>
+
+                                <StackPanel
+                                    Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Left">
+
+                                    <TextBlock
+                                        Text="Capture Rate:"
+                                        Foreground="#FF77736D"
+                                        Margin="0,0,6,0"/>
+
+                                    <TextBlock
+                                        Text="{Binding CaptureRateDisplay}"
+                                        FontWeight="SemiBold"/>
+                                </StackPanel>
+
+                                <StackPanel
+                                    Grid.Column="2"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Left">
+
+                                    <TextBlock
+                                        Text="Estimated Remaining:"
+                                        Foreground="#FF77736D"
+                                        Margin="0,0,6,0"/>
+
+                                    <TextBlock
+                                        Text="{Binding RemainingTimeDisplay}"
+                                        FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Thumbnail filmstrip -->
+                        <Border
+                            Grid.Row="2"
+                            MinHeight="65"
+                            Width="944"
                             Background="#FFEAE7E1"
                             BorderBrush="#FFD0CCC5"
                             BorderThickness="1"
-                            Padding="8">
+                            Padding="6,3">
 
-                            <TextBlock
-                                Text="Animation tracks and keyframes will appear here."
-                                Foreground="#FF77736D"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                TextWrapping="Wrap" />
+                            <ScrollViewer
+                                HorizontalScrollBarVisibility="Auto"
+                                VerticalScrollBarVisibility="Disabled"
+                                CanContentScroll="True">
 
+                                <ItemsControl ItemsSource="{Binding RecordingThumbnails}">
+
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel
+                                                Width="80"
+                                                Margin="0,0,5,0">
+
+                                                <Border
+                                                    BorderBrush="#FFBDB8AF"
+                                                    BorderThickness="1"
+                                                    Background="#FFD5D1C9"
+                                                    Padding="1">
+
+                                                    <Image
+                                                        Source="{Binding Image}"
+                                                        Width="100"
+                                                        Height="56"
+                                                        Stretch="Uniform"/>
+                                                </Border>
+
+                                                <TextBlock
+                                                    Text="{Binding TimeLabel}"
+                                                    FontSize="9"
+                                                    Foreground="#FF77736D"
+                                                    HorizontalAlignment="Center"
+                                                    Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
                         </Border>
-
                     </Grid>
-                </Expander>
+                </Border>
+
 
             </Grid>
-
-            <!-- ================================================= -->
-            <!-- RESIZABLE RIGHT PANEL                             -->
-            <!-- ================================================= -->
-
-            <GridSplitter
-                Grid.Column="3"
-                HorizontalAlignment="Stretch"
-                Background="#FFD0CCC5"
-                ShowsPreview="True"
-                ResizeBehavior="PreviousAndNext"
-                ResizeDirection="Columns" />
 
             <!-- ================================================= -->
             <!-- RIGHT: PROPERTIES                                 -->
             <!-- ================================================= -->
 
             <Border
-                Grid.Column="4"
+                Grid.Column="2"
+                IsEnabled="{Binding CanEditScene}"
                 Background="#FFEAE7E1"
                 BorderBrush="#FFC8C4BD"
                 BorderThickness="1"
                 CornerRadius="3"
-                Padding="8" Grid.ColumnSpan="2">
+                Padding="8">
 
                 <DockPanel x:Name="ToolsPanel">
                     <!-- Tool panels -->
                     <ContentControl x:Name="ToolsPanelHost"
                         Grid.Row="0"
                         Background="WhiteSmoke"/>
-
-
-
                 </DockPanel>
 
             </Border>

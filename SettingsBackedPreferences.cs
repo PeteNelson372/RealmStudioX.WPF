@@ -47,6 +47,12 @@ public sealed class SettingsBackedPreferences : IApplicationPreferences
         set => SetSetting(_settings.RootAssetDirectory, value, v => _settings.RootAssetDirectory = v);
     }
 
+    public string OutputDirectory
+    {
+        get => _settings.OutputDirectory;
+        set => SetSetting(_settings.OutputDirectory, value, v => _settings.OutputDirectory = v);
+    }
+
     public string DefaultModelsDirectory
     {
         get => _settings.DefaultModelsDirectory;

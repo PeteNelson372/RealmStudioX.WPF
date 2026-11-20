@@ -9,5 +9,5 @@ public sealed class CelestialLightingSettings
 
     public Color AmbientLightColor { get; set; } = Colors.White;
 
-    public double AmbientLightIntensity { get; set; } = 0.20;
+    public double AmbientLightIntensity { get; set; } = 0.50;
 }

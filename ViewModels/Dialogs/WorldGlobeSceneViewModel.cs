@@ -1,16 +1,25 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX._3D.Views.Controls;
 using RealmStudioX.Infrastructure;
+using RealmStudioX.Video.Encoding;
+using RealmStudioX.Video.Settings;
+using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Celestial;
 using RealmStudioX.WPF.Views.Dialogs;
-using SkiaSharp;
-using System.Globalization;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
+using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shell;
+using System.Windows.Threading;
+using Application = System.Windows.Application;
+using Brushes = System.Windows.Media.Brushes;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
@@ -62,6 +71,8 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         public CelestialBodyPlacementService BodyPlacementService { get; } = new();
 
         public CelestialLightingViewModel LightingModel { get; }
+
+        public ObservableCollection<VideoFrameThumbnail> RecordingThumbnails { get; } = [];
 
 
         public WorldGlobeSceneViewModel(MainWindowViewModel mainViewModel, WorldGlobeViewer globeViewer)
@@ -298,6 +309,521 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             }
         }
 
+
+        /// <summary>
+        /// Video Recording
+        /// </summary>
+
+        private CancellationTokenSource? _recordingCancellation;
+        private bool _isRecording;
+        private int _recordingDurationSeconds = 60;
+        private int _recordedFrames;
+
+        private const int RecordingWidth = 960;
+        private const int RecordingHeight = 540;
+
+        public bool IsRecording
+        {
+            get => _isRecording;
+            private set
+            {
+                if (SetProperty(ref _isRecording, value))
+                {
+                    OnPropertyChanged(nameof(RecordVideoButtonText));
+                    OnPropertyChanged(nameof(CanEditScene));
+                    OnPropertyChanged(nameof(TaskbarProgressState));
+                    UpdateMainWindowTaskbarProgress();
+                }
+            }
+        }
+
+        public string RecordVideoButtonText =>
+            IsRecording ? "Stop Recording" : "Record Video";
+
+        // The scene and recording settings are locked while frames are captured.
+        public bool CanEditScene => !IsRecording;
+
+        public TaskbarItemProgressState TaskbarProgressState =>
+            IsRecording
+                ? TaskbarItemProgressState.Normal
+                : TaskbarItemProgressState.None;
+
+        private int _totalRecordingFrames;
+        public int TotalRecordingFrames
+        {
+            get => _totalRecordingFrames;
+            private set
+            {
+                if (SetProperty(ref _totalRecordingFrames, value))
+                {
+                    OnPropertyChanged(nameof(RecordingProgress));
+                    OnPropertyChanged(nameof(RecordingFrameStatus));
+                    OnPropertyChanged(nameof(RecordedFramesDisplay));
+                    UpdateMainWindowTaskbarProgress();
+                }
+            }
+        }
+
+        public double RecordingProgress => TotalRecordingFrames > 0
+            ? Math.Clamp((double)RecordedFrames / TotalRecordingFrames, 0.0, 1.0)
+            : 0.0;
+
+        public string RecordingFrameStatus =>
+            $"Frame {RecordedFrames:N0} / {TotalRecordingFrames:N0}";
+
+        private string _elapsedRecordingTime = "00:00:00";
+        public string ElapsedRecordingTime
+        {
+            get => _elapsedRecordingTime;
+            private set => SetProperty(ref _elapsedRecordingTime, value);
+        }
+
+        private const int RollingFrameSampleCount = 60;
+        private readonly Queue<double> _recentFrameTimesMs = new();
+
+        private string _frameTimeDisplay = "--";
+        public string FrameTimeDisplay
+        {
+            get => _frameTimeDisplay;
+            private set => SetProperty(ref _frameTimeDisplay, value);
+        }
+
+        private string _captureRateDisplay = "--";
+        public string CaptureRateDisplay
+        {
+            get => _captureRateDisplay;
+            private set => SetProperty(ref _captureRateDisplay, value);
+        }
+
+        private string _remainingTimeDisplay = "--";
+        public string RemainingTimeDisplay
+        {
+            get => _remainingTimeDisplay;
+            private set => SetProperty(ref _remainingTimeDisplay, value);
+        }
+
+        private static string FormatElapsedTime(TimeSpan elapsed) =>
+            $"{(int)elapsed.TotalHours:00}:{elapsed.Minutes:00}:{elapsed.Seconds:00}";
+
+        private void ResetRecordingStatistics()
+        {
+            _recentFrameTimesMs.Clear();
+            FrameTimeDisplay = "--";
+            CaptureRateDisplay = "--";
+            RemainingTimeDisplay = "--";
+        }
+
+        private void UpdateRecordingStatistics(
+            double frameTimeMs,
+            Stopwatch recordingStopwatch)
+        {
+            _recentFrameTimesMs.Enqueue(frameTimeMs);
+
+            while (_recentFrameTimesMs.Count > RollingFrameSampleCount)
+                _recentFrameTimesMs.Dequeue();
+
+            double averageFrameTimeMs = _recentFrameTimesMs.Average();
+
+            double captureRate = averageFrameTimeMs > 0
+                ? 1000.0 / averageFrameTimeMs
+                : 0.0;
+
+            int remainingFrames = Math.Max(
+                0,
+                TotalRecordingFrames - RecordedFrames);
+
+            double remainingSeconds =
+                remainingFrames * averageFrameTimeMs / 1000.0;
+
+            ElapsedRecordingTime = FormatElapsedTime(recordingStopwatch.Elapsed);
+            FrameTimeDisplay = $"{averageFrameTimeMs:F0} ms";
+            CaptureRateDisplay = $"{captureRate:F1} fps";
+            RemainingTimeDisplay =
+                FormatElapsedTime(TimeSpan.FromSeconds(remainingSeconds));
+        }
+
+        private void UpdateMainWindowTaskbarProgress()
+        {
+            if (Application.Current?.MainWindow is MainWindow mainWindow)
+            {
+                mainWindow.UpdateTaskbarRecordingProgress(
+                    IsRecording,
+                    RecordingProgress);
+            }
+        }
+
+        public int RecordingDurationSeconds
+        {
+            get => _recordingDurationSeconds;
+            set
+            {
+                SetProperty(ref _recordingDurationSeconds, value);
+                OnPropertyChanged(nameof(RecordingDurationDisplay));
+            }
+        }
+
+        public int RecordedFrames
+        {
+            get => _recordedFrames;
+            private set
+            {
+                if (SetProperty(ref _recordedFrames, value))
+                {
+                    OnPropertyChanged(nameof(RecordingProgress));
+                    OnPropertyChanged(nameof(RecordingFrameStatus));
+                    OnPropertyChanged(nameof(RecordedFramesDisplay));
+                    UpdateMainWindowTaskbarProgress();
+                }
+            }
+        }
+
+        public string RecordedFramesDisplay => $"{RecordedFrames:N0}/{TotalRecordingFrames:N0}";
+
+        public string RecordingDurationDisplay => $"{RecordingDurationSeconds:N0} seconds";
+
+        private double _animationTime;
+        public double AnimationTime
+        {
+            get => _animationTime;
+            private set => SetProperty(ref _animationTime, value);
+        }
+
+        public ICommand RecordVideoCommand => new RelayCommand(async () =>
+        {
+            if (_recordingCancellation is not null)
+            {
+                _recordingCancellation.Cancel();
+                return;
+            }
+
+            await StartVideoRecordingAsync();
+        });
+
+
+        private async Task StartVideoRecordingAsync()
+        {
+            if (RecordingDurationSeconds <= 0)
+            {
+                MessageDialog messageDialog = MessageDialogFactory.WarningDialog(
+                    "Video Recording",
+                    "Recording duration must be greater than zero.");
+
+                messageDialog.ShowDialog();
+                return;
+            }
+
+            int fps = SelectedFrameRate;
+            if (fps <= 0)
+                return;
+
+            string temporaryFile = Path.Combine(
+                Path.GetTempPath(),
+                $"RealmStudioX_{Guid.NewGuid():N}.avi");
+
+            CancellationTokenSource cancellation = new();
+            _recordingCancellation = cancellation;
+
+            IsRecording = true;
+            RecordedFrames = 0;
+            TotalRecordingFrames = 0;
+            ElapsedRecordingTime = "00:00:00";
+            ResetRecordingStatistics();
+
+            RecordingThumbnails.Clear();
+
+            AviVideoWriter? writer = null;
+            Exception? recordingError = null;
+            bool wasCancelled = false;
+
+            Stopwatch recordingStopwatch = Stopwatch.StartNew();
+
+            try
+            {
+                // Establish the initial scene state and capture frame zero immediately.
+                AnimationTime = 0.0;
+
+                Stopwatch initialCaptureTimer = Stopwatch.StartNew();
+                _globeViewer.SetAnimationTime(0.0);
+                RenderTargetBitmap firstFrame = _modelViewer.CaptureFrame();
+                initialCaptureTimer.Stop();
+
+                if (firstFrame.PixelWidth != RecordingWidth ||
+                    firstFrame.PixelHeight != RecordingHeight)
+                {
+                    throw new InvalidOperationException(
+                        $"The World Globe viewport must capture at {RecordingWidth}x{RecordingHeight}. " +
+                        $"The current capture size is {firstFrame.PixelWidth}x{firstFrame.PixelHeight}.");
+                }
+
+                int width = RecordingWidth;
+                int height = RecordingHeight;
+
+                VideoRecordingSettings settings = new()
+                {
+                    Width = width,
+                    Height = height,
+                    FramesPerSecond = fps,
+                    Quality = 100,
+
+                };
+
+                writer = new AviVideoWriter(temporaryFile, settings);
+
+                int totalFrames = checked(RecordingDurationSeconds * fps);
+                TotalRecordingFrames = totalFrames;
+
+                Stopwatch stageTimer = Stopwatch.StartNew();
+
+                for (int i = 0; i < totalFrames; i++)
+                {
+                    Stopwatch frameStopwatch = Stopwatch.StartNew();
+
+                    cancellation.Token.ThrowIfCancellationRequested();
+
+                    RenderTargetBitmap frame;
+
+                    if (i == 0)
+                    {
+                        frame = firstFrame;
+                    }
+                    else
+                    {
+                        // Yield between frames so the UI can process input, as the
+                        // original Realm Studio recorder did. Do not yield between
+                        // advancing the scene and capturing its frame.
+                        await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+                        cancellation.Token.ThrowIfCancellationRequested();
+
+                        AnimationTime = (double)i / fps;
+
+                        _globeViewer.SetAnimationTime(AnimationTime);
+                        frame = _modelViewer.CaptureFrame();
+                    }
+
+                    // Convert Pbgra32 to the BGR32 format expected by AviVideoWriter.
+                    FormatConvertedBitmap convertedFrame = new(
+                        frame,
+                        PixelFormats.Bgr32,
+                        null,
+                        0);
+
+                    convertedFrame.Freeze();
+
+                    int stride = width * 4;
+                    byte[] pixels = new byte[stride * height];
+
+                    convertedFrame.CopyPixels(pixels, stride, 0);
+                    // Encode and write away from the UI thread.
+                    AviVideoWriter activeWriter = writer;
+
+                    await Task.Run(() => activeWriter.WriteFrame(pixels));
+
+                    // Update wall-clock elapsed time and add one thumbnail
+                    if (i % fps == 0)
+                    {
+                        RecordingThumbnails.Add(new VideoFrameThumbnail
+                        {
+                            Image = CreateRecordingThumbnail(frame),
+                            TimeLabel = TimeSpan
+                                .FromSeconds(AnimationTime)
+                                .ToString(@"mm\:ss")
+                        });
+                    }
+
+                    RecordedFrames = activeWriter.FramesWritten;
+
+                    frameStopwatch.Stop();
+
+                    double frameTimeMs = frameStopwatch.Elapsed.TotalMilliseconds;
+
+                    // Frame zero's scene capture happened before the writing loop,
+                    // so include that time in its first-frame measurement.
+                    if (i == 0)
+                    {
+                        frameTimeMs += initialCaptureTimer.Elapsed.TotalMilliseconds;
+                    }
+
+                    UpdateRecordingStatistics(
+                        frameTimeMs,
+                        recordingStopwatch);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                wasCancelled = true;
+            }
+            catch (Exception ex)
+            {
+                recordingError = ex;
+            }
+            finally
+            {
+                recordingStopwatch.Stop();
+                ElapsedRecordingTime = FormatElapsedTime(recordingStopwatch.Elapsed);
+
+                try
+                {
+                    writer?.Complete();
+                }
+                catch (Exception ex)
+                {
+                    recordingError ??= ex;
+                }
+
+                _recordingCancellation = null;
+                IsRecording = false;
+                cancellation.Dispose();
+            }
+
+            if (recordingError is not null)
+            {
+                RecordingThumbnails.Clear();
+                TryDeleteTemporaryRecording(temporaryFile);
+
+                MessageDialog messageDialog = MessageDialogFactory.ErrorDialog(
+                    "Video Recording",
+                    $"The video recording could not be completed.\n{recordingError.Message}");
+
+                messageDialog.ShowDialog();
+                return;
+            }
+
+            if (RecordedFrames == 0)
+            {
+                RecordingThumbnails.Clear();
+                TryDeleteTemporaryRecording(temporaryFile);
+                return;
+            }
+
+            // An early stop requires the user's decision about the partial video.
+            if (wasCancelled)
+            {
+                MessageDialog messageDialog = MessageDialogFactory.ConfirmationDialog(
+                    "Video Recording Stopped",
+                    $"Recording was stopped before completion.\n" +
+                    $"{RecordedFrames} frames have been captured.\n" +
+                    "Would you like to keep this video?");
+
+                messageDialog.ShowDialog();
+
+                switch (((MessageDialogViewModel)messageDialog.DataContext).Result)
+                {
+                    case MessageDialogResult.Yes:
+                        break;
+                    case MessageDialogResult.No:
+                        RecordingThumbnails.Clear();
+                        TryDeleteTemporaryRecording(temporaryFile);
+                        return;
+                }
+            }
+
+            // Recording is complete, or the user elected to keep the partial video.
+            SaveFileDialog dialog = new()
+            {
+                InitialDirectory = ApplicationPreferences.Current.OutputDirectory,
+                RestoreDirectory = true,
+                DefaultExt = ".avi",
+                AddExtension = true,
+                CheckFileExists = false,
+                OverwritePrompt = true,
+                Filter = "AVI Video (*.avi)|*.avi",
+                Title = "Save World Globe Video",
+                FileName = "WorldGlobe.avi"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    File.Move(temporaryFile, dialog.FileName, true);
+                }
+                catch (Exception ex)
+                {
+                    RecordingThumbnails.Clear();
+                    MessageDialog messageDialog = MessageDialogFactory.ErrorDialog(
+                        "Video Recording",
+                        $"The video could not be saved.\n{ex.Message}\n" +
+                        $"The temporary recording remains at:\n{temporaryFile}");
+
+                    messageDialog.ShowDialog();
+                }
+            }
+            else
+            {
+                RecordingThumbnails.Clear();
+                TryDeleteTemporaryRecording(temporaryFile);
+            }
+        }
+
+        private static void TryDeleteTemporaryRecording(string filePath)
+        {
+            try
+            {
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                }
+            }
+            catch
+            {
+                // Cleanup failure should not interrupt the UI.
+            }
+        }
+
+
+        public int[] SupportedFrameRates => WorldGlobeViewer.SupportedFrameRates;
+
+        private int _selectedFrameRate = 30;
+        public int SelectedFrameRate
+        {
+            get => _selectedFrameRate;
+            set => SetProperty(ref _selectedFrameRate, value);
+        }
+
+        private static RenderTargetBitmap CreateRecordingThumbnail(RenderTargetBitmap source)
+        {
+            const int thumbnailWidth = 120;
+            const int thumbnailHeight = 70;
+
+            double scale = Math.Min(
+                (double)thumbnailWidth / source.PixelWidth,
+                (double)thumbnailHeight / source.PixelHeight);
+
+            double imageWidth = source.PixelWidth * scale;
+            double imageHeight = source.PixelHeight * scale;
+
+            double x = (thumbnailWidth - imageWidth) / 2.0;
+            double y = (thumbnailHeight - imageHeight) / 2.0;
+
+            DrawingVisual visual = new();
+
+            using (DrawingContext context = visual.RenderOpen())
+            {
+                context.DrawRectangle(
+                    Brushes.Transparent,
+                    null,
+                    new Rect(0, 0, thumbnailWidth, thumbnailHeight));
+
+                context.DrawImage(
+                    source,
+                    new Rect(x, y, imageWidth, imageHeight));
+            }
+
+            RenderTargetBitmap thumbnail = new(
+                thumbnailWidth,
+                thumbnailHeight,
+                96,
+                96,
+                PixelFormats.Pbgra32);
+
+            thumbnail.Render(visual);
+            thumbnail.Freeze();
+
+            return thumbnail;
+        }
+
+        //==========================
+
         public ICommand ToggleStarfield => new RelayCommand(() =>
         {
             if (EnableStarfield && !string.IsNullOrEmpty(starfieldFileName))
@@ -515,6 +1041,12 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         {
             _modelViewer.SetCameraView(ModelViewDirection.Bottom);
         });
+    }
+
+    public sealed class VideoFrameThumbnail
+    {
+        public BitmapSource Image { get; init; } = null!;
+        public string TimeLabel { get; init; } = string.Empty;
     }
 
 }

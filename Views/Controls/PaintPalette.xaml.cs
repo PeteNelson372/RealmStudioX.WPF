@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Application = System.Windows.Application;
 using Button = System.Windows.Controls.Button;
+using MenuItem = System.Windows.Controls.MenuItem;
 
 namespace RealmStudioX.WPF.Views.Controls
 {

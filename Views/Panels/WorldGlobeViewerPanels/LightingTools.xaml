@@ -154,36 +154,14 @@
                                     Maximum="1"
                                     SmallChange="0.01"
                                     LargeChange="0.1"
-                                    behaviors:SliderToolTipBehavior.EnableFormattedToolTip="False"
                                     Width="120"
                                     HorizontalAlignment="Left"
                                     Margin="0,10,0,0"                                        
                                     Value="{Binding LightingModel.AmbientLightIntensity, Mode=TwoWay}"
-                                    ToolTip="{Binding LightingModel.AmbientLightIntensity, StringFormat={}{0:P0}}"/>
-
+                                    AutoToolTipPlacement="TopLeft"
+                                    ToolTip="{Binding LightingModel.AmbientLightIntensity, StringFormat={}{0:F2}}" />
                             </Grid>
                         </GroupBox>
-
-                    </StackPanel>
-
-                </ScrollViewer>
-            </TabItem>
-
-            <!-- Animation properties -->
-            <TabItem Header="Animation">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-
-                    <StackPanel Margin="10">
-
-                        <TextBlock
-                            Text="Animation Settings"
-                            FontWeight="SemiBold"
-                            Margin="0,0,0,6" />
-
-                        <TextBlock
-                            Text="Rotation, orbit, timing, and keyframe settings will appear here."
-                            TextWrapping="Wrap"
-                            Foreground="#FF77736D" />
 
                     </StackPanel>
 

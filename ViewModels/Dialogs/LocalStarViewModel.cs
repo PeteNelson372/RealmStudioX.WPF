@@ -48,7 +48,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
         private CelestialBody? _currentLocalStar;
 
-        private bool _enableLocalStar;
+        private bool _enableLocalStar = true;
 
         public bool EnableLocalStar
         {
@@ -121,7 +121,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             }
         }
 
-        private double _localStarSize = 0.09;
+        private double _localStarSize = 0.20;
 
         public double LocalStarSize
         {
@@ -140,14 +140,14 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         private const double PositionLimitXY = 10.0;
         private const double PositionLimitZ = 100.0;
 
-        private double _localStarX = 0.0;
+        private double _localStarX = -2.0;
         public double LocalStarX
         {
             get => _localStarX;
             set => SetPosition(value, LocalStarY, LocalStarZ);
         }
 
-        private double _localStarY = -1.44;
+        private double _localStarY = 0;
         public double LocalStarY
         {
             get => _localStarY;

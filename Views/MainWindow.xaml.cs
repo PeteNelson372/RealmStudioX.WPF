@@ -18,6 +18,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shell;
+using Color = System.Windows.Media.Color;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 using SKPoint = SkiaSharp.SKPoint;
@@ -32,6 +35,13 @@ namespace RealmStudioX.WPF
     /// </summary>
     public partial class MainWindow : RealmStudioMainWindow
     {
+        private ImageSource? _originalTaskbarIcon;
+        private int _lastTaskbarIconProgress = -1;
+
+        private const int TaskbarIconRenderSize = 128;
+        private static readonly Color TaskbarProgressTint =
+            Color.FromArgb(112, 70, 220, 80);
+
         public override string WindowId { get; } = Guid.NewGuid().ToString();
 
         private SKGLControl? _skiaControl;
@@ -40,7 +50,7 @@ namespace RealmStudioX.WPF
         private readonly EditorController? _editor;
         private readonly FontManager _fontManager;
         private readonly ThemeManager _themeManager;
-        
+
         private readonly AssetManager _assetManager;
         private readonly RenderContext _renderContext;
 
@@ -53,6 +63,126 @@ namespace RealmStudioX.WPF
         public event EventHandler? MinimizeClicked;
         public event EventHandler? MaximizeClicked;
         public event EventHandler? ExitClicked;
+
+
+        /// <summary>
+        /// Displays World Globe video-recording progress on the main
+        /// application's taskbar button.
+        /// </summary>
+        public void UpdateTaskbarRecordingProgress(bool isRecording, double progress)
+        {
+            TaskbarItemInfo ??= new TaskbarItemInfo();
+
+            if (_originalTaskbarIcon is null)
+            {
+                _originalTaskbarIcon = Icon ?? LoadOriginalTaskbarIcon();
+                Icon = _originalTaskbarIcon;
+            }
+
+            if (isRecording)
+            {
+                progress = Math.Clamp(progress, 0.0, 1.0);
+
+                TaskbarItemInfo.ProgressValue = progress;
+                TaskbarItemInfo.ProgressState = TaskbarItemProgressState.Normal;
+
+                // Re-render only when the displayed percentage changes.
+                int percentage = (int)Math.Round(progress * 100.0);
+                if (percentage != _lastTaskbarIconProgress)
+                {
+                    Icon = CreateTaskbarProgressIcon(progress);
+                    _lastTaskbarIconProgress = percentage;
+                }
+            }
+            else
+            {
+                // Remove the native Windows taskbar progress indicator.
+                if (TaskbarItemInfo is not null)
+                {
+                    TaskbarItemInfo.ProgressState = TaskbarItemProgressState.None;
+                    TaskbarItemInfo.ProgressValue = 0.0;              
+                    TaskbarItemInfo = null;
+                }
+
+                // Restore the original, unshaded application icon.
+                Icon = null;
+
+                Task.Delay(100).GetAwaiter().GetResult(); // Allow the taskbar to render
+
+                // Process the pending taskbar updates.
+                Dispatcher.Invoke(
+                    System.Windows.Threading.DispatcherPriority.Background,
+                    new Action(() => { }));
+
+                Icon = _originalTaskbarIcon;
+                _lastTaskbarIconProgress = -1;
+            }
+        }
+
+        private static ImageSource LoadOriginalTaskbarIcon()
+        {
+            Uri iconUri = new(
+                "pack://application:,,,/Assets/ico/realm_studio_icon.ico",
+                UriKind.Absolute);
+
+            BitmapDecoder decoder = BitmapDecoder.Create(
+                iconUri,
+                BitmapCreateOptions.PreservePixelFormat,
+                BitmapCacheOption.OnLoad);
+
+            BitmapFrame frame = decoder.Frames
+                .OrderByDescending(f => f.PixelWidth * f.PixelHeight)
+                .First();
+
+            frame.Freeze();
+            return frame;
+        }
+
+        private ImageSource CreateTaskbarProgressIcon(double progress)
+        {
+            const double size = TaskbarIconRenderSize;
+
+            // The emblem occupies approximately the central 82% of the icon.
+            // Clipping the tint to this ellipse keeps it out of the corners.
+            Rect emblemBounds = new(
+                size * 0.09,
+                size * 0.10,
+                size * 0.82,
+                size * 0.82);
+
+            DrawingVisual visual = new();
+            using (DrawingContext drawing = visual.RenderOpen())
+            {
+                drawing.DrawImage(
+                    _originalTaskbarIcon,
+                    new Rect(0, 0, size, size));
+
+                drawing.PushClip(new EllipseGeometry(emblemBounds));
+
+                double fillWidth = size * progress;
+                drawing.DrawRectangle(
+                    new SolidColorBrush(TaskbarProgressTint),
+                    null,
+                    new Rect(0, 0, fillWidth, size));
+
+                drawing.Pop();
+            }
+
+            RenderTargetBitmap bitmap = new(
+                TaskbarIconRenderSize,
+                TaskbarIconRenderSize,
+                96,
+                96,
+                PixelFormats.Pbgra32);
+
+            bitmap.Render(visual);
+            bitmap.Freeze();
+
+            BitmapFrame result = BitmapFrame.Create(bitmap);
+            result.Freeze();
+            return result;
+        }
+
 
         private readonly Dictionary<string, UserControl> _toolPanels = new()
         {
@@ -78,6 +208,11 @@ namespace RealmStudioX.WPF
         public MainWindow(CreateOpenPackageResult startup, AssetManager assetManager, FontManager fontManager, ThemeManager themeManager)
         {
             InitializeComponent();
+
+            _originalTaskbarIcon = Icon ?? LoadOriginalTaskbarIcon();
+            Icon = _originalTaskbarIcon;
+
+            TaskbarItemInfo = new TaskbarItemInfo();
 
             _assetManager = assetManager ?? throw new ArgumentNullException(nameof(assetManager));
 
@@ -200,7 +335,7 @@ namespace RealmStudioX.WPF
             => ExitClicked?.Invoke(this, EventArgs.Empty);
 
         private void OnMinimize(object sender, RoutedEventArgs e)
-            => MinimizeClicked?.Invoke(this, EventArgs.Empty);  
+            => MinimizeClicked?.Invoke(this, EventArgs.Empty);
 
         private void OnMaximize(object sender, RoutedEventArgs e)
             => MaximizeClicked?.Invoke(this, EventArgs.Empty);
@@ -237,7 +372,7 @@ namespace RealmStudioX.WPF
                 }
             };
         }
-        
+
         private void WireSkiaInput()
         {
             ArgumentNullException.ThrowIfNull(_skiaControl, nameof(_skiaControl));
@@ -422,7 +557,7 @@ namespace RealmStudioX.WPF
                 _skiaControl.Cursor = System.Windows.Forms.Cursors.Default;
             };
 
-            
+
             _skiaControl.KeyDown += (s, e) =>
             {
                 Keyboard.ClearFocus();
@@ -450,7 +585,7 @@ namespace RealmStudioX.WPF
                     _inputRouter.HandleTextInput(e.KeyChar);
                 }
             };
-            
+
         }
 
         private void HandleMouseWheel(PointerState state)
@@ -486,11 +621,11 @@ namespace RealmStudioX.WPF
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.WaterPaint)
             {
                 ViewModel.WaterViewModel.WaterBrushSize += sizeDelta;
-            }            
+            }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.WaterErase)
             {
                 ViewModel.WaterViewModel.WaterEraserSize += sizeDelta;
-            }            
+            }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.LakePaint)
             {
                 ViewModel.WaterViewModel.WaterBrushSize += sizeDelta;
@@ -542,7 +677,7 @@ namespace RealmStudioX.WPF
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.DrawingStamp)
             {
                 ViewModel.DrawingViewModel.StampScale += sizeDelta / 100f;
-            }            
+            }
             else if (state.Modifiers == InputModifiers.None && _editor.CurrentDrawingMode == MapDrawingMode.SymbolPlace)
             {
                 if (ViewModel.SymbolsViewModel.UseAreaBrush)
@@ -622,13 +757,13 @@ namespace RealmStudioX.WPF
                             // render the heightmap overlay here
                             if (ViewModel.HeightMapViewModel.OverlayEnabled)
                             {
-                               _editor.Scene.RenderHeightMapOverlay(canvas);
+                                _editor.Scene.RenderHeightMapOverlay(canvas);
                             }
 
                             _editor.RenderOverlay(canvas);
                         }
                         else if (ViewModel.ShowImportPanel)
-                        {                            
+                        {
                             canvas.Clear(SKColors.Black);
 
                             if (ViewModel.ImportViewModel.ImageBitmap != null)

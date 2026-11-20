@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net11.0-windows10.0.19041.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
@@ -424,6 +424,7 @@
     <ProjectReference Include="..\RealmStudioX.3D\RealmStudioX.3D.csproj" />
     <ProjectReference Include="..\RealmStudioX.Core\RealmStudioX.Core.csproj" />
     <ProjectReference Include="..\RealmStudioX.Infrastructure\RealmStudioX.Infrastructure.csproj" />
+    <ProjectReference Include="..\RealmStudioX.Video\RealmStudioX.Video.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -128,7 +128,8 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         {
             if (SelectedExtractionPipeline == null)
             {
-                MessageDialogFactory.ErrorDialog("No Extraction Pipeline Selected", "Please select an extraction pipeline before running the analysis.").ShowDialog();
+                MessageDialog dlg = MessageDialogFactory.ErrorDialog("No Extraction Pipeline Selected", "Please select an extraction pipeline before running the analysis.");
+                dlg.ShowDialog();
                 return;
             }
 
@@ -163,16 +164,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                         dlg.ShowDialog();
 
                         return;
-                    }
-
-                    // write attempts to debug output
-                    foreach (PerimeterPipelineAttempt attempt in analysisResult.Attempts)
-                    {
-                        Debug.WriteLine(
-                            $"Pipeline '{attempt.PipelineName}': " +
-                            $"score={attempt.Evaluation.Score:F1}, " +
-                            $"accepted={attempt.Evaluation.Accepted}, " +
-                            $"reason={attempt.Evaluation.Reason}");
                     }
 
                     // Add candidate regions.
@@ -216,7 +207,8 @@ namespace RealmStudioX.WPF.ViewModels.Panels
         {
             if (SelectedRefinementPipeline == null)
             {
-                MessageDialogFactory.ErrorDialog("No Refinement Pipeline Selected", "Please select a refinement pipeline before running the analysis.").ShowDialog();
+                MessageDialog dlg = MessageDialogFactory.ErrorDialog("No Refinement Pipeline Selected", "Please select a refinement pipeline before running the analysis.");
+                dlg.ShowDialog();
                 return;
             }
 
@@ -497,16 +489,6 @@ namespace RealmStudioX.WPF.ViewModels.Panels
                     dlg.ShowDialog();
 
                     return;
-                }
-
-                // write attempts to debug output
-                foreach (PerimeterPipelineAttempt attempt in analysisResult.Attempts)
-                {
-                    Debug.WriteLine(
-                        $"Pipeline '{attempt.PipelineName}': " +
-                        $"score={attempt.Evaluation.Score:F1}, " +
-                        $"accepted={attempt.Evaluation.Accepted}, " +
-                        $"reason={attempt.Evaluation.Reason}");
                 }
 
                 // Add candidate regions.
