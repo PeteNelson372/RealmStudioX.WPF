@@ -1,13 +1,13 @@
 ﻿
 using RealmStudioShapeRenderingLib;
-using System.Windows;
+using RealmStudioX.Core.Celestial;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using Point = System.Windows.Point;
 
 namespace RealmStudioX.WPF.Views.Celestial;
 
-internal sealed class CoronaCelestialBodyRenderer :
+public sealed class CoronaCelestialBodyRenderer :
     LocalStarCelestialBodyRenderer
 {
     private static readonly MeshGeometry3D SphereMesh =

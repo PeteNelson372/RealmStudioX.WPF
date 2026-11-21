@@ -1,6 +1,6 @@
 ﻿
 using RealmStudioShapeRenderingLib;
-using RealmStudioX.Core;
+using RealmStudioX.Core.Celestial;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
@@ -9,7 +9,7 @@ using Point = System.Windows.Point;
 
 namespace RealmStudioX.WPF.Views.Celestial
 {
-    internal sealed class PlanetCelestialBodyRenderer :
+    public sealed class PlanetCelestialBodyRenderer :
         ICelestialBodyRenderer,
         IAttachmentContainer,
         ICelestialBodyVisualTarget,

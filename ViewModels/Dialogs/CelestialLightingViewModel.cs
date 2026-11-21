@@ -1,5 +1,5 @@
-﻿using RealmStudioX.WPF.ViewModels.Infrastructure;
-using RealmStudioX.WPF.Views.Celestial;
+﻿using RealmStudioX.Core.Celestial;
+using RealmStudioX.WPF.ViewModels.Infrastructure;
 using System.Windows.Media;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;

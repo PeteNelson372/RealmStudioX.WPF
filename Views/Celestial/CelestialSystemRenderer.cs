@@ -1,13 +1,13 @@
 ﻿
 using RealmStudioShapeRenderingLib;
-using RealmStudioX.Core;
+using RealmStudioX.Core.Celestial;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 
 namespace RealmStudioX.WPF.Views.Celestial;
 
-internal sealed class CelestialSystemRenderer : ICelestialAnimatedObject
+public sealed class CelestialSystemRenderer : ICelestialAnimatedObject
 {
     private readonly Func<CelestialTextureSource?, ImageSource?> _textureResolver;
 

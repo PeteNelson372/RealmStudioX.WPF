@@ -1,5 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
-using RealmStudioX.Core;
+using RealmStudioX.Core.Celestial;
 using RealmStudioX.WPF.EditorUtilities;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -8,7 +8,7 @@ using Point = System.Windows.Point;
 
 namespace RealmStudioX.WPF.Views.Celestial
 {
-    internal sealed class SunCelestialBodyRenderer : LocalStarCelestialBodyRenderer
+    public sealed class SunCelestialBodyRenderer : LocalStarCelestialBodyRenderer
     {
         private static readonly Lazy<BitmapSource> SunTexture =
             new(() => WorldGlobeAssets.LoadBitmap("sol-texture.jpg"));

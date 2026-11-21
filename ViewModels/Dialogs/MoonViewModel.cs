@@ -16,6 +16,7 @@ using System.IO;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
+using RealmStudioX.Core.Celestial;
 
 namespace RealmStudioX.WPF.ViewModels.Dialogs;
 

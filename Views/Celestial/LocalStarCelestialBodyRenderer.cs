@@ -1,5 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
-using RealmStudioX.Core;
+using RealmStudioX.Core.Celestial;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
@@ -7,7 +7,7 @@ using Color = System.Windows.Media.Color;
 
 namespace RealmStudioX.WPF.Views.Celestial
 {
-    internal abstract class LocalStarCelestialBodyRenderer :
+    public abstract class LocalStarCelestialBodyRenderer :
         ICelestialBodyRenderer,
         IAttachmentContainer,
         ICelestialBodyVisualTarget,

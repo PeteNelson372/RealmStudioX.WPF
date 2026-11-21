@@ -1,5 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
-using RealmStudioX.Core;
+using RealmStudioX.Core.Celestial;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -9,7 +9,7 @@ using Point = System.Windows.Point;
 
 namespace RealmStudioX.WPF.Views.Celestial
 {
-    internal sealed class NebulaCelestialBodyRenderer :
+    public sealed class NebulaCelestialBodyRenderer :
         ICelestialBodyRenderer,
         ICameraFacingCelestialObject,
         ICelestialAnimatedObject

@@ -1,4 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.WPF.Views.Celestial;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
@@ -6,7 +7,7 @@ using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using Point = System.Windows.Point;
 
-namespace RealmStudioX.WPF.Views.Celestial;
+namespace RealmStudioX.Core.Celestial;
 
 internal sealed class BlackHoleCelestialBodyRenderer :
     LocalStarCelestialBodyRenderer

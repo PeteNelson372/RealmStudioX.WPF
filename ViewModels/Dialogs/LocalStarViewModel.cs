@@ -1,5 +1,6 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioShapeRenderingLib.Logging;
+using RealmStudioX.Core.Celestial;
 using RealmStudioX.WPF.Editor.Services;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.ViewModels.Infrastructure;

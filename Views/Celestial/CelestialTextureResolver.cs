@@ -1,5 +1,6 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
+using RealmStudioX.Core.Celestial;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Main;
 using SkiaSharp;

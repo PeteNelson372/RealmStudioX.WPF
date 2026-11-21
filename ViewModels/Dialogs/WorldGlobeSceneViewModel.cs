@@ -1,5 +1,6 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX._3D.Views.Controls;
+using RealmStudioX.Core.Celestial;
 using RealmStudioX.Infrastructure;
 using RealmStudioX.Video.Encoding;
 using RealmStudioX.Video.Settings;
@@ -7,7 +8,6 @@ using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
-using RealmStudioX.WPF.Views.Celestial;
 using RealmStudioX.WPF.Views.Dialogs;
 using System.Collections.ObjectModel;
 using System.Diagnostics;

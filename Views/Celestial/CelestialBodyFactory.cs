@@ -1,4 +1,5 @@
 ﻿using RealmStudioShapeRenderingLib;
+using RealmStudioX.Core.Celestial;
 using RealmStudioX.WPF.ViewModels.Dialogs;
 using System.IO;
 using System.Windows.Media.Imaging;

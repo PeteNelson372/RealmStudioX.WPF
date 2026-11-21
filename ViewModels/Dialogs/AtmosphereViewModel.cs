@@ -21,6 +21,11 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
         private WorldGlobeViewer _globeViewer = globeViewer;
 
         private string? _customCloudTexturePath;
+        public string? CustomCloudTexturePath
+        {
+            get => _customCloudTexturePath;
+            set => _customCloudTexturePath = value;
+        }
 
         private bool _enableAtmosphere = false;
         public bool EnableAtmosphere
