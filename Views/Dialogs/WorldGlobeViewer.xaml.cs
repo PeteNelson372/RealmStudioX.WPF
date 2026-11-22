@@ -89,6 +89,8 @@ namespace RealmStudioX.WPF.Views.Dialogs
         private readonly Model3DGroup _sceneRootModel = new();
 
         private CelestialSystem? _celestialSystem;
+        public CelestialSystem? CelestialSystem => _celestialSystem;
+
         private CelestialSystemRenderer? _celestialSystemRenderer;
 
         private CelestialBody? _worldBody;
@@ -270,6 +272,16 @@ namespace RealmStudioX.WPF.Views.Dialogs
 
             // Keep camera-facing effects oriented toward the viewer.
             UpdateCameraFacingLocalStar();
+        }
+
+        public WorldGlobeSceneSettings CaptureWorldGlobeSettings()
+        {
+            return new WorldGlobeSceneSettings
+            {
+                YawAngle = _globeYaw.Angle,
+                PitchAngle = _globePitch.Angle,
+                AxialTilt = ViewModel.WorldGlobeModel.WorldTiltAngle
+            };
         }
 
         private void UpdateCameraFacingLocalStar()

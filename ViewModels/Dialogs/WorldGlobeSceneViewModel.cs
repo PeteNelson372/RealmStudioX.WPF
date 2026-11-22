@@ -169,7 +169,107 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             private set => SetProperty(ref _moonModel, value);
         }
 
-        public Func<Task<byte[]>>? CaptureWindowAsync { get; set; }
+        public ICommand SaveSceneCommand => new RelayCommand(SaveScene);
+
+        private void SaveScene()
+        {
+            // Capture the current scene and save it.
+            WorldGlobeSceneDocument? document = CaptureSceneDocument();
+
+            if (document != null)
+            {
+                string fileName = Path.Combine(ApplicationPreferences.Current.OutputDirectory, Path.GetFileName(Path.GetTempFileName()));
+
+                MapFileMethods.SaveWorldGlobeSceneDocument(document, fileName);
+
+                WorldGlobeSceneDocument loadedDoc = MapFileMethods.LoadWorldGlobeSceneDocument(fileName);
+            }
+        }
+
+        private WorldGlobeSceneDocument? CaptureSceneDocument()
+        {
+            try
+            {
+                WorldGlobeSceneDocument document = new()
+                {
+                    //CelestialSystem = GlobeViewer.CelestialSystem
+                    //    ?? throw new InvalidOperationException(
+                    //        "The celestial scene has not been initialized."),
+
+                    WorldGlobe = GlobeViewer.CaptureWorldGlobeSettings(),
+
+                    Camera = ModelViewer.CapturePerspectiveCameraSettings()
+                        ?? throw new InvalidOperationException(
+                            "The World Globe Viewer does not have a perspective camera."),
+
+                    Atmosphere = new AtmosphereSceneSettings
+                    {
+                        EnableAtmosphere = AtmosphereModel.EnableAtmosphere,
+                        EnableClouds = AtmosphereModel.EnableClouds,
+
+                        AtmosphereColor = AtmosphereModel.AtmosphereColor,
+                        AtmosphereDensity = AtmosphereModel.AtmosphereDensity,
+                        AtmosphereAltitude = AtmosphereModel.AtmosphereAltitude,
+
+                        UseDefaultCloudTexture = AtmosphereModel.UseDefaultCloudTexture,
+                        UseCustomCloudTexture = AtmosphereModel.UseCustomCloudTexture,
+                        CustomCloudTexturePath = AtmosphereModel.CustomCloudTexturePath,
+
+                        CloudColor = AtmosphereModel.CloudColor,
+                        CloudOpacity = AtmosphereModel.CloudOpacity,
+                        CloudRotationRate = AtmosphereModel.CloudRotationRate
+                    },
+
+                    Lighting = new CelestialLightingSettings
+                    {
+                        EnableAmbientLight = LightingModel.EnableAmbientLight,
+                        AmbientLightColor = LightingModel.AmbientLightColor,
+                        AmbientLightIntensity = LightingModel.AmbientLightIntensity
+                    },
+
+                    Effects = new SceneEffectsSettings
+                    {
+                        EnableBlur = EffectsModel.EnableBlur,
+                        BlurAmount = EffectsModel.BlurAmount,
+
+                        EnableBleachBypass = EffectsModel.EnableBleachBypass,
+                        BleachBypassOpacity = EffectsModel.BleachBypassOpacity,
+
+                        EnableBloom = EffectsModel.EnableBloom,
+                        BloomBlurWidth = EffectsModel.BloomBlurWidth,
+                        BloomIntensity = EffectsModel.BloomIntensity,
+                        BloomHighlightThreshold = EffectsModel.BloomHighlightThreshold,
+                        BloomHighlightIntensity = EffectsModel.BloomHighlightIntensity,
+
+                        EnableSepia = EffectsModel.EnableSepia,
+                        SepiaAmount = EffectsModel.SepiaAmount,
+
+                        EnableGrayscale = EffectsModel.EnableGrayscale,
+                        DesaturationFactor = EffectsModel.DesaturationFactor,
+
+                        EnableLensFlare = EffectsModel.EnableLensFlare,
+                        LensFlareIntensity = EffectsModel.LensFlareIntensity,
+                        LensFlareGlowSize = EffectsModel.LensFlareGlowSize,
+                        LensFlareStreakLength = EffectsModel.LensFlareStreakLength,
+                        LensFlareGhostIntensity = EffectsModel.LensFlareGhostIntensity,
+                        LensFlareStarburstIntensity = EffectsModel.LensFlareStarburstIntensity,
+
+                        EnableStarScintillation = EffectsModel.EnableStarScintillation,
+                        StarScintillationIntensity = EffectsModel.StarScintillationIntensity,
+                        StarScintillationSpeed = EffectsModel.StarScintillationSpeed,
+                        StarScintillationThreshold = EffectsModel.StarScintillationThreshold,
+                        StarScintillationContrastThreshold = EffectsModel.StarScintillationContrastThreshold,
+                        StarScintillationMaximumStarSize = EffectsModel.StarScintillationMaximumStarSize
+                    }
+                };
+
+                return document;
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
         public ICommand CaptureImageCommand => new RelayCommand(async () =>
         {

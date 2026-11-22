@@ -126,7 +126,8 @@
                         Background="#FFEAE7E1"
                         Padding="12,4"
                         Margin="12,0,8,0"
-                        ToolTip="Save the current scene">
+                        ToolTip="Save the current scene"
+                        Command="{Binding SaveSceneCommand}">
                         <StackPanel Orientation="Horizontal">
                             <materialDesign:PackIcon Kind="ContentSaveOutline"
                                      HorizontalAlignment="Left"
