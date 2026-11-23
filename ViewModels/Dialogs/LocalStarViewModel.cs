@@ -48,6 +48,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             ];
 
         private CelestialBody? _currentLocalStar;
+        private bool _isInitializing;
 
         private bool _enableLocalStar = true;
 
@@ -352,7 +353,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
         public void UpdateCurrentLocalStar()
         {
-            if (_currentLocalStar is null)
+            if (_isInitializing || _currentLocalStar is null)
                 return;
 
             CelestialBodyRendererType previousType = _currentLocalStar.RendererType;
@@ -382,7 +383,6 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             }
         }
 
-
         private void CopyPropertiesToCelestialBody(CelestialBody star)
         {
             CelestialBodyFactory.Configure(
@@ -402,6 +402,332 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             // Preserve user-defined metadata after factory configuration.
             star.Name = LocalStarName;
             star.Description = LocalStarDescription;
+        }
+
+        public void RestoreFromNode(
+            CelestialBodyNode? localStarNode,
+            CelestialBodyNode worldNode)
+        {
+            ArgumentNullException.ThrowIfNull(worldNode);
+
+            _isInitializing = true;
+
+            try
+            {
+                if (localStarNode is null)
+                {
+                    _currentLocalStar = null;
+                    _enableLocalStar = false;
+
+                    OnPropertyChanged(nameof(EnableLocalStar));
+                    return;
+                }
+
+                ArgumentNullException.ThrowIfNull(localStarNode.Body);
+                ArgumentNullException.ThrowIfNull(localStarNode.Placement);
+
+                CelestialBody body = localStarNode.Body;
+                CelestialBodyPlacementSettings placement = localStarNode.Placement;
+
+                _currentLocalStar = body;
+
+                // Common body properties.
+                LocalStarName = body.Name ?? string.Empty;
+                LocalStarDescription = body.Description ?? string.Empty;
+                SelectedLocalStarType = body.BodyType;
+                StarlightColor = body.BaseColor;
+
+                // Placement properties.
+                LocalStarSize = placement.Size;
+                LocalStarAxialTilt = placement.AxialTilt;
+
+                // The World Globe child is moved to the Local Star's position.
+                // The Local Star UI uses the opposite sign convention.
+                LocalStarX = -worldNode.Placement.Center.X;
+                LocalStarY = -worldNode.Placement.Center.Y;
+                LocalStarZ = -worldNode.Placement.Center.Z;
+
+                // The Local Star's basic rotation is stored on its body animation.
+                CelestialBodyAnimation? rotation =
+                    body.Animations.FirstOrDefault(
+                        animation =>
+                            animation.AnimationType ==
+                            CelestialBodyAnimationType.BasicRotation);
+
+                if (rotation?.Settings is BasicRotationSettings rotationSettings)
+                {
+                    LocalStarRotationRate = rotationSettings.RotationRate;
+                    LocalStarRotationDirection = rotationSettings.RotationDirection;
+                }
+                else
+                {
+                    // Retain placement defaults if the body has no BasicRotation.
+                    LocalStarRotationRate = placement.RotationRate;
+                    LocalStarRotationDirection = placement.RotationDirection;
+                }
+
+                InitializePointLightSettings(body);
+                InitializeTextureSettings(body);
+                InitializeAnimationSettings(body);
+                InitializeRingSettings(body);
+
+                // Set the backing field directly. The public setter would call
+                // ShowLocalStar(), which would replace the node we just restored.
+                _enableLocalStar = true;
+                OnPropertyChanged(nameof(EnableLocalStar));
+            }
+            finally
+            {
+                _isInitializing = false;
+            }
+        }
+
+        private void InitializePointLightSettings(CelestialBody body)
+        {
+            CelestialPointLightSettings settings =
+                body.PointLightSettings ?? new CelestialPointLightSettings();
+
+            switch (body.BodyType)
+            {
+                case CelestialBodyType.Sun:
+                    _sunModel.EnablePointLight = settings.Enabled;
+                    _sunModel.PointLightIntensity = settings.Intensity;
+                    _sunModel.PointLightRange = settings.Range;
+                    break;
+
+                case CelestialBodyType.Corona:
+                    _coronaModel.EnablePointLight = settings.Enabled;
+                    _coronaModel.PointLightIntensity = settings.Intensity;
+                    _coronaModel.PointLightRange = settings.Range;
+                    break;
+
+                case CelestialBodyType.Nebula:
+                    _nebulaModel.EnablePointLight = settings.Enabled;
+                    _nebulaModel.PointLightIntensity = settings.Intensity;
+                    _nebulaModel.PointLightRange = settings.Range;
+                    break;
+            }
+        }
+
+        private void InitializeTextureSettings(CelestialBody body)
+        {
+            CelestialTextureSource? texture = body.TextureSource;
+
+            if (texture is null)
+                return;
+
+            switch (body.BodyType)
+            {
+                case CelestialBodyType.GasGiant:
+                    if (texture.SourceType == CelestialTextureSourceType.BitmapFile)
+                        _gasGiantModel.TexturePath = texture.FilePath ?? string.Empty;
+                    break;
+
+                case CelestialBodyType.TerrestrialPlanet:
+                    switch (texture.SourceType)
+                    {
+                        case CelestialTextureSourceType.BitmapFile:
+                            _terrestrialPlanetModel.MapIdentifier = string.Empty;
+                            _terrestrialPlanetModel.TexturePath =
+                                texture.FilePath ?? string.Empty;
+                            break;
+
+                        case CelestialTextureSourceType.RealmMap:
+                            _terrestrialPlanetModel.TexturePath = string.Empty;
+                            _terrestrialPlanetModel.MapIdentifier =
+                                texture.MapId ?? string.Empty;
+                            break;
+                    }
+                    break;
+            }
+        }
+
+        private void InitializeAnimationSettings(CelestialBody body)
+        {
+            switch (body.BodyType)
+            {
+                case CelestialBodyType.Sun:
+                    InitializeSunSettings(body);
+                    break;
+
+                case CelestialBodyType.Corona:
+                    InitializeCoronaSettings(body);
+                    break;
+
+                case CelestialBodyType.BlackHole:
+                    InitializeBlackHoleSettings(body);
+                    break;
+
+                case CelestialBodyType.Nebula:
+                    InitializeNebulaSettings(body);
+                    break;
+
+                case CelestialBodyType.GasGiant:
+                    InitializeGasGiantSettings(body);
+                    break;
+            }
+        }
+
+        private void InitializeSunSettings(CelestialBody body)
+        {
+            SunAnimationSettings? settings =
+                GetAnimationSettings<SunAnimationSettings>(
+                    body,
+                    CelestialBodyAnimationType.SolarActivity);
+
+            if (settings is null)
+                return;
+
+            _sunModel.EnableProminences = settings.EnableProminences;
+            _sunModel.EnableFlares = settings.EnableFlares;
+            _sunModel.ActivityIntensity = settings.ActivityIntensity;
+            _sunModel.ActivityFrequency = settings.ActivityFrequency;
+            _sunModel.ActivityGeometryScale = settings.ActivityGeometryScale;
+            _sunModel.ActivityThicknessScale = settings.ActivityThicknessScale;
+            _sunModel.EnableCorona = settings.EnableCorona;
+            _sunModel.CoronaOpacity = settings.CoronaOpacity;
+            _sunModel.CoronaRotationSpeed = settings.CoronaRotationSpeed;
+        }
+
+        private void InitializeCoronaSettings(CelestialBody body)
+        {
+            CoronaAnimationSettings? settings =
+                GetAnimationSettings<CoronaAnimationSettings>(
+                    body,
+                    CelestialBodyAnimationType.SolarActivity);
+
+            if (settings is null)
+                return;
+
+            _coronaModel.EnableProminences = settings.EnableProminences;
+            _coronaModel.EnableFlares = settings.EnableFlares;
+            _coronaModel.ActivityIntensity = settings.ActivityIntensity;
+            _coronaModel.ActivityFrequency = settings.ActivityFrequency;
+            _coronaModel.ActivityGeometryScale = settings.ActivityGeometryScale;
+            _coronaModel.ActivityThicknessScale = settings.ActivityThicknessScale;
+        }
+
+        private void InitializeBlackHoleSettings(CelestialBody body)
+        {
+            BlackHoleAnimationSettings? settings =
+                GetAnimationSettings<BlackHoleAnimationSettings>(
+                    body,
+                    CelestialBodyAnimationType.BlackHoleActivity);
+
+            if (settings is null)
+                return;
+
+            _blackHoleModel.EnableJets = settings.EnableJets;
+            _blackHoleModel.JetLength = settings.JetLength;
+            _blackHoleModel.JetPulseRate = settings.JetPulseRate;
+            _blackHoleModel.EnableJetParticles = settings.EnableJetParticles;
+            _blackHoleModel.JetParticleSpeed = settings.JetParticleSpeed;
+            _blackHoleModel.JetParticleEmissionRate = settings.JetParticleEmissionRate;
+            _blackHoleModel.JetParticleLifetime = settings.JetParticleLifetime;
+            _blackHoleModel.JetParticleDispersion = settings.JetParticleDispersion;
+            _blackHoleModel.EnableDiskParticles = settings.EnableDiskParticles;
+            _blackHoleModel.DiskParticleEmissionRate = settings.DiskParticleEmissionRate;
+            _blackHoleModel.DiskParticleLifetime = settings.DiskParticleLifetime;
+            _blackHoleModel.DiskParticleOutflowSpeed = settings.DiskParticleOutflowSpeed;
+        }
+
+        private void InitializeNebulaSettings(CelestialBody body)
+        {
+            NebulaAnimationSettings? settings =
+                GetAnimationSettings<NebulaAnimationSettings>(
+                    body,
+                    CelestialBodyAnimationType.NebulaActivity);
+
+            if (settings is null)
+                return;
+
+            _nebulaModel.LayerCount = settings.LayerCount;
+            _nebulaModel.Width = settings.Width;
+            _nebulaModel.Height = settings.Height;
+            _nebulaModel.Depth = settings.Depth;
+            _nebulaModel.Opacity = settings.Opacity;
+            _nebulaModel.Brightness = settings.Brightness;
+            _nebulaModel.DetailIntensity = settings.DetailIntensity;
+            _nebulaModel.RotationSpeed = settings.RotationSpeed;
+            _nebulaModel.DriftSpeed = settings.DriftSpeed;
+        }
+
+        private void InitializeGasGiantSettings(CelestialBody body)
+        {
+            GasGiantAnimationSettings? settings =
+                GetAnimationSettings<GasGiantAnimationSettings>(
+                    body,
+                    CelestialBodyAnimationType.AtmosphereTurbulenceActivity);
+
+            if (settings is null)
+                return;
+
+            _gasGiantModel.EnableAtmosphericTurbulence =
+                settings.EnableAtmosphericTurbulence;
+
+            _gasGiantModel.TurbulenceIntensity =
+                settings.TurbulenceIntensity;
+        }
+
+        private static TSettings? GetAnimationSettings<TSettings>(
+            CelestialBody body,
+            CelestialBodyAnimationType animationType)
+            where TSettings : class
+        {
+            return body.Animations
+                .FirstOrDefault(animation =>
+                    animation.AnimationType == animationType)
+                ?.Settings as TSettings;
+        }
+
+        private void InitializeRingSettings(CelestialBody body)
+        {
+            PlanetaryRingViewModel? rings = body.BodyType switch
+            {
+                CelestialBodyType.GasGiant => _gasGiantModel.Rings,
+                CelestialBodyType.TerrestrialPlanet => _terrestrialPlanetModel.Rings,
+                _ => null
+            };
+
+            if (rings is null)
+                return;
+
+            CelestialBodyAttachment? attachment =
+                body.Attachments.FirstOrDefault(
+                    item => item.Type == CelestialBodyAttachmentType.PlanetaryRings);
+
+            if (attachment?.AttachmentSettings is not PlanetaryRingSettings settings)
+            {
+                rings.Enabled = false;
+                return;
+            }
+
+            rings.Enabled = settings.Enabled && attachment.Enabled;
+            rings.TexturePath = settings.TexturePath;
+            rings.InnerRadiusScale = settings.InnerRadiusScale;
+            rings.OuterRadiusScale = settings.OuterRadiusScale;
+            rings.Inclination = settings.Inclination;
+
+            CelestialBodyAnimation? rotation =
+                attachment.Animations.FirstOrDefault(
+                    item => item.AnimationType == CelestialBodyAnimationType.BasicRotation);
+
+            if (rotation?.Settings is BasicRotationSettings rotationSettings)
+            {
+                rings.EnableRotation = rotation.Enabled;
+                rings.RotationRate = rotationSettings.RotationRate;
+                rings.RotationDirection = rotationSettings.RotationDirection;
+            }
+
+            CelestialBodyAnimation? turbulence =
+                attachment.Animations.FirstOrDefault(
+                    item => item.AnimationType == CelestialBodyAnimationType.RingTurbulenceActivity);
+
+            if (turbulence?.Settings is RingTurbulenceSettings turbulenceSettings)
+            {
+                rings.EnableTurbulence = turbulence.Enabled;
+                rings.TurbulenceIntensity = turbulenceSettings.Intensity;
+            }
         }
 
     }

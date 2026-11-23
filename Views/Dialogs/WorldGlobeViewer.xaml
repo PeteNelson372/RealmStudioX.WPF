@@ -99,10 +99,10 @@
                     <Button
                         Style="{StaticResource FlatToolButton}"
                         Background="#FFEAE7E1"
-
                         Padding="12,4"
                         Margin="10,0,0,0"
-                        ToolTip="Load a 3D model or scene">
+                        Command="{Binding LoadWorldGlobeSceneCommand}"
+                        ToolTip="Load a World Globe scene">
                         <StackPanel Orientation="Horizontal">
                             <materialDesign:PackIcon Kind="FileUploadOutline"
                                      HorizontalAlignment="Left"
@@ -127,7 +127,7 @@
                         Padding="12,4"
                         Margin="12,0,8,0"
                         ToolTip="Save the current scene"
-                        Command="{Binding SaveSceneCommand}">
+                        Command="{Binding SaveWorldGlobeSceneCommand}">
                         <StackPanel Orientation="Horizontal">
                             <materialDesign:PackIcon Kind="ContentSaveOutline"
                                      HorizontalAlignment="Left"

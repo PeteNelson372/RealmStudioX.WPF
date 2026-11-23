@@ -1,4 +1,6 @@
-﻿using RealmStudioShapeRenderingLib;
+﻿using Emgu.CV;
+using RealmStudioShapeRenderingLib;
+using RealmStudioShapeRenderingLib.Logging;
 using RealmStudioX._3D.Views.Controls;
 using RealmStudioX.Core.Celestial;
 using RealmStudioX.Infrastructure;
@@ -9,6 +11,7 @@ using RealmStudioX.WPF.EditorUtilities;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.Views.Dialogs;
+using SharpDX;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -169,7 +172,7 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             private set => SetProperty(ref _moonModel, value);
         }
 
-        public ICommand SaveSceneCommand => new RelayCommand(SaveScene);
+        public ICommand SaveWorldGlobeSceneCommand => new RelayCommand(SaveScene);
 
         private void SaveScene()
         {
@@ -178,11 +181,39 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
 
             if (document != null)
             {
-                string fileName = Path.Combine(ApplicationPreferences.Current.OutputDirectory, Path.GetFileName(Path.GetTempFileName()));
+                SaveFileDialog dialog = new()
+                {
+                    InitialDirectory = ApplicationPreferences.Current.OutputDirectory,
+                    RestoreDirectory = true,
+                    DefaultExt = RealmStudioFileFormat.RealmStudioWorldGlobeSceneExtension,
+                    AddExtension = true,
+                    CheckFileExists = false,
+                    OverwritePrompt = true,
+                    Filter = "World Globe Scene (*.rswgsx)|*.rswgsx",
+                    Title = "Save World Globe Scene",
+                };
 
-                MapFileMethods.SaveWorldGlobeSceneDocument(document, fileName);
+                if (dialog.ShowDialog() == true)
+                {
+                    try
+                    {
+                        string fileName = dialog.FileName;
+                        MapFileMethods.SaveWorldGlobeSceneDocument(document, fileName);
 
-                WorldGlobeSceneDocument loadedDoc = MapFileMethods.LoadWorldGlobeSceneDocument(fileName);
+                        MessageDialog dlg = MessageDialogFactory.InformationDialog("World Globe Scene Saved",
+                            $"The world globe scene was saved to {Path.GetFileName(fileName)}");
+
+                        dlg.ShowDialog();
+                    }
+                    catch (Exception ex)
+                    {
+                        RealmStudioXLogger.Exception("Failure saving World Globe Scene.", ex);
+                        MessageDialog dlg = MessageDialogFactory.ErrorDialog("World Globe Scene Save Failure",
+                            "Failure saving world globe scene:\n" + ex.Message);
+
+                        dlg.ShowDialog();
+                    }
+                }
             }
         }
 
@@ -192,15 +223,24 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
             {
                 WorldGlobeSceneDocument document = new()
                 {
-                    //CelestialSystem = GlobeViewer.CelestialSystem
-                    //    ?? throw new InvalidOperationException(
-                    //        "The celestial scene has not been initialized."),
+                    CelestialSystem = CelestialSystemDocumentMapper.ToDocument(
+                        GlobeViewer.CelestialSystem
+                            ?? throw new InvalidOperationException(
+                                "The celestial scene has not been initialized.")),
 
                     WorldGlobe = GlobeViewer.CaptureWorldGlobeSettings(),
 
                     Camera = ModelViewer.CapturePerspectiveCameraSettings()
                         ?? throw new InvalidOperationException(
                             "The World Globe Viewer does not have a perspective camera."),
+
+                    Background = new SceneBackgroundSettings
+                    {
+                        EnableStarfield = EnableStarfield,
+                        TexturePath = string.IsNullOrWhiteSpace(starfieldFileName)
+                            ? null
+                            : starfieldFileName
+                    },
 
                     Atmosphere = new AtmosphereSceneSettings
                     {
@@ -227,47 +267,121 @@ namespace RealmStudioX.WPF.ViewModels.Dialogs
                         AmbientLightIntensity = LightingModel.AmbientLightIntensity
                     },
 
-                    Effects = new SceneEffectsSettings
-                    {
-                        EnableBlur = EffectsModel.EnableBlur,
-                        BlurAmount = EffectsModel.BlurAmount,
-
-                        EnableBleachBypass = EffectsModel.EnableBleachBypass,
-                        BleachBypassOpacity = EffectsModel.BleachBypassOpacity,
-
-                        EnableBloom = EffectsModel.EnableBloom,
-                        BloomBlurWidth = EffectsModel.BloomBlurWidth,
-                        BloomIntensity = EffectsModel.BloomIntensity,
-                        BloomHighlightThreshold = EffectsModel.BloomHighlightThreshold,
-                        BloomHighlightIntensity = EffectsModel.BloomHighlightIntensity,
-
-                        EnableSepia = EffectsModel.EnableSepia,
-                        SepiaAmount = EffectsModel.SepiaAmount,
-
-                        EnableGrayscale = EffectsModel.EnableGrayscale,
-                        DesaturationFactor = EffectsModel.DesaturationFactor,
-
-                        EnableLensFlare = EffectsModel.EnableLensFlare,
-                        LensFlareIntensity = EffectsModel.LensFlareIntensity,
-                        LensFlareGlowSize = EffectsModel.LensFlareGlowSize,
-                        LensFlareStreakLength = EffectsModel.LensFlareStreakLength,
-                        LensFlareGhostIntensity = EffectsModel.LensFlareGhostIntensity,
-                        LensFlareStarburstIntensity = EffectsModel.LensFlareStarburstIntensity,
-
-                        EnableStarScintillation = EffectsModel.EnableStarScintillation,
-                        StarScintillationIntensity = EffectsModel.StarScintillationIntensity,
-                        StarScintillationSpeed = EffectsModel.StarScintillationSpeed,
-                        StarScintillationThreshold = EffectsModel.StarScintillationThreshold,
-                        StarScintillationContrastThreshold = EffectsModel.StarScintillationContrastThreshold,
-                        StarScintillationMaximumStarSize = EffectsModel.StarScintillationMaximumStarSize
-                    }
+                    Effects = EffectsModel.CaptureSettings(),
                 };
 
                 return document;
             }
-            catch
+            catch (Exception ex)
             {
+                RealmStudioXLogger.Exception("Failure capturing World Globe Scene.", ex);
+
+                MessageDialog dlg = MessageDialogFactory.ErrorDialog(
+                    "World Globe Scene Capture Failure",
+                    "Failure capturing world globe scene:\n" + ex.Message);
+
+                dlg.ShowDialog();
+
                 return null;
+            }
+        }
+
+        public ICommand LoadWorldGlobeSceneCommand => new RelayCommand(LoadScene);
+
+        private void LoadScene()
+        {
+            OpenFileDialog dialog = new()
+            {
+                Title = "Load World Globe Scene File",
+                Filter = "World Globe Scene (*.rswgsx)|*.rswgsx",
+                Multiselect = false,
+                DefaultExt = RealmStudioFileFormat.RealmStudioWorldGlobeSceneExtension,
+                InitialDirectory = ApplicationPreferences.Current.OutputDirectory,
+                CheckFileExists = true
+            };
+
+            bool? result = dialog.ShowDialog();
+
+            if (result == true)
+            {
+                try
+                {
+                    string sceneFileName = dialog.FileName;
+
+                    WorldGlobeSceneDocument loadedSceneDoc = MapFileMethods.LoadWorldGlobeSceneDocument(sceneFileName);
+
+                    // construct the world globe scene from the loaded WorldGlobeSceneDocument
+
+                    RestoreSceneSettings(loadedSceneDoc);
+                }
+                catch (Exception ex)
+                {
+                    RealmStudioXLogger.Exception("Failure loading World Globe Scene.", ex);
+                    MessageDialog dlg = MessageDialogFactory.ErrorDialog("World Globe Scene Load Failure",
+                        "Failure loading world globe scene:\n" + ex.Message);
+
+                    dlg.ShowDialog();
+                }
+
+            }
+        }
+
+        public void RestoreSceneSettings(WorldGlobeSceneDocument document)
+        {
+            ArgumentNullException.ThrowIfNull(document);
+
+            // Restore the World Globe and its existing runtime hierarchy.
+            // The document mapper must already have reconstructed CelestialSystem.
+            CelestialSystem celestialSystem =
+                CelestialSystemDocumentMapper.FromDocument(
+                    document.CelestialSystem);
+
+            GlobeViewer.RestoreWorldGlobe(
+                celestialSystem,
+                document.WorldGlobe);
+
+            // Restore the independent scene settings.
+            RestoreLighting(document.Lighting);
+            RestoreBackground(document.Background);
+
+            ModelViewer.ApplyPerspectiveCameraSettings(
+                document.Camera);
+
+            // Restore post-processing effects
+            EffectsModel.RestoreSettings(document.Effects);
+        }
+
+        private void RestoreLighting(CelestialLightingSettings settings)
+        {
+            ArgumentNullException.ThrowIfNull(settings);
+
+            LightingModel.EnableAmbientLight =
+                settings.EnableAmbientLight;
+
+            LightingModel.AmbientLightColor =
+                settings.AmbientLightColor;
+
+            LightingModel.AmbientLightIntensity =
+                settings.AmbientLightIntensity;
+        }
+
+        private void RestoreBackground(SceneBackgroundSettings settings)
+        {
+            ArgumentNullException.ThrowIfNull(settings);
+
+            EnableStarfield = settings.EnableStarfield;
+            starfieldFileName = settings.TexturePath ?? string.Empty;
+
+            if (EnableStarfield &&
+                !string.IsNullOrWhiteSpace(starfieldFileName) &&
+                File.Exists(starfieldFileName))
+            {
+                SetBackground(starfieldFileName);
+            }
+            else
+            {
+                ModelViewer.SetBackgroundColor(
+                    WorldGlobeViewer.DefaultSpaceColor);
             }
         }
 

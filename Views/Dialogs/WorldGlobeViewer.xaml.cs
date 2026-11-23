@@ -284,6 +284,210 @@ namespace RealmStudioX.WPF.Views.Dialogs
             };
         }
 
+        public void RestoreWorldGlobe(
+            CelestialSystem celestialSystem,
+            WorldGlobeSceneSettings settings)
+        {
+            ArgumentNullException.ThrowIfNull(celestialSystem);
+            ArgumentNullException.ThrowIfNull(settings);
+
+            // Locate the existing World Globe node in the loaded hierarchy.
+            _worldNode = FindWorldGlobeNode(celestialSystem);
+
+            if (_worldNode is null)
+            {
+                throw new InvalidOperationException(
+                    "The loaded celestial system does not contain a World Globe.");
+            }
+
+            _worldBody = _worldNode.Body;
+
+            // Retain the complete loaded celestial system.
+            _celestialSystem = celestialSystem;
+
+            // Find the existing Local Star, if the loaded scene contains one.
+            _localStarNode = FindLocalStarNode(celestialSystem, _worldNode);
+
+            // Update the Local Star view models from the loaded body and placement.
+            // This does not create or replace any nodes in the hierarchy.
+            ViewModel.StarViewModel.RestoreFromNode(
+                _localStarNode,
+                _worldNode);
+
+            if (_localStarNode is not null &&
+                WorldLocalStarTreeViewItem is not null)
+            {
+                SetTreeViewHeader(
+                    WorldLocalStarTreeViewItem,
+                    "Local Star",
+                    _localStarNode.Body.Name);
+            }
+
+            RestoreCelestialTree();
+
+            // The World Globe's attachments already exist in the loaded body.
+            _cloudLayerAttachment = _worldBody.Attachments.FirstOrDefault(
+                attachment =>
+                    attachment.Type == CelestialBodyAttachmentType.CloudLayer);
+
+            _planetaryRingsAttachment = _worldBody.Attachments.FirstOrDefault(
+                attachment =>
+                    attachment.Type == CelestialBodyAttachmentType.PlanetaryRings);
+
+            WorldMoonTreeViewItem.Tag =
+                new MoonCollectionContext(_worldNode);
+
+            // Restore the manual visual orientation.
+            _globeYaw.Angle = settings.YawAngle;
+            _globePitch.Angle = settings.PitchAngle;
+
+            ViewModel.WorldGlobeModel.WorldTiltAngle =
+                (float)settings.AxialTilt;
+
+            ViewModel.WorldGlobeModel.UpdateCurrentTiltAngle(
+                GetCurrentAxialTilt());
+
+            // Restore the globe's rotation settings from its existing animation.
+            CelestialBodyAnimation? rotation =
+                _worldBody.Animations.FirstOrDefault(
+                    animation =>
+                        animation.AnimationType ==
+                        CelestialBodyAnimationType.BasicRotation);
+
+            if (rotation?.Settings is BasicRotationSettings rotationSettings)
+            {
+                ViewModel.WorldGlobeModel.RotationRate =
+                    rotationSettings.RotationRate;
+
+                ViewModel.WorldGlobeModel.RotationDirection =
+                    rotationSettings.RotationDirection;
+            }
+
+            // Recreate the renderer around the loaded scene, not a new scene.
+            _celestialSystemRenderer = new CelestialSystemRenderer(
+                ResolveTextureSource,
+                ResolveAttachmentTexture);
+
+            RebuildCelestialScene();
+        }
+
+        private void RestoreCelestialTree()
+        {
+            if (_worldNode is null)
+            {
+                return;
+            }
+
+            // Clear any items left over from a previously loaded scene.
+            PlanetsTreeViewItem.Items.Clear();
+            WorldMoonTreeViewItem.Items.Clear();
+
+            // The World Globe has its own Moons collection, regardless
+            // of whether it is a root node or a child of the Local Star.
+            WorldMoonTreeViewItem.Tag =
+                new MoonCollectionContext(_worldNode);
+
+            foreach (CelestialBodyNode moon in _worldNode.Children)
+            {
+                WorldMoonTreeViewItem.Items.Add(
+                    CreateTreeViewItem(moon));
+            }
+
+            // Clear any selection that might still reference the previous scene.
+            ViewModel.ClearSelectedPlanet();
+
+            if (_localStarNode is null)
+                return;
+
+            if (!string.IsNullOrWhiteSpace(_localStarNode.Body.Name))
+            {
+                SetTreeViewHeader(
+                    WorldLocalStarTreeViewItem,
+                    "Local Star",
+                    _localStarNode.Body.Name);
+            }
+
+            // The Local Star's children are planets, except for the World Globe.
+            foreach (CelestialBodyNode child in _localStarNode.Children)
+            {
+                if (ReferenceEquals(child, _worldNode))
+                    continue;
+
+                PlanetsTreeViewItem.Items.Add(
+                    CreateTreeViewItem(child, "Planet"));
+            }
+        }
+
+        private static CelestialBodyNode? FindWorldGlobeNode(CelestialSystem celestialSystem)
+        {
+            foreach (CelestialBodyNode root in celestialSystem.Bodies)
+            {
+                CelestialBodyNode? result = FindWorldGlobeNodeRecursive(root);
+
+                if (result is not null)
+                    return result;
+            }
+
+            return null;
+        }
+
+        private static CelestialBodyNode? FindWorldGlobeNodeRecursive(CelestialBodyNode node)
+        {
+            if (string.Equals(
+                node.Body.Name,
+                "World",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                return node;
+            }
+
+            foreach (CelestialBodyNode child in node.Children)
+            {
+                CelestialBodyNode? result =
+                    FindWorldGlobeNodeRecursive(child);
+
+                if (result is not null)
+                    return result;
+            }
+
+            return null;
+        }
+
+        private static CelestialBodyNode? FindLocalStarNode(
+            CelestialSystem celestialSystem,
+            CelestialBodyNode worldNode)
+        {
+            foreach (CelestialBodyNode root in celestialSystem.Bodies)
+            {
+                CelestialBodyNode? result =
+                    FindLocalStarNodeRecursive(root, worldNode);
+
+                if (result is not null)
+                    return result;
+            }
+
+            return null;
+        }
+
+        private static CelestialBodyNode? FindLocalStarNodeRecursive(
+            CelestialBodyNode node,
+            CelestialBodyNode worldNode)
+        {
+            if (node.Children.Contains(worldNode))
+                return node;
+
+            foreach (CelestialBodyNode child in node.Children)
+            {
+                CelestialBodyNode? result =
+                    FindLocalStarNodeRecursive(child, worldNode);
+
+                if (result is not null)
+                    return result;
+            }
+
+            return null;
+        }
+
         private void UpdateCameraFacingLocalStar()
         {
             Camera? camera = ModelViewer.Camera;
@@ -1674,24 +1878,31 @@ namespace RealmStudioX.WPF.Views.Dialogs
             return null;
         }
 
-        private TreeViewItem AddPlanetTreeViewItem(CelestialBodyNode planet)
+        private TreeViewItem AddPlanetTreeViewItem(
+            CelestialBodyNode planet)
         {
-            TreeViewItem item = CreateTreeViewItem(planet);
+            TreeViewItem item = CreateTreeViewItem(planet, "Planet");
 
             PlanetsTreeViewItem.Items.Add(item);
 
             return item;
         }
 
-        private TreeViewItem CreateTreeViewItem(CelestialBodyNode node)
+        private TreeViewItem CreateTreeViewItem(
+            CelestialBodyNode node,
+            string prefix = "Moon")
         {
             TreeViewItem item = new()
             {
-                Header = node.Body.Name,
                 Tag = node,
                 IsExpanded = false,
                 Margin = new Thickness(2)
             };
+
+            if (!string.IsNullOrWhiteSpace(node.Body.Name))
+            {
+                SetTreeViewHeader(item, prefix, node.Body.Name);
+            }
 
             TreeViewItem moonsItem = new()
             {
@@ -1707,6 +1918,7 @@ namespace RealmStudioX.WPF.Views.Dialogs
             }
 
             item.Items.Add(moonsItem);
+
             return item;
         }
 

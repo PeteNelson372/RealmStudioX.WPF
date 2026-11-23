@@ -1,16 +1,18 @@
 ﻿
+using RealmStudioX._3D.ShaderEffects;
 using RealmStudioX._3D.Views.Controls;
+using RealmStudioX.Core.Celestial;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using Point = System.Windows.Point;
-using RealmStudioX._3D.ShaderEffects;
 
 namespace RealmStudioX.WPF.ViewModels.Dialogs;
 
 public sealed class EffectsViewModel : ViewModelBase
 {
     private readonly ModelViewerControl _modelViewer;
+    private bool _isRestoringSettings;
 
     public EffectsViewModel(ModelViewerControl modelViewer)
     {
@@ -439,6 +441,9 @@ public sealed class EffectsViewModel : ViewModelBase
 
     private void ApplyBackgroundScintillation()
     {
+        if (_isRestoringSettings)
+            return;
+
         _modelViewer.SetBackgroundScintillation(
             EnableStarScintillation,
             (float)StarScintillationIntensity,
@@ -452,6 +457,9 @@ public sealed class EffectsViewModel : ViewModelBase
 
     private void ApplyEnabledEffects()
     {
+        if (_isRestoringSettings)
+            return;
+
         BlurEffect? blur = EnableBlur
             ? new BlurEffect
             {
@@ -587,6 +595,112 @@ public sealed class EffectsViewModel : ViewModelBase
                 bleachBypass,
                 blur
             ]);
+    }
+
+    public SceneEffectsSettings CaptureSettings()
+    {
+        return new SceneEffectsSettings
+        {
+            // Blur
+            EnableBlur = EnableBlur,
+            BlurAmount = BlurAmount,
+
+            // Bleach bypass
+            EnableBleachBypass = EnableBleachBypass,
+            BleachBypassOpacity = BleachBypassOpacity,
+
+            // Bloom
+            EnableBloom = EnableBloom,
+            BloomBlurWidth = BloomBlurWidth,
+            BloomIntensity = BloomIntensity,
+            BloomHighlightThreshold = BloomHighlightThreshold,
+            BloomHighlightIntensity = BloomHighlightIntensity,
+
+            // Sepia
+            EnableSepia = EnableSepia,
+            SepiaAmount = SepiaAmount,
+
+            // Grayscale
+            EnableGrayscale = EnableGrayscale,
+            DesaturationFactor = DesaturationFactor,
+
+            // Lens flare
+            EnableLensFlare = EnableLensFlare,
+            LensFlareIntensity = LensFlareIntensity,
+            LensFlareGlowSize = LensFlareGlowSize,
+            LensFlareStreakLength = LensFlareStreakLength,
+            LensFlareGhostIntensity = LensFlareGhostIntensity,
+            LensFlareStarburstIntensity = LensFlareStarburstIntensity,
+
+            // Background star scintillation
+            EnableStarScintillation = EnableStarScintillation,
+            StarScintillationIntensity = StarScintillationIntensity,
+            StarScintillationSpeed = StarScintillationSpeed,
+            StarScintillationThreshold = StarScintillationThreshold,
+            StarScintillationContrastThreshold =
+                StarScintillationContrastThreshold,
+            StarScintillationMaximumStarSize =
+                StarScintillationMaximumStarSize
+        };
+    }
+
+    public void RestoreSettings(SceneEffectsSettings settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+
+        _isRestoringSettings = true;
+
+        try
+        {
+            // Blur
+            EnableBlur = settings.EnableBlur;
+            BlurAmount = settings.BlurAmount;
+
+            // Bleach bypass
+            EnableBleachBypass = settings.EnableBleachBypass;
+            BleachBypassOpacity = settings.BleachBypassOpacity;
+
+            // Bloom
+            EnableBloom = settings.EnableBloom;
+            BloomBlurWidth = settings.BloomBlurWidth;
+            BloomIntensity = settings.BloomIntensity;
+            BloomHighlightThreshold = settings.BloomHighlightThreshold;
+            BloomHighlightIntensity = settings.BloomHighlightIntensity;
+
+            // Sepia
+            EnableSepia = settings.EnableSepia;
+            SepiaAmount = settings.SepiaAmount;
+
+            // Grayscale
+            EnableGrayscale = settings.EnableGrayscale;
+            DesaturationFactor = settings.DesaturationFactor;
+
+            // Lens flare
+            EnableLensFlare = settings.EnableLensFlare;
+            LensFlareIntensity = settings.LensFlareIntensity;
+            LensFlareGlowSize = settings.LensFlareGlowSize;
+            LensFlareStreakLength = settings.LensFlareStreakLength;
+            LensFlareGhostIntensity = settings.LensFlareGhostIntensity;
+            LensFlareStarburstIntensity = settings.LensFlareStarburstIntensity;
+
+            // Background star scintillation
+            EnableStarScintillation = settings.EnableStarScintillation;
+            StarScintillationIntensity = settings.StarScintillationIntensity;
+            StarScintillationSpeed = settings.StarScintillationSpeed;
+            StarScintillationThreshold = settings.StarScintillationThreshold;
+            StarScintillationContrastThreshold =
+                settings.StarScintillationContrastThreshold;
+            StarScintillationMaximumStarSize =
+                settings.StarScintillationMaximumStarSize;
+        }
+        finally
+        {
+            _isRestoringSettings = false;
+        }
+
+        // Rebuild the post-processing chain once, after all values are restored.
+        ApplyEnabledEffects();
+        ApplyBackgroundScintillation();
     }
 
     private static double ClampFinite(
