@@ -1,0 +1,420 @@
+﻿<ui:ModalDialog x:Class="RealmStudioX.WPF.Views.Dialogs.LandformGenerationDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:ui="clr-namespace:RealmStudioX.WPF.Editor.UserInterface"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"        
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:views="clr-namespace:RealmStudioX.WPF.Views"
+        xmlns:controls="clr-namespace:RealmStudioX.WPF.Views.Controls"
+        xmlns:vm="clr-namespace:RealmStudioX.WPF.ViewModels.Dialogs"
+        mc:Ignorable="d"
+        Title="World Generation"
+        Width="700"
+        Height="900"
+        MinWidth="650"
+        MinHeight="900"
+        Background="#FF45443F"
+        WindowStyle="None"
+        ResizeMode="NoResize">
+
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="36"
+                            ResizeBorderThickness="4"
+                            CornerRadius="0"/>
+    </shell:WindowChrome.WindowChrome>
+
+    <Grid Margin="10"
+          Background="#FFDFDBD2">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="65"/>
+        </Grid.RowDefinitions>
+
+        <!-- TITLE BAR -->
+
+        <Border Grid.Row="0"
+                Background="#FF45443F">
+
+            <TextBlock Text="Realm StudioX Landform Generation"
+                       Foreground="#FFE5E5E5"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Center"/>
+        </Border>
+
+        <!-- MAIN CONTENT -->
+
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+
+            <StackPanel Margin="12">
+
+                <!-- GENERATION AREA -->
+
+                <GroupBox Header="Generation Area"
+                          Padding="10"
+                          Margin="0,0,0,10">
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="120"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="0"
+                                   Text="Left"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,5,5"/>
+
+                        <controls:NumericUpDown Grid.Row="0"
+                                                Grid.Column="1"
+                                                Value="{Binding SelectedLeft, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                Minimum="0"
+                                                Maximum="10000"
+                                                Width="110"
+                                                Margin="0,0,10,5"/>
+
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="2"
+                                   Text="Top"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,5,5"/>
+
+                        <controls:NumericUpDown Grid.Row="0"
+                                                Grid.Column="3"
+                                                Value="{Binding SelectedTop, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                Minimum="0"
+                                                Maximum="10000"
+                                                Width="110"
+                                                Margin="0,0,0,5"/>
+
+                        <TextBlock Grid.Row="1"
+                                   Grid.Column="0"
+                                   Text="Right"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,5,5"/>
+
+                        <controls:NumericUpDown Grid.Row="1"
+                                                Grid.Column="1"
+                                                Value="{Binding SelectedRight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                Minimum="0"
+                                                Maximum="10000"
+                                                Width="110"
+                                                Margin="0,0,10,5"/>
+
+                        <TextBlock Grid.Row="1"
+                                   Grid.Column="2"
+                                   Text="Bottom"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,5,5"/>
+
+                        <controls:NumericUpDown Grid.Row="1"
+                                                Grid.Column="3"
+                                                Value="{Binding SelectedBottom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                Minimum="0"
+                                                Maximum="10000"
+                                                Width="110"
+                                                Margin="0,0,0,5"/>
+
+                        <TextBlock Grid.Row="2"
+                                   Grid.Column="0"
+                                   Grid.ColumnSpan="4"
+                                   Text="{Binding GenerationAreaDimensions}"
+                                   Foreground="Gray"
+                                   FontStyle="Italic"
+                                   Margin="0,5,0,0"/>
+                    </Grid>
+                </GroupBox>
+
+                <!-- LANDFORM TYPE -->
+
+                <GroupBox Header="Landform Type"
+                          Padding="10"
+                          Margin="0,0,0,10">
+
+                    <StackPanel>
+
+                        <ComboBox ItemsSource="{Binding LandformTypes}"
+                                  SelectedItem="{Binding SelectedLandformType, Mode=TwoWay}"
+                                  Width="220"
+                                  HorizontalAlignment="Left"
+                                  Margin="0,0,0,8"/>
+
+                        <TextBlock Text="{Binding GenerationTypeStatus}"
+                                   TextWrapping="Wrap"
+                                   Foreground="Gray"
+                                   FontStyle="Italic"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- ISLAND SETTINGS -->
+
+                <GroupBox Header="Landform Geometry"
+                          Padding="10"
+                          Margin="0,0,0,10"
+                          IsEnabled="{Binding IsIslandSelected}">
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="190"/>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- SIZE -->
+
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="0"
+                                   Text="Landform Size"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,5,8"/>
+
+                        <controls:NumericUpDown Grid.Row="0"
+                                                Grid.Column="1"
+                                                Value="{Binding IslandSize, Mode=TwoWay}"
+                                                Minimum="0.1"
+                                                Maximum="1.0"
+                                                Width="120"
+                                                Margin="0,0,0,8"/>
+
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="2"
+                                   Text="Fraction of available area"
+                                   Foreground="Gray"
+                                   VerticalAlignment="Center"
+                                   Margin="10,0,0,8"/>
+
+                        <!-- SHAPE IRREGULARITY -->
+
+                        <TextBlock Grid.Row="1"
+                                   Grid.Column="0"
+                                   Text="Shape Irregularity"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,5,8"/>
+
+                        <controls:NumericUpDown Grid.Row="1"
+                                                Grid.Column="1"
+                                                Value="{Binding IslandShapeIrregularity, Mode=TwoWay}"
+                                                Minimum="0"
+                                                Maximum="1.0"
+                                                Width="120"
+                                                Margin="0,0,0,8"/>
+
+                        <TextBlock Grid.Row="1"
+                                   Grid.Column="2"
+                                   Text="Large-scale shape variations"
+                                   Foreground="Gray"
+                                   VerticalAlignment="Center"
+                                   Margin="10,0,0,8"/>
+
+                        <!-- COASTLINE DETAIL -->
+
+                        <TextBlock Grid.Row="2"
+                                   Grid.Column="0"
+                                   Text="Coastline Detail"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,5,8"/>
+
+                        <controls:NumericUpDown Grid.Row="2"
+                                                Grid.Column="1"
+                                                Value="{Binding IslandCoastlineDetail, Mode=TwoWay}"
+                                                Minimum="0"
+                                                Maximum="1.0"
+                                                Width="120"
+                                                Margin="0,0,0,8"/>
+
+                        <TextBlock Grid.Row="2"
+                                   Grid.Column="2"
+                                   Text="Small-scale shoreline variations"
+                                   Foreground="Gray"
+                                   VerticalAlignment="Center"
+                                   Margin="10,0,0,8"/>
+
+                        <!-- POINT COUNT -->
+
+                        <TextBlock Grid.Row="3"
+                                   Grid.Column="0"
+                                   Text="Coastline Resolution"
+                                   VerticalAlignment="Center"/>
+
+                        <controls:NumericUpDown Grid.Row="3"
+                                                Grid.Column="1"
+                                                Value="{Binding IslandCoastlinePointCount, Mode=TwoWay}"
+                                                Minimum="64"
+                                                Maximum="8192"
+                                                Width="120"/>
+
+                        <TextBlock Grid.Row="3"
+                                   Grid.Column="2"
+                                   Text="Number of coastline points"
+                                   Foreground="Gray"
+                                   VerticalAlignment="Center"
+                                   Margin="10,0,0,0"/>
+                    </Grid>
+                </GroupBox>
+
+                <!-- GENERATION SEED -->
+
+                <GroupBox Header="Generation Seed"
+                          Padding="10"
+                          Margin="0,0,0,10">
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0"
+                                   Text="Random Seed"
+                                   VerticalAlignment="Center"/>
+
+                        <controls:NumericUpDown Grid.Column="1"
+                                                Value="{Binding Seed, Mode=TwoWay}"
+                                                Minimum="0"
+                                                Maximum="2147483647"
+                                                Width="110"/>
+
+                        <Button Grid.Column="2"
+                                Content="Randomize"
+                                Command="{Binding RandomizeSeedCommand}"
+                                Style="{StaticResource FlatToolButton}"
+                                Margin="12,0,0,0"
+                                Width="90"
+                                Height="30"/>
+                    </Grid>
+                </GroupBox>
+
+                <!-- ELEVATION -->
+
+                <GroupBox Header="Elevation and Terrain"
+                          Padding="10"
+                          Margin="0,0,0,10">
+
+                    <StackPanel>
+                        <CheckBox Content="Generate Height Map"
+                                  IsChecked="{Binding IncludeHeightMap}"
+                                  Margin="0,3"/>
+
+                        <TextBlock Text="Elevation generation options will be available here."
+                                   Foreground="Gray"
+                                   FontStyle="Italic"
+                                   Margin="20,3,0,3"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- ADDITIONAL FEATURES -->
+
+                <GroupBox Header="Additional Features"
+                          Padding="10"
+                          Margin="0,0,0,10">
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+
+                            <CheckBox Content="Terrain Symbols"
+                                      IsChecked="{Binding IncludeTerrainSymbols}"
+                                      Margin="0,3"/>
+
+                            <CheckBox Content="Vegetation Symbols"
+                                      IsChecked="{Binding IncludeVegetationSymbols}"
+                                      Margin="0,3"/>
+
+                            <CheckBox Content="Structure Symbols"
+                                      IsChecked="{Binding IncludeStructureSymbols}"
+                                      Margin="0,3"/>
+
+                            <CheckBox Content="Marker Symbols"
+                                      IsChecked="{Binding IncludeMarkerSymbols}"
+                                      Margin="0,3"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1">
+
+                            <CheckBox Content="Rivers and Lakes"
+                                      IsChecked="{Binding IncludeRiversAndLakes}"
+                                      Margin="0,3"/>
+
+                            <CheckBox Content="Paths"
+                                      IsChecked="{Binding IncludePaths}"
+                                      Margin="0,3"/>
+
+                            <CheckBox Content="Labels"
+                                      IsChecked="{Binding IncludeLabels}"
+                                      Margin="0,3"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- BOTTOM BUTTONS -->
+
+        <Border Grid.Row="2"
+                Background="#FFDFDBD2"
+                BorderThickness="0,1,0,0"
+                BorderBrush="#FFB8B4AC">
+
+            <Grid Margin="10,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           Text="{Binding GenerationStatus}"
+                           VerticalAlignment="Center"
+                           Foreground="Gray"
+                           TextWrapping="Wrap"
+                           Margin="0,0,10,0"/>
+
+                <Button Grid.Column="1"
+                        Content="Generate"
+                        Command="{Binding GenerateCommand}"
+                        IsEnabled="{Binding CanGenerate}"
+                        Style="{StaticResource FlatToolButton}"
+                        Width="100"
+                        Height="40"
+                        Margin="0,0,10,0"/>
+
+                <Button Grid.Column="2"
+                        Content="Cancel"
+                        Command="{Binding CancelCommand}"
+                        Style="{StaticResource FlatToolButton}"
+                        Width="100"
+                        Height="40"/>
+            </Grid>
+        </Border>
+
+    </Grid>
+</ui:ModalDialog>

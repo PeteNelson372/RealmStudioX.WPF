@@ -122,7 +122,7 @@ namespace RealmStudioX.WPF.Editor.Tools
 
             if (_editor.CurrentDrawingMode == MapDrawingMode.AreaSelection && state.Button == EditorMouseButton.Left)
             {
-                _selectedArea = new(_initialMousePoint.X, _initialMousePoint.Y, state.WorldPoint.X, state.WorldPoint.Y);
+                SelectedArea = new(_initialMousePoint.X, _initialMousePoint.Y, state.WorldPoint.X, state.WorldPoint.Y);
 
                 _initialMousePoint = SKPoint.Empty;
 

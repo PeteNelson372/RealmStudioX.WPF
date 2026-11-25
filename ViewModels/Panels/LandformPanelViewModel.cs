@@ -1,12 +1,14 @@
 ﻿using RealmStudioShapeRenderingLib;
 using RealmStudioX.Core;
 using RealmStudioX.Infrastructure;
+using RealmStudioX.WorldGeneration.LandformGeneration;
 using RealmStudioX.WPF.Editor;
 using RealmStudioX.WPF.Editor.UserInterface;
 using RealmStudioX.WPF.ViewModels.Controls;
 using RealmStudioX.WPF.ViewModels.Infrastructure;
 using RealmStudioX.WPF.ViewModels.Main;
 using RealmStudioX.WPF.ViewModels.Painting;
+using RealmStudioX.WPF.Views.Dialogs;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
 using System.Collections.ObjectModel;
@@ -452,6 +454,28 @@ namespace RealmStudioX.WPF.ViewModels.Panels
 
         public ICommand GenerateLandformsCommand => new RelayCommand(() =>
         {
+            if (!MainViewModel.Editor.SelectionService!.SelectedArea.IsEmpty)
+            {
+                LandformGenerationDialog dlg = new(MainViewModel.Editor,
+                    MainViewModel.Editor.Scene!.Map,
+                    MainViewModel.SelectionService.SelectedArea);
+
+                bool? result = dlg.ShowDialog();
+
+                if (result == true)
+                {
+                    LandformGenerationResult? generationResult = dlg.Result;
+
+                    if (generationResult != null)
+                    {
+                        // build the landform and add it to the landform layer
+                        Landform lf = new()
+                        {
+                            
+                        };
+                    }
+                }
+            }
 
         });
 
@@ -576,9 +600,7 @@ namespace RealmStudioX.WPF.ViewModels.Panels
             active.InvalidateRenderCache();
         }
 
-        private static bool RasterPathsOverlap(
-    SKPath firstPath,
-    SKPath secondPath)
+        private static bool RasterPathsOverlap(SKPath firstPath, SKPath secondPath)
         {
             if (firstPath.IsEmpty || secondPath.IsEmpty)
                 return false;
